@@ -1,0 +1,15 @@
+# V5.1 documents-only publication allowlist.
+# Expand intentionally only when a later scope authorizes source publication.
+*
+!.gitignore
+!README.md
+!ROADMAP.md
+!LICENSING.md
+!PUBLICATION_MANIFEST.sha256
+!docs/
+!docs/V5_1_AUTHORITY_AND_COUNTERS.md
+!docs/V5_1_INTEGRATION_SPEC.md
+!docs/V5_1_PROVENANCE_AND_PUBLICATION.md
+!docs/V5_1_REVIEW_REPORT.md
+!docs/evidence/
+!docs/evidence/SOURCE_INDEX.md
