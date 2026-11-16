@@ -162,3 +162,9 @@
 !desktop/src-tauri/src/bridge.rs
 !desktop/src-tauri/src/protocol.rs
 !desktop/src-tauri/src/owned_job.rs
+!desktop/src/connected/
+!desktop/src/connected/ConnectedWorkspace.tsx
+!desktop/src/connected/client.ts
+!desktop/src/connected/model.ts
+!desktop/src/connected/model.test.ts
+!desktop/src/connected/connected.css
