@@ -39,6 +39,8 @@ La siguiente acción para R14 es capturar orden de lectura/escritura/cierre en u
 
 ## Registro de evidencia y límites
 
+**R15 — advertencia de runtime en CI.** La primera validación pública pasó 60/60 en Windows Server 2025 y Python 3.12.10, pero GitHub advirtió que las acciones fijadas declaraban Node 20 y se ejecutaban forzadamente con Node 24. Se verificaron los manifiestos y tags oficiales de [checkout v7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1) y [setup-python v7.1.0](https://github.com/actions/setup-python/releases/tag/v7.1.0), que declaran Node 24. Se cambian únicamente esas dos referencias, conservando hashes completos, permisos de lectura y credenciales no persistidas. El runtime del piloto conserva sus bytes. [Ejecución anterior y advertencia](https://github.com/ymkaddur/neural-office/actions/runs/43821562497). La comprobación posterior se registra en el recibo de publicación; no se presupone que una actualización pase los tests.
+
 | Evidencia | Etiqueta y alcance |
 | --- | --- |
 | Comparación de 201 archivos de la línea base | VERIFICADO: solo cinco diferencias autorizadas en el legado; bases y resto de archivos incluidos conservan sus hashes. No cubre todos los archivos del equipo. [Cambios](evidence/V5_2_LEGACY_CHANGES.json). |
