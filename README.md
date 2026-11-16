@@ -2,6 +2,8 @@
 
 **Tu oficina de agentes de IA, en tu máquina.**
 
+Software gratuito y de código abierto bajo [MIT](LICENSE), con [apoyo voluntario](#apoya-el-proyecto) y las mismas funciones para todas las personas.
+
 Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. La visión es una oficina con memoria, skills y tareas encadenadas; **V5.2.1 es una vista previa para Windows**.
 
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
@@ -50,6 +52,34 @@ Se admite una inferencia administrada por ledger y hasta dos proyectos activos. 
 | Instalador autónomo y otros sistemas operativos | Planificados |
 
 La [revisión forense](docs/V5_2_1_FORENSIC_REVIEW.md) enlaza los resultados, las regresiones y sus límites. Una prueba exitosa no demuestra ausencia total de errores. La [visión hasta V10](ROADMAP.md) muestra qué gana el usuario en cada hito.
+
+## Apoya el proyecto
+
+Neural Office es gratuito y de código abierto. Puedes usar todas sus funciones disponibles sin pagar ni tener una cuenta de patrocinador. El apoyo es voluntario y ayuda a sostener el desarrollo, las pruebas, la documentación y la distribución.
+
+Los límites técnicos de esta vista previa se aplican por igual a todo el mundo. Aportar no desbloquea funciones ni aumenta cuotas; tampoco concede acceso anticipado, prioridad de soporte o trabajo personalizado. Las novedades y la documentación del proyecto son públicas.
+
+Prepararemos estas vías de apoyo:
+
+| Plataforma | Modalidad | Estado |
+| --- | --- | --- |
+| GitHub Sponsors | Aportaciones puntuales o mensuales | Pendiente de habilitación del perfil de cobro |
+| Patreon | Apoyo mensual en euros | Página en preparación |
+
+**Niveles previstos en Patreon:**
+
+| Nivel | Aportación base |
+| --- | --- |
+| Apoyo de 1 € | 1 €/mes |
+| Apoyo de 3 € | 3 €/mes |
+| Apoyo de 5 € | 5 €/mes |
+| Apoyo de 10 € | 10 €/mes |
+
+Todos los niveles tienen el mismo propósito: apoyar el proyecto, sin funciones ni contenido exclusivos. Elige el importe que te resulte cómodo; usar Neural Office sin aportar también está bien. Los importes indicados son los precios base previstos; la plataforma mostrará el total aplicable antes de confirmar la suscripción.
+
+Los enlaces de apoyo se publicarán cuando las páginas estén activas. GitHub Sponsors configura sus niveles en [dólares estadounidenses](https://docs.github.com/en/sponsors/receiving-sponsorships-through-github-sponsors/setting-up-github-sponsors-for-your-personal-account#creating-sponsorship-tiers); sus importes se mostrarán por separado, sin prometer una equivalencia fija con los euros de Patreon.
+
+También puedes ayudar probando la aplicación, comunicando errores reproducibles o mejorando la documentación. La gratuidad corresponde al software; el equipo, los modelos y cualquier servicio externo conservan sus propios requisitos, licencias y posibles costes.
 
 ## Desarrollo y contribuciones
 
