@@ -1,0 +1,24 @@
+{
+  "status": "OBSERVADO · CPU",
+  "description": "Dos ensayos por configuración con el HTML público, en una sola máquina. Núcleo y colector V5.3 identificados por hash, con control de pertenencia al Job. No es una comparación de calidad.",
+  "rows": [
+    {
+      "roles": 1,
+      "samples": 2,
+      "seconds": 28.7997371,
+      "workingSetGiB": 5.875606536865234
+    },
+    {
+      "roles": 3,
+      "samples": 2,
+      "seconds": 57.3922029,
+      "workingSetGiB": 6.24786376953125
+    },
+    {
+      "roles": 7,
+      "samples": 2,
+      "seconds": 109.46221965000001,
+      "workingSetGiB": 6.902587890625
+    }
+  ]
+}

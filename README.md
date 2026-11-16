@@ -4,21 +4,21 @@
 
 Software gratuito y de código abierto bajo [MIT](LICENSE), con [apoyo voluntario](#apoya-el-proyecto) y las mismas funciones para todas las personas.
 
-Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. La visión es una oficina con memoria, skills y tareas encadenadas; **V5.2.1 es una vista previa para Windows**.
+Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. **V5.3 añade mediciones reproducibles y una vista previa interactiva de la nueva interfaz.** El piloto operativo sigue siendo Python/Tkinter para Windows; la interfaz nueva todavía simula las tareas.
 
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/downloads/)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![Interfaz real: lectura de un informe guardado del ejemplo incluido](docs/images/pilot-v5.2.1.jpg)
+![Prototipo interactivo V5.3: tareas simuladas y presupuesto visible](docs/images/desktop-v5.3.jpg)
 
-Captura del piloto con el ejemplo sintético incluido. El informe se vuelve a abrir desde el estado guardado; los comentarios del modelo requieren revisión humana.
+Captura del **prototipo sin motor** con datos sintéticos. Puedes [abrir y explorar la demo](desktop/README.md), incluidos parada, errores y recuperación. El [piloto operativo anterior](docs/images/pilot-v5.2.1.jpg) conserva sus informes y controles; la integración del nuevo escritorio se prepara para V5.5.
 
 ## Empieza por un ejemplo
 
 Necesitas **Windows, Python 3.12 con Tk y Ollama con un modelo local ya descargado**. Esta descarga contiene el código del piloto; el instalador autónomo es un hito futuro.
 
-1. [Descarga la vista previa](https://github.com/ymkaddur/neural-office/archive/refs/tags/v5.2.1-preview.1.zip) y extrae la carpeta.
+1. [Descarga la vista previa V5.3](https://github.com/ymkaddur/neural-office/archive/refs/tags/v5.3-preview.1.zip) y extrae la carpeta.
 2. Abre `.\run.bat`. También puedes ejecutar `py -3.12 -B -m neural_office gui` desde esa carpeta.
 3. Selecciona el modelo, pulsa **Usar ejemplo** y después **Autorizar y auditar**.
 4. Consulta **Ver presupuesto** y **Ver último informe**. **Detener** solicita cancelar y espera la terminación comprobada.
@@ -48,10 +48,25 @@ Se admite una inferencia administrada por ledger y hasta dos proyectos activos. 
 | Conciliación histórica y restauración | Verificadas para los esquemas y límites documentados |
 | Respuesta 401 intermitente del gateway histórico | Reproducida y corregida; diff y regresión publicados |
 | Timeout histórico al arrancar Ollama | Causa pendiente; instrumentación por etapas verificada |
+| Medición CPU, memoria del backend y comparación 1/3/7 | Seis intentos reales aceptados; calidad comparada y GPU pendientes |
+| Nueva interfaz React/TypeScript | Prototipo interactivo probado; sin conexión al motor |
+| Contrato de escritorio | Especificación y validador de mensajes probados; transporte pendiente |
 | Memoria, skills aprendidas y tareas generales | Planificadas |
 | Instalador autónomo y otros sistemas operativos | Planificados |
 
-La [revisión forense](docs/V5_2_1_FORENSIC_REVIEW.md) enlaza los resultados, las regresiones y sus límites. Una prueba exitosa no demuestra ausencia total de errores. La [visión hasta V10](ROADMAP.md) muestra qué gana el usuario en cada hito.
+La [revisión forense V5.3](docs/V5_3_FORENSIC_REVIEW.md) enlaza resultados, regresiones y límites, y conserva la [revisión V5.2.1](docs/V5_2_1_FORENSIC_REVIEW.md). La [visión hasta V10](ROADMAP.md) sitúa optimización, interfaz, memoria y distribución en hitos comprobables.
+
+## Optimización con una referencia real
+
+| Roles en secuencia | Mediana total | Pico residente observado del backend¹ |
+| --- | --- | --- |
+| 1 | 28,80 s | 5,88 GiB |
+| 3 | 57,39 s | 6,25 GiB |
+| 7 | 109,46 s | 6,90 GiB |
+
+Dos ensayos por perfil, una máquina, el HTML incluido y un modelo en CPU. ¹ Suma muestreada de memoria residente; puede contar páginas compartidas varias veces y excluye interfaz/controlador. Estas cifras no son requisitos mínimos ni una comparación de calidad. [Protocolo, entorno y recibos](docs/V5_3_MEASUREMENT_PROTOCOL.md).
+
+La prioridad V5.4 es comparar contexto, carga, CPU/GPU y reutilización con evaluación de utilidad. La nueva interfaz llega conectada en V5.5. [Contrato de integración](docs/V5_3_DESKTOP_CONTRACT.md) · [revisión dirigida de vídeos](docs/V5_3_VIDEO_RESEARCH.md).
 
 ## Apoya el proyecto
 
@@ -90,7 +105,7 @@ py -3.12 -B -m unittest discover -s tests -v
 .\run.bat status
 ```
 
-La suite pública funciona sin modelos, credenciales ni historial privado. [CONTRIBUTING.md](CONTRIBUTING.md) explica cómo aportar una reproducción pequeña, una corrección localizada o documentación. La [comparación de 91 README](docs/README_RESEARCH_91.md) documenta las decisiones de presentación.
+La suite pública Python funciona sin modelos, credenciales ni historial privado: 125 pruebas en esta revisión. El [frontend](desktop/README.md) añade siete pruebas de estado y comprobación de tipos/build. [CONTRIBUTING.md](CONTRIBUTING.md) explica cómo aportar una reproducción pequeña, una corrección localizada o documentación. La [comparación de 91 README](docs/README_RESEARCH_91.md) documenta las decisiones de presentación.
 
 ## Datos y licencia
 
@@ -98,4 +113,4 @@ El piloto se comunica con Ollama por loopback y rechaza perfiles cloud. Guarda e
 
 [MIT](LICENSE) para las aportaciones propias que el promotor pueda licenciar. Desarrollo asistido por IA bajo supervisión. CrewAI fue una base conceptual e histórica; no es una dependencia del núcleo publicado. No se incluyen runtimes, pesos, vídeos ni historiales privados. [LICENSING.md](LICENSING.md) y el [expediente de procedencia](docs/V5_2_PROVENANCE.md) delimitan los derechos de terceros y las cuestiones jurídicas abiertas.
 
-Los contratos [V5.1](docs/V5_1_INTEGRATION_SPEC.md) y [V5.2](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) se conservan como documentos fechados. La revisión V5.2.1 actualiza únicamente los casos indicados en su informe.
+Los contratos [V5.1](docs/V5_1_INTEGRATION_SPEC.md) y [V5.2](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) se conservan como documentos fechados. V5.3 no modifica la política del piloto ni declara resuelto su timeout histórico. [Dependencias del frontend](docs/evidence/V5_3_COMPONENTS.json) y [avisos de terceros](desktop/THIRD_PARTY_NOTICES.md).

@@ -1,4 +1,4 @@
-# Explicit publication allowlist for the V5.2 source preview.
+# Explicit publication allowlist for the V5.3 source preview.
 # Private state, logs, packages and unlisted files remain excluded.
 *
 !.github/
@@ -61,3 +61,33 @@
 !docs/legacy/test_gateway_close.py
 !docs/images/
 !docs/images/pilot-v5.2.1.jpg
+!desktop/
+!desktop/src/
+!desktop/README.md
+!desktop/THIRD_PARTY_NOTICES.md
+!desktop/index.html
+!desktop/package.json
+!desktop/package-lock.json
+!desktop/tsconfig.json
+!desktop/src/App.tsx
+!desktop/src/main.tsx
+!desktop/src/state.ts
+!desktop/src/state.test.ts
+!desktop/src/styles.css
+!desktop/src/baseline.json
+!desktop/src/env.d.ts
+!neural_office/diagnostics.py
+!neural_office/measurements.py
+!neural_office/desktop_contract.py
+!tests/test_v53_measurements.py
+!tests/test_v53_startup_scenarios.py
+!tests/test_v53_contract.py
+!docs/V5_3_DESKTOP_CONTRACT.md
+!docs/V5_3_MEASUREMENT_PROTOCOL.md
+!docs/V5_3_FORENSIC_REVIEW.md
+!docs/V5_3_VIDEO_RESEARCH.md
+!docs/evidence/V5_3_BASELINE.json
+!docs/evidence/V5_3_STARTUP.json
+!docs/evidence/V5_3_COMPONENTS.json
+!docs/evidence/V5_3_VERIFICATION.json
+!docs/images/desktop-v5.3.jpg

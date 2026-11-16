@@ -1,8 +1,8 @@
-# Licencias de Neural Office V5.2
+# Licencias de Neural Office V5.3
 
 El 16 de noviembre de 2026 el promotor eligió expresamente **MIT** para las aportaciones propias que pueda licenciar. El texto se encuentra en [LICENSE](LICENSE). Se aplica al código y documentación propios de esta entrega en la medida de los derechos que correspondan al otorgante. No pretende conceder derechos sobre material ajeno ni afirmar que todo output de IA tenga protección autoral.
 
-Las referencias históricas a una licencia pendiente describen V5.1 antes de esa decisión. Este archivo expresa el estado vigente de V5.2.
+Las referencias históricas a una licencia pendiente describen V5.1 antes de esa decisión. Este archivo expresa el estado vigente de V5.3.
 
 La revisión V5.2.1 contiene el núcleo del piloto, pruebas sintéticas, documentación, diffs mínimos del legado y una captura de su interfaz con un ejemplo público. El estudio de 91 README publica referencias y observaciones propias, sin copiar sus medios ni bases de código. No incluye CrewAI, PyMuPDF, intérpretes, instaladores, ejecutables de Ollama, pesos de modelos, vídeos ni bases privadas. CrewAI es una referencia histórica, no una dependencia de este piloto; sus avisos MIT deberán preservarse si se incorpora código suyo posteriormente.
 
@@ -11,3 +11,9 @@ La licencia propia no resuelve por sí sola la titularidad de aportaciones hist�
 El [expediente V5.2](docs/V5_2_PROVENANCE.md) recoge fuentes, declaración de creación con IA, límites y cuestiones que siguen abiertas. No se promete inmunidad jurídica ni se atribuye a la licencia de CrewAI cobertura sobre todo el entorno de desarrollo.
 
 El [registro V5.2.1](docs/V5_2_1_FORENSIC_REVIEW.md) y sus [componentes](docs/evidence/V5_2_1_COMPONENTS.json) actualizan el alcance técnico. Esta revisión no acredita la disponibilidad del nombre como marca ni añade una garantía sobre derechos de terceros.
+
+V5.3 incorpora un prototipo React/TypeScript, colectores propios y una captura con datos sintéticos. No copia medios ni código de los vídeos de referencia; su [revisión dirigida](docs/V5_3_VIDEO_RESEARCH.md) publica observaciones propias. Tauri aún no forma parte de las dependencias integradas.
+
+El [inventario V5.3](docs/evidence/V5_3_COMPONENTS.json) registra 74 entradas de dependencias del lockfile, incluidas variantes opcionales para otros sistemas; 23 estaban instaladas en el entorno Windows de comprobación. No equivale a 74 componentes distribuidos ni a un SBOM completo de un instalador. El runtime web usa React, React DOM y Scheduler bajo sus avisos MIT, recogidos en [THIRD_PARTY_NOTICES.md](desktop/THIRD_PARTY_NOTICES.md).
+
+Las herramientas de compilación conservan sus licencias independientes: el lockfile incluye MIT, Apache-2.0, MPL-2.0, ISC, BSD-3-Clause y 0BSD. Esta publicación contiene fuentes y referencias de paquetes; no incluye `node_modules`, binarios de herramientas ni el bundle compilado. Antes de redistribuir cualquiera de esos artefactos hay que verificar sus componentes y avisos efectivos; la elección de MIT propio no cambia las licencias de terceros.
