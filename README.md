@@ -59,14 +59,14 @@ Neural Office es gratuito y de código abierto. Puedes usar todas sus funciones 
 
 Los límites técnicos de esta vista previa se aplican por igual a todo el mundo. Aportar no desbloquea funciones ni aumenta cuotas; tampoco concede acceso anticipado, prioridad de soporte o trabajo personalizado. Las novedades y la documentación del proyecto son públicas.
 
-Prepararemos estas vías de apoyo:
+Puedes apoyar el proyecto a través de estas plataformas:
 
 | Plataforma | Modalidad | Estado |
 | --- | --- | --- |
 | GitHub Sponsors | Aportaciones puntuales o mensuales | Pendiente de habilitación del perfil de cobro |
-| Patreon | Apoyo mensual en euros | Página en preparación |
+| [Patreon](https://www.patreon.com/Neural_office) | Apoyo mensual en euros | Página publicada |
 
-**Niveles previstos en Patreon:**
+**Niveles de apoyo en Patreon:**
 
 | Nivel | Aportación base |
 | --- | --- |
@@ -75,9 +75,9 @@ Prepararemos estas vías de apoyo:
 | Apoyo de 5 € | 5 €/mes |
 | Apoyo de 10 € | 10 €/mes |
 
-Todos los niveles tienen el mismo propósito: apoyar el proyecto, sin funciones ni contenido exclusivos. Elige el importe que te resulte cómodo; usar Neural Office sin aportar también está bien. Los importes indicados son los precios base previstos; la plataforma mostrará el total aplicable antes de confirmar la suscripción.
+Todos los niveles tienen el mismo propósito: apoyar el proyecto, sin funciones ni contenido exclusivos. Elige el importe que te resulte cómodo; usar Neural Office sin aportar también está bien. Los importes indicados son los precios base; la plataforma mostrará el total aplicable antes de confirmar la suscripción.
 
-Los enlaces de apoyo se publicarán cuando las páginas estén activas. GitHub Sponsors configura sus niveles en [dólares estadounidenses](https://docs.github.com/en/sponsors/receiving-sponsorships-through-github-sponsors/setting-up-github-sponsors-for-your-personal-account#creating-sponsorship-tiers); sus importes se mostrarán por separado, sin prometer una equivalencia fija con los euros de Patreon.
+El botón **Sponsor** de este repositorio enlaza a Patreon. GitHub Sponsors sigue pendiente de activación y configura sus niveles en [dólares estadounidenses](https://docs.github.com/en/sponsors/receiving-sponsorships-through-github-sponsors/setting-up-github-sponsors-for-your-personal-account#creating-sponsorship-tiers); sus importes se mostrarán por separado, sin prometer una equivalencia fija con los euros de Patreon.
 
 También puedes ayudar probando la aplicación, comunicando errores reproducibles o mejorando la documentación. La gratuidad corresponde al software; el equipo, los modelos y cualquier servicio externo conservan sus propios requisitos, licencias y posibles costes.
 

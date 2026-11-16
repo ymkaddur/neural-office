@@ -10,6 +10,7 @@
 !neural_office/
 !tests/
 !.github/workflows/windows-tests.yml
+!.github/FUNDING.yml
 !.gitignore
 !LICENSE
 !LICENSING.md
