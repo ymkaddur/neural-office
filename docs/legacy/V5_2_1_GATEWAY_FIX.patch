@@ -1,0 +1,42 @@
+--- a/neural_office_v5/runtime/gateway45.py
++++ b/neural_office_v5/runtime/gateway45.py
+@@ -6,7 +6,7 @@
+ local receipt. The receipt is a permission gate, not a global network proof.
+ """
+ from __future__ import annotations
+-import argparse, hmac, http.client, json, os, sys, threading
++import argparse, hmac, http.client, json, os, socket, sys, threading, time
+ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+ from pathlib import Path
+ from urllib.parse import urlsplit
+@@ -38,6 +38,7 @@
+         # Never log prompts, body, paths or bearer tokens.
+         pass
+     def _respond(self,status,code):
++        self._rejected_request=True
+         b=canonical({'ok':False,'code':code}).encode('utf-8')
+         try:
+             self.send_response(status)
+@@ -48,6 +49,22 @@
+             self.end_headers();self.wfile.write(b)
+         except (OSError,BrokenPipeError,ConnectionResetError):pass
+         self.close_connection=True
++    def finish(self):
++        super().finish()
++        if not getattr(self,'_rejected_request',False):return
++        # RFC 9112 section 9.6: a reset from unread request bytes can erase the
++        # rejection response. Half-close, then drain with byte/time bounds.
++        try:
++            self.connection.shutdown(socket.SHUT_WR)
++            deadline=time.monotonic()+0.25;total=0
++            while total<MAX_BODY:
++                remaining=deadline-time.monotonic()
++                if remaining<=0:break
++                self.connection.settimeout(remaining)
++                part=self.connection.recv(min(65536,MAX_BODY-total))
++                if not part:break
++                total+=len(part)
++        except OSError:pass
+     def do_GET(self):
+         if self.path!='/health':return self._respond(404,'ROUTE_NOT_FOUND')
+         b=canonical({'ok':True,'mode':'OPERATOR_LIVE' if self.server.live else 'SHADOW_DENY',

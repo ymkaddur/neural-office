@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "runtime_version": "5.2.1",
+  "python_imports": [
+    "__future__",
+    "argparse",
+    "contextlib",
+    "contextvars",
+    "ctypes",
+    "hashlib",
+    "html",
+    "http",
+    "json",
+    "msvcrt",
+    "os",
+    "pathlib",
+    "queue",
+    "shutil",
+    "socket",
+    "sqlite3",
+    "subprocess",
+    "sys",
+    "tempfile",
+    "threading",
+    "time",
+    "tkinter",
+    "uuid"
+  ],
+  "external_python_runtime_dependencies": [],
+  "required_external_software": [
+    "Windows, CPython 3.12 with Tk",
+    "Ollama and a separately installed compatible local model"
+  ],
+  "bundled_third_party_binaries": [],
+  "bundled_model_weights": [],
+  "third_party_readme_content_republished": false,
+  "new_media": "Unedited screenshot of own pilot with public synthetic HTML",
+  "license_scope": "MIT for own contributions the licensor can license",
+  "installer_sbom_complete": false
+}

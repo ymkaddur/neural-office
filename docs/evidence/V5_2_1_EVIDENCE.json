@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "date": "2026-11-16",
+  "runtime_version": "5.2.1",
+  "labels": [
+    "OBSERVADO",
+    "VERIFICADO",
+    "DESCONOCIDO"
+  ],
+  "baseline_public_commit": "4acf3198f3c9f889dc37abde6d1328471838f07e",
+  "tests": [
+    {
+      "scope": "Public suite, local Windows; CI is separately linked from the commit",
+      "tests": 103,
+      "seconds": 13.968,
+      "passed": true,
+      "raw_private_log_sha256": "8f3c60f09c728d002d9af70f40ed9a5a9ce61e8e710635645a10695b8acbe8b3"
+    },
+    {
+      "scope": "Retained historical candidate with exact patched gateway",
+      "tests": 200,
+      "seconds": 5.437,
+      "passed": true,
+      "raw_private_log_sha256": "2af3f6a9d5b28c7d3a1645cfe05ac143711649398d0f1cc81d9502984705f9d9"
+    },
+    {
+      "scope": "Previously published legacy regressions",
+      "tests": 7,
+      "seconds": 0.066,
+      "passed": true,
+      "raw_private_log_sha256": "9a249ef5ae12f0636bb7c3f71208618384a3451566dda1e92b03a4de3011036d"
+    },
+    {
+      "scope": "New gateway regressions, including 80 delayed-body requests",
+      "tests": 5,
+      "seconds": 1.595,
+      "passed": true,
+      "raw_private_log_sha256": "49082943bae7f6f8904ccd07d32ee3ea7a597c1d6eeeae5ed8303f90a90f5fb6"
+    }
+  ],
+  "reconciliation": {
+    "source_files_unchanged": true,
+    "source_file_count": 5,
+    "projects": [
+      {
+        "id": "agent-memory",
+        "attempts_consumed": 0,
+        "legacy_consumed": 0,
+        "verified_versions": 0,
+        "active": false,
+        "approved": false
+      },
+      {
+        "id": "agent-observability",
+        "attempts_consumed": 0,
+        "legacy_consumed": 0,
+        "verified_versions": 0,
+        "active": false,
+        "approved": false
+      },
+      {
+        "id": "design-system-qa",
+        "attempts_consumed": 0,
+        "legacy_consumed": 0,
+        "verified_versions": 0,
+        "active": false,
+        "approved": false
+      },
+      {
+        "id": "skills-registry",
+        "attempts_consumed": 0,
+        "legacy_consumed": 0,
+        "verified_versions": 0,
+        "active": false,
+        "approved": false
+      },
+      {
+        "id": "web-auditor",
+        "attempts_consumed": 1,
+        "legacy_consumed": 1,
+        "verified_versions": 0,
+        "active": false,
+        "approved": false
+      }
+    ],
+    "authority_transferred": false,
+    "restore_status_identical": true,
+    "model_calls": 0
+  },
+  "restore": {
+    "before_signature": "SILENT_BUDGET_ROLLBACK",
+    "before_expected_consumption": 3,
+    "before_observed_consumption": 1,
+    "after_three_consumed_preserved": true,
+    "test": "tests/test_continuity.py::Continuity.test_old_copy_does_not_refund_three_cancelled_attempts",
+    "all_copies_rollback_detectable": false,
+    "disk_power_loss_experiment_performed": false
+  },
+  "R14": {
+    "original_signature": "ConnectionAbortedError: WinError 10053 during HTTP status-line read",
+    "counterfactual_trials": [
+      {
+        "bounded_drain": false,
+        "body_delay_seconds": 0,
+        "outcomes": {
+          "401": 39,
+          "ConnectionAbortedError:10053": 1
+        }
+      },
+      {
+        "bounded_drain": false,
+        "body_delay_seconds": 0.001,
+        "outcomes": {
+          "ConnectionAbortedError:10053": 40
+        }
+      },
+      {
+        "bounded_drain": false,
+        "body_delay_seconds": 0.01,
+        "outcomes": {
+          "ConnectionAbortedError:10053": 40
+        }
+      },
+      {
+        "bounded_drain": false,
+        "body_delay_seconds": 0.05,
+        "outcomes": {
+          "ConnectionAbortedError:10053": 40
+        }
+      },
+      {
+        "bounded_drain": true,
+        "body_delay_seconds": 0,
+        "outcomes": {
+          "401": 40
+        }
+      },
+      {
+        "bounded_drain": true,
+        "body_delay_seconds": 0.001,
+        "outcomes": {
+          "401": 40
+        }
+      },
+      {
+        "bounded_drain": true,
+        "body_delay_seconds": 0.01,
+        "outcomes": {
+          "401": 40
+        }
+      },
+      {
+        "bounded_drain": true,
+        "body_delay_seconds": 0.05,
+        "outcomes": {
+          "401": 40
+        }
+      }
+    ],
+    "production_patch_verified": true,
+    "before_sha256": "00e82c5fca90df136bf9526867254ffcfd89d173c9521aee4e14bf7c2d86c5af",
+    "after_sha256": "cdceebc95fdea6cd424a75a150ed05c2cec466a56a4b2dedfec7542e36833f16",
+    "upstream_inference_calls_in_experiments": 0,
+    "portable_across_all_os_proven": false
+  },
+  "R13": {
+    "historical_cause": "DESCONOCIDO",
+    "resolved": false,
+    "real_start_trials_without_inference": [
+      {
+        "trial": 0,
+        "seconds_including_cleanup": 26.3113273,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 1,
+        "seconds_including_cleanup": 4.8599527,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 2,
+        "seconds_including_cleanup": 5.80384,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 3,
+        "seconds_including_cleanup": 5.6835316,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 4,
+        "seconds_including_cleanup": 5.098614,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 5,
+        "seconds_including_cleanup": 5.2523422,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 6,
+        "seconds_including_cleanup": 6.3799635,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 7,
+        "seconds_including_cleanup": 5.3592886,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 8,
+        "seconds_including_cleanup": 6.9845717,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 9,
+        "seconds_including_cleanup": 5.9689441,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 10,
+        "seconds_including_cleanup": 5.3623036,
+        "active_after_cleanup": 0,
+        "error": null
+      },
+      {
+        "trial": 11,
+        "seconds_including_cleanup": 5.7482497,
+        "active_after_cleanup": 0,
+        "error": null
+      }
+    ],
+    "diagnostic_start_timeline": [
+      {
+        "stage": "BOOTSTRAP_SPAWN_BEGIN",
+        "elapsed_seconds": 0.0
+      },
+      {
+        "stage": "BOOTSTRAP_LAUNCHED",
+        "elapsed_seconds": 0.0071941
+      },
+      {
+        "stage": "STARTUP_PROBE_BEGIN",
+        "elapsed_seconds": 0.00726,
+        "phase": "metadata"
+      },
+      {
+        "stage": "STARTUP_PHASE",
+        "elapsed_seconds": 4.3110357,
+        "phase": "listener_owner"
+      },
+      {
+        "stage": "STARTUP_PHASE",
+        "elapsed_seconds": 6.7974052,
+        "phase": "model_identity"
+      },
+      {
+        "stage": "OWNED_BACKEND_READY",
+        "elapsed_seconds": 6.8660837
+      }
+    ],
+    "instrumentation_verified": true,
+    "timeout_extended": false,
+    "next_experiment": "Capture one failing startup with phase events and exact commit, then compare with a successful run in the same environment."
+  },
+  "real_smoke": {
+    "roles": 1,
+    "attempts_consumed": 1,
+    "state": "ACCEPTED",
+    "lease_released": true,
+    "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+    "artifact_sha256": "0a7266f7103293bf8dab6c25d9b351b32036250d19052cf7293a3b04ce954252",
+    "verifier_passed": true,
+    "finding_codes": [
+      "DOCUMENT_TITLE_MISSING",
+      "HTML_LANGUAGE_MISSING",
+      "IMAGE_ALT_MISSING",
+      "CONTROL_LABEL_CANDIDATE"
+    ],
+    "calls": 1,
+    "execution": {
+      "context_length": 8192,
+      "done_reason": "stop",
+      "eval_count": 73,
+      "mode": "CPU",
+      "model_digest": "e85e2b3a5e1b3b6c43331f3e1b03f35e3f05f8c7d7105c25086eb62248af4405",
+      "owned_job": true,
+      "prompt_eval_count": 169,
+      "size_vram": 0,
+      "total_duration": 17594385000
+    },
+    "screenshot_is_saved_report_readback": true,
+    "input_is_public_synthetic_example": true
+  },
+  "protected_historical_files": {
+    "original_baseline_count": 201,
+    "total_changed_since_original_baseline": 6,
+    "new_changed_files_this_revision": [
+      "neural_office_v5/runtime/gateway45.py"
+    ],
+    "all_other_prior_legacy_fixes_retained": true
+  },
+  "review_corrections": [
+    "Corrected INSERT placeholder count found by legacy-specific tests before publication.",
+    "Closed SQLite handles in two restore test fixtures before temporary directory cleanup.",
+    "Excluded a 200-test run after a failed relative-path copy; repeated against hash-matched patched candidate.",
+    "Added transaction-time idle recheck for an older controller racing with enrollment.",
+    "Reject partial certified-version authority rather than expand it to three attempts.",
+    "Reproduced and blocked repeated RUN_STARTED under one authorization instead of silently deduplicating it.",
+    "Documented adjacent witness, complete rollback, optional-source creation race and legacy schema limits.",
+    "Corrected PowerShell launcher examples to use the current-directory prefix."
+  ]
+}

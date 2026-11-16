@@ -1,53 +1,71 @@
-# Neural Office · V5.2
+# Neural Office
 
-Una oficina de agentes locales, en desarrollo. **V5.2 es una vista previa técnica para Windows**: permite seleccionar un HTML, un modelo local instalado y un recorrido de uno, tres o siete roles. Produce un informe estático con evidencia persistida y comentarios del modelo claramente identificados como no certificados.
+**Tu oficina de agentes de IA, en tu máquina.**
 
-La meta sigue siendo descargar la aplicación, elegir un modelo local y comenzar. Esta versión todavía requiere Python 3.12 y Ollama instalados. No es el instalador autónomo de V10 ni una migración de las oficinas históricas.
+Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. La visión es una oficina con memoria, skills y tareas encadenadas; **V5.2.1 es una vista previa para Windows**.
 
-## Probar el piloto
+[![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/downloads/)
+[![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-1. Descarga el código de este repositorio y extrae la carpeta.
-2. Ten disponibles Python 3.12 con Tk y Ollama, con un modelo local ya instalado.
-3. Desde la carpeta extraída, ejecuta:
+![Interfaz real: lectura de un informe guardado del ejemplo incluido](docs/images/pilot-v5.2.1.jpg)
+
+Captura del piloto con el ejemplo sintético incluido. El informe se vuelve a abrir desde el estado guardado; los comentarios del modelo requieren revisión humana.
+
+## Empieza por un ejemplo
+
+Necesitas **Windows, Python 3.12 con Tk y Ollama con un modelo local ya descargado**. Esta descarga contiene el código del piloto; el instalador autónomo es un hito futuro.
+
+1. [Descarga la vista previa](https://github.com/ymkaddur/neural-office/archive/refs/tags/v5.2.1-preview.1.zip) y extrae la carpeta.
+2. Abre `.\run.bat`. También puedes ejecutar `py -3.12 -B -m neural_office gui` desde esa carpeta.
+3. Selecciona el modelo, pulsa **Usar ejemplo** y después **Autorizar y auditar**.
+4. Consulta **Ver presupuesto** y **Ver último informe**. **Detener** solicita cancelar y espera la terminación comprobada.
+
+El [HTML de ejemplo](examples/audit-sample.html) tiene cuatro hallazgos esperados: falta de idioma, título vacío, imagen sin `alt` y un control cuya etiqueta hay que revisar. No requiere descargar una web. Los comentarios generados pueden variar; las comprobaciones estáticas tienen un resultado contrastable.
+
+El piloto admite HTML UTF-8 de hasta 256 KiB. Lee la entrada sin ejecutar sus scripts, seguir sus enlaces ni modificarla. El análisis cubre esas heurísticas, no una certificación de accesibilidad o seguridad.
+
+## Lo que puedes controlar hoy
+
+- **Roles:** uno, tres o siete, ejecutados en secuencia con un backend local propio.
+- **Presupuesto:** tres intentos por proyecto; los fallos y cancelaciones cuentan. Es el límite deliberado de esta vista previa.
+- **Parada y recuperación:** el árbol de procesos propio debe terminar antes de liberar el bloqueo.
+- **Evidencia:** entradas capturadas, respuestas e informe guardados localmente, con verificación de las comprobaciones estáticas.
+- **Continuidad:** respaldo y restauración con un testigo retenido, sin devolver intentos al cargar una copia antigua.
+- **Historial:** conciliación explícita de fuentes V1/V4/Plus y ledgers compatibles; importar no activa proyectos ni concede autoridad.
+
+Se admite una inferencia administrada por ledger y hasta dos proyectos activos. La conciliación bloquea discrepancias y esquemas no mapeados; no sustituye ni controla clientes externos como OpenCode. El [manual de continuidad y conciliación](docs/V5_2_1_OPERATIONS.md) explica el alcance, los comandos y la conservación del testigo.
+
+**Si ya usabas V5.2:** cierra los controladores anteriores y ejecuta `.\run.bat protect` sobre tu estado existente antes de abrir la interfaz. No borres el estado para actualizar. Para un ledger explícito: `.\run.bat --state "D:\NeuralOfficeState\office.sqlite3" protect`.
+
+## Estado de la entrega
+
+| Capacidad | Estado |
+| --- | --- |
+| Piloto HTML, informes y cuotas persistentes | Verificado en pruebas y una ejecución local real de esta revisión |
+| Conciliación histórica y restauración | Verificadas para los esquemas y límites documentados |
+| Respuesta 401 intermitente del gateway histórico | Reproducida y corregida; diff y regresión publicados |
+| Timeout histórico al arrancar Ollama | Causa pendiente; instrumentación por etapas verificada |
+| Memoria, skills aprendidas y tareas generales | Planificadas |
+| Instalador autónomo y otros sistemas operativos | Planificados |
+
+La [revisión forense](docs/V5_2_1_FORENSIC_REVIEW.md) enlaza los resultados, las regresiones y sus límites. Una prueba exitosa no demuestra ausencia total de errores. La [visión hasta V10](ROADMAP.md) muestra qué gana el usuario en cada hito.
+
+## Desarrollo y contribuciones
 
 ```powershell
-py -3.12 -B -m neural_office gui
-```
-
-También se incluye `Start-NeuralOffice.ps1`. El lanzador no instala componentes ni cambia la política de PowerShell. Si tu política no permite ejecutar el script, utiliza directamente el comando anterior.
-
-En la ventana, elige el modelo y pulsa «Usar ejemplo» o selecciona tu HTML. «Autorizar y auditar» consume un intento. «Detener» solicita cancelar y espera la terminación comprobada. «Ver presupuesto» y «Ver último informe» consultan el estado persistido.
-
-Se admite una inferencia administrada simultánea por ledger, como máximo dos proyectos activos y tres intentos por proyecto. Los fallos y cancelaciones cuentan. Reiniciar no devuelve presupuesto. Un informe aceptado acredita las comprobaciones estáticas descritas; los comentarios del modelo siguen requiriendo revisión humana.
-
-La entrada es HTML local UTF-8, hasta 256 KiB. Se comprueban idioma, título, atributos `alt` y posibles controles sin etiqueta. No se ejecutan scripts del HTML, no se navega por sus enlaces y no se modifica el archivo original. Esto no certifica WCAG, seguridad ni comportamiento de una web completa.
-
-## Estado probado
-
-- Suite pública de 60 pruebas, con fixtures y comprobaciones nativas Windows.
-- Ejecuciones locales reales de uno, tres y siete roles sobre el mismo ejemplo.
-- Cancelación después de un POST real, terminación del árbol propio y recuperación tras caída del controlador.
-- Lectura del informe y conservación del presupuesto después de reiniciar la interfaz.
-- Cinco correcciones puntuales del V5 histórico, documentadas con diff y hashes.
-
-El modelo de ensayo usa un alias personalizado que menciona DeepSeek/64k, pero su metadata informa `qwen35`, 9B, Q4_K_M. El perfil ejecutado y observado fue **CPU, contexto 8.192**, con salida acotada. Esto no certifica todos los modelos ni contexto de 64k. Los pesos no se distribuyen y su licencia no se presume por el alias.
-
-Los [recibos](docs/evidence/V5_2_EXECUTION.json) y el [diario de revisión](docs/V5_2_REVIEW_REPORT.md) conservan también los fallos: un timeout de arranque sin causa demostrada y una respuesta de red intermitente en el gateway histórico. Una corrida posterior exitosa no los declara resueltos.
-
-## Desarrollo y límites
-
-```powershell
+.\run.bat --version
 py -3.12 -B -m unittest discover -s tests -v
-py -3.12 -B -m neural_office models
-py -3.12 -B -m neural_office status
+.\run.bat models
+.\run.bat status
 ```
 
-Los tests no requieren un modelo ni credenciales. `status` no crea una base inexistente. La aplicación guarda estado, entradas y respuestas localmente; no cifra esos archivos. No compartas su carpeta de datos como si fuera código publicable.
+La suite pública funciona sin modelos, credenciales ni historial privado. [CONTRIBUTING.md](CONTRIBUTING.md) explica cómo aportar una reproducción pequeña, una corrección localizada o documentación. La [comparación de 91 README](docs/README_RESEARCH_91.md) documenta las decisiones de presentación.
 
-V5.2 no importa historiales V1/V4/V5. No uses un ledger nuevo para resetear cuotas de proyectos históricos. OpenCode y otros clientes quedan fuera del dominio de exclusión de este piloto. No se incluyen todavía memoria aprendida, promoción de skills, herramientas generales, aplicación de parches ni integración de las 69 reglas de V5.1 en su totalidad.
+## Datos y licencia
 
-Los documentos actuales son el [contrato implementado](docs/V5_2_AUTHORITY_AND_COUNTERS.md), la [matriz de los 45 casos](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) y el [expediente de procedencia](docs/V5_2_PROVENANCE.md). El [diseño V5.1](docs/V5_1_INTEGRATION_SPEC.md) y su [registro de revisión](docs/V5_1_REVIEW_REPORT.md) se conservan como historia fechada, con sus pendientes de entonces. La [hoja de ruta](ROADMAP.md) fija el avance hasta V10.
+El piloto se comunica con Ollama por loopback y rechaza perfiles cloud. Guarda entradas, respuestas y estado en archivos locales **sin cifrado**; no publiques esa carpeta de datos. Descargar modelos y el comportamiento de otros clientes son flujos separados. No se promete privacidad absoluta de toda la máquina.
 
-## Licencia y procedencia
+[MIT](LICENSE) para las aportaciones propias que el promotor pueda licenciar. Desarrollo asistido por IA bajo supervisión. CrewAI fue una base conceptual e histórica; no es una dependencia del núcleo publicado. No se incluyen runtimes, pesos, vídeos ni historiales privados. [LICENSING.md](LICENSING.md) y el [expediente de procedencia](docs/V5_2_PROVENANCE.md) delimitan los derechos de terceros y las cuestiones jurídicas abiertas.
 
-[MIT](LICENSE) para las aportaciones propias que el promotor pueda licenciar. Desarrollo asistido por IA bajo supervisión; CrewAI fue una base conceptual e histórica, pero no es una dependencia del núcleo V5.2. Consulta [LICENSING.md](LICENSING.md) para el alcance y los derechos de terceros. La licencia abierta no equivale a blindaje jurídico, certificación de seguridad ni disponibilidad general del producto.
+Los contratos [V5.1](docs/V5_1_INTEGRATION_SPEC.md) y [V5.2](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) se conservan como documentos fechados. La revisión V5.2.1 actualiza únicamente los casos indicados en su informe.

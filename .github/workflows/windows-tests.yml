@@ -1,7 +1,7 @@
 name: Windows pilot tests
 on:
   push:
-    branches: [main, v5.2]
+    branches: [main, v5.2, v5.2.1]
   pull_request:
 permissions:
   contents: read

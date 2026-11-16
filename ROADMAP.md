@@ -1,21 +1,43 @@
-# Hoja de ruta de Neural Office hasta V10
+# De un piloto útil a tu oficina local
 
-Cada versión representa una capacidad demostrada. El número de versión no sustituye evidencias de instalación, funcionamiento, calidad o derechos de distribución.
+**Visión:** descargar la aplicación, elegir un modelo local compatible y poner a trabajar un equipo con tareas, memoria y skills bajo control del usuario.
 
-| Hito | Resultado buscado | Evidencia para cerrarlo |
+```mermaid
+flowchart LR
+    A["V5.2.1 · Piloto y continuidad"] --> B["V6 · Un trabajo útil completo"]
+    B --> C["V7 · Roles que aportan valor"]
+    C --> D["V8 · Memoria y skills evaluadas"]
+    D --> E["V9 · Recuperación entre proyectos"]
+    E --> F["V10 · Descargar, elegir y comenzar"]
+```
+
+## Visión para usuarios
+
+| Hito | Qué ganas | Estado |
 | --- | --- | --- |
-| V5.1 documental | Contrato de autoridad, integración y procedencia. | Documentos coherentes, referencias comprobadas y paquete público sin código operativo ni datos privados. |
-| V5.2, vista previa actual | Piloto HTML independiente con autoridad durable, cuotas y backend propio; cinco reparaciones del V5 instalado. | Pruebas y recibos reales en la entrega. No cierra la migración V1/V4, restauración, OpenCode ni las incidencias intermitentes registradas. |
-| V6 | Un ciclo útil completo de web-auditor en CPU. | Artefacto reproducible, verificación independiente, parada y reanudación sin pérdida de presupuesto. |
-| V7 | Coordinación de roles justificada. | Comparación controlada de uno, tres y siete roles; calidad, latencia y consumo por tarea. |
-| V8 | Memoria y skills con mejora medible. | Recuperación relevante, procedencia, aislamiento, promoción basada en evidencia y regresiones controladas. |
-| V9 | Dos proyectos y recuperación ante fallos. | Concurrencia administrada limitada a una inferencia; pruebas de cancelación, reinicio, idempotencia y fallos parciales. |
-| V10 | Aplicación distribuible para usuarios nuevos. | Instalación en máquina limpia, selección guiada de modelo, actualización y desinstalación verificadas, documentación y revisión de licencias del paquete real. |
+| V5.2.1 | Auditar un HTML, detener la tarea, conservar informes y presupuesto al recuperar estado. | Vista previa Windows; timeout de arranque aún bajo investigación |
+| V6 | Completar una tarea útil de principio a fin con resultado comprobable. | Siguiente hito |
+| V7 | Elegir cuántos roles necesitas con evidencia sobre calidad, coste y espera. | Planificado |
+| V8 | Reutilizar conocimiento y skills que demuestren ayudar en tu trabajo. | Planificado |
+| V9 | Continuar tras fallos y gestionar dos proyectos sin perder autoridad ni resultados. | Planificado |
+| V10 | Instalar, seleccionar un modelo y empezar sin gestionar Python o scripts. | Objetivo de distribución |
 
-La experiencia objetivo es descargar la aplicación, seleccionar un modelo local compatible y comenzar una tarea. El empaquetado debe encargarse del entorno necesario para que el usuario no tenga que gestionar scripts, versiones de Python o archivos de configuración manualmente.
+En V6 se propone experimentar con **una skill declarativa de solo lectura y memoria consultable**, antes de habilitar aprendizaje o promoción automática. El primer objetivo es utilidad medible con procedencia; incorporar instrucciones sin evaluación no basta para cerrar el hito.
 
-Durante el piloto, Ollama y OpenCode son integraciones de referencia del legado. La distribución futura decidirá qué runtime gestionar o incluir después de revisar compatibilidad y licencias. No se presupone que toda dependencia histórica deba viajar en el instalador.
+No se asignan trimestres sin una estimación de capacidad y resultados del siguiente ciclo. Las versiones se cierran por evidencia, no por una fecha inventada. Antes de comprometer una fecha V6 se debe fijar un caso de uso, un conjunto de evaluación y un presupuesto de trabajo.
 
-V5.2 ya repara las rutas y conecta reserva, roles, informe y proveedor en el piloto acotado. Las siguientes tareas son conciliar la autoridad histórica, diseñar restauración con testigos, resolver el adaptador OpenCode y reproducir las incidencias abiertas. Solo después se ampliarán herramientas con efectos, memoria, skills y autonomía. La matriz V5.2 conserva los casos parciales y pendientes; no se los considera completados por aparecer en la hoja de ruta.
+## Criterios técnicos de salida
 
-La publicación del código del piloto y la publicación de un instalador son hitos distintos. La vista previa requiere un entorno preparado; no se anunciará una descarga autónoma para usuarios nuevos antes de superar instalación y trabajo en una máquina limpia.
+| Hito | Dependencia y evidencia requerida |
+| --- | --- |
+| V5.1 documental | Contrato, integración y procedencia revisados; publicación documental separada del código operativo. |
+| V5.2 / V5.2.1 | Preservar los recibos originales. Conciliación y restauración verificadas dentro de su alcance; 401 corregido. R13 permanece abierto y los clientes externos no participan todavía en la exclusión. |
+| V6 | Un caso útil de web-auditor en CPU, entrada y resultado reproducibles, evaluación independiente, cancelación y reanudación conservando cuotas. Resolver o acotar operacionalmente R13 antes de anunciar un arranque fiable. Ensayar skill/memoria mínimas aisladas. |
+| V7 | Comparación controlada 1/3/7 roles: calidad, latencia y consumo por familia de tareas. Una puntuación del propio modelo no será el único verificador. |
+| V8 | Procedencia, aislamiento por proyecto, recuperación relevante, borrado controlado y promoción de skills con evaluación fuera del conjunto usado para crearlas. Probar regresión y rollback. |
+| V9 | Fallos parciales, dos proyectos y una inferencia administrada; restauración de todos los componentes, idempotencia y exclusión de las integraciones realmente incluidas. Distinguir pérdida del ledger de pérdida de todos los testigos. |
+| V10 | Máquina Windows limpia, modelo compatible, instalación, actualización y desinstalación probadas; SBOM del paquete real, licencias/avisos de cada componente, revisión del nombre y responsabilidades de distribución. Evaluar otras plataformas por separado. |
+
+OpenCode y CrewAI se evaluarán por necesidad, compatibilidad y procedencia. Su presencia en el legado no obliga a distribuirlos. No se anunciará un instalador autónomo ni una oficina generalista antes de demostrar esas capacidades.
+
+Para contribuir ahora: reproducir R13 con la instrumentación publicada, probar la recuperación en un entorno Windows independiente y aportar casos HTML con resultados esperados. [Protocolo de contribución](CONTRIBUTING.md) · [Registro forense](docs/V5_2_1_FORENSIC_REVIEW.md).

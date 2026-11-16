@@ -56,7 +56,8 @@ class OwnedOllama:
 
     def _startup_event(self,stage,**fields):
         if self.log:
-            self.log.write((canonical({'stage':stage,'time_ns':time.time_ns(),**fields})+'\n').encode('utf-8'))
+            self.log.write((canonical({'stage':stage,'time_ns':time.time_ns(),
+                                      'perf_counter_ns':time.perf_counter_ns(),**fields})+'\n').encode('utf-8'))
             self.log.flush()
 
     def start(self):
@@ -74,24 +75,32 @@ class OwnedOllama:
                     'OLLAMA_MODELS':os.environ.get('OLLAMA_MODELS',str(Path.home()/'.ollama/models'))})
         self.log_path.parent.mkdir(parents=True,exist_ok=True)
         self.log=self.log_path.open('ab')
+        self._startup_event('BOOTSTRAP_SPAWN_BEGIN')
         process=self.job.start([executable,'serve'],env=env,log=self.log)
         self._startup_event('BOOTSTRAP_LAUNCHED',pid=process.pid,port=self.port)
         deadline=time.monotonic()+30
-        last_error=None
+        last_error=None; probe=0; phase='metadata'
         while time.monotonic()<deadline:
             if process.poll() is not None:
                 self._startup_event('BOOTSTRAP_EXITED',returncode=process.returncode)
                 raise Denied('OWNED_BACKEND_START_FAILED')
             try:
+                probe+=1; phase='metadata'
+                self._startup_event('STARTUP_PROBE_BEGIN',probe=probe,phase=phase)
                 local_metadata('/api/version',self.port)
+                phase='listener_owner'
+                self._startup_event('STARTUP_PHASE',probe=probe,phase=phase)
                 self._assert_owned_listener()
+                phase='model_identity'
+                self._startup_event('STARTUP_PHASE',probe=probe,phase=phase)
                 self.check_model()
                 self._startup_event('OWNED_BACKEND_READY',active_processes=self.job.active())
                 return
             except (OSError,http.client.HTTPException) as exc:
                 last_error=type(exc).__name__
+                self._startup_event('STARTUP_RETRY',probe=probe,phase=phase,error_type=last_error)
                 time.sleep(.1)
-        self._startup_event('START_TIMEOUT',active_processes=self.job.active(),last_error=last_error)
+        self._startup_event('START_TIMEOUT',active_processes=self.job.active(),last_error=last_error,phase=phase,probe=probe)
         raise Denied('OWNED_BACKEND_START_TIMEOUT')
 
     def _assert_owned_listener(self):

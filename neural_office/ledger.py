@@ -39,6 +39,13 @@ class Ledger:
 
     @contextmanager
     def connection(self):
+        from .continuity import guard
+        with guard(self.path):
+            with self._connection() as con:
+                yield con
+
+    @contextmanager
+    def _connection(self):
         if not self.path.is_file() or self.path.is_symlink():
             raise Denied('STATE_NOT_INITIALIZED_OR_UNSAFE')
         con = sqlite3.connect(self.path.resolve().as_uri()+'?mode=rw', uri=True,
@@ -49,27 +56,43 @@ class Ledger:
             con.execute('PRAGMA busy_timeout=10000')
             if con.execute('PRAGMA application_id').fetchone()[0] != APPLICATION_ID:
                 raise Denied('FOREIGN_STATE')
+            from .continuity import attach, validate
+            if con.execute('PRAGMA user_version').fetchone()[0] != 2:
+                raise Denied('CONTINUITY_UPGRADE_REQUIRED_RUN_PROTECT')
+            attach(con, self.path)
+            validate(con)
             yield con
         finally:
             con.close()
 
     @contextmanager
     def transaction(self):
-        with self.connection() as con:
+        from .legacy import held_sources
+        with self.connection() as con, held_sources():
             con.execute('BEGIN IMMEDIATE')
             try:
                 yield con
+                from .continuity import seal
+                seal(con)
                 con.execute('COMMIT')
             except BaseException:
                 con.rollback()
                 raise
 
     def initialize(self):
+        from .continuity import guard
+        with guard(self.path):
+            self._initialize()
+
+    def _initialize(self):
+        from .continuity import protect, witness_path
         if self.path.exists():
             with self.connection() as con:
-                if con.execute('PRAGMA user_version').fetchone()[0] != 1:
+                if con.execute('PRAGMA user_version').fetchone()[0] != 2:
                     raise Denied('SCHEMA_VERSION')
             return
+        if witness_path(self.path).exists():
+            raise Denied('CONTINUITY_DIVERGENCE_RESTORE_REQUIRED')
         self.path.parent.mkdir(parents=True, exist_ok=True)
         if self.path.parent.is_symlink() or self.path.is_symlink():
             raise Denied('STATE_PATH_UNSAFE')
@@ -113,6 +136,7 @@ class Ledger:
             ''')
         finally:
             con.close()
+        protect(self)
 
     def _event(self, con, kind, payload):
         last = con.execute('SELECT digest FROM events ORDER BY seq DESC LIMIT 1').fetchone()
@@ -129,6 +153,8 @@ class Ledger:
         if not root.is_dir(): raise Denied('PROJECT_ROOT_NOT_DIRECTORY')
         root = os.path.normcase(str(root))
         with self.transaction() as con:
+            from .legacy import require_reconciliation
+            require_reconciliation(con, project, root)
             old = con.execute('SELECT root FROM projects WHERE id=?', (project,)).fetchone()
             if old:
                 if os.path.normcase(old[0]) != os.path.normcase(root):
@@ -142,10 +168,12 @@ class Ledger:
             self._activate(con,project)
 
     def _activate(self, con, project):
+        from .legacy import check_authority, inherited_consumption
+        check_authority(con, project)
         row = con.execute('SELECT * FROM projects WHERE id=?', (project,)).fetchone()
         if row is None:
             raise Denied('UNKNOWN_PROJECT')
-        count = con.execute('SELECT count(*) FROM attempts WHERE project=?', (project,)).fetchone()[0]
+        count = inherited_consumption(con, project) + con.execute('SELECT count(*) FROM attempts WHERE project=?', (project,)).fetchone()[0]
         if count >= 3:
             raise Denied('ATTEMPT_BUDGET_EXHAUSTED')
         if not row['active'] and con.execute('SELECT count(*) FROM projects WHERE active=1').fetchone()[0]>=2:
@@ -183,7 +211,9 @@ class Ledger:
             authority = con.execute('SELECT active,approved FROM projects WHERE id=?', (project,)).fetchone()
             if authority is None or tuple(authority)!=(1,1):
                 raise Denied('USER_AUTHORITY_REQUIRED')
-            count = con.execute('SELECT count(*) FROM attempts WHERE project=?', (project,)).fetchone()[0]
+            from .legacy import check_authority, inherited_consumption
+            check_authority(con, project)
+            count = inherited_consumption(con, project) + con.execute('SELECT count(*) FROM attempts WHERE project=?', (project,)).fetchone()[0]
             if count>=3:
                 raise Denied('ATTEMPT_BUDGET_EXHAUSTED')
             if con.execute("SELECT 1 FROM attempts WHERE project=? AND state NOT IN ('ACCEPTED','REJECTED','FAILED','CANCELLED')", (project,)).fetchone():
@@ -202,6 +232,8 @@ class Ledger:
         return row
 
     def _authorized(self, con, row):
+        from .legacy import check_authority
+        check_authority(con, row['project'])
         authority = con.execute('SELECT active,approved FROM projects WHERE id=?',(row['project'],)).fetchone()
         if tuple(authority)!=(1,1) or row['cancelled']:
             raise Denied('AUTHORITY_REVOKED_OR_CANCELLED')
@@ -214,6 +246,11 @@ class Ledger:
         """Read-only in-flight check; revocation must reach an already admitted call."""
         with self.connection() as con:
             row=self._row(con,attempt)
+            from .legacy import held_sources, check_authority
+            try:
+                with held_sources(): check_authority(con, row['project'])
+            except (Denied,OSError,sqlite3.Error) as exc:
+                return 'LEGACY_AUTHORITY_UNAVAILABLE:' + type(exc).__name__
             authority=con.execute('SELECT active,approved FROM projects WHERE id=?',(row['project'],)).fetchone()
             if row['cancelled']: return 'CANCELLED'
             if tuple(authority)!=(1,1): return 'AUTHORITY_REVOKED'
@@ -322,7 +359,8 @@ class Ledger:
             self._event(con,'TERMINATION_UNKNOWN',{'attempt':attempt,'generation':generation})
 
     def _park_exhausted(self, con, project):
-        if con.execute('SELECT count(*) FROM attempts WHERE project=?',(project,)).fetchone()[0]>=3:
+        from .legacy import inherited_consumption
+        if inherited_consumption(con,project)+con.execute('SELECT count(*) FROM attempts WHERE project=?',(project,)).fetchone()[0]>=3:
             con.execute('UPDATE projects SET active=0,approved=0 WHERE id=?',(project,))
             self._event(con,'BUDGET_PARKED',{'project':project})
 
@@ -370,9 +408,12 @@ class Ledger:
         with self.connection() as con:
             projects=[]
             for p in con.execute('SELECT * FROM projects ORDER BY id'):
+                from .legacy import inherited_consumption
+                inherited = inherited_consumption(con,p['id'])
                 counts=con.execute("SELECT count(*),coalesce(sum(state='ACCEPTED' AND json_extract(profile,'$.mode')!='fixture'),0),coalesce(sum(state='ACCEPTED' AND json_extract(profile,'$.mode')='fixture'),0) FROM attempts WHERE project=?",(p['id'],)).fetchone()
                 projects.append({'id':p['id'],'active':bool(p['active']),'approved':bool(p['approved']),
-                                 'attempts_consumed':counts[0],'verified_versions':counts[1],'simulated_versions':counts[2]})
+                                 'attempts_consumed':counts[0]+inherited,'legacy_consumed':inherited,
+                                 'verified_versions':counts[1],'simulated_versions':counts[2]})
             attempts=[dict(r) for r in con.execute('SELECT id,project,ordinal,state,revision FROM attempts ORDER BY created')]
             lease=dict(con.execute('SELECT * FROM lease').fetchone())
             previous='0'*64

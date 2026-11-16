@@ -1,0 +1,1554 @@
+{
+  "schema": 1,
+  "scope": "Editorial review; not runtime or license certification",
+  "sample_size": 91,
+  "records": [
+    {
+      "index": 1,
+      "repository": "mudler/LocalAI",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "396a7d4a65c2e156348807bbd2efcb9cfcdc1f12",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/mudler/LocalAI/blob/master/README.md",
+      "line_count": 214,
+      "signals": {
+        "setup_heading_line": 31,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 189,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Resultado y hardware al inicio; distingue builds de desarrollo del recorrido de instalación."
+    },
+    {
+      "index": 2,
+      "repository": "pguso/ai-agents-from-scratch",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "ffd9cc3f4ae60cd51fd7737b0a85261af728682e",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/pguso/ai-agents-from-scratch/blob/main/README.md",
+      "line_count": 455,
+      "signals": {
+        "setup_heading_line": 48,
+        "contribution_heading_line": 423,
+        "boundary_heading_line": 43,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Propósito educativo y requisitos explícitos; no confundir tutorial con producto instalable."
+    },
+    {
+      "index": 3,
+      "repository": "amd/gaia",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "d5a9801173b0b27ee868216cb2fd2007ac431928",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/amd/gaia/blob/main/README.md",
+      "line_count": 191,
+      "signals": {
+        "setup_heading_line": 30,
+        "contribution_heading_line": 167,
+        "boundary_heading_line": 124,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Separa usuarios y desarrolladores; declara plataforma y alternativa en nube."
+    },
+    {
+      "index": 4,
+      "repository": "Kc1t/alethe-agents",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "df3316262b52340668a2459bf694181decf24844",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Kc1t/alethe-agents/blob/main/README.md",
+      "line_count": 517,
+      "signals": {
+        "setup_heading_line": 288,
+        "contribution_heading_line": 352,
+        "boundary_heading_line": 498,
+        "visual_reference_line": 81
+      },
+      "editorial_observation": "Presenta plataforma compatible y acceso a instalación, roadmap y contribución."
+    },
+    {
+      "index": 5,
+      "repository": "dcSpark/shinkai-local-ai-agents",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "66a1194a283be5d77feffa3072751e7da919fa34",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/dcSpark/shinkai-local-ai-agents/blob/main/README.md",
+      "line_count": 295,
+      "signals": {
+        "setup_heading_line": 84,
+        "contribution_heading_line": 272,
+        "boundary_heading_line": 92,
+        "visual_reference_line": 68
+      },
+      "editorial_observation": "Demostración y ejemplos separados; explica uso local o remoto."
+    },
+    {
+      "index": 6,
+      "repository": "mudler/LocalAGI",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "8f046c5ba0a5300639859b3b3491a2ec07c80071",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/mudler/LocalAGI/blob/main/README.md",
+      "line_count": 1200,
+      "signals": {
+        "setup_heading_line": 48,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 25,
+        "visual_reference_line": 17
+      },
+      "editorial_observation": "Propuesta local visible; no adoptar promesas absolutas de privacidad sin pruebas."
+    },
+    {
+      "index": 7,
+      "repository": "kwindla/macos-local-voice-agents",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "09c40b889a4d96cecb23905b822313ec236f0d29",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/kwindla/macos-local-voice-agents/blob/main/README.md",
+      "line_count": 84,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": 3
+      },
+      "editorial_observation": "Ejemplo concreto de voz con hardware y modelos delimitados."
+    },
+    {
+      "index": 8,
+      "repository": "nexu-io/open-design",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "bf8b42df35f25e6aa865928233d9bfe152b9ea04",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/nexu-io/open-design/blob/main/README.md",
+      "line_count": 736,
+      "signals": {
+        "setup_heading_line": 246,
+        "contribution_heading_line": 502,
+        "boundary_heading_line": 91,
+        "visual_reference_line": 44
+      },
+      "editorial_observation": "Recorrido visual y plataformas; la promoción inicial retrasa la explicación del producto."
+    },
+    {
+      "index": 9,
+      "repository": "pguso/agents-from-scratch",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "76c3ea0b542bcc57d0eff86f20b6dbdfaf4c7dc9",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/pguso/agents-from-scratch/blob/main/README.md",
+      "line_count": 172,
+      "signals": {
+        "setup_heading_line": 66,
+        "contribution_heading_line": 153,
+        "boundary_heading_line": 161,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Público y límites del material educativo identificados."
+    },
+    {
+      "index": 10,
+      "repository": "agentvivekkumar/dontbemichael",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "6de1633a422541877a69fa0f2a996fd16a1470da",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/agentvivekkumar/dontbemichael/blob/main/README.md",
+      "line_count": 392,
+      "signals": {
+        "setup_heading_line": 274,
+        "contribution_heading_line": 375,
+        "boundary_heading_line": 382,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Oficina para pequeños negocios y memoria como resultado; el concepto oficina tiene precedentes."
+    },
+    {
+      "index": 11,
+      "repository": "Fosowl/agenticSeek",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "c26712f5b98824beff21a39476a720622a276df8",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Fosowl/agenticSeek/blob/main/README.md",
+      "line_count": 828,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": 786,
+        "boundary_heading_line": 38,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Demostración y arranque rápido; distinguir operación local de proveedores opcionales."
+    },
+    {
+      "index": 12,
+      "repository": "localgpt-app/localgpt",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "d2559ed1688d90e01288e5beea49177294ba3b52",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/localgpt-app/localgpt/blob/main/README.md",
+      "line_count": 235,
+      "signals": {
+        "setup_heading_line": 25,
+        "contribution_heading_line": 226,
+        "boundary_heading_line": 232,
+        "visual_reference_line": 21
+      },
+      "editorial_observation": "Tabla por plataformas y componentes; el nombre no basta para deducir el producto actual."
+    },
+    {
+      "index": 13,
+      "repository": "sugarforever/chat-ollama",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "a6f47e9fef543508eb62e1f91a903f578e04c37a",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/sugarforever/chat-ollama/blob/main/README.md",
+      "line_count": 82,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Entrada breve con función principal y componentes locales o alojados."
+    },
+    {
+      "index": 14,
+      "repository": "yoanbernabeu/grepai",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "9896579b2eae6b459b72b8d185e17bf3a4160bf7",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/yoanbernabeu/grepai/blob/main/README.md",
+      "line_count": 139,
+      "signals": {
+        "setup_heading_line": 36,
+        "contribution_heading_line": 132,
+        "boundary_heading_line": 136,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Beneficio de búsqueda explicado pronto; no trasladar cifras de ahorro sin medirlas."
+    },
+    {
+      "index": 15,
+      "repository": "vastsa/PI-Desktop",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "47e842e33cc8e048d360da4a43b3a84f6b9da8da",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/vastsa/PI-Desktop/blob/main/README.md",
+      "line_count": 766,
+      "signals": {
+        "setup_heading_line": 515,
+        "contribution_heading_line": 689,
+        "boundary_heading_line": 737,
+        "visual_reference_line": 27
+      },
+      "editorial_observation": "Propuesta, plataformas y descarga visibles antes de los detalles."
+    },
+    {
+      "index": 16,
+      "repository": "unifapi-agent/agents",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "743262c461131038720d9f68b016a421eefffbf7",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/unifapi-agent/agents/blob/main/README.md",
+      "line_count": 145,
+      "signals": {
+        "setup_heading_line": 15,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 142,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Explicita servicio, autenticación y créditos; no confundirlo con un runtime exclusivamente local."
+    },
+    {
+      "index": 17,
+      "repository": "zvec-ai/zvec-grep",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "96f111193f65ba0a2529dc51a25930ac86c030c1",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/zvec-ai/zvec-grep/blob/main/README.md",
+      "line_count": 237,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": 231,
+        "boundary_heading_line": null,
+        "visual_reference_line": 43
+      },
+      "editorial_observation": "Muestra demo y ejemplo para probar antes de los benchmarks."
+    },
+    {
+      "index": 18,
+      "repository": "brenpoly/be-more-agent",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "516460689d349871a2d60ae2c9c12b00f6904ba3",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/brenpoly/be-more-agent/blob/main/README.md",
+      "line_count": 179,
+      "signals": {
+        "setup_heading_line": 59,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 22,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Delimita un equipo concreto y sus requisitos antes de instalar."
+    },
+    {
+      "index": 19,
+      "repository": "DeusData/codebase-memory-mcp",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "fbe8dff699a8731c505530a2b8c718efed54adbd",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/DeusData/codebase-memory-mcp/blob/main/README.md",
+      "line_count": 1199,
+      "signals": {
+        "setup_heading_line": 69,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 1164,
+        "visual_reference_line": 32
+      },
+      "editorial_observation": "Distingue servidor MCP y visor opcional; describe descargas adicionales."
+    },
+    {
+      "index": 20,
+      "repository": "u14app/neo-chat",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "eca49d4ead9a830396cbb43e8460534835101c33",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/u14app/neo-chat/blob/main/README.md",
+      "line_count": 134,
+      "signals": {
+        "setup_heading_line": 45,
+        "contribution_heading_line": 111,
+        "boundary_heading_line": 131,
+        "visual_reference_line": 25
+      },
+      "editorial_observation": "Historial local y proveedores remotos son dimensiones distintas de privacidad."
+    },
+    {
+      "index": 21,
+      "repository": "sauravpanda/BrowserAI",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "82d1ad77fc0817c4285b9167c9434bd3778a4b2c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/sauravpanda/BrowserAI/blob/main/README.md",
+      "line_count": 294,
+      "signals": {
+        "setup_heading_line": 61,
+        "contribution_heading_line": 264,
+        "boundary_heading_line": 274,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Demo y quickstart visibles; madurez anunciada requiere evidencia propia."
+    },
+    {
+      "index": 22,
+      "repository": "PurpleDoubleD/locally-uncensored",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "5bc6b1e199dd19fa9e5f356e1d85a903540ef5ad",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/PurpleDoubleD/locally-uncensored/blob/master/README.md",
+      "line_count": 293,
+      "signals": {
+        "setup_heading_line": 34,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 280,
+        "visual_reference_line": 20
+      },
+      "editorial_observation": "Recorrido instalar, elegir y comenzar; nube opcional merece etiqueta separada."
+    },
+    {
+      "index": 23,
+      "repository": "AgriciDaniel/claude-seo",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "524fb6f99b2f3c53234b071cdc916a5d8de20ab9",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/AgriciDaniel/claude-seo/blob/main/README.md",
+      "line_count": 399,
+      "signals": {
+        "setup_heading_line": 198,
+        "contribution_heading_line": 383,
+        "boundary_heading_line": 383,
+        "visual_reference_line": 60
+      },
+      "editorial_observation": "Resultado comercial y ejemplos visibles; evitar copiar tiempos o resultados prometidos."
+    },
+    {
+      "index": 24,
+      "repository": "sickn33/agentic-awesome-skills",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "9ddeb858d43d3e228efbf380c60e9a29b7515b06",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/sickn33/agentic-awesome-skills/blob/main/README.md",
+      "line_count": 825,
+      "signals": {
+        "setup_heading_line": 100,
+        "contribution_heading_line": 183,
+        "boundary_heading_line": 814,
+        "visual_reference_line": 6
+      },
+      "editorial_observation": "Disponibilidad interrumpida del paquete comunicada pronto; estado operativo útil."
+    },
+    {
+      "index": 25,
+      "repository": "tickernelz/opencode-mem",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "f784ded56e8e9732cd0f7fc8587885d8d151da6b",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/tickernelz/opencode-mem/blob/main/README.md",
+      "line_count": 816,
+      "signals": {
+        "setup_heading_line": 118,
+        "contribution_heading_line": 785,
+        "boundary_heading_line": 60,
+        "visual_reference_line": 561
+      },
+      "editorial_observation": "Requisitos y migraciones accesibles; la captura automática de memoria exige explicar el alcance."
+    },
+    {
+      "index": 26,
+      "repository": "Generated-Computers/Locals",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "359bd454dd0663bb50233ed34ed0050caf12e156",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Generated-Computers/Locals/blob/main/README.md",
+      "line_count": 584,
+      "signals": {
+        "setup_heading_line": 267,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 517,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Expone resultados y también escenarios donde no mejora la velocidad."
+    },
+    {
+      "index": 27,
+      "repository": "microsoft/magentic-ui",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "a9910381770fbfeaaae3ecd4d241d0a16e31d94c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/microsoft/magentic-ui/blob/main/README.md",
+      "line_count": 104,
+      "signals": {
+        "setup_heading_line": 53,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 93,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Control humano, demostración y arranque; nombre visible distinto del identificador del repositorio."
+    },
+    {
+      "index": 28,
+      "repository": "musistudio/claude-code-router",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "7c305d1fd3590bbe5d2ff090c31242ab996bd4f2",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/musistudio/claude-code-router/blob/main/README.md",
+      "line_count": 536,
+      "signals": {
+        "setup_heading_line": 128,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 533,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Tagline corto y puesta en marcha; explicar la función de intermediario."
+    },
+    {
+      "index": 29,
+      "repository": "neuledge/context",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "7d3289321364285b5b45e3759ab117873838bfb4",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/neuledge/context/blob/main/README.md",
+      "line_count": 725,
+      "signals": {
+        "setup_heading_line": 47,
+        "contribution_heading_line": 654,
+        "boundary_heading_line": 722,
+        "visual_reference_line": 36
+      },
+      "editorial_observation": "Problema concreto de documentación desactualizada con contraste de ejemplos."
+    },
+    {
+      "index": 30,
+      "repository": "MartinDelophy/ai-video-editor",
+      "selection": "local AI agents stars:>100 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "7cbec0ac228be22759cf97a6732ab14527b4f22e",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/MartinDelophy/ai-video-editor/blob/main/README.md",
+      "line_count": 250,
+      "signals": {
+        "setup_heading_line": 190,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 230,
+        "visual_reference_line": 21
+      },
+      "editorial_observation": "Enumera funciones acotadas y uso responsable; explicita almacenamiento remoto."
+    },
+    {
+      "index": 31,
+      "repository": "TauricResearch/TradingAgents",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "9567a73615a9f73825038055dc6bb5dc298f43f3",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/TauricResearch/TradingAgents/blob/main/README.md",
+      "line_count": 422,
+      "signals": {
+        "setup_heading_line": 112,
+        "contribution_heading_line": 403,
+        "boundary_heading_line": null,
+        "visual_reference_line": 24
+      },
+      "editorial_observation": "Organiza roles y arquitectura, pero las novedades preceden al arranque y las APIs requeridas."
+    },
+    {
+      "index": 32,
+      "repository": "microsoft/agent-framework",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "937539b95ce86f9e636c96ed22bbfe38546261a1",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/microsoft/agent-framework/blob/main/README.md",
+      "line_count": 240,
+      "signals": {
+        "setup_heading_line": 79,
+        "contribution_heading_line": 223,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Pregunta por adecuación al usuario antes de características y quickstart."
+    },
+    {
+      "index": 33,
+      "repository": "openai/openai-agents-python",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "40f490c110cd584f7034bd221c6da37379fc41ff",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/openai/openai-agents-python/blob/main/README.md",
+      "line_count": 195,
+      "signals": {
+        "setup_heading_line": 25,
+        "contribution_heading_line": 165,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Conceptos mínimos, instalación y primer agente; imagen de trazas en la apertura."
+    },
+    {
+      "index": 34,
+      "repository": "FoundationAgents/MetaGPT",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "080c02cd99015ca01f5db2c1063473fc22939bec",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/FoundationAgents/MetaGPT/blob/main/README.md",
+      "line_count": 178,
+      "signals": {
+        "setup_heading_line": 50,
+        "contribution_heading_line": 148,
+        "boundary_heading_line": null,
+        "visual_reference_line": 118
+      },
+      "editorial_observation": "Metáfora de empresa con roles; instalación, configuración y vídeo diferenciados."
+    },
+    {
+      "index": 35,
+      "repository": "VRSEN/agency-swarm",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "1527177d23a2738d08ce7ba58845058ba98cd56c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/VRSEN/agency-swarm/blob/main/README.md",
+      "line_count": 250,
+      "signals": {
+        "setup_heading_line": 30,
+        "contribution_heading_line": 237,
+        "boundary_heading_line": 41,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Origen del framework y aviso de migración visibles al comienzo."
+    },
+    {
+      "index": 36,
+      "repository": "Kocoro-lab/Shannon",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "5e1008f1096d039d6f25dc5dbd80d2b3c5a806e0",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Kocoro-lab/Shannon/blob/main/README.md",
+      "line_count": 497,
+      "signals": {
+        "setup_heading_line": 38,
+        "contribution_heading_line": 479,
+        "boundary_heading_line": 40,
+        "visual_reference_line": 14
+      },
+      "editorial_observation": "Presupuestos, aprobación y depuración ya aparecen en otros proyectos; evitar exclusividad."
+    },
+    {
+      "index": 37,
+      "repository": "agentuniverse-ai/agentUniverse",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "5d61464c0e05d01a797eb9323a600541130d0693",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/agentuniverse-ai/agentUniverse/blob/master/README.md",
+      "line_count": 226,
+      "signals": {
+        "setup_heading_line": 61,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": 34
+      },
+      "editorial_observation": "Definición directa, ejemplo inicial y plataforma visual posterior."
+    },
+    {
+      "index": 38,
+      "repository": "fastclaw-ai/fastclaw",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "a498628ecec591408fecd9144d7678b52cb6c70e",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/fastclaw-ai/fastclaw/blob/dev/README.md",
+      "line_count": 440,
+      "signals": {
+        "setup_heading_line": 57,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 426,
+        "visual_reference_line": 20
+      },
+      "editorial_observation": "Tagline, captura y recorrido por consola; distingue primer uso y arquitectura."
+    },
+    {
+      "index": 39,
+      "repository": "SciSharp/BotSharp",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "973c55e96b9a3524cef2de337a32fceb15e14a8b",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/SciSharp/BotSharp/blob/master/README.md",
+      "line_count": 203,
+      "signals": {
+        "setup_heading_line": 34,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": 57
+      },
+      "editorial_observation": "Define utilidad para aplicaciones de negocio; módulos, plugins y FAQ separados."
+    },
+    {
+      "index": 40,
+      "repository": "openai/openai-agents-js",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "dcfb150b41bd858487e56011bb1e67621bbc8cd2",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/openai/openai-agents-js/blob/main/README.md",
+      "line_count": 127,
+      "signals": {
+        "setup_heading_line": 23,
+        "contribution_heading_line": 110,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Entornos compatibles antes de instalar y ejemplos por modalidad."
+    },
+    {
+      "index": 41,
+      "repository": "oxwhirl/pymarl",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "882b9c113774387b268ec77196908bd5ded0fac1",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/oxwhirl/pymarl/blob/master/README.md",
+      "line_count": 103,
+      "signals": {
+        "setup_heading_line": 18,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 100,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Advertencia de comparabilidad experimental antes de instalar; benchmark depende de versiones."
+    },
+    {
+      "index": 42,
+      "repository": "ageerle/ruoyi-ai",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "1c0d3ba9f8347d80bf3d1522f846855dd9d60a31",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/ageerle/ruoyi-ai/blob/main/README.md",
+      "line_count": 316,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": 215,
+        "boundary_heading_line": 229,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Demo, arquitectura y despliegue; imágenes fijadas merecen explicación explícita."
+    },
+    {
+      "index": 43,
+      "repository": "openai/swarm",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "bcc1e195f17f6442fba96318fd2288a8c08653ac",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/openai/swarm/blob/main/README.md",
+      "line_count": 358,
+      "signals": {
+        "setup_heading_line": 10,
+        "contribution_heading_line": 350,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Estado experimental y sustitución por otro SDK declarados en la apertura."
+    },
+    {
+      "index": 44,
+      "repository": "Mnehmos/mnehmos.multi-agent.framework",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "b7aff8454a929f20d4c76c7b6264f1e49c874cf0",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Mnehmos/mnehmos.multi-agent.framework/blob/main/README.md",
+      "line_count": 236,
+      "signals": {
+        "setup_heading_line": 51,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 233,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Metáfora memorable con tabla de componentes y plantillas por nivel."
+    },
+    {
+      "index": 45,
+      "repository": "kyegomez/swarms",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "a0fef4f52fa933ca6429f73ff121cfefd2f28b42",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/kyegomez/swarms/blob/master/README.md",
+      "line_count": 822,
+      "signals": {
+        "setup_heading_line": 54,
+        "contribution_heading_line": 740,
+        "boundary_heading_line": 819,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Instalación por varios gestores; demasiadas rutas pueden diluir el primer recorrido."
+    },
+    {
+      "index": 46,
+      "repository": "sdi2200262/agentic-project-management",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "684cc31b0721e91d929ca8d170ffd5efe421f2ea",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/sdi2200262/agentic-project-management/blob/main/README.md",
+      "line_count": 101,
+      "signals": {
+        "setup_heading_line": 22,
+        "contribution_heading_line": 86,
+        "boundary_heading_line": 92,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Problema del contexto explicado antes de documentación y contribución."
+    },
+    {
+      "index": 47,
+      "repository": "sentient-agi/ROMA",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "035ae6fc8e197c42545bad1748016861f6269e7a",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/sentient-agi/ROMA/blob/main/README.md",
+      "line_count": 931,
+      "signals": {
+        "setup_heading_line": 138,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 928,
+        "visual_reference_line": 68
+      },
+      "editorial_observation": "Beta explícita; separa evaluación mínima y despliegue completo."
+    },
+    {
+      "index": 48,
+      "repository": "camel-ai/camel",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "92076babf5e2e66552069caea60ce56363823d1d",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/camel-ai/camel/blob/master/README.md",
+      "line_count": 654,
+      "signals": {
+        "setup_heading_line": 232,
+        "contribution_heading_line": 559,
+        "boundary_heading_line": 588,
+        "visual_reference_line": 59
+      },
+      "editorial_observation": "Organiza casos por resultados: datos, automatización y simulación."
+    },
+    {
+      "index": 49,
+      "repository": "heurist-network/heurist-agent-framework",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "98edcf4c5288a34fa1fc76aa3e033b2e2a67ee24",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/heurist-network/heurist-agent-framework/blob/main/README.md",
+      "line_count": 257,
+      "signals": {
+        "setup_heading_line": 92,
+        "contribution_heading_line": 240,
+        "boundary_heading_line": 236,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Interfaces y requisito de clave aparecen antes de la arquitectura modular."
+    },
+    {
+      "index": 50,
+      "repository": "microsoft/agent-framework-go",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "131a738c989308370fca134b64db0d4ea35474fe",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/microsoft/agent-framework-go/blob/main/README.md",
+      "line_count": 223,
+      "signals": {
+        "setup_heading_line": 97,
+        "contribution_heading_line": 191,
+        "boundary_heading_line": 216,
+        "visual_reference_line": 16
+      },
+      "editorial_observation": "Selección por adecuación y ejemplos; lenguaje compatible se explicita."
+    },
+    {
+      "index": 51,
+      "repository": "Pan-Chera/Multi-Agent-CAD",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "0f585b6ad90e7162e97de52360722959ba49115a",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Pan-Chera/Multi-Agent-CAD/blob/main/README.md",
+      "line_count": 373,
+      "signals": {
+        "setup_heading_line": 161,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 349,
+        "visual_reference_line": 23
+      },
+      "editorial_observation": "Resultado de ingeniería y galerías; tecnología preliminar etiquetada."
+    },
+    {
+      "index": 52,
+      "repository": "microsoft/Multi-Agent-Custom-Automation-Engine-Solution-Accelerator",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "b677a1b55227d46f198d6221ac1c42679f40c0b0",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/microsoft/Multi-Agent-Custom-Automation-Engine-Solution-Accelerator/blob/main/README.md",
+      "line_count": 244,
+      "signals": {
+        "setup_heading_line": 70,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 92,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Separa valor empresarial, arquitectura, requisitos y costes."
+    },
+    {
+      "index": 53,
+      "repository": "trypromptly/LLMStack",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "68bef0a01b340d92974632ff76ff3e8dabeff517",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/trypromptly/LLMStack/blob/main/README.md",
+      "line_count": 117,
+      "signals": {
+        "setup_heading_line": 21,
+        "contribution_heading_line": 114,
+        "boundary_heading_line": null,
+        "visual_reference_line": 18
+      },
+      "editorial_observation": "Resultado sin código y conexiones a datos; oferta alojada separada."
+    },
+    {
+      "index": 54,
+      "repository": "LazyAGI/LazyLLM",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "f8e12a0bb8b9bc126e98ae3d8e4cb2781d509341",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/LazyAGI/LazyLLM/blob/main/README.md",
+      "line_count": 331,
+      "signals": {
+        "setup_heading_line": 177,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Ejemplos de aplicaciones antes de requisitos e instalación."
+    },
+    {
+      "index": 55,
+      "repository": "datawhalechina/handy-multi-agent",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "5556faba658bb85f16ba75fcaaf609661c3aa289",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/datawhalechina/handy-multi-agent/blob/main/README.md",
+      "line_count": 212,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": 160,
+        "boundary_heading_line": 207,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Tutorial con audiencia, objetivos y recorrido de capítulos."
+    },
+    {
+      "index": 56,
+      "repository": "raga-ai-hub/RagaAI-Catalyst",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "7450aa665127bb801fe118abced587d1b020b305",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/raga-ai-hub/RagaAI-Catalyst/blob/main/README.md",
+      "line_count": 539,
+      "signals": {
+        "setup_heading_line": 21,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": 48
+      },
+      "editorial_observation": "Catálogo de operaciones con configuración previa a ejemplos."
+    },
+    {
+      "index": 57,
+      "repository": "mll-lab-nu/RAGEN",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "572854c40b260b67572c670071b7166edaaa024c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/mll-lab-nu/RAGEN/blob/main/README.md",
+      "line_count": 236,
+      "signals": {
+        "setup_heading_line": 104,
+        "contribution_heading_line": 192,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Diagnóstico de fallos y cambios del algoritmo como eje de la descripción."
+    },
+    {
+      "index": 58,
+      "repository": "InternLM/MindSearch",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "2710c619a42791343c24a410bf3548a89352ea3b",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/InternLM/MindSearch/blob/main/README.md",
+      "line_count": 174,
+      "signals": {
+        "setup_heading_line": 31,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 150,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Demo temprana y pasos separados para backend, frontend y buscador."
+    },
+    {
+      "index": 59,
+      "repository": "RISE-X-Lab/OpenCollab",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "8caa63d791748573288f27afb4898035ee20da18",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/RISE-X-Lab/OpenCollab/blob/main/README.md",
+      "line_count": 198,
+      "signals": {
+        "setup_heading_line": 49,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 183,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "La verificación de colaboración es una propuesta existente; documentación muestra cómo comprobarla."
+    },
+    {
+      "index": 60,
+      "repository": "darrenhinde/OpenAgentsControl",
+      "selection": "multi agent framework stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "21ab623563ac2cbffa10405adfb7a37fb913a7c0",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/darrenhinde/OpenAgentsControl/blob/main/README.md",
+      "line_count": 827,
+      "signals": {
+        "setup_heading_line": 119,
+        "contribution_heading_line": 788,
+        "boundary_heading_line": 820,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Aviso temprano de transición incompatible; no tomar garantías repetibles como mediciones."
+    },
+    {
+      "index": 61,
+      "repository": "HelgeSverre/ollama-gui",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "6e2822be158cf82a837b2bcfaa1edb161d035f2d",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/HelgeSverre/ollama-gui/blob/main/README.md",
+      "line_count": 129,
+      "signals": {
+        "setup_heading_line": 41,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 126,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Captura y definición simple; sección expresa sobre ubicación de conversaciones."
+    },
+    {
+      "index": 62,
+      "repository": "techjarves/Portable-Local-Studio",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "a08a236426c7f33b6f4cfa59139c5936804fd72c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/techjarves/Portable-Local-Studio/blob/main/README.md",
+      "line_count": 368,
+      "signals": {
+        "setup_heading_line": 184,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 223,
+        "visual_reference_line": 21
+      },
+      "editorial_observation": "Galería y motores por modalidad; validar cada afirmación multiplataforma por separado."
+    },
+    {
+      "index": 63,
+      "repository": "KunAgent/Kun",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "4e191eb440c32e3d55b86fb1c209515fd7800196",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/KunAgent/Kun/blob/master/README.md",
+      "line_count": 153,
+      "signals": {
+        "setup_heading_line": 57,
+        "contribution_heading_line": 135,
+        "boundary_heading_line": 80,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Beneficio local, comienzo en tres pasos, permisos y ejecución desde fuentes."
+    },
+    {
+      "index": 64,
+      "repository": "ImDarkTom/LlamaPen",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "18e99233c2c12fdf243cd0d1554b7e8a61cd28c1",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/ImDarkTom/LlamaPen/blob/main/README.md",
+      "line_count": 111,
+      "signals": {
+        "setup_heading_line": 19,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 103,
+        "visual_reference_line": 5
+      },
+      "editorial_observation": "Vista previa junto a definición; proveedores, uso local y nube separados."
+    },
+    {
+      "index": 65,
+      "repository": "moly-ai/moly-ai",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "4397015a4ae65c7465f8e8b4d5b2e4dfa467bd5d",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/moly-ai/moly-ai/blob/main/README.md",
+      "line_count": 339,
+      "signals": {
+        "setup_heading_line": 13,
+        "contribution_heading_line": 306,
+        "boundary_heading_line": 79,
+        "visual_reference_line": 35
+      },
+      "editorial_observation": "Madurez temprana declarada antes de descargas; construcción por plataforma."
+    },
+    {
+      "index": 66,
+      "repository": "LangGraph-GUI/LangGraph-GUI",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "4b77a7682145b41dc99c0f2a7651f0f4ccfc9db5",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/LangGraph-GUI/LangGraph-GUI/blob/main/README.md",
+      "line_count": 62,
+      "signals": {
+        "setup_heading_line": 19,
+        "contribution_heading_line": 51,
+        "boundary_heading_line": 9,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Requisitos separados por sistema; despliegue incluye componentes adicionales."
+    },
+    {
+      "index": 67,
+      "repository": "hogeheer499-commits/strix-halo-guide",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "d3edff5e30de37e91edae1c09aa52685b23631b4",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/hogeheer499-commits/strix-halo-guide/blob/main/README.md",
+      "line_count": 2956,
+      "signals": {
+        "setup_heading_line": 24,
+        "contribution_heading_line": 3,
+        "boundary_heading_line": 134,
+        "visual_reference_line": 254
+      },
+      "editorial_observation": "Audiencia y estado de la evidencia explícitos; tutorial de hardware específico."
+    },
+    {
+      "index": 68,
+      "repository": "See-Sol-Lab/DeepSeekGUI",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "6cae97d9bd8eaebb6e44fc05c5a8a6adb603ed74",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/See-Sol-Lab/DeepSeekGUI/blob/main/README.md",
+      "line_count": 231,
+      "signals": {
+        "setup_heading_line": 50,
+        "contribution_heading_line": 217,
+        "boundary_heading_line": 163,
+        "visual_reference_line": 78
+      },
+      "editorial_observation": "Descarga, comienzo y capturas antes de la lista detallada de capacidades."
+    },
+    {
+      "index": 69,
+      "repository": "aivrar/portable-hermes-agent",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "9de521937f6b692e5f75233e2f9c9e29c0189177",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/aivrar/portable-hermes-agent/blob/main/README.md",
+      "line_count": 258,
+      "signals": {
+        "setup_heading_line": 76,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 188,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Organiza herramientas por grupos, módulos y modo guiado; no basta enumerar cantidades."
+    },
+    {
+      "index": 70,
+      "repository": "BIGPPWONG/EdgeBox",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "158cd433a8954d5f739b03c74592a85393b0e956",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/BIGPPWONG/EdgeBox/blob/main/README.md",
+      "line_count": 722,
+      "signals": {
+        "setup_heading_line": 162,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 158,
+        "visual_reference_line": 23
+      },
+      "editorial_observation": "Sandbox de escritorio y herramientas MCP; promoción de otro proyecto ocupa la apertura."
+    },
+    {
+      "index": 71,
+      "repository": "lukaszliniewicz/Pandrator",
+      "selection": "local llm GUI stars:>200 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "3744bf7cf865595acbe5311166abc381c2bd151b",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/lukaszliniewicz/Pandrator/blob/main/README.md",
+      "line_count": 353,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 347,
+        "visual_reference_line": 10
+      },
+      "editorial_observation": "Resultados comprensibles y primer flujo; ayuda a elegir el primer modelo."
+    },
+    {
+      "index": 72,
+      "repository": "n8n-io/n8n",
+      "selection": "workflow automation self hosted stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "2d2053d58750e70ca43f946ab75a6ec5d532f87c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/n8n-io/n8n/blob/master/README.md",
+      "line_count": 74,
+      "signals": {
+        "setup_heading_line": 18,
+        "contribution_heading_line": 61,
+        "boundary_heading_line": 49,
+        "visual_reference_line": 7
+      },
+      "editorial_observation": "Captura, capacidades y quickstart breves; distingue licencia fair-code de otras etiquetas."
+    },
+    {
+      "index": 73,
+      "repository": "langgenius/dify",
+      "selection": "workflow automation self hosted stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "1f2414728c9837eb0248680e1d1443c7b94a304d",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/langgenius/dify/blob/main/README.md",
+      "line_count": 185,
+      "signals": {
+        "setup_heading_line": 66,
+        "contribution_heading_line": 150,
+        "boundary_heading_line": 178,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Acceso alojado, autohospedado y documentación diferenciados."
+    },
+    {
+      "index": 74,
+      "repository": "8gears/n8n-helm-chart",
+      "selection": "workflow automation self hosted stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "b16176a6d78ce49951b4a8ce4494c40fc0fadcbd",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/8gears/n8n-helm-chart/blob/main/README.md",
+      "line_count": 1087,
+      "signals": {
+        "setup_heading_line": 68,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 19,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Requisitos operativos antes del chart; contribución solicitada con alcance concreto."
+    },
+    {
+      "index": 75,
+      "repository": "datawranglerai/self-host-n8n-on-gcr",
+      "selection": "workflow automation self hosted stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "a3243b39ed6ead0f70e06146d32e6ebaa03d8b68",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/datawranglerai/self-host-n8n-on-gcr/blob/main/README.md",
+      "line_count": 1069,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 30,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Guía de despliegue con persistencia, requisitos y pasos; no equiparar autohospedado con offline."
+    },
+    {
+      "index": 76,
+      "repository": "Git-Agni/prod-FARM-IOS-Core",
+      "selection": "workflow automation self hosted stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "c53ae24b39c4e9830db2b3eb98553554c01c7a29",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Git-Agni/prod-FARM-IOS-Core/blob/main/README.md",
+      "line_count": 59,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Alcance de aplicación y condiciones de autenticación definidos al inicio."
+    },
+    {
+      "index": 77,
+      "repository": "himovo/movo",
+      "selection": "workflow automation self hosted stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "58d4dd3401201cb93f0038a5f418649a0610a464",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/himovo/movo/blob/main/README.md",
+      "line_count": 267,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": 245,
+        "boundary_heading_line": 150,
+        "visual_reference_line": 17
+      },
+      "editorial_observation": "Demo y comienzo rápido; edición comunitaria y operaciones delimitadas."
+    },
+    {
+      "index": 78,
+      "repository": "bytechefhq/bytechef",
+      "selection": "workflow automation self hosted stars:>500 archived:false",
+      "path": "README.md",
+      "readme_blob_sha": "809f1305e21e31138022e5746506c2bfab2ffcf1",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/bytechefhq/bytechef/blob/master/README.md",
+      "line_count": 303,
+      "signals": {
+        "setup_heading_line": 75,
+        "contribution_heading_line": 274,
+        "boundary_heading_line": 280,
+        "visual_reference_line": 68
+      },
+      "editorial_observation": "Tagline y quickstart; alcance comunitario y empresarial visible en licencia."
+    },
+    {
+      "index": 79,
+      "repository": "crewAIInc/crewAI",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "4a5360ad587a35625684747157881558c6acae1d",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/crewAIInc/crewAI/blob/main/README.md",
+      "line_count": 742,
+      "signals": {
+        "setup_heading_line": 152,
+        "contribution_heading_line": 554,
+        "boundary_heading_line": 621,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Roles, flows y plataforma comercial separados; la marca no identifica toda la distribución."
+    },
+    {
+      "index": 80,
+      "repository": "open-webui/open-webui",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "82d20f3a2b4700c09bbfc25515869a279fd5334c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/open-webui/open-webui/blob/main/README.md",
+      "line_count": 135,
+      "signals": {
+        "setup_heading_line": 42,
+        "contribution_heading_line": null,
+        "boundary_heading_line": 114,
+        "visual_reference_line": 28
+      },
+      "editorial_observation": "Propuesta sencilla distingue modelos locales y APIs compatibles, incluyendo nube."
+    },
+    {
+      "index": 81,
+      "repository": "ollama/ollama",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "2a7dd787dc04fad1536797c7a64f9c3d85fa0782",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/ollama/ollama/blob/main/README.md",
+      "line_count": 359,
+      "signals": {
+        "setup_heading_line": 11,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Descargas por plataforma y primer uso; no ejecutar instaladores ajenos durante esta revisión."
+    },
+    {
+      "index": 82,
+      "repository": "nomic-ai/gpt4all",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "4450198c235f997b59038dd6f9de29a9f0981367",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/nomic-ai/gpt4all/blob/main/README.md",
+      "line_count": 137,
+      "signals": {
+        "setup_heading_line": 31,
+        "contribution_heading_line": 116,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Resultado para equipos cotidianos con enlaces de descarga antes de la API."
+    },
+    {
+      "index": 83,
+      "repository": "ggml-org/llama.cpp",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "3cacc8d534f292848be16722f639aeb78a425339",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/ggml-org/llama.cpp/blob/master/README.md",
+      "line_count": 136,
+      "signals": {
+        "setup_heading_line": 20,
+        "contribution_heading_line": 121,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Quickstart antes del detalle; backends compatibles y contribución accesibles."
+    },
+    {
+      "index": 84,
+      "repository": "langchain-ai/langgraph",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "97c31e9cb4d8fe56be8d768ce3eb5e22400e897e",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/langchain-ai/langgraph/blob/main/README.md",
+      "line_count": 83,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Orquestación con estado: presenta el nivel de abstracción y enlaces al ecosistema."
+    },
+    {
+      "index": 85,
+      "repository": "langflow-ai/langflow",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "1e9c7ce08a9e61c6f4e796366c695be81c47d7eb",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/langflow-ai/langflow/blob/main/README.md",
+      "line_count": 110,
+      "signals": {
+        "setup_heading_line": 36,
+        "contribution_heading_line": 99,
+        "boundary_heading_line": 85,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Aplicación de escritorio, instalación local y despliegue como rutas distintas."
+    },
+    {
+      "index": 86,
+      "repository": "FlowiseAI/Flowise",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "7bda289a24d77ae605a40b91dad7b2ac98a6e636",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/FlowiseAI/Flowise/blob/main/README.md",
+      "line_count": 244,
+      "signals": {
+        "setup_heading_line": 39,
+        "contribution_heading_line": 229,
+        "boundary_heading_line": 95,
+        "visual_reference_line": 24
+      },
+      "editorial_observation": "Quickstart para uso y recorrido para desarrolladores separados."
+    },
+    {
+      "index": 87,
+      "repository": "Mintplex-Labs/anything-llm",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "0623b8f086924fb2330207984728c0cccf690452",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Mintplex-Labs/anything-llm/blob/master/README.md",
+      "line_count": 331,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": 260,
+        "boundary_heading_line": 213,
+        "visual_reference_line": 48
+      },
+      "editorial_observation": "Resumen de producto, compatibilidad y sección dedicada a telemetría y privacidad."
+    },
+    {
+      "index": 88,
+      "repository": "continuedev/continue",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "66477d92b4cdb8772a74e28852cef31cd37019e4",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/continuedev/continue/blob/main/README.md",
+      "line_count": 64,
+      "signals": {
+        "setup_heading_line": null,
+        "contribution_heading_line": 47,
+        "boundary_heading_line": 61,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Estado de mantenimiento y versión final visibles; no recomendar por fama histórica."
+    },
+    {
+      "index": 89,
+      "repository": "Aider-AI/aider",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "816c876cb67021fa9f8d37267c8e57923eabdb07",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/Aider-AI/aider/blob/main/README.md",
+      "line_count": 181,
+      "signals": {
+        "setup_heading_line": 103,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": 16
+      },
+      "editorial_observation": "Resultado y screencast preceden capacidades; cubre modelos locales y alojados."
+    },
+    {
+      "index": 90,
+      "repository": "OpenHands/OpenHands",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "32c308ddc1d5a9e82c72ccbae497395ac403e11c",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/OpenHands/OpenHands/blob/main/README.md",
+      "line_count": 231,
+      "signals": {
+        "setup_heading_line": 49,
+        "contribution_heading_line": null,
+        "boundary_heading_line": null,
+        "visual_reference_line": 28
+      },
+      "editorial_observation": "Nombre de producto actualizado y opciones con o sin sandbox; fronteras de repositorio explícitas."
+    },
+    {
+      "index": 91,
+      "repository": "simstudioai/sim",
+      "selection": "curated adjacent comparison",
+      "path": "README.md",
+      "readme_blob_sha": "34285fdc9b221385f4b04cc57ba3fe8ee0a65840",
+      "observed_at": "2026-11-16",
+      "url": "https://github.com/simstudioai/sim/blob/main/README.md",
+      "line_count": 185,
+      "signals": {
+        "setup_heading_line": 21,
+        "contribution_heading_line": 174,
+        "boundary_heading_line": 51,
+        "visual_reference_line": null
+      },
+      "editorial_observation": "Separa nube, autohospedado y escritorio; seguridad y gobierno tienen sección propia."
+    }
+  ]
+}
