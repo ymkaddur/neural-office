@@ -1,0 +1,211 @@
+{
+  "schema": "neural-office.ui-observations.v54",
+  "recorded_at_utc": "2026-11-16T16:16:39.401Z",
+  "scope": "Production browser preview; synthetic content; engine disconnected",
+  "browser": "Instrumented Chromium in-app browser; exact browser version not captured",
+  "build_assets": [
+    "index-fj-QZu4Z.js",
+    "index-CBF5SdjT.css"
+  ],
+  "samples": [
+    {
+      "mode": "Reposo, panel abierto",
+      "elapsedMs": 5004.5,
+      "dom": 181,
+      "heapBytes": 8699472,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 0
+    },
+    {
+      "mode": "Reposo, panel abierto",
+      "elapsedMs": 5014.300000011921,
+      "dom": 197,
+      "heapBytes": 8235669,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 0
+    },
+    {
+      "mode": "Reposo, panel abierto",
+      "elapsedMs": 5004.099999964237,
+      "dom": 203,
+      "heapBytes": 8492356,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 0
+    },
+    {
+      "mode": "10 000 eventos / 50 visibles",
+      "elapsedMs": 5007.099999964237,
+      "dom": 419,
+      "heapBytes": 9009631,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 10000
+    },
+    {
+      "mode": "10 000 eventos / 50 visibles",
+      "elapsedMs": 5006.699999988079,
+      "dom": 425,
+      "heapBytes": 8609675,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 10000
+    },
+    {
+      "mode": "10 000 eventos / 50 visibles",
+      "elapsedMs": 5010,
+      "dom": 431,
+      "heapBytes": 8945066,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 10000
+    }
+  ],
+  "scene_geometry": [
+    {
+      "screen": "ready",
+      "dom": 174,
+      "height": 960,
+      "overflowX": false,
+      "width": 1707
+    },
+    {
+      "screen": "running",
+      "dom": 234,
+      "height": 960,
+      "overflowX": false,
+      "width": 1707
+    },
+    {
+      "screen": "result",
+      "dom": 260,
+      "height": 960,
+      "overflowX": false,
+      "width": 1707
+    },
+    {
+      "screen": "error",
+      "dom": 194,
+      "height": 960,
+      "overflowX": false,
+      "width": 1707
+    },
+    {
+      "screen": "stopping",
+      "dom": 230,
+      "height": 960,
+      "overflowX": false,
+      "width": 1707
+    }
+  ],
+  "manual_checks": [
+    {
+      "test": "Exact source line",
+      "value": "6\nLa sincronización entre dispositivos no está implementada."
+    },
+    {
+      "test": "Dialog returns focus after changing source",
+      "value": "alcance.mdL6"
+    },
+    {
+      "test": "Version diff",
+      "value": [
+        "−Notas locales con sincronización entre dispositivos.",
+        "+Notas locales, guardadas en tu equipo y exportables a Markdown."
+      ]
+    },
+    {
+      "test": "Confirmed stop keeps attempt and partial draft",
+      "value": "Ejemplo detenido\n1/3 intentos de ejemplo",
+      "exportEnabled": false
+    },
+    {
+      "test": "Keyboard start and pending stop",
+      "value": "Confirmando la parada\n2/3 intentos de ejemplo",
+      "newDisabled": true,
+      "scene": "5\nParada"
+    },
+    {
+      "test": "Retry charges another demo attempt",
+      "value": "Contrastando las fuentes\n2/3 intentos de ejemplo"
+    },
+    {
+      "check": "Mobile nested dialog Escape",
+      "passed": true,
+      "observed": "Escape closes the source dialog first and restores its trigger; second Escape closes navigation, removes inert and restores the opener."
+    },
+    {
+      "check": "Pagination after measurement",
+      "passed": true,
+      "observed": "Historial sintético\n51–100 de 10000",
+      "renderedRows": 50
+    },
+    {
+      "check": "Final draft/diff content consistency",
+      "passed": true,
+      "observed": "Both changed sentences were read in the corresponding draft/result and diff views."
+    },
+    {
+      "check": "Final Markdown export",
+      "passed": true,
+      "observed": "Synthetic disclaimer and revised recommendation present in downloaded Markdown."
+    }
+  ],
+  "contrast": {
+    "light": {
+      "failures": [],
+      "minimum": 4.89,
+      "scope": "Visible leaf text; solid ancestor background, excludes disabled controls; not WCAG certification"
+    },
+    "dark": {
+      "failures": [],
+      "minimum": 4.92,
+      "scope": "Visible leaf text; solid ancestor background, excludes disabled controls; not WCAG certification"
+    }
+  },
+  "mobile_geometry": {
+    "body": {
+      "bottom": 844,
+      "height": 844,
+      "left": 0,
+      "right": 390.6666870117187,
+      "top": 0,
+      "width": 390.6666870117187,
+      "x": 0,
+      "y": 0
+    },
+    "composer": {
+      "bottom": 754.9583435058594,
+      "height": 136.33334350585938,
+      "left": 23,
+      "right": 367.6666870117187,
+      "top": 618.625,
+      "width": 344.66668701171875,
+      "x": 23,
+      "y": 618.625
+    },
+    "scrollWidth": 391,
+    "viewport": [
+      391,
+      844
+    ]
+  },
+  "console_errors_observed": [],
+  "limits": [
+    "Heap JS is approximate and may include instrumentation; not total browser memory",
+    "Three five-second windows per mode; not a leak test or CPU/latency benchmark",
+    "History creates 50 visible rows from 10000 logical positions; does not store 10000 full events",
+    "Mobile geometry is ready view; not exhaustive mobile or screen-reader validation",
+    "Visual acceptance by the project owner remains pending"
+  ],
+  "screenshots": [
+    "v5.4-ready.jpg",
+    "v5.4-running.jpg",
+    "v5.4-result.jpg",
+    "v5.4-error.jpg",
+    "v5.4-stopping.jpg",
+    "v5.4-dark.jpg"
+  ]
+}

@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-    A["V5.3 · Medir y diseñar"] --> B["V5.4 · Optimizar el motor"]
+    A["V5.3 · Medir y diseñar"] --> B["V5.4 · Diseño y referencia"]
     B --> C["V5.5 · Conectar el escritorio"]
     C --> D["V6 · Completar un trabajo"]
     D --> E["V7 · Coordinar con criterio"]
@@ -18,7 +18,7 @@ flowchart LR
 | Hito | Qué ganas | Trabajo principal | Condición de salida |
 | --- | --- | --- | --- |
 | **V5.3 — referencia y diseño** | Ver cuánto cuesta el piloto y explorar la futura oficina | Colector optativo, ensayos 1/3/7, discriminantes R13, contrato de mensajes y demo React/TypeScript | Entregado: 125 pruebas Python, siete de frontend, build y revisión de UI; seis intentos reales aceptados. R13 abierto; demo sin motor |
-| **V5.4 — eficiencia del motor** | Menos espera y perfiles adecuados a tu equipo, con cifras contrastables | Medir CPU/GPU/contexto/carga; corpus de evaluación; recursos por fase; reutilización bajo ownership | Comparación controlada de una variable por vez, calidad no degradada según el corpus, cancelación y límites preservados. Sin prometer una aceleración antes de medir |
+| **V5.4 — diseño + base medida** | Revisar cinco estados claros y conocer el coste observado | Prototipo Director/entrega, fuentes y diff; medidas separadas de UI y backend; corpus y comparaciones controladas pendientes | Aceptación visual G-UI, ajustes cerrados y presupuesto de recursos ratificado. [Progreso y crítica](docs/V5_4_UI_REVIEW.md); no se declara completado |
 | **V5.5 — escritorio operativo** | Una interfaz moderna para el trabajo real, sin comandos cotidianos | Host Tauri 2, frontend actual, sidecar Python, selector real, eventos, informes, permisos y recuperación | Recorrido real completo; errores/desconexión/cancelación; cuotas e idempotencia; medición separada de UI/core/modelo; teclado. Primer paquete de prueba, no todavía distribución autónoma V10 |
 | **V6 — tarea útil completa** | Encargar un trabajo acotado y recibir un resultado revisable | Director con plan y loops limitados; una skill declarativa de solo lectura; memoria mínima consultable por proyecto | Corpus con resultado esperado, verificador independiente, límites de tiempo/tokens/llamadas, parada sin progreso y checkpoints. Resolver o acotar operacionalmente R13 antes de anunciar arranque fiable |
 | **V7 — coordinación eficiente** | Usar el número de roles que aporte valor | Routing 1/3/7 según tarea, contexto selectivo, herramientas, revisión y síntesis | Comparar calidad, coste, latencia y memoria contra un rol; el director no añade rondas sin ganancia demostrable. Una autoevaluación del modelo no es la única evidencia |
@@ -27,6 +27,22 @@ flowchart LR
 | **V10 — distribución sencilla** | Instalar, elegir un modelo y comenzar | Detección de hardware, onboarding, perfiles compatibles, actualización, diagnóstico y desinstalación | Máquina Windows limpia; instalación sin Python/Node/Rust manuales; modelo compatible; actualización/restauración probadas; SBOM y avisos del paquete real; revisión del nombre y responsabilidades de distribución |
 
 Las versiones se cierran por capacidades y evidencia, no por numeración o fechas inventadas. Linux/macOS requieren su propio plan y pruebas: el aislamiento actual usa Windows Jobs. La elección de Tauri no garantiza por sí sola un instalador pequeño o menor RAM; hay que contar webview, Python, runtime y pesos por separado.
+
+## Tramo actualizado hacia V6
+
+La numeración organiza puertas de salida; no fija fechas ni declara implementadas las capacidades. V5.4 publica progreso revisable. G-UI continúa pendiente.
+
+| Fase | Resultado para el usuario | Condición antes de avanzar |
+| --- | --- | --- |
+| V5.4 | Director, contexto, borrador, resultado, error y parada comprensibles | Cinco pantallas aceptadas, paneles ajustables, prueba formativa y referencia reproducible de recursos |
+| V5.5 | Elegir modelo y fuente, ejecutar y detener desde el escritorio | Transporte Tauri/Python restringido, autoridad del núcleo, eventos con secuencia, recuperación e idempotencia; medir el conjunto |
+| V5.6 | Plan breve, primera entrega y revisión con salida anticipada | Hasta tres iteraciones internas propuestas, sin confundirlas con intentos; llamadas/tokens/tiempo acotados; comparar con una pasada |
+| V5.7 | Skills de solo lectura y memoria mínima inspeccionable | Fuente, versión, permisos, ámbito, borrado y actualizaciones atómicas; nada generado se promociona por sí solo |
+| V5.8 | Menor coste del recorrido completo con utilidad conservada | Corpus independiente, un cambio por experimento, carga/prefill/generación separados; sin activar siete roles por estética |
+| V5.9 | Uso estable con errores, cierres y restauraciones | Beta con usuarios, accesibilidad, casos largos, treinta ciclos y recuperación adversarial; R13 resuelto o contenido explícitamente |
+| V6 | Dos trabajos acotados desde la app: HTML y síntesis de TXT/Markdown seleccionados | Entregas verificables, fuentes y versiones, límites, persistencia y recursos contrastados; paquete de prueba, no soporte universal |
+
+La optimización se mantiene en cada fase. V5.8 integra los ahorros comprobados; no es permiso para ignorar consumo antes. Los presupuestos provisionales y lo aún no medido figuran en [V5.4 recursos](docs/V5_4_RESOURCE_BASELINE.md). La investigación dirigida de vídeos orienta contexto selectivo, memoria con procedencia y separación de fases de inferencia; no aporta cifras transferibles a este equipo.
 
 ## Optimización transversal
 
@@ -44,4 +60,4 @@ V5.3 mantiene intactos los caminos de ejecución del núcleo e incorpora observa
 
 La investigación visual de vídeos está [delimitada por frames y timestamps](docs/V5_3_VIDEO_RESEARCH.md). Las pistas sobre caché, memoria y evaluación alimentan experimentos futuros; no se anuncian como capacidades ya incorporadas.
 
-**Siguiente trabajo concreto:** V5.4, corpus pequeño + comparación CPU/GPU/contexto y coste de carga, con una variable por ensayo y preservando los recibos V5.3. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [registro forense](docs/V5_3_FORENSIC_REVIEW.md).
+**Siguiente trabajo concreto:** revisar las cinco pantallas V5.4, cerrar ajustes y ampliar el corpus y la referencia de recursos. La integración del motor espera la aceptación visual; las comparaciones CPU/GPU/contexto varían una condición por ensayo y preservan los recibos anteriores. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [registro forense](docs/V5_3_FORENSIC_REVIEW.md).

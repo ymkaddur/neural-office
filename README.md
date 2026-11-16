@@ -4,21 +4,25 @@
 
 Software gratuito y de código abierto bajo [MIT](LICENSE), con [apoyo voluntario](#apoya-el-proyecto) y las mismas funciones para todas las personas.
 
-Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. **V5.3 añade mediciones reproducibles y una vista previa interactiva de la nueva interfaz.** El piloto operativo sigue siendo Python/Tkinter para Windows; la interfaz nueva todavía simula las tareas.
+Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. **V5.4 prepara cinco pantallas para revisar la dirección visual:** inicio, trabajo, resultado, error y parada. El piloto operativo sigue siendo Python/Tkinter V5.3 para Windows; el nuevo espacio de trabajo todavía utiliza ejemplos y no está conectado al motor.
 
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/downloads/)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![Prototipo interactivo V5.3: tareas simuladas y presupuesto visible](docs/images/desktop-v5.3.jpg)
+![V5.4: Director, entrega revisable y fuentes del ejemplo](docs/images/v5.4-result.jpg)
 
-Captura del **prototipo sin motor** con datos sintéticos. Puedes [abrir y explorar la demo](desktop/README.md), incluidos parada, errores y recuperación. El [piloto operativo anterior](docs/images/pilot-v5.2.1.jpg) conserva sus informes y controles; la integración del nuevo escritorio se prepara para V5.5.
+**[Ver las cinco pantallas y su revisión crítica](docs/V5_4_UI_REVIEW.md)** · [Abrir el prototipo](desktop/README.md) · [Consumo medido y límites](docs/V5_4_RESOURCE_BASELINE.md).
 
-## Empieza por un ejemplo
+La captura utiliza fuentes sintéticas del proyecto ficticio Norte. Puedes inspeccionarlas, comparar versiones y exportar el ejemplo. Cambiar el objetivo no genera una respuesta nueva. La dirección visual está pendiente de aceptación; la integración se prepara para V5.5. El [piloto operativo](docs/images/pilot-v5.2.1.jpg) conserva sus informes y controles.
+
+Para revisar **las cinco pantallas V5.4**, [descarga el progreso de main](https://github.com/ymkaddur/neural-office/archive/refs/heads/main.zip) y sigue [las instrucciones del frontend](desktop/README.md). No necesita modelo.
+
+## Usar el piloto HTML (motor V5.3)
 
 Necesitas **Windows, Python 3.12 con Tk y Ollama con un modelo local ya descargado**. Esta descarga contiene el código del piloto; el instalador autónomo es un hito futuro.
 
-1. [Descarga la vista previa V5.3](https://github.com/ymkaddur/neural-office/archive/refs/tags/v5.3-preview.1.zip) y extrae la carpeta.
+1. [Descarga el piloto V5.3](https://github.com/ymkaddur/neural-office/archive/refs/tags/v5.3-preview.1.zip) y extrae la carpeta.
 2. Abre `.\run.bat`. También puedes ejecutar `py -3.12 -B -m neural_office gui` desde esa carpeta.
 3. Selecciona el modelo, pulsa **Usar ejemplo** y después **Autorizar y auditar**.
 4. Consulta **Ver presupuesto** y **Ver último informe**. **Detener** solicita cancelar y espera la terminación comprobada.
@@ -49,7 +53,7 @@ Se admite una inferencia administrada por ledger y hasta dos proyectos activos. 
 | Respuesta 401 intermitente del gateway histórico | Reproducida y corregida; diff y regresión publicados |
 | Timeout histórico al arrancar Ollama | Causa pendiente; instrumentación por etapas verificada |
 | Medición CPU, memoria del backend y comparación 1/3/7 | Seis intentos reales aceptados; calidad comparada y GPU pendientes |
-| Nueva interfaz React/TypeScript | Prototipo interactivo probado; sin conexión al motor |
+| Nueva interfaz React/TypeScript | Cinco escenas V5.4, fuentes, diff, exportación y tema; revisión visual pendiente, sin conexión al motor |
 | Contrato de escritorio | Especificación y validador de mensajes probados; transporte pendiente |
 | Memoria, skills aprendidas y tareas generales | Planificadas |
 | Instalador autónomo y otros sistemas operativos | Planificados |
@@ -66,7 +70,7 @@ La [revisión forense V5.3](docs/V5_3_FORENSIC_REVIEW.md) enlaza resultados, reg
 
 Dos ensayos por perfil, una máquina, el HTML incluido y un modelo en CPU. ¹ Suma muestreada de memoria residente; puede contar páginas compartidas varias veces y excluye interfaz/controlador. Estas cifras no son requisitos mínimos ni una comparación de calidad. [Protocolo, entorno y recibos](docs/V5_3_MEASUREMENT_PROTOCOL.md).
 
-La prioridad V5.4 es comparar contexto, carga, CPU/GPU y reutilización con evaluación de utilidad. La nueva interfaz llega conectada en V5.5. [Contrato de integración](docs/V5_3_DESKTOP_CONTRACT.md) · [revisión dirigida de vídeos](docs/V5_3_VIDEO_RESEARCH.md).
+V5.4 publica una [nueva línea base](docs/V5_4_RESOURCE_BASELINE.md): tres ensayos CPU del motor conservado y muestras de la UI por separado. No se anuncia una aceleración ni un consumo total del futuro escritorio. La aceptación de las cinco pantallas precede a la integración V5.5; el corpus amplio y las comparaciones controladas siguen pendientes. [Contrato de integración](docs/V5_3_DESKTOP_CONTRACT.md) · [revisión dirigida de vídeos](docs/V5_3_VIDEO_RESEARCH.md).
 
 ## Apoya el proyecto
 
@@ -105,7 +109,7 @@ py -3.12 -B -m unittest discover -s tests -v
 .\run.bat status
 ```
 
-La suite pública Python funciona sin modelos, credenciales ni historial privado: 125 pruebas en esta revisión. El [frontend](desktop/README.md) añade siete pruebas de estado y comprobación de tipos/build. [CONTRIBUTING.md](CONTRIBUTING.md) explica cómo aportar una reproducción pequeña, una corrección localizada o documentación. La [comparación de 91 README](docs/README_RESEARCH_91.md) documenta las decisiones de presentación.
+La suite pública Python funciona sin modelos, credenciales ni historial privado: 125 pruebas en esta revisión. El [frontend](desktop/README.md) pasa doce pruebas de estado (siete conservadas y cinco nuevas) y comprobación de tipos/build. [CONTRIBUTING.md](CONTRIBUTING.md) explica cómo aportar una reproducción pequeña, una corrección localizada o documentación. La [comparación de 91 README](docs/README_RESEARCH_91.md) documenta las decisiones de presentación.
 
 ## Datos y licencia
 
@@ -113,4 +117,4 @@ El piloto se comunica con Ollama por loopback y rechaza perfiles cloud. Guarda e
 
 [MIT](LICENSE) para las aportaciones propias que el promotor pueda licenciar. Desarrollo asistido por IA bajo supervisión. CrewAI fue una base conceptual e histórica; no es una dependencia del núcleo publicado. No se incluyen runtimes, pesos, vídeos ni historiales privados. [LICENSING.md](LICENSING.md) y el [expediente de procedencia](docs/V5_2_PROVENANCE.md) delimitan los derechos de terceros y las cuestiones jurídicas abiertas.
 
-Los contratos [V5.1](docs/V5_1_INTEGRATION_SPEC.md) y [V5.2](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) se conservan como documentos fechados. V5.3 no modifica la política del piloto ni declara resuelto su timeout histórico. [Dependencias del frontend](docs/evidence/V5_3_COMPONENTS.json) y [avisos de terceros](desktop/THIRD_PARTY_NOTICES.md).
+Los contratos [V5.1](docs/V5_1_INTEGRATION_SPEC.md) y [V5.2](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) se conservan como documentos fechados. V5.4 no modifica el motor ni la política del piloto y no declara resuelto su timeout histórico. [Dependencias del frontend](docs/evidence/V5_3_COMPONENTS.json) y [avisos de terceros](desktop/THIRD_PARTY_NOTICES.md).

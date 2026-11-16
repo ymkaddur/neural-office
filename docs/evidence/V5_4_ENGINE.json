@@ -1,0 +1,605 @@
+{
+  "schema": "neural-office.measurement.v1",
+  "kind": "benchmark",
+  "created_at_utc": "2026-11-16T15:37:46.419415+00:00",
+  "environment": {
+    "app_version": "5.3",
+    "python": "3.12.10",
+    "system": "Windows",
+    "runtime_version": "0.40.16",
+    "model_digest": "e85e2b3a5e1b3b6c43331f3e1b03f35e3f05f8c7d7105c25086eb62248af4405",
+    "profile": {
+      "num_ctx": 8192,
+      "num_predict": 128,
+      "num_gpu": 0,
+      "timeout_seconds": 300
+    },
+    "backend_source_sha256": "46252faf8607dcd4f3cb5dfebea91584cba0e850f13a158d7a913c3a1aa6dc50",
+    "runner_source_sha256": "574d30ec837898a324f4c650294667aa3368e4f6fdf4a05f58242eb22803c54d",
+    "diagnostics_source_sha256": "98fbe3f0c179c4ba9683f0eecd863bb9744be75e49b3ca5b63f38ff212ebb73a",
+    "measurements_source_sha256": "1bc012cc00d75c154c5e1c66fd497a475fe2a30d121494341bb71d9f6e460b2a",
+    "clock": "perf_counter_ns_relative",
+    "hardware": {
+      "cpu": "Intel Core Ultra 7 255HX",
+      "logical_processors": 20,
+      "physical_memory_bytes": 33752997888
+    }
+  },
+  "scope": "owned CPU backend; synthetic tasks only; advisory quality not graded",
+  "cache_control": "new backend each attempt; filesystem cache and other apps uncontrolled",
+  "ui_memory_included": false,
+  "power_and_temperature_measured": false,
+  "status": "completed",
+  "trials": [
+    {
+      "roles": 1,
+      "wall_seconds": 49.6250373,
+      "state": "ACCEPTED",
+      "error": null,
+      "artifact_sha256": "f0dcf735f6e345d6ffef6f157dfe2c235f4a0ea261d6ab91b4177d7f085e5925",
+      "verdict": {
+        "artifact_sha256": "f0dcf735f6e345d6ffef6f157dfe2c235f4a0ea261d6ab91b4177d7f085e5925",
+        "checks": {
+          "canonical_encoding": true,
+          "commentary_label": true,
+          "findings_match_recomputed": true,
+          "outputs_bound_to_receipts": true,
+          "outputs_type": true,
+          "roles_complete": true,
+          "schema": true,
+          "scope": true,
+          "source_identity": true
+        },
+        "coverage": "Four static heuristics; no browser rendering, WCAG certification or security certification.",
+        "passed": true,
+        "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+        "verifier": "static-html-recompute-v1"
+      },
+      "backend": {
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 961500
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 5018000
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 11537200
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 11609700,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 5535055700,
+            "probe": 1,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 5635461500,
+            "probe": 2,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 10643082100,
+            "probe": 2,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 10743822700,
+            "probe": 3,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 15750501800,
+            "probe": 3,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 15850884500,
+            "probe": 4,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 20858331900,
+            "probe": 4,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 20958657800,
+            "probe": 5,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 25972303400,
+            "probe": 5,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 26072818400,
+            "probe": 6,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 26098107100,
+            "probe": 6,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 26098173500
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 28939261100
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 28939271400,
+            "probe": 6,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 28939338500
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 29014499800
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 29014544900,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 29014614300
+          },
+          {
+            "stage": "CALL_BEGIN",
+            "elapsed_ns": 29036389600,
+            "ordinal": 1
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 29036396700
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 29096260800
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 29096263800
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 31366420700
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 49400415400
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 49522533400
+          },
+          {
+            "stage": "CALL_END",
+            "elapsed_ns": 49529503500,
+            "ordinal": 1
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 49557781200
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 49559347000,
+            "active_processes": 0
+          }
+        ],
+        "calls": [
+          {
+            "ordinal": 1,
+            "wall_seconds": 20.4929465,
+            "request_sha256": "0e588b24177bee5bcac2dee3875364daf912d623c9cab75dbbc5f9a86f0a03f7",
+            "model_allocated_vram_bytes": 0,
+            "context_length": 8192,
+            "total_duration": 18012151000,
+            "load_duration": 8891297700,
+            "prompt_eval_count": 170,
+            "prompt_eval_cached_count": 0,
+            "prompt_eval_duration": 2949032000,
+            "eval_count": 58,
+            "eval_duration": 6150993000,
+            "generated_tokens_per_second": 9.429371810372732,
+            "first_token_ms": null,
+            "first_token_reason": "non_streaming_backend"
+          }
+        ],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 99,
+          "elapsed_seconds": 49.5594004,
+          "cpu_seconds": 111.328125,
+          "cpu_percent_machine_average": 11.231786916453492,
+          "sampled_peak_working_set_sum_bytes": 6279864320,
+          "sampled_peak_private_commit_sum_bytes": 7399411712,
+          "job_peak_commit_bytes": 7400058880,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      },
+      "repetition": 1
+    },
+    {
+      "roles": 1,
+      "wall_seconds": 21.685796,
+      "state": "ACCEPTED",
+      "error": null,
+      "artifact_sha256": "f0dcf735f6e345d6ffef6f157dfe2c235f4a0ea261d6ab91b4177d7f085e5925",
+      "verdict": {
+        "artifact_sha256": "f0dcf735f6e345d6ffef6f157dfe2c235f4a0ea261d6ab91b4177d7f085e5925",
+        "checks": {
+          "canonical_encoding": true,
+          "commentary_label": true,
+          "findings_match_recomputed": true,
+          "outputs_bound_to_receipts": true,
+          "outputs_type": true,
+          "roles_complete": true,
+          "schema": true,
+          "scope": true,
+          "source_identity": true
+        },
+        "coverage": "Four static heuristics; no browser rendering, WCAG certification or security certification.",
+        "passed": true,
+        "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+        "verifier": "static-html-recompute-v1"
+      },
+      "backend": {
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 806900
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 6236800
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 19925500
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 19997700,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 3837073400,
+            "probe": 1,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 3837125200
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 5968475200
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 5968483400,
+            "probe": 1,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 5968707300
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6012168400
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 6012204700,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 6012250200
+          },
+          {
+            "stage": "CALL_BEGIN",
+            "elapsed_ns": 6024657100,
+            "ordinal": 1
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 6024660400
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6075609600
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 6075612100
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 8150767300
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 21458497200
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 21576160500
+          },
+          {
+            "stage": "CALL_END",
+            "elapsed_ns": 21578401500,
+            "ordinal": 1
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 21612841400
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 21613479100,
+            "active_processes": 0
+          }
+        ],
+        "calls": [
+          {
+            "ordinal": 1,
+            "wall_seconds": 15.5536387,
+            "request_sha256": "0e588b24177bee5bcac2dee3875364daf912d623c9cab75dbbc5f9a86f0a03f7",
+            "model_allocated_vram_bytes": 0,
+            "context_length": 8192,
+            "total_duration": 13286101200,
+            "load_duration": 4370966300,
+            "prompt_eval_count": 170,
+            "prompt_eval_cached_count": 0,
+            "prompt_eval_duration": 2887444000,
+            "eval_count": 58,
+            "eval_duration": 6013268000,
+            "generated_tokens_per_second": 9.645337610098203,
+            "first_token_ms": null,
+            "first_token_reason": "non_streaming_backend"
+          }
+        ],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 44,
+          "elapsed_seconds": 21.6133765,
+          "cpu_seconds": 101.828125,
+          "cpu_percent_machine_average": 23.556736958707027,
+          "sampled_peak_working_set_sum_bytes": 6307721216,
+          "sampled_peak_private_commit_sum_bytes": 7399927808,
+          "job_peak_commit_bytes": 7400415232,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      },
+      "repetition": 2
+    },
+    {
+      "roles": 1,
+      "wall_seconds": 23.393745,
+      "state": "ACCEPTED",
+      "error": null,
+      "artifact_sha256": "f0dcf735f6e345d6ffef6f157dfe2c235f4a0ea261d6ab91b4177d7f085e5925",
+      "verdict": {
+        "artifact_sha256": "f0dcf735f6e345d6ffef6f157dfe2c235f4a0ea261d6ab91b4177d7f085e5925",
+        "checks": {
+          "canonical_encoding": true,
+          "commentary_label": true,
+          "findings_match_recomputed": true,
+          "outputs_bound_to_receipts": true,
+          "outputs_type": true,
+          "roles_complete": true,
+          "schema": true,
+          "scope": true,
+          "source_identity": true
+        },
+        "coverage": "Four static heuristics; no browser rendering, WCAG certification or security certification.",
+        "passed": true,
+        "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+        "verifier": "static-html-recompute-v1"
+      },
+      "backend": {
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 748600
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 11230000
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 22227600
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 22304400,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 4146767800,
+            "probe": 1,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 4146834700
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 6412540100
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 6412551300,
+            "probe": 1,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 6412828400
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6489971700
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 6490019500,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 6490083500
+          },
+          {
+            "stage": "CALL_BEGIN",
+            "elapsed_ns": 6511991600,
+            "ordinal": 1
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 6511995800
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6562907100
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 6562909800
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 9058294100
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 23137418400
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 23282738600
+          },
+          {
+            "stage": "CALL_END",
+            "elapsed_ns": 23284905500,
+            "ordinal": 1
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 23316925600
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 23317382700,
+            "active_processes": 0
+          }
+        ],
+        "calls": [
+          {
+            "ordinal": 1,
+            "wall_seconds": 16.7727498,
+            "request_sha256": "0e588b24177bee5bcac2dee3875364daf912d623c9cab75dbbc5f9a86f0a03f7",
+            "model_allocated_vram_bytes": 0,
+            "context_length": 8192,
+            "total_duration": 14053691700,
+            "load_duration": 4926126800,
+            "prompt_eval_count": 170,
+            "prompt_eval_cached_count": 0,
+            "prompt_eval_duration": 3025654000,
+            "eval_count": 58,
+            "eval_duration": 6089782000,
+            "generated_tokens_per_second": 9.524150453989979,
+            "first_token_ms": null,
+            "first_token_reason": "non_streaming_backend"
+          }
+        ],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 47,
+          "elapsed_seconds": 23.3171871,
+          "cpu_seconds": 104.9375,
+          "cpu_percent_machine_average": 22.502178232296295,
+          "sampled_peak_working_set_sum_bytes": 6307520512,
+          "sampled_peak_private_commit_sum_bytes": 7398203392,
+          "job_peak_commit_bytes": 7398219776,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      },
+      "repetition": 3
+    }
+  ],
+  "comparison": [
+    {
+      "roles": 1,
+      "attempts": 3,
+      "accepted": 3,
+      "wall_seconds_min": 21.685796,
+      "wall_seconds_median": 23.393745,
+      "wall_seconds_max": 49.6250373
+    }
+  ],
+  "publication": {
+    "input": "Packaged synthetic HTML only",
+    "private_aliases_paths_identifiers": "omitted",
+    "engine_changed": false,
+    "baseline_commit": "6e60dd8473a55100bfc3919cf9255c0b10df0d1e"
+  }
+}
