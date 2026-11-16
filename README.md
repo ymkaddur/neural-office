@@ -4,19 +4,19 @@
 
 Software gratuito y de código abierto bajo [MIT](LICENSE), con [apoyo voluntario](#apoya-el-proyecto) y las mismas funciones para todas las personas.
 
-Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. **V5.4 prepara cinco pantallas para revisar la dirección visual:** inicio, trabajo, resultado, error y parada. El piloto operativo sigue siendo Python/Tkinter V5.3 para Windows; el nuevo espacio de trabajo todavía utiliza ejemplos y no está conectado al motor.
+Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. **V5.4.1 pule las cinco pantallas:** inicio, trabajo, resultado, error y parada, con paneles ajustables y tres etapas inspeccionables. El piloto operativo sigue siendo Python/Tkinter V5.3 para Windows; el nuevo espacio de trabajo todavía utiliza ejemplos y no está conectado al motor.
 
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/downloads/)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![V5.4: Director, entrega revisable y fuentes del ejemplo](docs/images/v5.4-result.jpg)
+![V5.4.1: Director, versiones y entrega con fuentes](docs/images/v5.4.1-result.jpg)
 
-**[Ver las cinco pantallas y su revisión crítica](docs/V5_4_UI_REVIEW.md)** · [Abrir el prototipo](desktop/README.md) · [Consumo medido y límites](docs/V5_4_RESOURCE_BASELINE.md).
+**[Ver las cinco pantallas y su revisión crítica](docs/V5_4_1_UI_REVIEW.md)** · [Abrir el prototipo](desktop/README.md) · [Consumo medido y límites](docs/V5_4_1_RESOURCE_BASELINE.md).
 
 La captura utiliza fuentes sintéticas del proyecto ficticio Norte. Puedes inspeccionarlas, comparar versiones y exportar el ejemplo. Cambiar el objetivo no genera una respuesta nueva. La dirección visual está pendiente de aceptación; la integración se prepara para V5.5. El [piloto operativo](docs/images/pilot-v5.2.1.jpg) conserva sus informes y controles.
 
-Para revisar **las cinco pantallas V5.4**, [descarga el progreso de main](https://github.com/ymkaddur/neural-office/archive/refs/heads/main.zip) y sigue [las instrucciones del frontend](desktop/README.md). No necesita modelo.
+Para revisar **las cinco pantallas V5.4.1**, [descarga el progreso de main](https://github.com/ymkaddur/neural-office/archive/refs/heads/main.zip) y sigue [las instrucciones del frontend](desktop/README.md). No necesita modelo.
 
 ## Usar el piloto HTML (motor V5.3)
 
@@ -53,7 +53,7 @@ Se admite una inferencia administrada por ledger y hasta dos proyectos activos. 
 | Respuesta 401 intermitente del gateway histórico | Reproducida y corregida; diff y regresión publicados |
 | Timeout histórico al arrancar Ollama | Causa pendiente; instrumentación por etapas verificada |
 | Medición CPU, memoria del backend y comparación 1/3/7 | Seis intentos reales aceptados; calidad comparada y GPU pendientes |
-| Nueva interfaz React/TypeScript | Cinco escenas V5.4, fuentes, diff, exportación y tema; revisión visual pendiente, sin conexión al motor |
+| Nueva interfaz React/TypeScript | Cinco escenas V5.4.1, compositor contextual, dos divisores, versiones y fuentes; aceptación visual pendiente, sin motor |
 | Contrato de escritorio | Especificación y validador de mensajes probados; transporte pendiente |
 | Memoria, skills aprendidas y tareas generales | Planificadas |
 | Instalador autónomo y otros sistemas operativos | Planificados |
@@ -71,6 +71,8 @@ La [revisión forense V5.3](docs/V5_3_FORENSIC_REVIEW.md) enlaza resultados, reg
 Dos ensayos por perfil, una máquina, el HTML incluido y un modelo en CPU. ¹ Suma muestreada de memoria residente; puede contar páginas compartidas varias veces y excluye interfaz/controlador. Estas cifras no son requisitos mínimos ni una comparación de calidad. [Protocolo, entorno y recibos](docs/V5_3_MEASUREMENT_PROTOCOL.md).
 
 V5.4 publica una [nueva línea base](docs/V5_4_RESOURCE_BASELINE.md): tres ensayos CPU del motor conservado y muestras de la UI por separado. No se anuncia una aceleración ni un consumo total del futuro escritorio. La aceptación de las cinco pantallas precede a la integración V5.5; el corpus amplio y las comparaciones controladas siguen pendientes. [Contrato de integración](docs/V5_3_DESKTOP_CONTRACT.md) · [revisión dirigida de vídeos](docs/V5_3_VIDEO_RESEARCH.md).
+
+V5.4.1 mantiene el motor intacto y [mide solo el frontend](docs/V5_4_1_RESOURCE_BASELINE.md). No añade dependencias de ejecución; corrige reenvío involuntario, bloqueo de navegación entre tamaños y prioridad visual de la parada. La [revisión crítica](docs/V5_4_1_UI_REVIEW.md) distingue los casos comprobados de las pruebas pendientes.
 
 ## Apoya el proyecto
 

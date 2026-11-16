@@ -1,0 +1,650 @@
+{
+  "schema": "neural-office.v541-verification",
+  "recorded_at_utc": "2026-11-16T20:47:58.290153+00:00",
+  "baseline_commit": "d9a7fd7b4757b77c8a83c38ab8502b89eced3c53",
+  "scope": "Production browser preview only. Synthetic fixtures. No engine/model/IPC connected.",
+  "engine_and_engine_tests_unchanged": true,
+  "dependency_change": "Root package version only; every non-root package lock entry is identical to baseline.",
+  "runtime_dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "validation": [
+    {
+      "command": "npm test",
+      "scope": "desktop",
+      "passed": 18,
+      "failed": 0,
+      "generated_action_steps": 12000
+    },
+    {
+      "command": "npm run build",
+      "scope": "desktop",
+      "exit_code": 0,
+      "checks": "TypeScript noEmit + Vite production build"
+    }
+  ],
+  "counterfactual": {
+    "fixture": "result",
+    "objective": "Synthetic objective",
+    "action": "START",
+    "before": {
+      "draft": "Synthetic objective",
+      "attempts_after": 2
+    },
+    "after": {
+      "draft": "",
+      "attempts_after": 1
+    },
+    "method": "Import and execute both pure reducer modules without storage or DOM"
+  },
+  "assets": [
+    {
+      "path": "desktop/dist/assets/index-D1kBTMAz.js",
+      "bytes": 262937,
+      "gzip_level_6_bytes": 80273,
+      "sha256": "8d6407f8e9fe6aa332b355ee70fe1bc516a79ab2aa8f403f534a217f6dc8d239"
+    },
+    {
+      "path": "desktop/dist/assets/index-DuSTvuac.css",
+      "bytes": 31037,
+      "gzip_level_6_bytes": 6602,
+      "sha256": "1f100e4dc80e05529322763f239a8817669e65cf4a06a62c04b03f329147bc28"
+    },
+    {
+      "path": "desktop/dist/index.html",
+      "bytes": 753,
+      "gzip_level_6_bytes": 410,
+      "sha256": "e221aa074b2a99c5eec6413ba2d82e4e7d06eb3d22481d1193a4f1b23b675e81"
+    }
+  ],
+  "total_raw_bytes": 294727,
+  "total_gzip_level_6_bytes": 87285,
+  "gzip_comparison": {
+    "baseline_recompressed_same_runtime": 84244,
+    "delta_bytes": 3041,
+    "implementation": "Python 3.12.14, zlib 1.3.2, gzip level 6, mtime 0; summed per asset",
+    "scope": "HTML/CSS/JS only; excludes repository screenshots, dependencies, desktop host and model"
+  },
+  "browser": {
+    "checks": [
+      {
+        "id": "previous-version",
+        "exportDisabled": true,
+        "draftVisible": true
+      },
+      {
+        "id": "revision-version",
+        "visible": true
+      },
+      {
+        "id": "dialog-return-focus",
+        "focus": "alcance.md:6"
+      },
+      {
+        "id": "resize-persists",
+        "value": "55"
+      },
+      {
+        "id": "resize-after-remount",
+        "value": "55"
+      },
+      {
+        "id": "whitespace-disabled",
+        "disabled": true
+      },
+      {
+        "id": "phase2",
+        "visible": true
+      },
+      {
+        "id": "phase3-one-attempt",
+        "final": true,
+        "countOne": true
+      },
+      {
+        "id": "no-accidental-resend",
+        "unchanged": true
+      },
+      {
+        "id": "stop-blocks-new-work",
+        "disabled": true
+      },
+      {
+        "id": "stop-retains-quota",
+        "countTwo": true
+      },
+      {
+        "id": "exhaustion",
+        "countThree": true,
+        "sendDisabled": true
+      },
+      {
+        "id": "mobile-to-desktop-focus-unblocked",
+        "focus": "workspace-main",
+        "workspaceInert": false
+      },
+      {
+        "id": "error-empty-retry",
+        "buttons": 1,
+        "disabled": true
+      },
+      {
+        "id": "error-edit-focus",
+        "focus": "director-input"
+      },
+      {
+        "id": "error-retry-increments",
+        "countTwo": true
+      },
+      {
+        "id": "mobile-composer-and-stop",
+        "cssWidth": 392,
+        "composerBottom": 816,
+        "viewportHeight": 844,
+        "visibleStopControls": 1,
+        "stopTransition": true
+      },
+      {
+        "id": "2000-character-boundary",
+        "length": 2000,
+        "horizontalOverflow": false
+      },
+      {
+        "id": "markdown-export",
+        "synthetic": true,
+        "version": true,
+        "sources": true
+      }
+    ],
+    "layouts": [
+      {
+        "scene": "ready",
+        "composerBottom": 755,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 320
+      },
+      {
+        "scene": "running",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 320
+      },
+      {
+        "scene": "result",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 320
+      },
+      {
+        "scene": "error",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 320
+      },
+      {
+        "scene": "stopping",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 320
+      },
+      {
+        "scene": "ready",
+        "composerBottom": 786,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 392
+      },
+      {
+        "scene": "running",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 392
+      },
+      {
+        "scene": "result",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 392
+      },
+      {
+        "scene": "error",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 392
+      },
+      {
+        "scene": "stopping",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 392
+      },
+      {
+        "scene": "ready",
+        "composerBottom": 773,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 520
+      },
+      {
+        "scene": "running",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 520
+      },
+      {
+        "scene": "result",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 520
+      },
+      {
+        "scene": "error",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 520
+      },
+      {
+        "scene": "stopping",
+        "composerBottom": 816,
+        "documentOverflow": false,
+        "height": 844,
+        "overflowingPanels": [],
+        "width": 520
+      },
+      {
+        "scene": "ready",
+        "composerBottom": 751,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 768
+      },
+      {
+        "scene": "running",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 768
+      },
+      {
+        "scene": "result",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 768
+      },
+      {
+        "scene": "error",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 768
+      },
+      {
+        "scene": "stopping",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 768
+      },
+      {
+        "scene": "ready",
+        "composerBottom": 725,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1024
+      },
+      {
+        "scene": "running",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1024
+      },
+      {
+        "scene": "result",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1024
+      },
+      {
+        "scene": "error",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1024
+      },
+      {
+        "scene": "stopping",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1024
+      },
+      {
+        "scene": "ready",
+        "composerBottom": 725,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1280
+      },
+      {
+        "scene": "running",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1280
+      },
+      {
+        "scene": "result",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1280
+      },
+      {
+        "scene": "error",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1280
+      },
+      {
+        "scene": "stopping",
+        "composerBottom": 772,
+        "documentOverflow": false,
+        "height": 800,
+        "overflowingPanels": [],
+        "width": 1280
+      },
+      {
+        "scene": "ready",
+        "composerBottom": 865,
+        "documentOverflow": false,
+        "height": 1080,
+        "overflowingPanels": [],
+        "width": 2560
+      },
+      {
+        "scene": "running",
+        "composerBottom": 1052,
+        "documentOverflow": false,
+        "height": 1080,
+        "overflowingPanels": [],
+        "width": 2560
+      },
+      {
+        "scene": "result",
+        "composerBottom": 1052,
+        "documentOverflow": false,
+        "height": 1080,
+        "overflowingPanels": [],
+        "width": 2560
+      },
+      {
+        "scene": "error",
+        "composerBottom": 1052,
+        "documentOverflow": false,
+        "height": 1080,
+        "overflowingPanels": [],
+        "width": 2560
+      },
+      {
+        "scene": "stopping",
+        "composerBottom": 1052,
+        "documentOverflow": false,
+        "height": 1080,
+        "overflowingPanels": [],
+        "width": 2560
+      }
+    ],
+    "console_error_warning_count": 0,
+    "screenshot_css_viewports": [
+      [
+        1280,
+        800
+      ],
+      [
+        520,
+        844
+      ]
+    ],
+    "limitations": [
+      "Manual assisted browser checks, not a committed automated browser test suite.",
+      "Viewport requests were normalized using observed CSS dimensions and device pixel ratio.",
+      "Actual screen-reader, IME and touch hardware tests remain unverified."
+    ]
+  },
+  "samples": [
+    {
+      "mode": "Reposo, panel abierto",
+      "elapsedMs": 5001.399999976158,
+      "dom": 278,
+      "heapBytes": 20411618,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 0
+    },
+    {
+      "mode": "Reposo, panel abierto",
+      "elapsedMs": 5009.199999988079,
+      "dom": 294,
+      "heapBytes": 20816539,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 0
+    },
+    {
+      "mode": "Reposo, panel abierto",
+      "elapsedMs": 5014,
+      "dom": 300,
+      "heapBytes": 8701134,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 0
+    },
+    {
+      "mode": "10 000 eventos / 50 visibles",
+      "elapsedMs": 5010.700000047684,
+      "dom": 516,
+      "heapBytes": 9291107,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 10000
+    },
+    {
+      "mode": "10 000 eventos / 50 visibles",
+      "elapsedMs": 5012,
+      "dom": 522,
+      "heapBytes": 8950661,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 10000
+    },
+    {
+      "mode": "10 000 eventos / 50 visibles",
+      "elapsedMs": 5004.199999988079,
+      "dom": 528,
+      "heapBytes": 9417634,
+      "longTasks": 0,
+      "visibility": "visible",
+      "rows": 10000
+    }
+  ],
+  "measurement_context": {
+    "scene": "stopping",
+    "theme": "light",
+    "css_viewport": [
+      1280,
+      800
+    ],
+    "sample_window_ms": 5000,
+    "history": "10000 logical positions, 50 generated visible rows, not 10000 stored event objects",
+    "heap": "performance.memory.usedJSHeapSize approximation; shared browser/automation and garbage collection may affect readings; not process RAM",
+    "cpu_percent": null,
+    "gpu_bytes": null,
+    "total_desktop_memory_bytes": null,
+    "long_tasks": "PerformanceObserver longtask entries during each bounded sample; not proof of 60 fps or leak freedom"
+  },
+  "contrast_pairs": [
+    {
+      "theme": "light",
+      "foreground": "ink",
+      "background": "canvas",
+      "ratio": 13.16
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "canvas",
+      "ratio": 5.99
+    },
+    {
+      "theme": "light",
+      "foreground": "muted",
+      "background": "paper",
+      "ratio": 6.48
+    },
+    {
+      "theme": "light",
+      "foreground": "accent",
+      "background": "paper",
+      "ratio": 5.39
+    },
+    {
+      "theme": "light",
+      "foreground": "accent",
+      "background": "wash",
+      "ratio": 4.59
+    },
+    {
+      "theme": "dark",
+      "foreground": "ink",
+      "background": "canvas",
+      "ratio": 15.73
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "canvas",
+      "ratio": 9.6
+    },
+    {
+      "theme": "dark",
+      "foreground": "muted",
+      "background": "paper",
+      "ratio": 8.72
+    },
+    {
+      "theme": "dark",
+      "foreground": "accent",
+      "background": "paper",
+      "ratio": 8.67
+    },
+    {
+      "theme": "dark",
+      "foreground": "accent",
+      "background": "wash",
+      "ratio": 7.22
+    }
+  ],
+  "contrast_scope": "Selected opaque foreground/background tokens only; not a complete accessibility audit.",
+  "unverified": [
+    "human visual acceptance",
+    "screen reader",
+    "real IME",
+    "physical touch/pointer cancellation",
+    "packaged desktop RAM/CPU/GPU",
+    "30 sustained execution cycles",
+    "10-minute idle CPU",
+    "engine transport and actual agent events"
+  ],
+  "source_sha256": {
+    "desktop/src/workspace/fixtures.ts": "88b7f5e3922c2ed10a5fe5adccf5c412693d0793ea61a6f0e50ca315fdb54c55",
+    "desktop/src/workspace/model.test.ts": "ed79f7391bcdb9cf11d65fbc600e828cf8aeeeac0f572f21a3ce717445e6b83e",
+    "desktop/src/workspace/model.ts": "2ae9426272b3dc241db89f332ad74a65d3c961c649a815788cc3495acd42e8e2",
+    "desktop/src/workspace/PaneDivider.tsx": "b155cabc4298ddc9cc059bace18265762ae2db0deed89328644fccea370f90f7",
+    "desktop/src/workspace/panes.test.ts": "cd8c6a0c44fb2625506e4a27a76e4a2d4be9760d7ced972a9221d22a653e560a",
+    "desktop/src/workspace/panes.ts": "28729e5fc64f4c70a8ae79835494e18149fd1253e80ed70fd429f190cad6a13c",
+    "desktop/src/workspace/workspace.css": "b8c0f59ed9ffb7ea7901c69102e5492a6b2097beac892e4a3378edef5f4c7866",
+    "desktop/src/workspace/Workspace.tsx": "91ccdaa11641d3b45dc16e3b72644b166f14810e0f12917c4e87fb5b5c1ccf8c"
+  },
+  "screenshots": [
+    {
+      "path": "docs/images/v5.4.1-dark.jpg",
+      "sha256": "9ca8f864a699d0661af9c24cde65aab5a650df2c827d4ae00deaceb766cbc988",
+      "bytes": 107808
+    },
+    {
+      "path": "docs/images/v5.4.1-error.jpg",
+      "sha256": "10f38c1773b3666fa921c8eba1cf21b5f0d96d02df7f4e5d4a8effb2115f3637",
+      "bytes": 87069
+    },
+    {
+      "path": "docs/images/v5.4.1-mobile.jpg",
+      "sha256": "d5e38ab88e4821ecb3aa4d25e6271548e03436602625c4a3b9bacd4f88b3394c",
+      "bytes": 46257
+    },
+    {
+      "path": "docs/images/v5.4.1-ready.jpg",
+      "sha256": "6579624580091533879318ccff6a5a657eb92e5f3876cae611f8c38e302dbaa3",
+      "bytes": 70739
+    },
+    {
+      "path": "docs/images/v5.4.1-result.jpg",
+      "sha256": "36d04e7482c521fe63cd87359a4118efb69f44aed58342d46fcda044f6ab55f8",
+      "bytes": 104575
+    },
+    {
+      "path": "docs/images/v5.4.1-running.jpg",
+      "sha256": "bccdac146505b177624010748d5c1a3096aa8ef64e71b9afdb3031558b66d874",
+      "bytes": 97849
+    },
+    {
+      "path": "docs/images/v5.4.1-stopping.jpg",
+      "sha256": "6b605026251787a6835f03ce232433f3bf19078316e439d3c03242b854d41de9",
+      "bytes": 100047
+    }
+  ]
+}

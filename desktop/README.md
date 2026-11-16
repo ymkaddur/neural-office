@@ -1,6 +1,6 @@
-# Vista previa de escritorio · V5.4
+# Vista previa de escritorio · V5.4.1
 
-Un espacio de trabajo con Director, fuentes inspeccionables y entrega comparada. **Cinco pantallas para revisión visual, todavía sin motor.** [Ver la galería](../docs/V5_4_UI_REVIEW.md) · [Mediciones y límites](../docs/V5_4_RESOURCE_BASELINE.md).
+Director, versiones y fuentes en un espacio ajustable. **Cinco pantallas para revisión visual, sin conectar el motor.** [Galería y revisión crítica](../docs/V5_4_1_UI_REVIEW.md) · [Recursos](../docs/V5_4_1_RESOURCE_BASELINE.md).
 
 ## Abrir
 
@@ -11,49 +11,44 @@ cd desktop
 npm ci --ignore-scripts
 npm test
 npm run build
-npm run preview -- --port 5315 --strictPort
+npm run preview -- --port 5316 --strictPort
 ```
 
-Abre `http://127.0.0.1:5315/`. El servidor escucha en loopback. La barra superior permite recorrer las cinco escenas; también se pueden abrir directamente:
+Abre `http://127.0.0.1:5316/`. El servidor escucha en loopback. La barra superior cambia entre escenas independientes:
 
 | Ruta | Escena |
 | --- | --- |
 | `/?screen=ready` | Objetivo, fuentes y compositor |
-| `/?screen=running` | Director, revisor y borrador parcial |
-| `/?screen=result` | Entrega, cambios y exportación |
-| `/?screen=error` | Encargo conservado, resultado sin generar |
-| `/?screen=stopping` | Parada solicitada y confirmación pendiente |
+| `/?screen=running` | Borrador y actividad del equipo |
+| `/?screen=result` | Entrega v3, versiones anteriores, cambios y exportación |
+| `/?screen=error` | Encargo editable, sin resultado generado |
+| `/?screen=stopping` | Confirmación pendiente antes de admitir otro inicio |
 
-Para desarrollo con recarga: `npm run dev`. La política CSP estricta se incorpora al **build**; el desarrollo necesita inyección de estilos y HMR. Probar el modo `preview` evita confundir esa actividad con el reposo de producción. El tamaño gzip no es RAM ni tamaño de un instalador.
+## Recorrido de revisión
 
-## Qué puedes probar
+1. En Inicio, inspecciona las fuentes y envía el objetivo con el botón o Ctrl+Enter. Se consume un intento y el compositor queda vacío.
+2. Pulsa **Simular revisión**, **Simular integración** y **Mostrar entrega**. Son tres etapas manuales del mismo intento; no hay llamadas al modelo.
+3. Selecciona Borrador, Revisión o Entrega en la franja superior. La pestaña Cambios compara v1 → v2 y v2 → v3. Solo v3 terminada habilita exportar el Markdown preparado.
+4. Escribe un nuevo mensaje para probar un ajuste. La respuesta de Norte continúa siendo fija; se ensaya la interacción, no generación de contenido.
+5. Arrastra los divisores de navegación o conversación. También admiten flechas, Shift+flechas, Home/End y Enter para restablecer. Escape cancela el arrastre en curso. La entrega puede ocultarse con su botón; en ventanas estrechas los paneles se apilan.
+6. Detén un ejemplo. Hasta pulsar **Simular cierre confirmado** no se admite otro trabajo. Fallo, parada y «Nuevo encargo» no reembolsan intentos.
+7. En Error, edita el encargo y usa el único botón de reintento. Con texto vacío o tres intentos consumidos queda desactivado.
+8. Cambia tema y tamaño de ventana. En **Medir**, toma muestras de cinco segundos y exporta su JSON.
 
-1. Abrir una fuente y leer sus líneas. Editar el objetivo y comenzar con Ctrl+Enter.
-2. En curso: abrir `alcance.md:6`, inspeccionar la actividad y avanzar manualmente a la entrega.
-3. Comparar v1 y v2, cambiar pestañas con flechas/Home/End y exportar Markdown.
-4. Solicitar parada: hasta confirmar el cierre simulado no se admite otro trabajo; la cuota permanece consumida.
-5. Cargar el error y reintentar: consume otro intento de ejemplo.
-6. Cambiar tema, ocultar la entrega y probar una ventana estrecha.
-7. «Medir»: tres o más muestras de reposo y de historial. Cada muestra dura cinco segundos, conserva como máximo diez resultados y desconecta el colector al terminar. Se puede exportar JSON.
+## Datos, límites y consumo
 
-El historial de medición genera **solo 50 filas de una secuencia lógica de 10.000**. Mide representación paginada, no almacenamiento de 10.000 eventos completos. `performance.memory`, cuando está disponible, es una aproximación del heap JS y puede incluir instrumentación. No representa memoria privada del navegador, WebView, Python o modelo.
+El material de Norte es sintético y está incluido en el código. La UI no llama a Python/Ollama, no lee archivos del usuario y no altera proyectos. La parada confirmada es manual; no prueba cierre de procesos. El piloto Python/Tkinter de la raíz conserva el motor V5.3.
 
-## Contrato de esta demostración
+Recargar o cambiar de escena carga una fixture nueva y reinicia sus contadores. No existe continuidad de ejecuciones. Borrador de **Inicio**, tema y anchos se conservan en `sessionStorage` durante la pestaña; los mensajes de ajuste y reintento no se restauran tras recargar. Si el borrador no puede guardarse, se avisa. Los tamaños mantienen funcionamiento en memoria si el almacenamiento está bloqueado.
 
-Todo el contenido de «Norte» es sintético y está incluido en el código. **Cambiar el objetivo no genera una respuesta nueva**: el artefacto está preparado para revisar la interfaz. Los botones no llaman a Python/Ollama, no leen archivos ni modifican proyectos reales. El piloto Python/Tkinter de la raíz conserva el motor operativo V5.3.
+No hay analítica, fuentes remotas, intervalos de sondeo o librerías nuevas de paneles. El build incluye CSP con `connect-src 'none'`; `npm run dev` usa HMR y no representa el reposo de producción. Las descargas son Markdown sintético y JSON de muestras.
 
-La galería carga fixtures independientes: navegar a otra escena o recargar reinicia su estado y contador. «Nuevo encargo» dentro del recorrido no reembolsa intentos. Solo borrador y tema se guardan en `sessionStorage`; no se implementa continuidad de ejecuciones. Si el almacenamiento está bloqueado, el borrador funciona en memoria y se avisa.
+La prueba de historial genera **50 filas de 10.000 posiciones lógicas**, no 10.000 objetos persistentes. El heap JS, cuando está disponible, no representa RAM total del navegador, Python, GPU o modelo. Cada muestra desconecta su colector al terminar y solo se conservan diez.
 
-Las dos descargas posibles son Markdown sintético y JSON de muestras de UI. No hay subida de documentos, analítica ni fuentes remotas. La parada confirmada es una **acción manual de demostración**; no prueba terminación de procesos reales.
+## Verificación y procedencia
 
-## Verificación y límites
+18 pruebas Node: siete del estado anterior, ocho del recorrido y tres de tamaños. Incluyen eventos duplicados/atrasados, reenvío vacío, cuota, cierre, tres etapas, almacenamiento inválido y límites de paneles. TypeScript, build y comprobaciones manuales de navegador: [evidencia](../docs/evidence/V5_4_1_VERIFICATION.json).
 
-Doce pruebas: siete del estado anterior conservado y cinco del recorrido nuevo. Incluyen doble inicio, eventos terminales atrasados, cuota, cancelación y paginación en los bordes. Comprobación TypeScript + build y recorridos manuales de navegador registrados en [V5_4_UI.json](../docs/evidence/V5_4_UI.json).
+`main.tsx` monta `workspace/Workspace.tsx`. Los componentes anteriores permanecen para trazabilidad. MIT para código propio; SVG, CSS y fixtures originales. No se ha copiado código o material gráfico de Dusk. [Avisos de terceros](THIRD_PARTY_NOTICES.md).
 
-El código anterior `App.tsx/state.ts/styles.css` se conserva para trazabilidad; `main.tsx` monta `workspace/Workspace.tsx`. No se mezclan sus reductores ni se transportan eventos del motor a la fixture. [Contrato futuro Tauri↔Python](../docs/V5_3_DESKTOP_CONTRACT.md).
-
-Pendientes: aceptación visual, paneles redimensionables, pruebas formativas, lector de pantalla y carga real; después transporte, persistencia y recuperación. No hay instalador autónomo ni host Tauri en esta entrega.
-
-## Licencias
-
-MIT para el código propio. CSS, SVG y fixtures originales. [Avisos de terceros](THIRD_PARTY_NOTICES.md) e [inventario previo](../docs/evidence/V5_3_COMPONENTS.json); V5.4 no añade dependencias. No se publican `node_modules`, `dist`, vídeos, modelos, logs privados ni bases de datos.
+Quedan pendientes aceptación visual, pruebas con usuarios, lector de pantalla, dispositivos táctiles, transporte y escritorio empaquetado. Esta entrega no certifica G-UI ni ausencia total de errores.

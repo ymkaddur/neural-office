@@ -30,11 +30,12 @@ Las versiones se cierran por capacidades y evidencia, no por numeración o fecha
 
 ## Tramo actualizado hacia V6
 
-La numeración organiza puertas de salida; no fija fechas ni declara implementadas las capacidades. V5.4 publica progreso revisable. G-UI continúa pendiente.
+La numeración organiza puertas de salida; no fija fechas ni declara implementadas las capacidades. V5.4.1 publica progreso revisable y divisores ajustables. G-UI continúa pendiente de aceptación y pruebas formativas.
 
 | Fase | Resultado para el usuario | Condición antes de avanzar |
 | --- | --- | --- |
 | V5.4 | Director, contexto, borrador, resultado, error y parada comprensibles | Cinco pantallas aceptadas, paneles ajustables, prueba formativa y referencia reproducible de recursos |
+| V5.4.1 | Compositor contextual, tres etapas, paneles ajustables y atención al cierre | Revisar las cinco escenas pulidas; las [correcciones y límites](docs/V5_4_1_UI_REVIEW.md) no certifican todavía G-UI |
 | V5.5 | Elegir modelo y fuente, ejecutar y detener desde el escritorio | Transporte Tauri/Python restringido, autoridad del núcleo, eventos con secuencia, recuperación e idempotencia; medir el conjunto |
 | V5.6 | Plan breve, primera entrega y revisión con salida anticipada | Hasta tres iteraciones internas propuestas, sin confundirlas con intentos; llamadas/tokens/tiempo acotados; comparar con una pasada |
 | V5.7 | Skills de solo lectura y memoria mínima inspeccionable | Fuente, versión, permisos, ámbito, borrado y actualizaciones atómicas; nada generado se promociona por sí solo |
@@ -60,4 +61,4 @@ V5.3 mantiene intactos los caminos de ejecución del núcleo e incorpora observa
 
 La investigación visual de vídeos está [delimitada por frames y timestamps](docs/V5_3_VIDEO_RESEARCH.md). Las pistas sobre caché, memoria y evaluación alimentan experimentos futuros; no se anuncian como capacidades ya incorporadas.
 
-**Siguiente trabajo concreto:** revisar las cinco pantallas V5.4, cerrar ajustes y ampliar el corpus y la referencia de recursos. La integración del motor espera la aceptación visual; las comparaciones CPU/GPU/contexto varían una condición por ensayo y preservan los recibos anteriores. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [registro forense](docs/V5_3_FORENSIC_REVIEW.md).
+**Siguiente trabajo concreto:** revisar las cinco pantallas V5.4.1, cerrar aceptación y ampliar el corpus y la referencia de recursos. La integración del motor espera la aceptación visual; las comparaciones CPU/GPU/contexto varían una condición por ensayo y preservan los recibos anteriores. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [registro forense](docs/V5_3_FORENSIC_REVIEW.md).

@@ -22,7 +22,7 @@ export const decisions = [
 ];
 export const resultMarkdown = `# Lanzamiento de Norte
 
-> Entrega sintética del prototipo V5.4. No se ejecutó un modelo.
+> Entrega sintética del prototipo V5.4.1. No se ejecutó un modelo.
 
 ## Recomendación
 Notas locales, guardadas en tu equipo y exportables a Markdown.
