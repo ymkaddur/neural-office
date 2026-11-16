@@ -12,6 +12,10 @@ py -3.12 -B -m unittest discover -s tests -v
 
 Usa una carpeta temporal y datos sintéticos. Una base nueva es adecuada para un proyecto de prueba independiente; no debe usarse para devolver presupuesto a un proyecto existente.
 
+Para la vista previa React/TypeScript se utiliza Node.js 24. Desde `desktop`: `npm ci --ignore-scripts`, `npm test` y `npm run build`. La demo no ejecuta el motor; sus pruebas no acreditan autoridad o persistencia real. [Guía del frontend](desktop/README.md).
+
+Los benchmarks con modelo son explícitos y quedan fuera de CI. Usa el [protocolo V5.3](docs/V5_3_MEASUREMENT_PROTOCOL.md), conserva cada corrida fallida y publica solo métricas depuradas. Cambia una variable por comparación y registra también calidad y condiciones de caché.
+
 ## Incidencias y cambios
 
 1. Describe contexto, comportamiento observado y propiedad esperada. Indica versión/commit, comando y caso mínimo.

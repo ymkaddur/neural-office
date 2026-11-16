@@ -1,0 +1,119 @@
+{
+  "schema": "neural-office.verification.v53",
+  "date_utc": "2026-11-16",
+  "base_commit": "2c20bfde43f36e7f4f58911bc4f324ae2e4bd3c2",
+  "python": {
+    "command": "py -3.12 -B -m unittest discover -s tests -v",
+    "passed": 125,
+    "failed": 0,
+    "seconds": 16.031,
+    "private_log_sha256": "06186be8c5bea05b6cc9e801575e37d39b9b186771af39aa7e4748db0d5ebd80",
+    "scope": "Public suite, Windows, no models or private state"
+  },
+  "pid_reuse_regression": {
+    "before": {
+      "failed": 1,
+      "passed": 9,
+      "private_log_sha256": "6a3753a0dca59bfa9161d8d7bdeb8dbfe1d3d0e49aeccaaf10f84ff0637b769c"
+    },
+    "after": "Included and passed in the 125-test public suite",
+    "mechanism": "Controlled stale enumeration points to a process outside the measured Job. Its memory reader must never be called."
+  },
+  "frontend": {
+    "command": "npm test; npm run build",
+    "state_tests_passed": 7,
+    "typecheck": "passed",
+    "build": "passed",
+    "node": "24.21.0",
+    "simulation_only": true,
+    "build_assets": [
+      {
+        "name": "index-BlJ638fh.css",
+        "bytes": 15034,
+        "sha256": "e71da49b561b5fe087b19b02bbc0adda651f6c8d3bfbd7546e21fbdf28db4af6"
+      },
+      {
+        "name": "index-Dr7wWU26.js",
+        "bytes": 242385,
+        "sha256": "866e66b7f5153bb817f5964e80262daef6e176b4ba576a6765ad2d6d90d601d2"
+      }
+    ]
+  },
+  "npm_audit": {
+    "advisories_returned": 0,
+    "private_receipt_sha256": "e605b50f356d490bed9108e9bc484d8e29cc8a7afceb11981df1501fec2444a2",
+    "qualification": "Registry advisory check at the stated date, not a complete supply-chain security audit"
+  },
+  "browser": {
+    "tool": "computer-use",
+    "mode": "production preview on loopback",
+    "observed": [
+      "success with one and three simulated roles",
+      "cancel holds admission until simulated termination",
+      "attempt remains consumed after cancellation",
+      "three attempts exhaust demo budget",
+      "startup-timeout fixture labelled as simulation",
+      "recovery pending with seven roles blocks start",
+      "recovery preserves consumption",
+      "history records success and cancellation",
+      "changing next role count resets presentation but retains consumption",
+      "keyboard ArrowRight changes active tab",
+      "JSON download has SIMULATION marker and four fixture findings",
+      "model and skill pages labelled as pending/disconnected",
+      "real measured data separated from synthetic tasks",
+      "light and dark themes",
+      "intro dialog",
+      "narrow layout navigation"
+    ],
+    "console_warnings_or_errors": 0,
+    "narrow_requested_width": 390,
+    "narrow_effective_dom_width": 500,
+    "narrow_dom_scroll_width": 500,
+    "limitations": [
+      "No full screen-reader audit",
+      "No claim of a real 390px test",
+      "No live desktop bridge in this release"
+    ],
+    "screenshot": "docs/images/desktop-v5.3.jpg",
+    "final_baseline_values_verified": [
+      28.8,
+      57.39,
+      109.46
+    ],
+    "screenshot_sha256": "755766cf38383f3b88082b3514da687e207f266fb8f02d5659063b2f3930bda4"
+  },
+  "scope": {
+    "production_runner_or_backend_policy_changed": false,
+    "ledger_or_quota_policy_changed": false,
+    "tauri_packaged": false,
+    "model_weights_published": false,
+    "private_logs_or_databases_published": false
+  },
+  "ci": "See the commit-associated GitHub Actions runs; no remote result is asserted by this pre-publication record.",
+  "final_benchmark": {
+    "accepted": 6,
+    "attempted": 6,
+    "inference_calls": 22,
+    "all_job_terminations_verified": true,
+    "all_resource_observations_complete": true,
+    "source_hashes_match_published_files": true,
+    "receipt": "V5_3_BASELINE.json",
+    "private_receipt_sha256": "028dd773655055fffae633e796dd04f145e4bdcfa904420e2bef528a3c32f90f"
+  },
+  "preliminary_benchmark": {
+    "accepted": 6,
+    "inference_calls": 22,
+    "excluded_from_final_reference": true,
+    "reason": "Repeated after stale-PID membership guard; before/after performance is not a controlled speedup comparison.",
+    "private_receipt_sha256": "1397b25b1506154888f3d78aecf4c44702d039b1af2fe6bbbd8c7632ffd2007a"
+  },
+  "publication_review": {
+    "selection": "Explicit .gitignore file allowlist; no force-add",
+    "checks": [
+      "Personal home paths, private contact emails, model alias and common credential markers scanned",
+      "New source, docs, generated receipts and screenshot reviewed",
+      "Existing V5.2 public model alias in three historical files classified as inherited metadata, unchanged"
+    ],
+    "limitations": "Pattern checks and manual review are not a mathematical guarantee that no sensitive text could exist."
+  }
+}
