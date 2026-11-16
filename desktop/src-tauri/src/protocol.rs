@@ -1,0 +1,198 @@
+use serde_json::{json, Value};
+use std::io::{self, BufRead};
+
+pub const MAX_COMMAND: usize = 16_384;
+pub const MAX_RESPONSE: usize = 2_097_152;
+pub const MAX_PENDING: usize = 8;
+pub const PUBLIC_METHODS: &[&str] = &[
+    "describe",
+    "models.list",
+    "projects.list",
+    "snapshot.get",
+    "source.pick",
+    "attempt.preview",
+    "attempt.start",
+    "attempt.cancel",
+    "attempt.recover",
+    "attempt.get",
+    "attempt.lookup",
+    "report.get",
+    "report.read",
+    "events.read",
+];
+
+pub fn valid_id(value: &Value) -> bool {
+    value.as_str().is_some_and(|s| {
+        !s.is_empty()
+            && s.len() <= 64
+            && s.bytes()
+                .all(|c| c.is_ascii_alphanumeric() || c == b'_' || c == b'-')
+    })
+}
+
+// Native pick is the only frontend operation that is interpreted here. Every
+// other parameter is checked again by the authoritative Python contract.
+pub fn validate_request(value: &Value) -> Result<(), &'static str> {
+    let object = value.as_object().ok_or("HOST_REQUEST_INVALID")?;
+    if object.len() != 4
+        || !["version", "id", "method", "params"]
+            .iter()
+            .all(|k| object.contains_key(*k))
+        || value["version"].as_u64() != Some(1)
+        || !valid_id(&value["id"])
+        || !value["params"].is_object()
+        || !value["method"]
+            .as_str()
+            .is_some_and(|m| PUBLIC_METHODS.contains(&m))
+    {
+        return Err("HOST_REQUEST_INVALID");
+    }
+    if serde_json::to_vec(value)
+        .map_err(|_| "HOST_REQUEST_INVALID")?
+        .len()
+        > MAX_COMMAND
+    {
+        return Err("HOST_REQUEST_SIZE");
+    }
+    if value["method"] == "source.pick" {
+        let params = value["params"].as_object().unwrap();
+        if params.len() != 1 || !valid_id(&value["params"]["project_id"]) {
+            return Err("HOST_PICKER_PARAMETERS");
+        }
+    }
+    Ok(())
+}
+
+pub fn cancelled_picker(id: &Value) -> Value {
+    json!({"version":1,"id":id,"ok":true,"result":null,"error":null})
+}
+
+pub fn valid_response(value: &Value) -> bool {
+    value.as_object().is_some_and(|o| {
+        o.len() == 5
+            && ["version", "id", "ok", "result", "error"]
+                .iter()
+                .all(|k| o.contains_key(*k))
+    }) && value["version"].as_u64() == Some(1)
+        && valid_id(&value["id"])
+        && match value["ok"].as_bool() {
+            Some(true) => value["error"].is_null(),
+            Some(false) => {
+                value["result"].is_null()
+                    && value["error"].as_object().is_some_and(|o| o.len() == 1)
+                    && value["error"]["code"].as_str().is_some_and(|s| {
+                        s.len() <= 100
+                            && !s.is_empty()
+                            && s.bytes()
+                                .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == b'_')
+                    })
+            }
+            None => false,
+        }
+}
+
+// Never let read_until allocate an unbounded response before checking its size.
+pub fn bounded_line<R: BufRead>(reader: &mut R, limit: usize) -> io::Result<Option<Vec<u8>>> {
+    let mut output = Vec::new();
+    loop {
+        let buffer = reader.fill_buf()?;
+        if buffer.is_empty() {
+            return if output.is_empty() {
+                Ok(None)
+            } else {
+                Err(io::Error::new(
+                    io::ErrorKind::UnexpectedEof,
+                    "unterminated frame",
+                ))
+            };
+        }
+        let newline = buffer.iter().position(|b| *b == b'\n');
+        let count = newline.unwrap_or(buffer.len());
+        if output.len().saturating_add(count) > limit {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "frame limit"));
+        }
+        output.extend_from_slice(&buffer[..count]);
+        reader.consume(count + usize::from(newline.is_some()));
+        if newline.is_some() {
+            return Ok(Some(output));
+        }
+    }
+}
+
+pub fn allowed_navigation(url: &tauri::Url, development: bool) -> bool {
+    // Exact origins; no wildcard localhost ports or remote origins.
+    (url.scheme() == "http" && url.host_str() == Some("tauri.localhost") && url.port().is_none())
+        || (url.scheme() == "tauri" && url.host_str() == Some("localhost") && url.port().is_none())
+        || (development
+            && url.scheme() == "http"
+            && url.host_str() == Some("127.0.0.1")
+            && url.port() == Some(5317))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{BufReader, Cursor};
+
+    #[test]
+    fn private_capture_and_forged_picker_path_never_reach_pipe() {
+        let mut command = json!({"version":1,"id":"a","method":"host.source.capture","params":{"project_id":"x","path":"C:/private"}});
+        assert!(validate_request(&command).is_err());
+        command["method"] = json!("source.pick");
+        assert!(validate_request(&command).is_err());
+        command["params"] = json!({"project_id":"x"});
+        assert!(validate_request(&command).is_ok());
+    }
+
+    #[test]
+    fn frames_are_byte_bounded_and_require_newline() {
+        let mut exact = Cursor::new(b"1234\n\n".to_vec());
+        assert_eq!(bounded_line(&mut exact, 4).unwrap(), Some(b"1234".to_vec()));
+        assert_eq!(bounded_line(&mut exact, 4).unwrap(), Some(vec![]));
+        assert_eq!(bounded_line(&mut exact, 4).unwrap(), None);
+        let mut long = BufReader::with_capacity(2, Cursor::new(b"12345\n"));
+        assert!(bounded_line(&mut long, 4).is_err());
+        assert!(bounded_line(&mut Cursor::new(b"1234"), 4).is_err());
+    }
+
+    #[test]
+    fn remote_navigation_and_development_ports_are_not_trusted() {
+        for url in [
+            "https://example.com",
+            "http://127.0.0.1:5316",
+            "http://tauri.localhost.evil",
+            "http://tauri.localhost:99",
+            "file:///C:/private",
+        ] {
+            assert!(!allowed_navigation(&url.parse().unwrap(), true), "{url}");
+        }
+        assert!(allowed_navigation(
+            &"http://tauri.localhost".parse().unwrap(),
+            false
+        ));
+        assert!(!allowed_navigation(
+            &"http://127.0.0.1:5317".parse().unwrap(),
+            false
+        ));
+        assert!(allowed_navigation(
+            &"http://127.0.0.1:5317".parse().unwrap(),
+            true
+        ));
+    }
+
+    #[test]
+    fn malformed_response_does_not_resolve_a_command() {
+        let good =
+            json!({"version":1,"id":"p1","ok":false,"result":null,"error":{"code":"DENIED"}});
+        assert!(valid_response(&good));
+        let mut bad = good.clone();
+        bad["result"] = json!("private data");
+        assert!(!valid_response(&bad));
+        bad = good.clone();
+        bad["error"]["code"] = json!("C:/private/file");
+        assert!(!valid_response(&bad));
+        bad = good.clone();
+        bad["id"] = Value::Null;
+        assert!(!valid_response(&bad));
+    }
+}

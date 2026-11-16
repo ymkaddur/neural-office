@@ -1,8 +1,7 @@
-"""V5.3 protocol-shape reference. Validation grants NO permission and executes nothing.
+"""Bounded desktop command shapes; permission is enforced by DesktopService.
 
-There is no desktop transport or command dispatcher in this release. Opaque grants,
-authorization, idempotency and durable event replay must be enforced by the future
-host/controller described in docs/V5_3_DESKTOP_CONTRACT.md.
+The native host owns file selection. Its private capture operation deliberately
+does not appear in this webview command allowlist.
 """
 import re
 
@@ -13,6 +12,7 @@ MAX_MESSAGE_BYTES = 16_384
 MAX_SAFE_INTEGER = 2**53 - 1
 METHODS = {
     'describe': {}, 'models.list': {}, 'projects.list': {},
+    'snapshot.get': {'project_after': 'revision', 'attempt_after': 'revision', 'limit': 'limit'},
     'source.pick': {'project_id': 'id'},
     'attempt.preview': {'project_id': 'id', 'entry_token': 'id', 'model_digest': 'digest',
                         'roles': 'roles', 'objective': 'objective'},
@@ -20,6 +20,8 @@ METHODS = {
     'attempt.cancel': {'attempt_id': 'id'},
     'attempt.recover': {'attempt_id': 'id', 'expected_revision': 'revision'},
     'attempt.get': {'attempt_id': 'id'}, 'report.get': {'attempt_id': 'id'},
+    'attempt.lookup': {'project_id': 'id', 'idempotency_key': 'id'},
+    'report.read': {'attempt_id': 'id', 'offset': 'revision', 'limit': 'chunk'},
     'events.read': {'after': 'revision', 'limit': 'limit'},
 }
 
@@ -38,6 +40,7 @@ def valid(kind, value):
     if kind == 'roles': return type(value) is int and value in (1, 3, 7)
     if kind == 'revision': return type(value) is int and 0 <= value <= MAX_SAFE_INTEGER
     if kind == 'limit': return type(value) is int and 1 <= value <= 200
+    if kind == 'chunk': return type(value) is int and 1 <= value <= 65_536
     return False
 
 

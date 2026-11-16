@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Neural Office",
+  "version": "5.5.0",
+  "identifier": "org.neuraloffice.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev -- --port 5317 --strictPort",
+    "devUrl": "http://127.0.0.1:5317",
+    "beforeBuildCommand": "npm run build -- --mode native",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "capabilities": ["main"],
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src ipc: http://ipc.localhost; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'",
+      "devCsp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ipc: http://ipc.localhost ws://127.0.0.1:5317; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    }
+  },
+  "bundle": { "active": false, "icon": ["icons/icon.ico"] }
+}

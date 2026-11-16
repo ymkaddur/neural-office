@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 import socket
 import subprocess
+import threading
 import time
 
 from .ledger import Denied, canonical
@@ -53,6 +54,8 @@ class OwnedOllama:
         self.log_path=Path(log_path)
         self.log=None
         self.telemetry=[]
+        self._process_lock=threading.Lock()
+        self._stop_requested=False
 
     def _startup_event(self,stage,**fields):
         if self.log:
@@ -76,7 +79,11 @@ class OwnedOllama:
         self.log_path.parent.mkdir(parents=True,exist_ok=True)
         self.log=self.log_path.open('ab')
         self._startup_event('BOOTSTRAP_SPAWN_BEGIN')
-        process=self.job.start([executable,'serve'],env=env,log=self.log)
+        # A stop closes admission even when no process exists yet. Keep network
+        # readiness probes outside this lock so cancellation can interrupt them.
+        with self._process_lock:
+            if self._stop_requested: raise Denied('BACKEND_CANCELLED_BEFORE_START')
+            process=self.job.start([executable,'serve'],env=env,log=self.log)
         self._startup_event('BOOTSTRAP_LAUNCHED',pid=process.pid,port=self.port)
         deadline=time.monotonic()+30
         last_error=None; probe=0; phase='metadata'
@@ -157,8 +164,10 @@ class OwnedOllama:
         finally: con.close()
 
     def request_stop(self):
-        if self.job.handle and not self.job.dll.TerminateJobObject(self.job.handle,1):
-            raise ctypes.WinError(ctypes.get_last_error())
+        with self._process_lock:
+            self._stop_requested=True
+            # Also terminate the owned bootstrap before it joins the Job.
+            self.job.terminate()
 
     def terminate(self):
         try:
