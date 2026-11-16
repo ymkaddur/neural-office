@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "runtime_version": "5.2.0",
+  "license": "MIT for own contributions the licensor can license",
+  "python_imports": [
+    "__future__",
+    "argparse",
+    "contextlib",
+    "ctypes",
+    "hashlib",
+    "html",
+    "http",
+    "json",
+    "msvcrt",
+    "os",
+    "pathlib",
+    "queue",
+    "shutil",
+    "socket",
+    "sqlite3",
+    "subprocess",
+    "sys",
+    "threading",
+    "time",
+    "tkinter",
+    "uuid"
+  ],
+  "external_python_runtime_dependencies": [],
+  "required_external_software": [
+    "CPython 3.12 with Tk on Windows",
+    "Ollama with a separately installed local model"
+  ],
+  "bundled_third_party_binaries": [],
+  "bundled_model_weights": [],
+  "not_a_complete_installer_sbom": true
+}

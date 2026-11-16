@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "label": "VERIFICADO",
+  "baseline_date": "2026-11-15T23:16:06.955Z",
+  "protected_files_checked": 201,
+  "changed_files": [
+    {
+      "path": "neural_office_v5/operations/COMPAT_GATE_B_CPU64K_OPERATOR.ps1",
+      "before_sha256": "515f67a3ad77a23b62020b90c45ece021ffbbd4354a01fe4ebafdd6ba6412196",
+      "after_sha256": "4f67f3c47411032eabac08a41ab8cc57cbf8cfe7271760c042a432d4ad142fcb"
+    },
+    {
+      "path": "neural_office_v5/operations/COMPAT_GATE_C_ROUTE_OPERATOR.ps1",
+      "before_sha256": "dcd284c435c21fdf4bf619194cd3333345601be4e0a063a07113a132ec8f15a5",
+      "after_sha256": "fcda4eda8f83d852927ea7f15d17b92ec750d7280a77592deaded1e65383e0c7"
+    },
+    {
+      "path": "neural_office_v5/runtime/controlplane.py",
+      "before_sha256": "9297a6b21fdd21241479f76278fa8a14f968407eca2ff674c2d5543e951037f2",
+      "after_sha256": "c7459a0a75f79902b64a222d6ac8c4f1de20df4a48b29067b4c0d663d36ec230"
+    },
+    {
+      "path": "neural_office_v5/runtime/director.py",
+      "before_sha256": "c989c3afae043eb74ae0c082a2028bcf2705e4e8c4cb57b0c90520bac93fe004",
+      "after_sha256": "d254f2d11954e7749796cf1d152d98514ae4cf2e9744336b81b4b796d39f2432"
+    },
+    {
+      "path": "neural_office_v5/runtime/orchestration.py",
+      "before_sha256": "3bac808d2b938509db91adcbf7c51cad9435756125045d13240e901b032ee258",
+      "after_sha256": "ec5bb6bdb55fa745c67e5f95952767efbf15aa67b83f43507eccfc6b1f697d3f"
+    }
+  ],
+  "unchanged_files": 196,
+  "scope": "Only the original 201-file protected baseline."
+}

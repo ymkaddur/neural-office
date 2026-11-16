@@ -1,13 +1,11 @@
-# Estado de licencias de Neural Office
+# Licencias de Neural Office V5.2
 
-Esta entrega contiene documentación de diseño de V5.1. No incorpora el runtime histórico, librerías de terceros, pesos de modelos o material audiovisual.
+El 16 de noviembre de 2026 el promotor eligió expresamente **MIT** para las aportaciones propias que pueda licenciar. El texto se encuentra en [LICENSE](LICENSE). Se aplica al código y documentación propios de esta entrega en la medida de los derechos que correspondan al otorgante. No pretende conceder derechos sobre material ajeno ni afirmar que todo output de IA tenga protección autoral.
 
-La licencia abierta del futuro software todavía no está seleccionada. Esta publicación tampoco concede una licencia adicional de reutilización sobre los documentos; se mantienen los derechos que correspondan a sus titulares y las facultades de acceso previstas por GitHub. Un repositorio público no equivale por sí solo a software con licencia open source.
+Las referencias históricas a una licencia pendiente describen V5.1 antes de esa decisión. Este archivo expresa el estado vigente de V5.2.
 
-Antes de distribuir código se resolverán la titularidad de las aportaciones, la procedencia de material adaptado y las obligaciones de las dependencias que realmente formen parte del paquete. No se pretende relicenciar código ajeno mediante este archivo.
+El paquete contiene el núcleo del piloto, pruebas sintéticas, documentación y un diff mínimo del legado. No incluye CrewAI, PyMuPDF, intérpretes, instaladores, ejecutables de Ollama, pesos de modelos, vídeos ni bases privadas. CrewAI es una referencia histórica, no una dependencia de este piloto; sus avisos MIT deberán preservarse si se incorpora código suyo posteriormente.
 
-CrewAI declara MIT y PyMuPDF ofrece AGPL o licencia comercial. Sus condiciones se aplican a los componentes y usos correspondientes; la licencia de CrewAI no cubre automáticamente todo el entorno Python instalado.
+La licencia propia no resuelve por sí sola la titularidad de aportaciones históricas, derechos derivados de empleo o encargo, procedencia de entradas de terceros ni condiciones del modelo seleccionado por cada usuario. La licencia del modelo personalizado utilizado en los ensayos no está acreditada y sus pesos no se distribuyen.
 
-El [expediente de procedencia](docs/V5_1_PROVENANCE_AND_PUBLICATION.md) detalla las decisiones pendientes y las fuentes oficiales. Este estado de licencias deberá sustituirse por una decisión expresa antes de anunciar una distribución de código como open source.
-
-Fuente: [GitHub sobre licencias de repositorios](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
+El [expediente V5.2](docs/V5_2_PROVENANCE.md) recoge fuentes, declaración de creación con IA, límites y cuestiones que siguen abiertas. No se promete inmunidad jurídica ni se atribuye a la licencia de CrewAI cobertura sobre todo el entorno de desarrollo.

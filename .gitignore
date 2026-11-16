@@ -1,15 +1,45 @@
-# V5.1 documents-only publication allowlist.
-# Expand intentionally only when a later scope authorizes source publication.
+# Explicit publication allowlist for the V5.2 source preview.
+# Private state, logs, packages and unlisted files remain excluded.
 *
+!.github/
+!.github/workflows/
+!docs/
+!docs/evidence/
+!docs/legacy/
+!examples/
+!neural_office/
+!tests/
+!.github/workflows/windows-tests.yml
 !.gitignore
-!README.md
-!ROADMAP.md
+!LICENSE
 !LICENSING.md
 !PUBLICATION_MANIFEST.sha256
-!docs/
+!README.md
+!ROADMAP.md
+!Start-NeuralOffice.ps1
 !docs/V5_1_AUTHORITY_AND_COUNTERS.md
 !docs/V5_1_INTEGRATION_SPEC.md
 !docs/V5_1_PROVENANCE_AND_PUBLICATION.md
 !docs/V5_1_REVIEW_REPORT.md
-!docs/evidence/
+!docs/V5_2_AUTHORITY_AND_COUNTERS.md
+!docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md
+!docs/V5_2_PROVENANCE.md
+!docs/V5_2_REVIEW_REPORT.md
 !docs/evidence/SOURCE_INDEX.md
+!docs/evidence/V5_2_COMPONENTS.json
+!docs/evidence/V5_2_EXECUTION.json
+!docs/evidence/V5_2_LEGACY_CHANGES.json
+!docs/legacy/V5_2_LEGACY_FIXES.patch
+!docs/legacy/test_regressions.py
+!examples/audit-sample.html
+!neural_office/__init__.py
+!neural_office/__main__.py
+!neural_office/audit.py
+!neural_office/files.py
+!neural_office/ledger.py
+!neural_office/ollama.py
+!neural_office/runner.py
+!neural_office/ui.py
+!neural_office/windows_job.py
+!tests/test_v52.py
+!tests/test_v52_boundaries.py

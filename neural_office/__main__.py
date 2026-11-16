@@ -1,0 +1,68 @@
+import argparse
+import json
+import os
+from pathlib import Path
+import sys
+import uuid
+
+from . import __version__
+from .ledger import Ledger,Denied,canonical
+from .ollama import local_metadata,select_model
+from .runner import run,recover
+
+
+def snapshot_file(file,root):
+    from .files import capture_html
+    return capture_html(file,root)
+
+
+def main(argv=None):
+    parser=argparse.ArgumentParser(description='Neural Office 5.2 — Windows CPU static HTML audit pilot')
+    parser.add_argument('--version',action='version',version=__version__)
+    parser.add_argument('--state',help='Explicit isolated office state; defaults to one per-user office. Never import legacy state here.')
+    sub=parser.add_subparsers(dest='action',required=True)
+    sub.add_parser('init'); sub.add_parser('status'); sub.add_parser('models'); sub.add_parser('gui')
+    audit=sub.add_parser('audit')
+    audit.add_argument('--project',required=True); audit.add_argument('--root',required=True)
+    audit.add_argument('--file',required=True); audit.add_argument('--model',required=True)
+    audit.add_argument('--roles',type=int,choices=(1,3,7),default=7)
+    audit.add_argument('--objective',default='Audit the selected HTML snapshot and explain the observed static findings.')
+    audit.add_argument('--key',default=None)
+    for action in ('cancel','recover','report','resume'):
+        command=sub.add_parser(action); command.add_argument('attempt')
+    args=parser.parse_args(argv)
+    if args.action=='models':
+        print(canonical({'models':[{'name':m['name'],'digest':m.get('digest'),'size':m.get('size')} for m in local_metadata()['models']]})); return
+    ledger=Ledger(args.state)
+    if args.action=='init': ledger.initialize(); print(canonical({'initialized':True,'version':__version__})); return
+    if args.action=='gui':
+        from .ui import show
+        show(ledger); return
+    if args.action=='status': print(canonical(ledger.status())); return
+    if args.action=='cancel': print(canonical({'state':ledger.cancel(args.attempt)})); return
+    if args.action=='recover': print(canonical({'state':recover(ledger,args.attempt)})); return
+    if args.action=='report':
+        row=ledger.attempt(args.attempt)
+        if row['artifact'] is None: raise Denied('NO_REPORT_AVAILABLE')
+        print(bytes(row['artifact']).decode('utf-8')); return
+    if args.action=='resume':
+        row=ledger.attempt(args.attempt)
+        print(canonical({'attempt':args.attempt,'state':run(ledger,args.attempt,row['profile']['roles'])})); return
+    profile=select_model(args.model,local_metadata()['models']); profile['roles']=args.roles
+    content=snapshot_file(args.file,args.root)
+    ledger.initialize(); ledger.register(args.project,args.root)
+    key=args.key or uuid.uuid4().hex
+    # Executing the audit command is the user's explicit admission action.
+    # Admission and reservation share a transaction; replay cannot renew authority.
+    attempt=ledger.reserve(args.project,args.objective,content,profile,key,admit=True)
+    print(canonical({'attempt':attempt,'state':ledger.attempt(attempt)['state'],
+                     'mode':profile['mode']}),flush=True)
+    state=run(ledger,attempt,args.roles,progress=lambda role,state:print(canonical({'role':role,'state':state}),flush=True))
+    print(canonical({'attempt':attempt,'state':state,'status':ledger.status()}))
+
+
+if __name__=='__main__':
+    try: main()
+    except (Denied,OSError,ValueError,RuntimeError) as exc:
+        print(canonical({'error':type(exc).__name__,'reason':str(exc)}),file=sys.stderr)
+        raise SystemExit(2)

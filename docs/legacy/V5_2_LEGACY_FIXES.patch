@@ -1,0 +1,103 @@
+--- a/neural_office_v5/operations/COMPAT_GATE_B_CPU64K_OPERATOR.ps1
++++ b/neural_office_v5/operations/COMPAT_GATE_B_CPU64K_OPERATOR.ps1
+@@ -6,7 +6,7 @@
+ Set-StrictMode -Version Latest
+ $Source='deepseek-uncensored-office-cpu128k:latest'
+ $Target='neural-office-deepseek-cpu64k:latest'
+-$Modelfile=Join-Path $PSScriptRoot 'Modelfile_CPU64K_FOR_OPERATOR.txt'
++$Modelfile=Join-Path $PSScriptRoot '..\profiles\Modelfile_CPU64K_FOR_OPERATOR.txt'
+ if (!(Test-Path -LiteralPath $Modelfile -PathType Leaf)){throw 'GATE_B_MODELFILE_NOT_FOUND'}
+ $Text=Get-Content -LiteralPath $Modelfile -Raw -Encoding UTF8
+ if ($Text -notmatch '(?m)^FROM deepseek-uncensored-office-cpu128k:latest$' -or
+--- a/neural_office_v5/operations/COMPAT_GATE_C_ROUTE_OPERATOR.ps1
++++ b/neural_office_v5/operations/COMPAT_GATE_C_ROUTE_OPERATOR.ps1
+@@ -4,7 +4,7 @@
+     [string]$Root=(Join-Path $HOME 'agentes-locales\BTD_AUTOLAB_R1'),
+     [string]$Approval='',[string]$ExpectedSHA256='')
+ $ErrorActionPreference='Stop'; Set-StrictMode -Version Latest
+-$Script=Join-Path $PSScriptRoot '..\payload\engine\routepatch.py'
++$Script=Join-Path $PSScriptRoot '..\runtime\routepatch.py'
+ $Workspace=Join-Path $Root 'studio\office\neural_office_plus\workspaces\web-auditor'
+ $Config=Join-Path $Workspace 'opencode.json'
+ $Python=Join-Path $HOME 'AppData\Local\Programs\Python\Python312\python.exe'
+@@ -15,6 +15,6 @@
+   throw 'GATE_C_HUMAN_APPROVAL_REQUIRED'
+ }
+ & $Python -B $Script --config $Config --action $Action.ToLowerInvariant() `
+-    --expected-sha256 $ExpectedSHA256 --approval $Approval
++    --expected-sha256 $ExpectedSHA256 "--approval=$Approval"
+ if ($LASTEXITCODE -ne 0){throw 'GATE_C_PATCH_REFUSED'}
+ Write-Host 'GATE_C_SOURCE_CHANGE_CHECKED; LIVE_RUNTIME_NOT_YET_CERTIFIED' -ForegroundColor Yellow
+--- a/neural_office_v5/runtime/controlplane.py
++++ b/neural_office_v5/runtime/controlplane.py
+@@ -56,10 +56,13 @@
+         self.path = Path(db_path)
+ 
+     @contextmanager
+-    def connection(self):
++    def connection(self, *, create=False):
+         if self.path.is_symlink():
+             raise PolicyViolation('STATE_SYMLINK')
+-        con = sqlite3.connect(str(self.path), isolation_level=None, timeout=5)
++        if not create and not self.path.is_file():
++            raise PolicyViolation('STATE_NOT_INITIALIZED')
++        uri = self.path.resolve().as_uri() + ('?mode=rwc' if create else '?mode=rw')
++        con = sqlite3.connect(uri, uri=True, isolation_level=None, timeout=5)
+         try:
+             con.execute('PRAGMA busy_timeout=5000')
+             con.execute('PRAGMA foreign_keys=ON')
+@@ -83,7 +86,7 @@
+         if self.path.is_symlink() or self.path.parent.is_symlink():
+             raise PolicyViolation('STATE_SYMLINK')
+         self.path.parent.mkdir(parents=True, exist_ok=True)
+-        with self.connection() as db:
++        with self.connection(create=True) as db:
+             exists = db.execute("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").fetchone()[0]
+             app = db.execute('PRAGMA application_id').fetchone()[0]
+             if exists and app != APP_ID:
+--- a/neural_office_v5/runtime/director.py
++++ b/neural_office_v5/runtime/director.py
+@@ -131,7 +131,10 @@
+                     'auto_parked':auto_parked,'park_state_persisted':auto_parked}
+     def status(self):
+         with self._db() as db:
+-            projects=[{'project':p,'state':s,'completed':n,'attempted':a,'revision':r} for p,s,n,a,r in db.execute('SELECT id,state,completed,attempted,revision FROM project ORDER BY id')]
++            verified = dict(db.execute("SELECT project,count(*) FROM task WHERE state='verified' GROUP BY project"))
++            projects=[{'project':p,'state':s,'completed':n,'latest_verified_attempt':n,
++                       'verified_count':verified.get(p,0),'attempted':a,'revision':r}
++                      for p,s,n,a,r in db.execute('SELECT id,state,completed,attempted,revision FROM project ORDER BY id')]
+             tasks=[{'id':t,'project':p,'version':v,'state':s,'role':role} for t,p,v,s,role in db.execute('SELECT id,project,version,state,role FROM task ORDER BY rowid')]
+         return {'mode':'SHADOW_PLANNING_ONLY','real_inference_authorized':False,'projects':projects,'tasks':tasks,'audit':self.verify_audit()}
+ 
+--- a/neural_office_v5/runtime/orchestration.py
++++ b/neural_office_v5/runtime/orchestration.py
+@@ -61,10 +61,16 @@
+     missing = [d for d in node.deps if d not in prior]
+     if missing:
+         raise ExecutionDenied('UPSTREAM_RESULTS_MISSING')
++    for dependency in node.deps:
++        item = prior[dependency]
++        if (not isinstance(item, dict) or set(item) != {'sha256', 'result'}
++                or item['sha256'] != sha256(canonical(item['result']))):
++            raise ExecutionDenied('UPSTREAM_EVIDENCE_CHANGED')
+     # Prior results remain untrusted text and cannot override system policy.
+     material = {'objective':objective,'role':node.role,'task':node.description,
+                 'inputs':list(node.input_contract),'outputs':list(node.output_contract),
+-                'prior_sha256':{k:sha256(canonical(prior[k])) for k in node.deps},
++                 'prior_sha256':{k:sha256(canonical(prior[k])) for k in node.deps},
++                 'prior_evidence':{k:prior[k] for k in node.deps},
+                 'sources':provenance,'guards':[
+                     'No permission changes, no model config edits and no GPU use',
+                     'Never claim tests pass without an independent tool receipt',
+@@ -72,7 +78,10 @@
+                     'Use OBSERVADO/VERIFICADO/INFERIDO/SOSPECHA/DESCONOCIDO',
+                     'Do not exceed three attempts per project',
+                 ]}
+-    return canonical(material)
++    encoded = canonical(material)
++    if len(encoded.encode('utf-8')) > 64000:
++        raise ExecutionDenied('UPSTREAM_CONTEXT_EXCEEDS_BYTE_BUDGET')
++    return encoded
+ 
+ class MockBackend:
+     def __init__(self): self.calls=[]

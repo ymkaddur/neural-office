@@ -1,43 +1,53 @@
-# Neural Office
+# Neural Office · V5.2
 
-Neural Office busca ofrecer una oficina de agentes que trabaje con un modelo local: el usuario descarga la aplicación, elige un modelo compatible y encarga una tarea. La aplicación coordina planificación, herramientas, revisión, memoria y skills, con progreso recuperable y límites visibles.
+Una oficina de agentes locales, en desarrollo. **V5.2 es una vista previa técnica para Windows**: permite seleccionar un HTML, un modelo local instalado y un recorrido de uno, tres o siete roles. Produce un informe estático con evidencia persistida y comentarios del modelo claramente identificados como no certificados.
 
-**Estado actual: V5.1 documental. Este repositorio contiene especificaciones y criterios de aceptación. No incluye todavía una aplicación instalable, agentes ejecutables ni pesos de modelos.**
+La meta sigue siendo descargar la aplicación, elegir un modelo local y comenzar. Esta versión todavía requiere Python 3.12 y Ollama instalados. No es el instalador autónomo de V10 ni una migración de las oficinas históricas.
 
-## Los tres entregables de V5.1
+## Probar el piloto
 
-| Documento | Decisión que permite tomar |
-| --- | --- |
-| [Contrato de autoridad y contadores](docs/V5_1_AUTHORITY_AND_COUNTERS.md) | Quién puede activar trabajo, cómo se contabilizan los intentos y qué ocurre al detener o reanudar una ejecución. |
-| [Especificación de integración completa](docs/V5_1_INTEGRATION_SPEC.md) | Cómo se conectarán interfaz, modelo, gateway, herramientas, roles, memoria, skills y verificación. |
-| [Expediente de procedencia y publicación](docs/V5_1_PROVENANCE_AND_PUBLICATION.md) | Qué se puede distribuir ahora y qué evidencia falta antes de publicar código, dependencias o una aplicación. |
+1. Descarga el código de este repositorio y extrae la carpeta.
+2. Ten disponibles Python 3.12 con Tk y Ollama, con un modelo local ya instalado.
+3. Desde la carpeta extraída, ejecuta:
 
-El [índice de evidencias](docs/evidence/SOURCE_INDEX.md) vincula las observaciones con fuentes históricas mediante rutas relativas, líneas y hashes. Esas fuentes operativas permanecen fuera del repositorio público.
+```powershell
+py -3.12 -B -m neural_office gui
+```
 
-## Experiencia prevista
+También se incluye `Start-NeuralOffice.ps1`. El lanzador no instala componentes ni cambia la política de PowerShell. Si tu política no permite ejecutar el script, utiliza directamente el comando anterior.
 
-1. Descargar Neural Office para una plataforma soportada.
-2. Descargar o seleccionar un modelo local compatible mediante un asistente.
-3. Elegir una carpeta de trabajo, describir el resultado esperado y comenzar.
+En la ventana, elige el modelo y pulsa «Usar ejemplo» o selecciona tu HTML. «Autorizar y auditar» consume un intento. «Detener» solicita cancelar y espera la terminación comprobada. «Ver presupuesto» y «Ver último informe» consultan el estado persistido.
 
-La interfaz mostrará la tarea en curso, el presupuesto restante, las evidencias obtenidas y las acciones que requieren una decisión del usuario. Los loops y autoprompts tendrán objetivos, límites y condiciones de parada; no podrán ampliar sus permisos.
+Se admite una inferencia administrada simultánea por ledger, como máximo dos proyectos activos y tres intentos por proyecto. Los fallos y cancelaciones cuentan. Reiniciar no devuelve presupuesto. Un informe aceptado acredita las comprobaciones estáticas descritas; los comentarios del modelo siguen requiriendo revisión humana.
 
-La primera implementación se validará con CPU, una inferencia simultánea y un producto piloto. La compatibilidad con modelos adicionales dependerá de pruebas de herramientas, contexto, calidad y consumo.
+La entrada es HTML local UTF-8, hasta 256 KiB. Se comprueban idioma, título, atributos `alt` y posibles controles sin etiqueta. No se ejecutan scripts del HTML, no se navega por sus enlaces y no se modifica el archivo original. Esto no certifica WCAG, seguridad ni comportamiento de una web completa.
 
-## Qué acredita esta entrega
+## Estado probado
 
-La revisión del legado distinguió un origen con CrewAI, una ejecución histórica del director de Plus y varias capas posteriores de control, pruebas y simulación. La versión numérica más reciente no sustituyó toda la autoridad anterior.
+- Suite pública de 60 pruebas, con fixtures y comprobaciones nativas Windows.
+- Ejecuciones locales reales de uno, tres y siete roles sobre el mismo ejemplo.
+- Cancelación después de un POST real, terminación del árbol propio y recuperación tras caída del controlador.
+- Lectura del informe y conservación del presupuesto después de reiniciar la interfaz.
+- Cinco correcciones puntuales del V5 histórico, documentadas con diff y hashes.
 
-Las palabras **observado**, **propuesto** y **pendiente de aceptación** tienen significados distintos en los documentos. Los casos de aceptación enumerados son trabajo futuro; no son resultados de pruebas ejecutadas.
+El modelo de ensayo usa un alias personalizado que menciona DeepSeek/64k, pero su metadata informa `qwen35`, 9B, Q4_K_M. El perfil ejecutado y observado fue **CPU, contexto 8.192**, con salida acotada. Esto no certifica todos los modelos ni contexto de 64k. Los pesos no se distribuyen y su licencia no se presume por el alias.
 
-El [registro de revisión crítica](docs/V5_1_REVIEW_REPORT.md) documenta contraejemplos, correcciones y límites de las tres pasadas documentales. El [manifiesto SHA-256](PUBLICATION_MANIFEST.sha256) identifica los archivos de esta entrega. Ninguno acredita ausencia total de defectos o cumplimiento jurídico universal.
+Los [recibos](docs/evidence/V5_2_EXECUTION.json) y el [diario de revisión](docs/V5_2_REVIEW_REPORT.md) conservan también los fallos: un timeout de arranque sin causa demostrada y una respuesta de red intermitente en el gateway histórico. Una corrida posterior exitosa no los declara resueltos.
 
-La publicación de estas especificaciones no activa el sistema local ni cambia su código. Tampoco acredita que la experiencia prevista ya funcione.
+## Desarrollo y límites
 
-## Desarrollo y distribución
+```powershell
+py -3.12 -B -m unittest discover -s tests -v
+py -3.12 -B -m neural_office models
+py -3.12 -B -m neural_office status
+```
 
-La [hoja de ruta hasta V10](ROADMAP.md) organiza el trabajo por capacidades demostradas. La siguiente fase técnica es un ciclo completo de un solo producto, con artefacto y verificación independiente.
+Los tests no requieren un modelo ni credenciales. `status` no crea una base inexistente. La aplicación guarda estado, entradas y respuestas localmente; no cifra esos archivos. No compartas su carpeta de datos como si fuera código publicable.
 
-La licencia del futuro software sigue pendiente de la revisión de titularidad y dependencias. Esta entrega documental no concede una licencia open source adicional: consulta [el estado de licencias](LICENSING.md).
+V5.2 no importa historiales V1/V4/V5. No uses un ledger nuevo para resetear cuotas de proyectos históricos. OpenCode y otros clientes quedan fuera del dominio de exclusión de este piloto. No se incluyen todavía memoria aprendida, promoción de skills, herramientas generales, aplicación de parches ni integración de las 69 reglas de V5.1 en su totalidad.
 
-No se incluyen bases de datos de usuarios, conversaciones, credenciales, vídeos, entornos virtuales, paquetes históricos ni modelos.
+Los documentos actuales son el [contrato implementado](docs/V5_2_AUTHORITY_AND_COUNTERS.md), la [matriz de los 45 casos](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) y el [expediente de procedencia](docs/V5_2_PROVENANCE.md). El [diseño V5.1](docs/V5_1_INTEGRATION_SPEC.md) y su [registro de revisión](docs/V5_1_REVIEW_REPORT.md) se conservan como historia fechada, con sus pendientes de entonces. La [hoja de ruta](ROADMAP.md) fija el avance hasta V10.
+
+## Licencia y procedencia
+
+[MIT](LICENSE) para las aportaciones propias que el promotor pueda licenciar. Desarrollo asistido por IA bajo supervisión; CrewAI fue una base conceptual e histórica, pero no es una dependencia del núcleo V5.2. Consulta [LICENSING.md](LICENSING.md) para el alcance y los derechos de terceros. La licencia abierta no equivale a blindaje jurídico, certificación de seguridad ni disponibilidad general del producto.
