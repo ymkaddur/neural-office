@@ -8,6 +8,8 @@ from pathlib import Path
 import uuid
 
 from .__main__ import snapshot_file
+from . import __version__
+from .files import local_path
 from .ledger import canonical
 from .ollama import local_metadata,select_model
 from .runner import run
@@ -39,7 +41,7 @@ def report_text(raw):
 
 def show(ledger):
     ledger.initialize()
-    window=tk.Tk(); window.title('Neural Office 5.2 — piloto local'); window.geometry('850x650')
+    window=tk.Tk(); window.title(f'Neural Office {__version__} — piloto local'); window.geometry('850x650')
     events=queue.Queue(); active={'attempt':None,'working':False,'cancel_requested':False}
     models=[]
     frame=ttk.Frame(window,padding=18); frame.pack(fill='both',expand=True)
@@ -65,7 +67,7 @@ def show(ledger):
         except Exception as exc: events.put(('error','No se pudo consultar Ollama. Instala/inicia Ollama y descarga un modelo local. '+str(exc)))
     def work(values):
         try:
-            file=Path(values['file']); root=file.resolve().parent
+            file=local_path(values['file']); root=file.resolve().parent
             profile=select_model(values['model'],models); profile['roles']=values['roles']
             source=snapshot_file(file,root)
             ledger.register(values['project'],root)

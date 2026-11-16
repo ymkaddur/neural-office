@@ -5,12 +5,14 @@ from ctypes import wintypes as w
 import os
 from pathlib import Path
 import sqlite3
+import threading
 import uuid
 
 from .ledger import APPLICATION_ID, Denied, canonical, digest
 
 WITNESS_ID = 0x4E4F4354
 MAX_IMAGE = 64 * 1024 * 1024
+_run_owners = threading.local()
 
 
 def witness_path(path):
@@ -20,6 +22,25 @@ def witness_path(path):
 @contextmanager
 def guard(path):
     """Serialize replacement as well as SQLite access, across cooperating processes."""
+    with _named_guard(path, 'Continuity', 10000, 'CONTINUITY_LOCK_UNAVAILABLE'):
+        yield
+
+
+@contextmanager
+def run_guard(path):
+    """Keep live controllers, recovery and replacement mutually exclusive."""
+    key = os.path.normcase(str(Path(path).resolve()))
+    owned = getattr(_run_owners, 'keys', frozenset())
+    if key in owned:
+        raise Denied('OFFICE_RUNNER_STILL_ACTIVE')
+    with _named_guard(path, 'RunOwner', 0, 'OFFICE_RUNNER_STILL_ACTIVE'):
+        _run_owners.keys = owned | {key}
+        try: yield
+        finally: _run_owners.keys = owned
+
+
+@contextmanager
+def _named_guard(path, purpose, timeout_ms, unavailable):
     if os.name != 'nt':
         raise Denied('CONTINUITY_REQUIRES_WINDOWS')
     dll = ctypes.WinDLL('kernel32', use_last_error=True)
@@ -31,15 +52,15 @@ def guard(path):
     ):
         fn = getattr(dll, name); fn.argtypes = args; fn.restype = result
     key = digest(os.path.normcase(str(Path(path).resolve())))
-    handle = dll.CreateMutexW(None, False, 'Local\\NeuralOfficeContinuity_' + key)
+    handle = dll.CreateMutexW(None, False, 'Local\\NeuralOffice' + purpose + '_' + key)
     if not handle:
         raise ctypes.WinError(ctypes.get_last_error())
     held = False
     try:
-        outcome = dll.WaitForSingleObject(handle, 10000)
+        outcome = dll.WaitForSingleObject(handle, timeout_ms)
         # An abandoned owner still requires SQLite recovery and witness validation.
         if outcome not in (0, 0x80):
-            raise Denied('CONTINUITY_LOCK_UNAVAILABLE')
+            raise Denied(unavailable)
         held = True
         yield
     finally:
@@ -109,24 +130,36 @@ def protect(ledger):
     path = ledger.path
     with guard(path):
         if not path.is_file() or path.is_symlink(): raise Denied('STATE_NOT_INITIALIZED_OR_UNSAFE')
-        if witness_path(path).exists():
-            with ledger.connection(): pass
-            return {'protected': True, 'already_protected': True}
         con = sqlite3.connect(path.resolve().as_uri() + '?mode=rw', uri=True, isolation_level=None)
         try:
             if con.execute('PRAGMA application_id').fetchone()[0] != APPLICATION_ID:
                 raise Denied('FOREIGN_STATE')
+            if con.execute('PRAGMA user_version').fetchone()[0] == 2:
+                with ledger.connection(): pass
+                return {'protected': True, 'already_protected': True}
             if con.execute('PRAGMA user_version').fetchone()[0] != 1:
                 raise Denied('CONTINUITY_WITNESS_MISSING')
             if con.execute('SELECT attempt FROM lease').fetchone()[0] is not None:
                 raise Denied('PROTECT_REQUIRES_IDLE_OFFICE')
             if con.execute('PRAGMA journal_mode').fetchone()[0] != 'delete':
                 raise Denied('CONTINUITY_REQUIRES_ROLLBACK_JOURNAL')
-            fd = os.open(witness_path(path), os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-            os.close(fd)
-            con.execute('ATTACH DATABASE ? AS continuity', (str(witness_path(path).resolve()),))
+            witness = witness_path(path)
+            if witness.is_symlink() or (witness.exists() and not witness.is_file()):
+                raise Denied('CONTINUITY_WITNESS_INVALID')
+            if not witness.exists():
+                fd = os.open(witness, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+                os.close(fd)
+            con.execute('ATTACH DATABASE ? AS continuity', (witness.resolve().as_uri() + '?mode=rw',))
+            if con.execute('PRAGMA continuity.journal_mode').fetchone()[0] != 'delete':
+                raise Denied('CONTINUITY_REQUIRES_ROLLBACK_JOURNAL')
             con.execute('PRAGMA synchronous=FULL'); con.execute('PRAGMA continuity.synchronous=FULL')
             con.execute('BEGIN IMMEDIATE')
+            # Opening the attached databases first lets SQLite recover hot journals.
+            # Retry enrollment only if no witness identity/history was committed.
+            if (con.execute('PRAGMA continuity.application_id').fetchone()[0] != 0
+                    or con.execute('PRAGMA continuity.user_version').fetchone()[0] != 0
+                    or con.execute('SELECT 1 FROM continuity.sqlite_master LIMIT 1').fetchone()):
+                raise Denied('CONTINUITY_WITNESS_ALREADY_INITIALIZED')
             # A schema-1 controller does not participate in guard. Recheck only
             # after acquiring SQLite's writer lock, before adopting its state.
             if con.execute('SELECT attempt FROM lease').fetchone()[0] is not None:
@@ -177,7 +210,7 @@ def backup(ledger, destination):
 def restore(ledger, backup_file):
     """A valid old backup identifies the office; the retained witness supplies latest state."""
     path, source = ledger.path, Path(backup_file)
-    with guard(path):
+    with run_guard(path), guard(path):
         wp = witness_path(path)
         if path.is_symlink(): raise Denied('STATE_NOT_INITIALIZED_OR_UNSAFE')
         if not wp.is_file() or wp.is_symlink(): raise Denied('CONTINUITY_WITNESS_MISSING')

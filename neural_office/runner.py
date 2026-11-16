@@ -38,6 +38,17 @@ def prompt(row,role):
 
 
 def run(ledger,attempt,roles=7,backend_factory=OwnedOllama,progress=lambda *_:None):
+    # Terminal replays are reads, even while another attempt owns execution.
+    role_order(roles)
+    row=ledger.attempt(attempt)
+    if row['profile'].get('roles')!=roles: raise Denied('ROLE_PROFILE_CHANGED')
+    if row['state'] in TERMINAL: return row['state']
+    from .continuity import run_guard
+    with run_guard(ledger.path):
+        return _run_owned(ledger,attempt,roles,backend_factory,progress)
+
+
+def _run_owned(ledger,attempt,roles,backend_factory,progress):
     order=role_order(roles)
     row=ledger.attempt(attempt)
     if row['profile'].get('roles')!=roles: raise Denied('ROLE_PROFILE_CHANGED')
@@ -106,6 +117,12 @@ def run(ledger,attempt,roles=7,backend_factory=OwnedOllama,progress=lambda *_:No
 
 def recover(ledger,attempt):
     """Only reconcile a job that no longer has any active owned processes."""
+    from .continuity import run_guard
+    with run_guard(ledger.path):
+        return _recover_owned(ledger,attempt)
+
+
+def _recover_owned(ledger,attempt):
     from .windows_job import Job
     status=ledger.status()
     lease=status['lease']

@@ -6,11 +6,24 @@ from pathlib import Path
 from .ledger import Denied
 
 
+def local_path(value, reason='NETWORK_INPUT_EXCLUDED'):
+    """Reject explicit UNC/device namespaces without touching the filesystem.
+
+    This lexical gate does not certify mapped drives or junction destinations.
+    Callers must retain their resolved-path and opened-handle checks.
+    """
+    path=Path(value)
+    if str(path).startswith('\\\\'): raise Denied(reason)
+    return path
+
+
 def capture_html(file,root):
     if os.name!='nt': raise Denied('V52_FILE_CAPTURE_REQUIRES_WINDOWS')
     import msvcrt
-    root=Path(root).resolve(strict=True)
-    candidate=Path(file).resolve(strict=True)
+    root=local_path(root)
+    candidate=local_path(file)
+    root=root.resolve(strict=True)
+    candidate=candidate.resolve(strict=True)
     if not candidate.is_relative_to(root) or candidate.suffix.lower() not in ('.html','.htm'):
         raise Denied('INPUT_OUTSIDE_ROOT_OR_UNSUPPORTED')
     if str(candidate).startswith('\\\\'): raise Denied('NETWORK_INPUT_EXCLUDED')

@@ -4,7 +4,7 @@
 
 Software gratuito y de código abierto bajo [MIT](LICENSE), con [apoyo voluntario](#apoya-el-proyecto) y las mismas funciones para todas las personas.
 
-Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. **V5.4.1 pule las cinco pantallas:** inicio, trabajo, resultado, error y parada, con paneles ajustables y tres etapas inspeccionables. El piloto operativo sigue siendo Python/Tkinter V5.3 para Windows; el nuevo espacio de trabajo todavía utiliza ejemplos y no está conectado al motor.
+Hoy puedes revisar un HTML local con uno, tres o siete roles, consultar el informe y controlar cada intento. **V5.4.1 pule las cinco pantallas:** inicio, trabajo, resultado, error y parada, con paneles ajustables y tres etapas inspeccionables. El piloto operativo es Python/Tkinter para Windows, con núcleo **5.3.1** tras la auditoría; el nuevo espacio de trabajo todavía utiliza ejemplos y no está conectado al motor.
 
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/downloads/)
@@ -18,11 +18,11 @@ La captura utiliza fuentes sintéticas del proyecto ficticio Norte. Puedes inspe
 
 Para revisar **las cinco pantallas V5.4.1**, [descarga el progreso de main](https://github.com/ymkaddur/neural-office/archive/refs/heads/main.zip) y sigue [las instrucciones del frontend](desktop/README.md). No necesita modelo.
 
-## Usar el piloto HTML (motor V5.3)
+## Usar el piloto HTML (núcleo 5.3.1)
 
 Necesitas **Windows, Python 3.12 con Tk y Ollama con un modelo local ya descargado**. Esta descarga contiene el código del piloto; el instalador autónomo es un hito futuro.
 
-1. [Descarga el piloto V5.3](https://github.com/ymkaddur/neural-office/archive/refs/tags/v5.3-preview.1.zip) y extrae la carpeta.
+1. [Descarga la revisión actual del piloto](https://github.com/ymkaddur/neural-office/archive/refs/heads/main.zip) y extrae la carpeta. Cierra los controladores anteriores antes de usarla; la etiqueta histórica `v5.3-preview.1` no contiene las correcciones de esta auditoría.
 2. Abre `.\run.bat`. También puedes ejecutar `py -3.12 -B -m neural_office gui` desde esa carpeta.
 3. Selecciona el modelo, pulsa **Usar ejemplo** y después **Autorizar y auditar**.
 4. Consulta **Ver presupuesto** y **Ver último informe**. **Detener** solicita cancelar y espera la terminación comprobada.
@@ -48,17 +48,17 @@ Se admite una inferencia administrada por ledger y hasta dos proyectos activos. 
 
 | Capacidad | Estado |
 | --- | --- |
-| Piloto HTML, informes y cuotas persistentes | Verificado en pruebas y una ejecución local real de esta revisión |
+| Piloto HTML, informes y cuotas persistentes | Pruebas actuales; ejecuciones con modelo documentadas históricamente en [V5.3](docs/V5_3_MEASUREMENT_PROTOCOL.md) y [V5.4](docs/evidence/V5_4_ENGINE.json) |
 | Conciliación histórica y restauración | Verificadas para los esquemas y límites documentados |
 | Respuesta 401 intermitente del gateway histórico | Reproducida y corregida; diff y regresión publicados |
 | Timeout histórico al arrancar Ollama | Causa pendiente; instrumentación por etapas verificada |
-| Medición CPU, memoria del backend y comparación 1/3/7 | Seis intentos reales aceptados; calidad comparada y GPU pendientes |
+| Medición CPU, memoria del backend y comparación 1/3/7 | V5.3: seis intentos reales aceptados; calidad comparada y GPU pendientes; la auditoría actual usa datos sintéticos |
 | Nueva interfaz React/TypeScript | Cinco escenas V5.4.1, compositor contextual, dos divisores, versiones y fuentes; aceptación visual pendiente, sin motor |
 | Contrato de escritorio | Especificación y validador de mensajes probados; transporte pendiente |
 | Memoria, skills aprendidas y tareas generales | Planificadas |
 | Instalador autónomo y otros sistemas operativos | Planificados |
 
-La [revisión forense V5.3](docs/V5_3_FORENSIC_REVIEW.md) enlaza resultados, regresiones y límites, y conserva la [revisión V5.2.1](docs/V5_2_1_FORENSIC_REVIEW.md). La [visión hasta V10](ROADMAP.md) sitúa optimización, interfaz, memoria y distribución en hitos comprobables.
+La [auditoría de V5.4.1](docs/FORENSIC_AUDIT_V5_4_1.md) documenta tres defectos corregidos: recuperación durante arranque, protección inicial interrumpida y rechazo tardío de rutas de red. Distingue fiabilidad y seguridad sin declarar tres vulnerabilidades críticas. Consulta la [frontera de confianza](SECURITY.md) y la [visión hasta V10](ROADMAP.md). Los informes [V5.3](docs/V5_3_FORENSIC_REVIEW.md) y [V5.2.1](docs/V5_2_1_FORENSIC_REVIEW.md) conservan su evidencia histórica.
 
 ## Optimización con una referencia real
 
@@ -72,7 +72,7 @@ Dos ensayos por perfil, una máquina, el HTML incluido y un modelo en CPU. ¹ Su
 
 V5.4 publica una [nueva línea base](docs/V5_4_RESOURCE_BASELINE.md): tres ensayos CPU del motor conservado y muestras de la UI por separado. No se anuncia una aceleración ni un consumo total del futuro escritorio. La aceptación de las cinco pantallas precede a la integración V5.5; el corpus amplio y las comparaciones controladas siguen pendientes. [Contrato de integración](docs/V5_3_DESKTOP_CONTRACT.md) · [revisión dirigida de vídeos](docs/V5_3_VIDEO_RESEARCH.md).
 
-V5.4.1 mantiene el motor intacto y [mide solo el frontend](docs/V5_4_1_RESOURCE_BASELINE.md). No añade dependencias de ejecución; corrige reenvío involuntario, bloqueo de navegación entre tamaños y prioridad visual de la parada. La [revisión crítica](docs/V5_4_1_UI_REVIEW.md) distingue los casos comprobados de las pruebas pendientes.
+La entrega visual original V5.4.1 mantuvo el motor intacto y [midió solo el frontend](docs/V5_4_1_RESOURCE_BASELINE.md). Corrigió reenvío involuntario, bloqueo de navegación entre tamaños y prioridad visual de la parada. La auditoría posterior incorpora las correcciones del núcleo 5.3.1 documentadas arriba; las dependencias de ejecución siguen iguales. La [revisión visual](docs/V5_4_1_UI_REVIEW.md) conserva su alcance original.
 
 ## Apoya el proyecto
 
@@ -111,7 +111,7 @@ py -3.12 -B -m unittest discover -s tests -v
 .\run.bat status
 ```
 
-La suite pública Python funciona sin modelos, credenciales ni historial privado: 125 pruebas en esta revisión. El [frontend](desktop/README.md) pasa doce pruebas de estado (siete conservadas y cinco nuevas) y comprobación de tipos/build. [CONTRIBUTING.md](CONTRIBUTING.md) explica cómo aportar una reproducción pequeña, una corrección localizada o documentación. La [comparación de 91 README](docs/README_RESEARCH_91.md) documenta las decisiones de presentación.
+La suite pública Python funciona sin modelos, credenciales ni historial privado. Los resultados fechados están en la [evidencia de auditoría](docs/evidence/V5_4_1_FORENSIC.json) y los checks de cada commit; el [frontend](desktop/README.md) tiene pruebas de estado y comprobación de tipos/build. [CONTRIBUTING.md](CONTRIBUTING.md) explica cómo aportar una reproducción pequeña, una corrección localizada o documentación. Las [skills de auditoría y revisión](docs/FORENSIC_AUDIT_V5_4_1.md#herramientas-y-secuencia-de-trabajo) recogen errores demostrados; son herramientas de desarrollo, no skills ya conectadas a los agentes del producto. La [comparación de 91 README](docs/README_RESEARCH_91.md) conserva sus decisiones de presentación.
 
 ## Datos y licencia
 
@@ -119,4 +119,4 @@ El piloto se comunica con Ollama por loopback y rechaza perfiles cloud. Guarda e
 
 [MIT](LICENSE) para las aportaciones propias que el promotor pueda licenciar. Desarrollo asistido por IA bajo supervisión. CrewAI fue una base conceptual e histórica; no es una dependencia del núcleo publicado. No se incluyen runtimes, pesos, vídeos ni historiales privados. [LICENSING.md](LICENSING.md) y el [expediente de procedencia](docs/V5_2_PROVENANCE.md) delimitan los derechos de terceros y las cuestiones jurídicas abiertas.
 
-Los contratos [V5.1](docs/V5_1_INTEGRATION_SPEC.md) y [V5.2](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) se conservan como documentos fechados. V5.4 no modifica el motor ni la política del piloto y no declara resuelto su timeout histórico. [Dependencias del frontend](docs/evidence/V5_3_COMPONENTS.json) y [avisos de terceros](desktop/THIRD_PARTY_NOTICES.md).
+Los contratos [V5.1](docs/V5_1_INTEGRATION_SPEC.md) y [V5.2](docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md) se conservan como documentos fechados. La auditoría posterior a V5.4.1 corrige el núcleo con alcance documentado, conserva cuotas y mantiene abierto el timeout histórico R13. [Dependencias del frontend](docs/evidence/V5_3_COMPONENTS.json) y [avisos de terceros](desktop/THIRD_PARTY_NOTICES.md).

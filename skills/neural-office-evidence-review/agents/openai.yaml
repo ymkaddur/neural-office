@@ -1,0 +1,4 @@
+interface:
+  display_name: "Neural Office: evidencia de producto"
+  short_description: "Contrasta interfaz, utilidad y consumo real"
+  default_prompt: "Usa $neural-office-evidence-review para comprobar las promesas y la evidencia de la próxima entrega de Neural Office."

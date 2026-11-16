@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "audit_date": "2026-11-16",
+  "baseline_commit": "1c622031ccdec1bf5b8724808af2fed44f0ee960",
+  "core_version": "5.3.1",
+  "frontend_version": "V5.4.1",
+  "scope": "Windows published pilot; synthetic temporary state; no model; no frontend transport integration",
+  "claim": "Three reproduced defects; not three demonstrated severe security vulnerabilities",
+  "baseline_authority_results": {
+    "enrollment_first_error": "INJECTED_DISK_FAILURE_BEFORE_FIRST_COMMIT",
+    "witness_after_failure_bytes": 0,
+    "primary_schema_after_failure": 1,
+    "enrollment_retry_error": "CONTINUITY_UPGRADE_REQUIRED_RUN_PROTECT",
+    "recover_during_constructor": "FAILED",
+    "old_job_active_after_recovery": 2,
+    "lease_has_second_attempt": true,
+    "first_attempt_state": "FAILED",
+    "runner_error": [
+      "STALE_LEASE"
+    ]
+  },
+  "ledger_call_idempotency_control": {
+    "same_sequence": true,
+    "same_cached_response": true,
+    "conflict_error": "IDEMPOTENCY_CONFLICT",
+    "call_rows": 1,
+    "consumption": 1
+  },
+  "path_order": {
+    "baseline_scenarios": 5,
+    "baseline_failures": 5,
+    "patched_pass": 5,
+    "baseline_signature": "RESOLUTION_BEFORE_DENIAL",
+    "actual_SMB_or_credential_disclosure_tested": false,
+    "limits": [
+      "mapped drives",
+      "junctions",
+      "native file picker browsing"
+    ]
+  },
+  "independent_review_corrections": [
+    {
+      "case": "terminal replay while another project executes",
+      "first_patch": "OFFICE_RUNNER_STILL_ACTIVE",
+      "final": "terminal result returned; no new execution or charge"
+    },
+    {
+      "case": "fresh Context on same OS thread",
+      "first_patch": "recursive mutex reentered",
+      "final": "thread-owned guard denies reentry"
+    }
+  ],
+  "public_reproducer": {
+    "path": "tests/repro_v541_boundaries.py",
+    "baseline_exit_code": 0,
+    "fixed_exit_code": 0,
+    "baseline": {
+      "enrollment_retry": "CONTINUITY_UPGRADE_REQUIRED_RUN_PROTECT",
+      "recovery_during_constructor": "FAILED",
+      "old_job_active": 2,
+      "lease_reassigned": true,
+      "runner_errors": [
+        "STALE_LEASE"
+      ],
+      "path_order": [
+        "RESOLUTION_BEFORE_DENIAL",
+        "RESOLUTION_BEFORE_DENIAL",
+        "RESOLUTION_BEFORE_DENIAL",
+        "RESOLUTION_BEFORE_DENIAL",
+        "RESOLUTION_BEFORE_DENIAL"
+      ]
+    },
+    "fixed": {
+      "enrollment_retry": "PROTECTED",
+      "recovery_during_constructor": "OFFICE_RUNNER_STILL_ACTIVE",
+      "old_job_active": 2,
+      "lease_reassigned": false,
+      "runner_errors": [],
+      "path_order": [
+        "EARLY_DENIAL",
+        "EARLY_DENIAL",
+        "EARLY_DENIAL",
+        "EARLY_DENIAL",
+        "EARLY_DENIAL"
+      ]
+    },
+    "instrumentation_correction": "Initial fixture did not close a sqlite connection; explicit closing added and both modes rerun successfully"
+  },
+  "nonfinding_timeout": {
+    "socket_timeout_seconds": 5,
+    "dripped_response_elapsed_seconds": 6.5,
+    "interpretation": "Inactivity timeout, not demonstrated total-deadline contract violation",
+    "production_timeout_code_changed": false
+  },
+  "semantic_quality_control": {
+    "backend": "synthetic",
+    "state": "ACCEPTED",
+    "static_findings": 4,
+    "commentary_status": "UNVERIFIED_ASSISTANCE",
+    "commentary": "There are no static findings in this document.",
+    "interpretation": "Accepted integrity does not certify advisory truth"
+  },
+  "integrity_scale": {
+    "method": "Five perf_counter wall-time samples per temporary state; one transaction inserts synthetic cancelled attempts with approximately 240 KB HTML snapshots",
+    "measured_operation": "Ledger.connection including full continuity validation",
+    "observations": [
+      {
+        "attempts": 0,
+        "primary_bytes": 90112,
+        "milliseconds": [
+          1.6728000482544303,
+          1.4916000072844326,
+          1.437300001271069,
+          1.4606000040657818,
+          1.431700016837567
+        ],
+        "median_ms": 1.4606000040657818
+      },
+      {
+        "attempts": 8,
+        "primary_bytes": 2023424,
+        "milliseconds": [
+          16.067099990323186,
+          15.168300014920533,
+          15.987100021447986,
+          15.877800004091114,
+          15.488400007598102
+        ],
+        "median_ms": 15.877800004091114
+      },
+      {
+        "attempts": 32,
+        "primary_bytes": 7823360,
+        "milliseconds": [
+          76.60319999558851,
+          57.48030001996085,
+          57.86000000080094,
+          58.1322000361979,
+          60.03150000469759
+        ],
+        "median_ms": 58.1322000361979
+      },
+      {
+        "attempts": 64,
+        "primary_bytes": 15556608,
+        "milliseconds": [
+          122.80159996589646,
+          124.52599999960512,
+          121.75809999462217,
+          122.5360999815166,
+          123.48919996293262
+        ],
+        "median_ms": 122.80159996589646
+      }
+    ],
+    "not_measured": [
+      "CPU percentage",
+      "total RAM",
+      "GPU",
+      "full cancellation latency",
+      "real user sessions",
+      "remote denial of service"
+    ]
+  },
+  "local_verification": [
+    {
+      "command": "python -B -m unittest discover -s tests -v",
+      "subject": "baseline",
+      "tests": 125,
+      "seconds": 16.25,
+      "result": "OK"
+    },
+    {
+      "command": "python -B -m unittest discover -s tests -v",
+      "subject": "integrated corrections before metadata version update",
+      "tests": 140,
+      "seconds": 22.108,
+      "result": "OK"
+    },
+    {
+      "command": "python -B -m unittest discover -s tests -p test_maintenance.py -v",
+      "subject": "final launcher/version metadata",
+      "tests": 11,
+      "seconds": 1.546,
+      "result": "OK"
+    },
+    {
+      "command": "npm test",
+      "subject": "unchanged frontend",
+      "tests": 18,
+      "result": "PASS"
+    },
+    {
+      "command": "npm run build",
+      "subject": "unchanged frontend",
+      "result": "PASS"
+    },
+    {
+      "command": "npm audit --json",
+      "subject": "existing lockfile",
+      "known_vulnerabilities": 0,
+      "result": "No known advisory returned; not a source-code security certification"
+    }
+  ],
+  "skill_validation": {
+    "structural_validator": "skill-creator quick_validate.py",
+    "skills_valid": 2,
+    "independent_forward_test": "simulated evidence-poor audit case; no product tests or network",
+    "limitations": "Does not establish automatic discovery of unseen defects"
+  },
+  "references": {
+    "T3_Code": "6e650b384906ffa1dd28645a68d5295c06a18af9",
+    "OpenClaw": "bd25e9ef60cc886dc6c0512927bf1cf425e364df",
+    "DuskBot": "750caf446d0417b95971e7bb2c7ac98ba76f94e0",
+    "Claude_Code": "Official documentation consulted; no private source or runtime inspected",
+    "third_party_apps_executed": false
+  },
+  "source_sha256_lf": {
+    "neural_office/__init__.py": "17fee0ac2b7d9c571314978ba81d489e62741e3345ab1012e6346ea52415ce3c",
+    "neural_office/__main__.py": "3794fdf550640c99ece5417fc85c3d7b1510322e4ac086de17ee2eed1c45f0c3",
+    "neural_office/continuity.py": "d4deeafab3f1ec6b43fdb4d3077428c11141ee15edfab76c82228717c2806bc9",
+    "neural_office/runner.py": "e35165a1147b0082bad6d6b07151799085fdc31f5c1ba12963e698f105aa15f3",
+    "neural_office/files.py": "874b087d69dedc366ef151c1b3384146f0e3c36c29c68b0f5d4309ff4bf83b28",
+    "neural_office/legacy.py": "ca154b9985bf98a0c58384f019febcda156c0c70417d4c7a0523e6694d4ae54a",
+    "neural_office/ui.py": "95e3c55382c92bb814f80b6bbbc2ec497a761ea4d7b9ff99982ed758f0551952",
+    "tests/test_forensic_authority.py": "6a2f39ab6c1f8117ef62dda2f1062196a13c7fe1f64cbec44f8fa1a6696c22e3",
+    "tests/test_forensic_paths.py": "5646b2ee236455d26bb93855a8c0ab8b6797101cd31724efc82d358eb7d73bce",
+    "tests/test_maintenance.py": "bf333f8ed2f12c13dd347121bad94c20afd8efc2b68921670c02c8c0b12ae93e",
+    "tests/repro_v541_boundaries.py": "108672131d077a95661584c140a06ad8b2fc0423a18fcaec6327129ebd2e2ee6",
+    ".github/workflows/windows-tests.yml": "942bea33df407a0eaa4f8bdbf4d74767615c32f168a818b57f72f8a1dec0f32e"
+  },
+  "residual_limits": [
+    "updated cooperating controllers only",
+    "same Windows session and canonical ledger identity",
+    "no power-loss hardware test",
+    "no sandbox against a host administrator",
+    "no end-to-end desktop transport",
+    "no new model-quality or hardware performance benchmark",
+    "R13 remains open",
+    "human acceptance and market differentiation not established"
+  ],
+  "remote_checks": "The containing commit PR and main Actions runs are the authoritative publication results; not substituted by these local observations"
+}

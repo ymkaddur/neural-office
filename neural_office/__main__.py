@@ -17,7 +17,7 @@ def snapshot_file(file,root):
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description='Neural Office 5.2 — Windows CPU static HTML audit pilot')
+    parser=argparse.ArgumentParser(description=f'Neural Office {__version__} — Windows CPU static HTML audit pilot')
     parser.add_argument('--version',action='version',version=__version__)
     parser.add_argument('--state',help='Office ledger; defaults to one per user. Preserve its witness when restoring.')
     sub=parser.add_subparsers(dest='action',required=True)

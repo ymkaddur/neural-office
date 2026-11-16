@@ -1,0 +1,4 @@
+interface:
+  display_name: "Neural Office: auditoría forense"
+  short_description: "Investiga autoridad, fallos y recuperación"
+  default_prompt: "Usa $neural-office-forensic-audit para reconstruir un fallo de Neural Office con datos sintéticos y evidencia reproducible."

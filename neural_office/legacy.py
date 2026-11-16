@@ -11,6 +11,7 @@ import tempfile
 
 from .ledger import Denied, canonical, digest, TERMINAL
 from .continuity import signature
+from .files import local_path
 
 PRODUCTS = ('web-auditor', 'design-system-qa', 'skills-registry', 'agent-observability', 'agent-memory')
 CATALOG = set(PRODUCTS) | {'tower-defense'}
@@ -54,7 +55,7 @@ def _hold(path, stack):
 @contextmanager
 def snapshot(root):
     if os.name != 'nt': raise Denied('LEGACY_CAPTURE_REQUIRES_WINDOWS')
-    root = Path(root).resolve(strict=True)
+    root = local_path(root, 'LEGACY_NETWORK_SOURCE_EXCLUDED').resolve(strict=True)
     if str(root).startswith('\\\\'): raise Denied('LEGACY_NETWORK_SOURCE_EXCLUDED')
     with ExitStack() as stack:
         files = {}; identities = {}; data = {}; logical = {}
@@ -198,7 +199,7 @@ def assess(data, root):
         if len(set(footprints[p].values())) > 1: raise Denied('LEGACY_CROSS_LEDGER_HISTORY_REQUIRES_MAPPING')
         consumed = len(footprints[p])
         if consumed > 3: raise Denied('LEGACY_EXISTING_BUDGET_EXCEEDED')
-        location = Path(projects[p]['location']).resolve(strict=True)
+        location = local_path(projects[p]['location'], 'LEGACY_NETWORK_SOURCE_EXCLUDED').resolve(strict=True)
         if not location.is_relative_to(root): raise Denied('LEGACY_LOCATION_RELOCATION_REQUIRES_MAPPING')
         result[p] = {'root': os.path.normcase(str(location)), 'consumed': consumed,
             'operation_ids': sorted(footprints[p]), 'v1_state': projects[p]['state'],
@@ -251,7 +252,7 @@ def require_reconciliation(con, project, root):
 
 
 def reconcile(ledger, source_root):
-    source_root = str(Path(source_root).resolve(strict=True))
+    source_root = str(local_path(source_root, 'LEGACY_NETWORK_SOURCE_EXCLUDED').resolve(strict=True))
     with ledger.transaction() as con:
         observed = _current(source_root)
         for p in PRODUCTS:
@@ -279,7 +280,7 @@ def reconcile(ledger, source_root):
 
 
 def rebind(ledger, project, root):
-    target = Path(root).resolve(strict=True)
+    target = local_path(root, 'LEGACY_NETWORK_SOURCE_EXCLUDED').resolve(strict=True)
     if not target.is_dir(): raise Denied('PROJECT_ROOT_NOT_DIRECTORY')
     target = os.path.normcase(str(target))
     with ledger.transaction() as con:

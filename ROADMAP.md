@@ -26,11 +26,13 @@ flowchart LR
 | **V9 — resiliencia y varios proyectos** | Continuar tras fallos conservando control y resultados | Planificador con cuotas y prioridad, dos proyectos y una inferencia administrada por defecto; backups y migración | Fallos parciales, muerte de procesos, eventos duplicados y restauración integral; exclusión probada para cada integración incluida. Concurrencia extra solo si la memoria y la evaluación lo justifican |
 | **V10 — distribución sencilla** | Instalar, elegir un modelo y comenzar | Detección de hardware, onboarding, perfiles compatibles, actualización, diagnóstico y desinstalación | Máquina Windows limpia; instalación sin Python/Node/Rust manuales; modelo compatible; actualización/restauración probadas; SBOM y avisos del paquete real; revisión del nombre y responsabilidades de distribución |
 
-Las versiones se cierran por capacidades y evidencia, no por numeración o fechas inventadas. Linux/macOS requieren su propio plan y pruebas: el aislamiento actual usa Windows Jobs. La elección de Tauri no garantiza por sí sola un instalador pequeño o menor RAM; hay que contar webview, Python, runtime y pesos por separado.
+Las versiones se cierran por capacidades y evidencia, no por numeración o fechas inventadas. Linux/macOS requieren su propio plan y pruebas: el control de procesos actual usa Windows Jobs, sin constituir un sandbox de disco/red. La elección de Tauri no garantiza por sí sola un instalador pequeño o menor RAM; hay que contar webview, Python, runtime y pesos por separado.
 
 ## Tramo actualizado hacia V6
 
 La numeración organiza puertas de salida; no fija fechas ni declara implementadas las capacidades. V5.4.1 publica progreso revisable y divisores ajustables. G-UI continúa pendiente de aceptación y pruebas formativas.
+
+La [auditoría posterior](docs/FORENSIC_AUDIT_V5_4_1.md) incorpora mantenimiento del núcleo 5.3.1: propiedad durante arranque/recuperación, reintento de protección interrumpida y rechazo temprano de rutas de red. Antes de ampliar capacidades, la prioridad es demostrar un solo recorrido con identidad durable, respuesta perdida, cierre y recuperación. El coste de validar toda la historia debe medirse dentro de la latencia de cancelación. Esto no cierra G-UI ni conecta el escritorio.
 
 | Fase | Resultado para el usuario | Condición antes de avanzar |
 | --- | --- | --- |
@@ -61,4 +63,4 @@ V5.3 mantiene intactos los caminos de ejecución del núcleo e incorpora observa
 
 La investigación visual de vídeos está [delimitada por frames y timestamps](docs/V5_3_VIDEO_RESEARCH.md). Las pistas sobre caché, memoria y evaluación alimentan experimentos futuros; no se anuncian como capacidades ya incorporadas.
 
-**Siguiente trabajo concreto:** revisar las cinco pantallas V5.4.1, cerrar aceptación y ampliar el corpus y la referencia de recursos. La integración del motor espera la aceptación visual; las comparaciones CPU/GPU/contexto varían una condición por ensayo y preservan los recibos anteriores. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [registro forense](docs/V5_3_FORENSIC_REVIEW.md).
+**Siguiente trabajo concreto:** cerrar aceptación de las cinco pantallas V5.4.1 y fijar una tarea/rúbrica; después conectar un solo recorrido y probar pérdida de respuesta, cierre/reinicio y conservación de identidad/cuota. Ampliar el corpus y medir recursos con esa tarea estable. Las comparaciones CPU/GPU/contexto varían una condición por ensayo y preservan los recibos anteriores. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [auditoría actual](docs/FORENSIC_AUDIT_V5_4_1.md).
