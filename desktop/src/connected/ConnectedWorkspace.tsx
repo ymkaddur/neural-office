@@ -156,13 +156,19 @@ export function ConnectedWorkspace() {
       try{
         const next=await request<Attempt>('attempt.get',{attempt_id:id});
         if(cancelled||!mounted.current||currentAttempt.current?.id!==id)return;
+        // Publishing a terminal attempt tears down this polling effect. Reconcile
+        // history and counters before that transition, not after another await.
+        if(terminal(next.state)){
+          await refreshSnapshot();
+          if(!cancelled&&mounted.current&&currentAttempt.current?.id===id)putAttempt(next);
+          return;
+        }
         putAttempt(next);
         const batch=await request<Parameters<typeof mergeEvents>[1]>('events.read',{after:eventsRef.current.cursor,limit:100});
         if(cancelled||!mounted.current)return;
         const result=mergeEvents(eventsRef.current,batch);
         if(result.resync){const fresh=await refreshSnapshot();if(!cancelled)putEvents({session_id:fresh.session_id,cursor:fresh.cursor,events:[]});}
         else putEvents(result.window);
-        if(terminal(next.state)){await refreshSnapshot();return;}
         failures=0;
       }catch(error){if(!cancelled){failures++;noteError(error);}}
       if(!cancelled)timer=setTimeout(tick,Math.min(10000,2000*(failures+1)));
@@ -252,11 +258,19 @@ export function ConnectedWorkspace() {
     if(pending)await reconcile(pending);
     putEvents({session_id:fresh.session_id,cursor:fresh.cursor,events:[]});
   }
-  async function nextHistoryPage() {
+  async function nextHistoryPage(kind:'projects'|'attempts') {
     if(!snapshot)return;
-    const next=validateSnapshot(await request<Snapshot>('snapshot.get',{...snapshot.next,limit:100}));
-    if(next.revision!==snapshot.revision){await refreshSnapshot();setNotice('El historial cambió. Se ha actualizado la primera página.');return;}
-    setSnapshot(next);setNotice('Página siguiente del historial. Se conservan sólo cien entradas por página.');
+    const next=validateSnapshot(await request<Snapshot>('snapshot.get',{
+      project_after:kind==='projects'?snapshot.next.project_after:0,
+      attempt_after:kind==='attempts'?snapshot.next.attempt_after:0,limit:100}));
+    if(next.revision!==snapshot.revision||next.session_id!==snapshot.session_id||next.office_id!==snapshot.office_id){await refreshSnapshot();setNotice('El historial cambió. Se ha actualizado la primera página.');return;}
+    // Independent cursors must not discard the other table's current page.
+    setSnapshot({...next,
+      projects:kind==='projects'?next.projects:snapshot.projects,
+      attempts:kind==='attempts'?next.attempts:snapshot.attempts,
+      next:{project_after:kind==='projects'?next.next.project_after:snapshot.next.project_after,attempt_after:kind==='attempts'?next.next.attempt_after:snapshot.next.attempt_after},
+      has_more:{projects:kind==='projects'?next.has_more.projects:snapshot.has_more.projects,attempts:kind==='attempts'?next.has_more.attempts:snapshot.has_more.attempts}});
+    setNotice(`Página siguiente de ${kind==='projects'?'proyectos':'encargos'}. Se conservan cien entradas por lista.`);
   }
 
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
@@ -272,16 +286,17 @@ export function ConnectedWorkspace() {
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo encargo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
-        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===projectId?'selected':''} disabled={busy||!!doing} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto nuevo</span><small>Se creará al elegir la fuente</small></div>}</div>
+        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===projectId?'selected':''} disabled={busy||!!doing} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>Presupuesto por confirmar</small></div>}</div>
         <div className="connected-nav-heading">Encargos guardados</div>
         <div className="connected-history">{snapshot?.attempts.filter(a=>a.project_id===projectId).map(a=><button key={a.id} className={a.id===attempt?.id?'selected':''} disabled={active||!!doing||!!pending} onClick={()=>void act('Abriendo encargo',()=>chooseAttempt(a))}><span className={`history-dot ${terminal(a.state)?'finished':''}`}/><span><strong>{a.objective}</strong><small>{stateLabels[a.state]} · intento {a.ordinal}</small></span></button>)}{!snapshot?.attempts.some(a=>a.project_id===projectId)&&<p className="history-empty">Aquí quedarán las entregas de este proyecto.</p>}</div>
-        {(snapshot?.has_more.projects||snapshot?.has_more.attempts)&&<button className="nav-secondary" disabled={!!doing} onClick={()=>void act('Cargando historial',nextHistoryPage)}>Siguiente página del historial →</button>}
+        {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={!!doing} onClick={()=>void act('Cargando proyectos',()=>nextHistoryPage('projects'))}>Siguientes proyectos →</button>}
+        {snapshot?.has_more.attempts&&<button className="nav-secondary" disabled={!!doing} onClick={()=>void act('Cargando encargos',()=>nextHistoryPage('attempts'))}>Siguientes encargos →</button>}
         <div className="nav-bottom"><div className="local-engine"><span className={`connected-indicator ${session?'online':''}`}/><div><strong>{session?'Núcleo local conectado':'Conexión pendiente'}</strong><small>Una inferencia a la vez<br/>CPU · contexto 8K</small></div></div><div className="nav-footer"><span>Registro local del encargo</span><button aria-label={dark?'Activar tema claro':'Activar tema oscuro'} onClick={()=>setDark(!dark)}>{dark?'☼':'◐'}</button></div></div>
       </nav>
       <PaneDivider kind="navigation" container={shell} controls="connected-main" label="Ancho de navegación"/>
       {navOpen&&<button className="connected-nav-backdrop" aria-label="Cerrar navegación" onClick={()=>setNavOpen(false)}/>}
       <main id="connected-main" className="office-workspace" tabIndex={-1} inert={navOpen||undefined}>
-        <header className="workspace-header connected-header"><div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><span>Oficina</span><span aria-hidden="true">/</span><strong>{source?.filename||'Revisión HTML'}</strong></div><div className="header-actions"><span className="connected-quota">{project?`${project.attempts_consumed} de 3 intentos`:'Sin intentos consumidos'}</span><button className="quiet-button" disabled={!!doing||!session} onClick={()=>void act('Actualizando estado',refreshAll)}>Actualizar</button></div></header>
+        <header className="workspace-header connected-header"><div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><span>Oficina</span><span aria-hidden="true">/</span><strong>{source?.filename||'Revisión HTML'}</strong></div><div className="header-actions"><span className="connected-quota">{project?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</span><button className="quiet-button" disabled={!!doing||!session} onClick={()=>void act('Actualizando estado',refreshAll)}>Actualizar</button></div></header>
         {(problem||notice)&&<div className={`connected-notice ${problem?'problem':''}`} role={problem?'alert':'status'}><span>{problem?.message||notice}{problem&&<code>{problem.code}</code>}</span><button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button></div>}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={!!doing} onClick={()=>void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={!!doing} onClick={()=>{try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);setNotice('Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}}}>Descartar petición sin reserva</button>}</div>}
         <section ref={surface} className={`connected-surface ${attempt?'with-delivery':''}`} aria-label="Encargo y entrega">

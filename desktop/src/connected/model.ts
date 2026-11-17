@@ -13,13 +13,14 @@ export const terminal=(state:AttemptState)=>['ACCEPTED','REJECTED','FAILED','CAN
 export const stateLabels:Record<AttemptState,string>={QUEUED:'Encargo registrado',RUNNING:'Trabajando',VERIFYING:'Comprobando la entrega',STOPPING:'Confirmando la parada',RECOVERY_REQUIRED:'Necesita recuperación',ACCEPTED:'Entrega disponible',REJECTED:'Entrega no validada',FAILED:'El encargo falló',CANCELLED:'Encargo detenido'};
 export function pendingKey(officeId:string){if(!id(officeId))throw Error('OFFICE_ID_INVALID');return `neural-office.v55.pending-command.${officeId}`;}
 const id=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value);
+const projectId=(value:unknown):value is string=>typeof value==='string'&&value.length>0&&[...value].length<=80&&!/[\uD800-\uDFFF]/u.test(value);
 const counter=(value:unknown):value is number=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0;
 const record=(value:unknown):value is Record<string,unknown>=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function readPending(storage:Pick<Storage,'getItem'>,officeId:string):Pending|null {
   const raw=storage.getItem(pendingKey(officeId));
   if(raw===null) return null;
   const value:unknown=JSON.parse(raw);
-  if(!record(value)||Object.keys(value).length!==3||value.office_id!==officeId||!id(value.project_id)||!id(value.idempotency_key)) throw Error('PENDING_IDENTITY_INVALID');
+  if(!record(value)||Object.keys(value).length!==3||value.office_id!==officeId||!projectId(value.project_id)||!id(value.idempotency_key)) throw Error('PENDING_IDENTITY_INVALID');
   return {office_id:officeId,project_id:value.project_id,idempotency_key:value.idempotency_key};
 }
 export function writePending(storage:Pick<Storage,'setItem'|'getItem'>,pending:Pending) {
@@ -43,7 +44,7 @@ export function mergeEvents(current:EventWindow,batch:EventBatch):{window:EventW
   return {window:{...current,cursor,events:[...current.events,...added].slice(-100)},resync:false};
 }
 export function acceptAttempt(current:Attempt|null,next:Attempt):Attempt {
-  if(!id(next.id)||!id(next.project_id)||!counter(next.revision)||!(next.state in stateLabels)) throw Error('ATTEMPT_CONTRACT');
+  if(!id(next.id)||!projectId(next.project_id)||!counter(next.revision)||!(next.state in stateLabels)) throw Error('ATTEMPT_CONTRACT');
   if(current?.id!==next.id) return next;
   if(next.revision<current.revision) return current;
   if(terminal(current.state)&&next.state!==current.state) throw Error('TERMINAL_STATE_CHANGED');
@@ -54,7 +55,7 @@ export function approvalMatches(approval:Approval,session:string,source:Source|n
 }
 export function validateSnapshot(value:Snapshot) {
   if(!id(value.session_id)||!id(value.office_id)||!counter(value.cursor)||!counter(value.revision)||!Array.isArray(value.projects)||!Array.isArray(value.attempts)||value.projects.length>200||value.attempts.length>200) throw Error('SNAPSHOT_CONTRACT');
-  for(const p of value.projects) if(!id(p.id)||!counter(p.attempts_consumed)) throw Error('PROJECT_CONTRACT');
+  for(const p of value.projects) if(!projectId(p.id)||!counter(p.attempts_consumed)) throw Error('PROJECT_CONTRACT');
   for(const a of value.attempts) acceptAttempt(null,a);
   if(!counter(value.next.project_after)||!counter(value.next.attempt_after)) throw Error('SNAPSHOT_CURSOR_CONTRACT');
   return value;

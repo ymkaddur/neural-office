@@ -155,7 +155,7 @@ class DesktopService:
         """Trusted native picker only. Never route a webview path to this method."""
         with self._command_lock:
             if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
-            if not valid('id', project_id): raise Denied('DESKTOP_PARAMETER_INVALID')
+            if not valid('project', project_id): raise Denied('DESKTOP_PARAMETER_INVALID')
             self._prune()
             if len(self._sources) >= MAX_GRANTS: raise Denied('SOURCE_GRANT_LIMIT')
             source = local_path(path)

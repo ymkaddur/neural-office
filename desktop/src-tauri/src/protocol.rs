@@ -30,6 +30,13 @@ pub fn valid_id(value: &Value) -> bool {
     })
 }
 
+pub fn valid_project(value: &Value) -> bool {
+    // Preserve legal ledger text identifiers; capability/request IDs stay ASCII.
+    value
+        .as_str()
+        .is_some_and(|s| !s.is_empty() && s.chars().count() <= 80)
+}
+
 // Native pick is the only frontend operation that is interpreted here. Every
 // other parameter is checked again by the authoritative Python contract.
 pub fn validate_request(value: &Value) -> Result<(), &'static str> {
@@ -56,7 +63,7 @@ pub fn validate_request(value: &Value) -> Result<(), &'static str> {
     }
     if value["method"] == "source.pick" {
         let params = value["params"].as_object().unwrap();
-        if params.len() != 1 || !valid_id(&value["params"]["project_id"]) {
+        if params.len() != 1 || !valid_project(&value["params"]["project_id"]) {
             return Err("HOST_PICKER_PARAMETERS");
         }
     }
@@ -133,6 +140,26 @@ pub fn allowed_navigation(url: &tauri::Url, development: bool) -> bool {
 mod tests {
     use super::*;
     use std::io::{BufReader, Cursor};
+
+    #[test]
+    fn ledger_project_text_is_not_an_opaque_request_id() {
+        for project in [
+            "Área de revisión".to_owned(),
+            "x".repeat(65),
+            "x".repeat(80),
+            "🙂".repeat(80),
+            " ".to_owned(),
+            "nul\0project".to_owned(),
+        ] {
+            let command = json!({"version":1,"id":"opaque","method":"source.pick","params":{"project_id":project}});
+            assert!(validate_request(&command).is_ok());
+        }
+        for project in ["".to_owned(), "x".repeat(81), "🙂".repeat(81)] {
+            let command = json!({"version":1,"id":"opaque","method":"source.pick","params":{"project_id":project}});
+            assert!(validate_request(&command).is_err());
+        }
+        assert!(!valid_id(&json!("opaque id with spaces")));
+    }
 
     #[test]
     fn private_capture_and_forged_picker_path_never_reach_pipe() {

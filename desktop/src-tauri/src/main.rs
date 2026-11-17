@@ -117,3 +117,23 @@ fn main() {
         }
     });
 }
+
+#[cfg(all(test, feature = "custom-protocol"))]
+mod packaged_assets {
+    #[test]
+    fn release_contains_its_frontend_without_a_vite_server() {
+        assert!(
+            !tauri::is_dev(),
+            "The distributed host must use its embedded assets"
+        );
+        let context = tauri::generate_context!();
+        let key = "/index.html".into();
+        let html = context
+            .assets()
+            .get(&key)
+            .expect("Packaged index.html is missing");
+        assert!(std::str::from_utf8(&html)
+            .unwrap()
+            .contains("Neural Office"));
+    }
+}

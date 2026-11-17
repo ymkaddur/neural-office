@@ -5,6 +5,9 @@ edition = "2021"
 license = "MIT"
 publish = false
 
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
 [build-dependencies]
 tauri-build = { version = "=2.7.5", features = [] }
 

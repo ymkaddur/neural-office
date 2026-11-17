@@ -48,6 +48,9 @@ jobs:
         with:
           node-version: '24.21.0'
           package-manager-cache: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
       - name: Build the local desktop renderer
         working-directory: desktop
         run: |
@@ -55,21 +58,38 @@ jobs:
           npm run build -- --mode native
       - name: Test the native command boundary
         working-directory: desktop/src-tauri
-        run: cargo test --locked
+        run: cargo test --locked --features custom-protocol
       - name: Compile the Windows test host
         working-directory: desktop/src-tauri
-        run: cargo build --locked --release
+        run: cargo build --locked --release --features custom-protocol
+      - name: Prepare isolated native UI test tools
+        shell: pwsh
+        run: ./tests/Prepare-V55NativeCI.ps1
+      - name: Exercise packaged UI, native picker, real model and restart
+        timeout-minutes: 15
+        run: python -B tests/e2e_v55_native.py --output native-e2e-evidence
+      - name: Upload synthetic native UI evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: neural-office-v55-native-ui-evidence
+          path: native-e2e-evidence/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Hash the test executable
         shell: pwsh
         run: |
           $binary = 'desktop/src-tauri/target/release/neural-office-desktop.exe'
           $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $binary).Hash.ToLowerInvariant()
           "$hash  neural-office-desktop.exe" | Set-Content -Encoding ascii 'desktop/src-tauri/target/release/SHA256SUMS'
+      - name: Collect notices for the compiled dependency set
+        run: python -B tools/collect_native_notices.py --output native-notices
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2 resolved 2026-11-16
         with:
           name: neural-office-v55-windows-test-host
           path: |
             desktop/src-tauri/target/release/neural-office-desktop.exe
             desktop/src-tauri/target/release/SHA256SUMS
+            native-notices/**
           if-no-files-found: error
           retention-days: 14

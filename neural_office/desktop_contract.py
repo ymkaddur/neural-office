@@ -13,20 +13,26 @@ MAX_SAFE_INTEGER = 2**53 - 1
 METHODS = {
     'describe': {}, 'models.list': {}, 'projects.list': {},
     'snapshot.get': {'project_after': 'revision', 'attempt_after': 'revision', 'limit': 'limit'},
-    'source.pick': {'project_id': 'id'},
-    'attempt.preview': {'project_id': 'id', 'entry_token': 'id', 'model_digest': 'digest',
+    'source.pick': {'project_id': 'project'},
+    'attempt.preview': {'project_id': 'project', 'entry_token': 'id', 'model_digest': 'digest',
                         'roles': 'roles', 'objective': 'objective'},
     'attempt.start': {'approval_token': 'id', 'idempotency_key': 'id', 'expected_revision': 'revision'},
     'attempt.cancel': {'attempt_id': 'id'},
     'attempt.recover': {'attempt_id': 'id', 'expected_revision': 'revision'},
     'attempt.get': {'attempt_id': 'id'}, 'report.get': {'attempt_id': 'id'},
-    'attempt.lookup': {'project_id': 'id', 'idempotency_key': 'id'},
+    'attempt.lookup': {'project_id': 'project', 'idempotency_key': 'id'},
     'report.read': {'attempt_id': 'id', 'offset': 'revision', 'limit': 'chunk'},
     'events.read': {'after': 'revision', 'limit': 'limit'},
 }
 
 
 def valid(kind, value):
+    if kind == 'project':
+        # Existing ledger identifiers are user text, not opaque capability IDs.
+        if type(value) is not str or not 1 <= len(value) <= 80: return False
+        try: value.encode('utf-8')
+        except UnicodeError: return False
+        return True
     if kind == 'id':
         return type(value) is str and re.fullmatch(r'[A-Za-z0-9_-]{1,64}', value) is not None
     if kind == 'digest':
