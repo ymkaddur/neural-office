@@ -13,6 +13,7 @@ from neural_office.desktop_contract import MAX_MESSAGE_BYTES, decode_command
 from neural_office.desktop_service import DesktopService, discover_models
 from neural_office.desktop_stdio import respond, serve
 from neural_office.ledger import Denied, Ledger, canonical, digest
+from neural_office.runner import run
 
 SOURCE = b'<html><title>Example</title><img src="x"></html>'
 PROFILE = {'mode': 'fixture', 'model': 'explicit-test-fixture', 'model_digest': 'a'*64}
@@ -372,14 +373,19 @@ service.start(preview['approval_token'], 'exit-after-commit', preview['expected_
             self.service.report_read(row['id'], metadata['bytes']+1, 1)
 
     def test_event_pages_have_no_job_path_and_replay_without_gaps(self):
-        self.start(self.preview())
-        self.finish()
+        # Finish a real ledger sequence before exercising the read-only cursor.
+        self.ledger.register('example', self.root)
+        attempt = self.ledger.reserve('example', 'Review the pagination fixture.', SOURCE,
+                                      {**PROFILE, 'roles': 1}, 'one', admit=True)
+        self.assertEqual(run(self.ledger, attempt, 1, backend_factory=FixtureBackend), 'ACCEPTED')
         events, after = [], 0
         while True:
             page = self.service.events(after, 2)
             events.extend(page['events'])
             after = page['next_after']
             if not page['has_more']: break
+        self.assertIn('LEASE_ACQUIRED', [event['kind'] for event in events])
+        self.assertEqual(events[-1]['kind'], 'FINAL_VERDICT')
         self.assertEqual([event['seq'] for event in events], list(range(1, after+1)))
         self.assertTrue(all(type(event['stamp_ns']) is str for event in events))
         self.assertTrue(all('job' not in event['payload'] and 'root' not in event['payload'] for event in events))
