@@ -52,6 +52,7 @@ class Screen:
         self.host = host
         self.window = Application(backend='uia').connect(process=host.pid).window(title_re='Neural Office.*')
         self.window.wait('visible', timeout=30)
+        self.edit_receipts = []
 
     def names(self):
         return '\n'.join(control.element_info.name for control in self.window.descendants()
@@ -68,8 +69,20 @@ class Screen:
 
     def objective(self, text):
         editor = self.control('Tu encargo al Director', 'Edit')
+        receipt = {'requested_length': len(text), 'readings': [], 'matched': False}
+        self.edit_receipts.append(receipt)
+        began = time.monotonic_ns()
         editor.set_edit_text(text)
-        assert editor.get_value() == text, 'EDIT_VALUE_NOT_ACCEPTED'
+        def acknowledged():
+            value = editor.get_value()
+            receipt['readings'].append({'elapsed_ns': time.monotonic_ns() - began,
+                                        'type': type(value).__name__,
+                                        'length': len(value) if isinstance(value, str) else None,
+                                        'sha256': hashlib.sha256(value.encode()).hexdigest() if isinstance(value, str) else None})
+            receipt['matched'] = value == text
+            return receipt['matched']
+        # UIA sets cross-process state; equality remains mandatory after its ack.
+        wait(acknowledged, timeout=5, description='exact objective readback after UIA SetValue')
 
     def tab(self, name):
         self.control(name, 'TabItem').select()
@@ -93,6 +106,45 @@ class Screen:
                  'name': c.element_info.name[:300], 'enabled': c.is_enabled(), 'visible': c.is_visible()}
                 for c in window.descendants()][:400]})
         return result
+
+    def geometry(self):
+        import win32api
+        import win32gui
+        from ctypes import wintypes
+        rectangle = self.window.rectangle()
+        handle = self.window.handle
+        work_area = win32api.GetMonitorInfo(win32api.MonitorFromWindow(handle))['Work']
+        user32 = ctypes.WinDLL('user32', use_last_error=True)
+        user32.SystemParametersInfoW.argtypes = [wintypes.UINT, wintypes.UINT, ctypes.c_void_p, wintypes.UINT]
+        user32.SystemParametersInfoW.restype = wintypes.BOOL
+        user32.GetDpiForWindow.argtypes = [wintypes.HWND]
+        user32.GetDpiForWindow.restype = wintypes.UINT
+        primary = wintypes.RECT()
+        if not user32.SystemParametersInfoW(48, 0, ctypes.byref(primary), 0):
+            raise ctypes.WinError(ctypes.get_last_error())
+        dpi = user32.GetDpiForWindow(handle)
+        dwm = ctypes.WinDLL('dwmapi')
+        dwm.DwmGetWindowAttribute.argtypes = [wintypes.HWND, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD]
+        dwm.DwmGetWindowAttribute.restype = ctypes.c_long
+        extended = wintypes.RECT()
+        has_frame = dwm.DwmGetWindowAttribute(handle, 9, ctypes.byref(extended), ctypes.sizeof(extended)) == 0
+        send = self.window.child_window(title_re='Revisar encargo.*', control_type='Button')
+        send_rect = send.rectangle() if send.exists(timeout=.1) else None
+        return {'window_rectangle_px': [rectangle.left, rectangle.top, rectangle.right, rectangle.bottom],
+                'monitor_work_area_px': list(work_area),
+                'primary_work_area_px': [primary.left, primary.top, primary.right, primary.bottom],
+                'win32_window_rectangle_px': list(win32gui.GetWindowRect(handle)),
+                'client_rectangle_px': list(win32gui.GetClientRect(handle)),
+                'client_origin_screen_px': list(win32gui.ClientToScreen(handle, (0, 0))),
+                'extended_frame_px': [extended.left, extended.top, extended.right, extended.bottom] if has_frame else None,
+                'review_button_rectangle_px': [send_rect.left, send_rect.top, send_rect.right, send_rect.bottom] if send_rect else None,
+                'dpi': dpi, 'scale_factor': dpi / 96 if dpi else None, 'maximized': bool(win32gui.IsZoomed(handle))}
+
+    def maximize(self, enabled):
+        from pywinauto import Application
+        native = Application(backend='win32').connect(process=self.host.pid).window(title_re='Neural Office.*')
+        native.maximize() if enabled else native.restore()
+        wait(lambda: self.geometry()['maximized'] == enabled, timeout=5, description='native maximize/restore acknowledged')
 
 
 def main():
@@ -160,14 +212,28 @@ def main():
                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             host = psutil.Process(app.pid)
             screen = Screen(host)
+            screen.edit_receipts = evidence.setdefault('input_acknowledgements', [])
             wait(lambda: 'Núcleo local conectado' in screen.names(), description='native IPC ready')
             return app, host, screen
 
         stage = 'open_packaged_ui'
         app, host, screen = open_desktop()
+        evidence['initial_geometry'] = screen.geometry()
         sampler = Samples(host)
         wait(lambda: screen.control('Modelo local', 'ComboBox').selected_text() == MODEL, description='real model selected')
         screen.screenshot(output / '01-ready.png')
+        sampler.phase = 'window_differential'
+        before = evidence['initial_geometry']
+        frame, area = before['win32_window_rectangle_px'], before['monitor_work_area_px']
+        if frame[2] - frame[0] > area[2] - area[0] or frame[3] - frame[1] > area[3] - area[1]:
+            screen.maximize(True)
+            evidence['maximized_geometry'] = screen.geometry()
+            screen.screenshot(output / '01-maximized-contrast.png')
+            screen.maximize(False)
+            evidence['restored_geometry'] = screen.geometry()
+        else:
+            evidence['window_differential'] = 'not needed: initial outer dimensions fit the work area'
+        sampler.phase = 'idle_before'
         time.sleep(5)
         checks.append({'check': 'packaged-ui-native-ipc-real-catalog-no-devtools', 'verified': True})
         stage = 'native_source_and_approval'; sampler.phase = 'prepare'
