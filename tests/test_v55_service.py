@@ -92,6 +92,138 @@ class DesktopServiceTests(unittest.TestCase):
         service._worker.join(5)
         self.assertFalse(service._worker.is_alive())
 
+    def test_failure_receipt_reopens_with_a_public_reason_and_source_basename(self):
+        class KnownFailure(FixtureBackend):
+            def start(self): raise Denied('MODEL_METADATA_UNAVAILABLE')
+        class PrivateFailure(FixtureBackend):
+            def start(self): raise RuntimeError('private fixture detail must stay local')
+
+        ids = []
+        for backend, expected in [(KnownFailure, 'MODEL_METADATA_UNAVAILABLE'), (PrivateFailure, 'EXECUTION_FAILED')]:
+            owner = self.new_service(backend_factory=backend)
+            item = self.start(self.preview(owner), key=expected, service=owner)
+            self.finish(owner)
+            ids.append(item['id'])
+            reopened = self.new_service()
+            row = reopened.attempt(item['id'])
+            self.assertEqual((row['state'], row['source_name'], row['execution_error_code']),
+                             ('FAILED', 'example.html', expected))
+            self.assertEqual(reopened.lookup('example', expected)['attempt']['id'], item['id'])
+            self.assertNotIn('private fixture', canonical(row))
+            self.assertEqual(row['calls'], [])
+        self.assertNotEqual(*ids)
+        self.assertEqual(self.service.snapshot()['projects'][0]['attempts_consumed'], 2)
+
+    def test_older_signed_failure_with_no_recorded_cause_stays_unknown(self):
+        class Fail(FixtureBackend):
+            def start(self): raise Denied('MODEL_METADATA_UNAVAILABLE')
+        owner = self.new_service(backend_factory=Fail)
+        write_event = self.ledger._event
+        def legacy_event(con, kind, payload):
+            # Generate the V5.7 record before its digest is computed.
+            return write_event(con, kind, {k: v for k, v in payload.items() if k not in ('error_code', 'source_name')})
+        with patch.object(self.ledger, '_event', side_effect=legacy_event):
+            item = self.start(self.preview(owner), service=owner)
+            self.finish(owner)
+        row = self.new_service().attempt(item['id'])
+        self.assertEqual(row['state'], 'FAILED')
+        self.assertIsNone(row['source_name'])
+        self.assertIsNone(row['execution_error_code'])
+        self.assertEqual(row['source_sha256'], digest(SOURCE))
+
+    def test_activity_is_attempt_scoped_across_pages_and_service_restart(self):
+        first = self.start(self.preview(), key='old')['id']
+        self.finish()
+        second = self.start(self.preview(), key='new')['id']
+        self.finish()
+        reader = self.new_service()
+        before = reader.snapshot()
+        for target in (first, second):
+            cursor, all_events = 0, []
+            while True:
+                page = self.command('attempt.events', {'attempt_id':target,'before':cursor,'limit':2}, reader)
+                self.assertEqual((page['session_id'],page['office_id'],page['attempt_id']),
+                                 (reader.session_id,before['office_id'],target))
+                batch = page['events']
+                self.assertEqual([e['seq'] for e in batch],sorted(e['seq'] for e in batch))
+                self.assertTrue(all(e['payload']['attempt']==target and 'job' not in e['payload'] for e in batch))
+                all_events = batch + all_events
+                if not page['has_more']: break
+                self.assertTrue(page['next_before']>0 and (not cursor or page['next_before']<cursor))
+                cursor = page['next_before']
+            with self.ledger.connection() as con:
+                expected = [r[0] for r in con.execute(
+                    "SELECT seq FROM events WHERE json_extract(payload,'$.attempt')=? ORDER BY seq", (target,))]
+            self.assertEqual([e['seq'] for e in all_events], expected)
+            self.assertEqual(reader.attempt_events(target,expected[0],2)['events'], [])
+            self.assertEqual(len(reader.attempt(target)['calls']), 1)
+        with self.assertRaises(Denied): self.command('attempt.events', {'attempt_id':first,'before':0,'limit':0},reader)
+        with self.assertRaises(Denied): reader.attempt_events('missing',0,2)
+        self.assertEqual(reader.snapshot(), before)
+
+    def test_real_controller_loss_recovers_the_original_charge_and_call(self):
+        # This process owns its runner lock. The fixture waits only after real admission.
+        code = """
+import pathlib,sys,threading
+sys.path.insert(0,'tests')
+from test_v55_service import FixtureBackend,PROFILE
+from neural_office.desktop_service import DesktopService
+from neural_office.ledger import Ledger
+class Waiting(FixtureBackend):
+    entered=threading.Event()
+    def infer(self,payload):
+        self.entered.set()
+        threading.Event().wait(30)
+        return super().infer(payload)
+root=pathlib.Path(sys.argv[1])
+service=DesktopService(Ledger(root/'office.sqlite3'),backend_factory=Waiting,model_discovery=lambda:[dict(PROFILE)])
+grant=service.host_capture('example',root/'example.html')
+ap=service.preview('example',grant['entry_token'],PROFILE['model_digest'],1,'Review a synthetic document after interruption.')
+row=service.start(ap['approval_token'],'controller-key',ap['expected_revision'])
+assert Waiting.entered.wait(10)
+print(row['id'],flush=True)
+threading.Event().wait(30)
+"""
+        child = subprocess.Popen([sys.executable, '-B', '-c', code, str(self.root)],
+                                 cwd=Path(__file__).resolve().parents[1], stdout=subprocess.PIPE, text=True)
+        try:
+            identity = child.stdout.readline().strip()
+            self.assertRegex(identity, r'^[0-9a-f]{32}$')
+            original = self.service.attempt(identity)
+            self.assertEqual((original['state'],len(original['calls'])), ('RUNNING',1))
+        finally:
+            child.terminate()
+            child.wait(timeout=10)
+            child.stdout.close()
+        reopened = self.new_service()
+        row = reopened.lookup('example','controller-key')['attempt']
+        self.assertEqual(row['id'],identity)
+        repaired = reopened.recover(identity,row['revision'])
+        self.assertEqual((repaired['id'],repaired['state'],repaired['execution_error_code']),
+                         (identity,'FAILED','ATTEMPT_INTERRUPTED'))
+        self.assertEqual(original['calls'][0]['state'],'STARTED')
+        self.assertEqual(repaired['calls'],[{**original['calls'][0], 'state':'INTERRUPTED'}])
+        again = self.new_service()
+        self.assertEqual(again.recover(identity,repaired['revision'])['execution_error_code'],'ATTEMPT_INTERRUPTED')
+        self.assertEqual(again.snapshot()['projects'][0]['attempts_consumed'],1)
+
+    def test_active_attempt_is_addressable_outside_the_visible_history_page(self):
+        old = self.start(self.preview(), key='archive')['id']
+        self.finish()
+        owner = self.new_service(backend_factory=BlockingBackend)
+        BlockingBackend.released.clear()
+        try:
+            current = self.start(self.preview(owner), key='active', service=owner)['id']
+            self.assertTrue(BlockingBackend.entered.wait(5))
+            page = self.service.snapshot(limit=1)
+            self.assertEqual([a['id'] for a in page['attempts']], [old])
+            self.assertTrue(page['has_more']['attempts'])
+            self.assertEqual(page['current_attempt']['id'],current)
+            self.assertEqual(self.service.attempt(old)['state'],'ACCEPTED')
+        finally:
+            BlockingBackend.released.set()
+            self.finish(owner)
+
     def test_frozen_source_and_complete_fixture_path(self):
         preview = self.preview()
         self.file.write_bytes(b'<html lang="es"><title>Changed</title></html>')

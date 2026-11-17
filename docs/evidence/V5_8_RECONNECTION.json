@@ -1,0 +1,121 @@
+{
+  "scope": "local Windows x64. Synthetic office and fixture backend. No provider account.",
+  "baseline": {
+    "commit": "31e85868a5b07500e7de131c49e6d9b4e051572a",
+    "host": "packaged Tauri 5.7.0",
+    "executable_sha256": "d786286c86b232f23477ab6ce76df2b27c532b111f134eaebb448a94693df4ac",
+    "online_label_during_outage": true,
+    "history_read_enabled": false,
+    "same_window_reconnected": false,
+    "same_attempt_after_reopening": true
+  },
+  "candidate": {
+    "source_version": "5.8.0",
+    "host": "Windows WebView2 WinForms integration adapter, production renderer and Python stdio",
+    "signed_webview_sdk": "1.0.4314.35",
+    "fixture_worker": "separate process owner from the pipe that was interrupted",
+    "same_window_reconnected": true,
+    "online_label_during_outage": false,
+    "same_office_attempt_key_and_ordinal": true,
+    "historical_failure_code": "MODEL_METADATA_UNAVAILABLE",
+    "history_read_enabled": true,
+    "history_read_kept_charge": true,
+    "stop_target_was_original_active_attempt": true,
+    "initial_target_cost": 1,
+    "reconnection_cost": 0,
+    "measurements": {
+      "before": {
+        "office_charges": 2,
+        "target_calls": 1,
+        "fixture_provider_invocations": 1
+      },
+      "after_disconnect": {
+        "office_charges": 2,
+        "target_calls": 1,
+        "fixture_provider_invocations": 1
+      },
+      "after_reconnect": {
+        "office_charges": 2,
+        "target_calls": 1,
+        "fixture_provider_invocations": 1
+      }
+    },
+    "assets": {
+      "assets/index-CEREzuPI.css": {
+        "sha256": "80ad20f4738928e47cc05557088eadc2b5551d99ccc96557e45dd7bb0f61ab07",
+        "bytes": 50867
+      },
+      "assets/index-sXn4toZW.js": {
+        "sha256": "2133c77f4b4f52f5c7e3c412bd0698b208a002b2fd917ee8ec206c1f2c8ba488",
+        "bytes": 272064
+      },
+      "index.html": {
+        "sha256": "ef8a8b0adfca55ae4b383d81d70166ac5a1bb02888f30b4f01a7c9426d5a8bfa",
+        "bytes": 475
+      }
+    }
+  },
+  "independent_controller_loss": {
+    "os_action": "terminate a synthetic controller with an admitted call",
+    "recovered_state": "FAILED",
+    "durable_code": "ATTEMPT_INTERRUPTED",
+    "call_transition": [
+      "STARTED",
+      "INTERRUPTED"
+    ],
+    "resulting_office_charges": 1,
+    "resulting_calls": 1,
+    "test": "test_real_controller_loss_recovers_the_original_charge_and_call"
+  },
+  "checks": {
+    "python_passed": 210,
+    "typescript_and_dom_passed": 54,
+    "rust_peer_lifecycle_passed": 2,
+    "parallel_rust_handshakes": 8,
+    "edge_static_layout": [
+      {
+        "viewport": [
+          1440,
+          900
+        ],
+        "quota_in_view": true,
+        "horizontal_overflow": false,
+        "initially_visible_finding_titles": 4
+      },
+      {
+        "viewport": [
+          1024,
+          697
+        ],
+        "quota_in_view": true,
+        "horizontal_overflow": false,
+        "initially_visible_finding_titles": 4
+      },
+      {
+        "viewport": [
+          390,
+          720
+        ],
+        "quota_in_view": true,
+        "horizontal_overflow": false,
+        "initially_visible_finding_titles": 4
+      },
+      {
+        "viewport": [
+          768,
+          540
+        ],
+        "quota_in_view": true,
+        "horizontal_overflow": false,
+        "initially_visible_finding_titles": 3
+      }
+    ]
+  },
+  "packaged_candidate": {
+    "verified": false,
+    "dependency": "quote 1.0.47",
+    "stage": "custom build program before application compilation",
+    "windows_error": 4551,
+    "cargo_exit": 101
+  }
+}

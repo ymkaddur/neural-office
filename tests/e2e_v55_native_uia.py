@@ -248,7 +248,7 @@ def main():
             host = psutil.Process(app.pid)
             screen = Screen(host)
             screen.edit_receipts = evidence.setdefault('input_acknowledgements', [])
-            wait(lambda: 'Núcleo local conectado' in screen.names(), description='native IPC ready')
+            wait(lambda: re.search('Última conexión confirmada|Núcleo local conectado', screen.names()), description='native IPC ready')
             return app, host, screen
 
         stage = 'open_packaged_ui'

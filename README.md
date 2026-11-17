@@ -4,14 +4,14 @@
 
 Un espacio de trabajo para encargar una revisión, seguir su ejecución y recuperar la entrega. Gratis y open source, con las mismas funciones para todo el mundo.
 
-**V5.7 · alpha para Windows.** Abre un HTML y localiza qué revisar. La comprobación funciona sin modelo. Si quieres una segunda lectura, puedes pedir comentarios a tu modelo local y recuperar ese encargo desde el historial.
+**V5.8 · candidato local para Windows.** Abre un HTML y localiza qué revisar. La comprobación funciona sin modelo. Si quieres una segunda lectura, puedes pedir comentarios a tu modelo local y recuperar ese encargo desde el historial.
 
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ![La ventana de Neural Office muestra los cuatro hallazgos del ejemplo, con sus ubicaciones y cero intentos consumidos](docs/images/v5.7-static.png)
 
-Comprobación del archivo de ejemplo en el ejecutable de Windows. [Qué medimos en V5.7](docs/V5_7_REVIEW.md).
+La captura corresponde al ejecutable V5.7. En V5.8 puedes volver a consultar el mismo encargo tras una desconexión y abrir su historial durante el trabajo. [Pruebas locales de reconexión](docs/V5_8_REVIEW.md) · [Comparación de modelos en V5.7](docs/V5_7_REVIEW.md).
 
 ## Qué puedes hacer
 

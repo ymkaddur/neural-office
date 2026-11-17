@@ -43,6 +43,16 @@ fn configured_path(name: &str) -> Result<PathBuf, &'static str> {
 }
 
 impl Bridge {
+    pub fn disconnected_and_exited(&self) -> bool {
+        self.disconnected.load(Ordering::Acquire)
+            && self
+                .child
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .try_wait()
+                .is_ok_and(|s| s.is_some())
+    }
+
     pub fn spawn() -> Result<Arc<Self>, &'static str> {
         // Only the trusted launcher configures paths. Webview messages cannot.
         let python = configured_path("NEURAL_OFFICE_PYTHON")?;

@@ -1,6 +1,6 @@
-# Escritorio Neural Office · V5.7
+# Escritorio Neural Office · V5.8 local
 
-Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el mismo núcleo Python del piloto. Es una **vista previa de desarrollo para Windows**, no un instalador autónomo. [Cambios y verificación](../docs/V5_7_REVIEW.md) · [Hoja de ruta V6](../ROADMAP.md).
+Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el mismo núcleo Python del piloto. Es una **vista previa de desarrollo para Windows**, no un instalador autónomo. [Reconexión y verificación en Windows](../docs/V5_8_REVIEW.md) · [Hoja de ruta V6](../ROADMAP.md).
 
 ## Abrir el recorrido conectado
 

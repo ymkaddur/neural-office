@@ -1,7 +1,7 @@
 export type AttemptState='QUEUED'|'RUNNING'|'VERIFYING'|'STOPPING'|'RECOVERY_REQUIRED'|'ACCEPTED'|'REJECTED'|'FAILED'|'CANCELLED';
 export type Project={id:string;active:boolean;approved:boolean;attempts_consumed:number;legacy_consumed:number;verified_versions:number;simulated_versions:number};
-export type Attempt={id:string;project_id:string;ordinal:number;state:AttemptState;revision:number;source_sha256:string;model:string;model_digest:string;roles:number;objective:string;mode:string;request_key:string;calls?:{seq:number;role:string;state:string}[];report_available?:boolean;execution_error_code?:string|null};
-export type Snapshot={session_id:string;office_id:string;revision:number;cursor:number;projects:Project[];attempts:Attempt[];next:{project_after:number;attempt_after:number};has_more:{projects:boolean;attempts:boolean};lease:{attempt_id:string|null;generation:number}};
+export type Attempt={session_id?:string;cursor?:number;source_name?:string|null;id:string;project_id:string;ordinal:number;state:AttemptState;revision:number;source_sha256:string;model:string;model_digest:string;roles:number;objective:string;mode:string;request_key:string;calls?:{seq:number;role:string;state:string}[];report_available?:boolean;execution_error_code?:string|null};
+export type Snapshot={current_attempt?:Attempt|null;session_id:string;office_id:string;revision:number;cursor:number;projects:Project[];attempts:Attempt[];next:{project_after:number;attempt_after:number};has_more:{projects:boolean;attempts:boolean};lease:{attempt_id:string|null;generation:number}};
 export type Model={model:string;model_digest:string;mode:string};
 export type Source={entry_token:string;project_id:string;filename:string;sha256:string;bytes:number;session_id:string;expires_in_seconds:number};
 export type Approval={session_id:string;approval_token:string;expected_revision:number;expires_in_seconds:number;project_id:string;source_sha256:string;objective:string;roles:number;model:string;model_digest:string;mode:string;attempts_consumed:number;attempts_remaining:number};
@@ -57,6 +57,7 @@ export function validateSnapshot(value:Snapshot) {
   if(!id(value.session_id)||!id(value.office_id)||!counter(value.cursor)||!counter(value.revision)||!Array.isArray(value.projects)||!Array.isArray(value.attempts)||value.projects.length>200||value.attempts.length>200) throw Error('SNAPSHOT_CONTRACT');
   for(const p of value.projects) if(!projectId(p.id)||!counter(p.attempts_consumed)) throw Error('PROJECT_CONTRACT');
   for(const a of value.attempts) acceptAttempt(null,a);
+  if(value.current_attempt)acceptAttempt(null,value.current_attempt);
   if(!counter(value.next.project_after)||!counter(value.next.attempt_after)) throw Error('SNAPSHOT_CURSOR_CONTRACT');
   return value;
 }

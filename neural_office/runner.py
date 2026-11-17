@@ -112,7 +112,11 @@ def _run_owned(ledger,attempt,roles,backend_factory,progress):
         finally:
             if backend is not None: backend.close()
         if terminated:
-            ledger.release_after_termination(attempt,generation,failed=error is not None or bool(watch_errors))
+            reason = str(error) if isinstance(error, Denied) else None
+            if error is None and watch_errors:
+                reason = watch_errors[0]
+            ledger.release_after_termination(attempt, generation, failed=error is not None or bool(watch_errors),
+                                             error_code=reason)
     row=ledger.attempt(attempt)
     if row['state']=='VERIFYING':
         state=ledger.finalize(attempt,make_report(bytes(row['snapshot']),row['outputs']))
@@ -136,6 +140,6 @@ def _recover_owned(ledger,attempt):
     job=Job(lease['job'],existing=True)
     try:
         if job.active(): raise Denied('OWNED_JOB_STILL_RUNNING_CANCEL_FIRST')
-        ledger.release_after_termination(attempt,lease['generation'],failed=True)
+        ledger.release_after_termination(attempt,lease['generation'],failed=True,error_code='ATTEMPT_INTERRUPTED')
     finally: job.close()
     return ledger.attempt(attempt)['state']

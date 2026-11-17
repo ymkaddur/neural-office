@@ -14,6 +14,19 @@ TERMINAL = {'ACCEPTED', 'REJECTED', 'FAILED', 'CANCELLED'}
 STATES = TERMINAL | {'QUEUED', 'RUNNING', 'VERIFYING', 'STOPPING', 'RECOVERY_REQUIRED'}
 APPLICATION_ID = 0x4E4F3532
 MAX_CALLS = 12
+# Only these operational reasons may be persisted in a public-facing receipt.
+EXECUTION_CODES = frozenset({
+    'BACKEND_CANCELLED_BEFORE_START', 'BACKEND_COMPLETION_UNPROVEN',
+    'BACKEND_LISTENER_AMBIGUOUS', 'BACKEND_LISTENER_OWNER_UNKNOWN',
+    'BACKEND_NOT_OWNED_BY_OFFICE', 'BACKEND_PROCESS_UNAVAILABLE',
+    'BACKEND_RESPONSE_REJECTED', 'BACKEND_STILL_ACTIVE', 'CLOUD_MODEL_EXCLUDED',
+    'CONTEXT_ALLOCATION_MISMATCH', 'CPU_ALLOCATION_NOT_OBSERVED', 'INSTALL_OLLAMA_FIRST',
+    'LOCAL_MODEL_NOT_FOUND', 'METADATA_UNAVAILABLE', 'MODEL_METADATA_UNAVAILABLE',
+    'MODEL_DIGEST_CHANGED', 'MODEL_PROFILE_MISMATCH', 'OWNED_BACKEND_START_FAILED',
+    'OWNED_BACKEND_START_TIMEOUT', 'PILOT_FINDINGS_LIMIT', 'PROMPT_BYTE_BUDGET',
+    'ROLE_PROFILE_CHANGED', 'MONOTONIC_ATTEMPT_DEADLINE', 'ATTEMPT_INTERRUPTED',
+    'CLOCK_OR_ATTEMPT_DEADLINE', 'AUTHORITY_REVOKED', 'AUTHORITY_REVOKED_OR_CANCELLED', 'CALL_BUDGET_EXHAUSTED',
+})
 
 
 class Denied(RuntimeError):
@@ -193,13 +206,16 @@ class Ledger:
             con.execute('UPDATE projects SET active=0,approved=0 WHERE id=?', (project,))
             self._event(con, 'PROJECT_PARKED', {'project':project})
 
-    def reserve(self, project, objective, snapshot, profile, key, *, admit=False):
+    def reserve(self, project, objective, snapshot, profile, key, *, admit=False, source_name=None):
         if type(snapshot) is not bytes or not 0<len(snapshot)<=262144:
             raise Denied('SNAPSHOT_SIZE')
         if not isinstance(objective,str) or not 12<=len(objective)<=4000:
             raise Denied('OBJECTIVE_SIZE')
         if not isinstance(key,str) or not 1<=len(key)<=128:
             raise Denied('IDEMPOTENCY_KEY')
+        if source_name is not None and (not isinstance(source_name, str) or not 0 < len(source_name) <= 255
+                                        or any(c in source_name for c in '/\\\\:') or not source_name.isprintable()):
+            source_name = None
         signature = digest(canonical([objective,digest(snapshot),profile]))
         with self.transaction() as con:
             old = con.execute('SELECT id,request_digest FROM attempts WHERE project=? AND request_key=?', (project,key)).fetchone()
@@ -224,7 +240,10 @@ class Ledger:
             con.execute('''INSERT INTO attempts(id,project,ordinal,request_key,request_digest,objective,
                 profile,snapshot,snapshot_sha,state,created,last_seen) VALUES(?,?,?,?,?,?,?,?,?,'QUEUED',?,?)''',
                 (attempt,project,count+1,key,signature,objective,canonical(profile),snapshot,digest(snapshot),stamp,stamp))
-            self._event(con, 'ATTEMPT_RESERVED', {'attempt':attempt,'project':project,'ordinal':count+1})
+            receipt = {'attempt': attempt, 'project': project, 'ordinal': count+1}
+            if source_name is not None:
+                receipt['source_name'] = source_name
+            self._event(con, 'ATTEMPT_RESERVED', receipt)
             return attempt
 
     def _row(self, con, attempt):
@@ -337,7 +356,7 @@ class Ledger:
             if state=='CANCELLED': self._park_exhausted(con,row['project'])
             return state
 
-    def release_after_termination(self, attempt, generation, *, failed=False):
+    def release_after_termination(self, attempt, generation, *, failed=False, error_code=None):
         """Trusted runner invokes this only after owned OS job termination is observed."""
         with self.transaction() as con:
             row = self._row(con,attempt)
@@ -349,7 +368,10 @@ class Ledger:
             state = 'CANCELLED' if row['cancelled'] else ('FAILED' if failed or unfinished else 'VERIFYING')
             con.execute('UPDATE attempts SET state=?,revision=revision+1 WHERE id=?',(state,attempt))
             con.execute('UPDATE lease SET attempt=NULL,job=NULL WHERE id=1')
-            self._event(con,'OWNED_JOB_TERMINATED',{'attempt':attempt,'generation':generation,'state':state})
+            receipt = {'attempt':attempt,'generation':generation,'state':state}
+            if state == 'FAILED':
+                receipt['error_code'] = error_code if error_code in EXECUTION_CODES else 'EXECUTION_FAILED'
+            self._event(con,'OWNED_JOB_TERMINATED',receipt)
             if state in TERMINAL: self._park_exhausted(con,row['project'])
 
     def mark_unknown(self, attempt, generation):

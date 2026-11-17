@@ -24,6 +24,7 @@ METHODS = {
     'attempt.lookup': {'project_id': 'project', 'idempotency_key': 'id'},
     'report.read': {'attempt_id': 'id', 'offset': 'revision', 'limit': 'chunk'},
     'events.read': {'after': 'revision', 'limit': 'limit'},
+    'attempt.events': {'attempt_id': 'id', 'before': 'revision', 'limit': 'limit'},
 }
 
 

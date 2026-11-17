@@ -100,7 +100,13 @@ class DesktopService:
             projects = con.execute('SELECT rowid AS page_id,* FROM projects WHERE rowid>? ORDER BY rowid LIMIT ?', (project_after, limit + 1)).fetchall()
             attempts = con.execute(f'SELECT rowid AS page_id,{ATTEMPT_COLUMNS} FROM attempts WHERE rowid>? ORDER BY rowid LIMIT ?', (attempt_after, limit + 1)).fetchall()
             lease = con.execute('SELECT attempt,generation FROM lease WHERE id=1').fetchone()
+            if lease['attempt']:
+                current = con.execute(f'SELECT {ATTEMPT_COLUMNS} FROM attempts WHERE id=?', (lease['attempt'],)).fetchone()
+            else:
+                current = con.execute(f"SELECT {ATTEMPT_COLUMNS} FROM attempts WHERE state NOT IN "
+                                      "('ACCEPTED','REJECTED','FAILED','CANCELLED') ORDER BY rowid LIMIT 1").fetchone()
             return {**self._meta(con),
+                    'current_attempt': self._summary(current) if current else None,
                     'projects': [self._project(con, row) for row in projects[:limit]],
                     'attempts': [self._summary(row) for row in attempts[:limit]],
                     'next': {'project_after': projects[min(len(projects), limit)-1]['page_id'] if projects else project_after,
@@ -207,7 +213,7 @@ class DesktopService:
         if source['expires'] <= self.clock():
             raise Denied('SOURCE_GRANT_INVALID_OR_EXPIRED')
         token = secrets.token_urlsafe(32)
-        self._approvals[token] = {'project_id': project_id, 'snapshot': source['snapshot'],
+        self._approvals[token] = {'project_id': project_id, 'snapshot': source['snapshot'], 'source_name': source['filename'],
                                  'objective': objective, 'profile': profile, 'revision': meta['revision'],
                                  'expires': self.clock() + GRANT_TTL_SECONDS, 'used_key': None}
         return {**meta, 'approval_token': token, 'expected_revision': meta['revision'],
@@ -244,7 +250,7 @@ class DesktopService:
                 if con.execute('SELECT attempt FROM lease WHERE id=1').fetchone()[0] is not None:
                     raise Denied('GLOBAL_INFERENCE_BUSY')
             attempt = self.ledger.reserve(approval['project_id'], approval['objective'], approval['snapshot'],
-                                          approval['profile'], idempotency_key, admit=True)
+                                          approval['profile'], idempotency_key, admit=True, source_name=approval['source_name'])
             approval['used_key'] = idempotency_key
         # Commit precedes the worker. A crash here leaves a visible QUEUED
         # attempt that recovery cancels without refund or automatic execution.
@@ -271,10 +277,19 @@ class DesktopService:
                         'bytes': len(item['content'].encode('utf-8'))} for item in con.execute(
                             'SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid', (attempt_id,))]
             calls = [dict(item) for item in con.execute('SELECT seq,role,state FROM calls WHERE attempt=? ORDER BY seq', (attempt_id,))]
+            reservation = con.execute("SELECT json_extract(payload,'$.source_name') FROM events "
+                                      "WHERE kind='ATTEMPT_RESERVED' AND json_extract(payload,'$.attempt')=? "
+                                      "ORDER BY seq LIMIT 1", (attempt_id,)).fetchone()
+            code = self._errors.get(attempt_id)
+            if row['state'] == 'FAILED':
+                terminal_receipt = con.execute(
+                    "SELECT json_extract(payload,'$.error_code') FROM events WHERE kind='OWNED_JOB_TERMINATED' "
+                    "AND json_extract(payload,'$.attempt')=? ORDER BY seq DESC LIMIT 1", (attempt_id,)).fetchone()
+                code = terminal_receipt[0] if terminal_receipt else None
             return {**self._summary(row), 'session_id': self.session_id, 'global_revision': meta['revision'],
                     'cursor': meta['cursor'], 'calls': calls, 'outputs': outputs,
                     'artifact_sha256': row['artifact_sha'], 'report_available': row['state'] == 'ACCEPTED' and row['artifact'] is not None,
-                    'execution_error_code': self._errors.get(attempt_id)}
+                    'execution_error_code': code, 'source_name': reservation[0] if reservation else None}
 
     def lookup(self, project_id, idempotency_key):
         with self.ledger.connection() as con:
@@ -311,6 +326,22 @@ class DesktopService:
                 else:
                     _recover_owned(self.ledger, attempt_id)
                 return self.attempt(attempt_id)
+
+    def attempt_events(self, attempt_id, before, limit):
+        """A page of this attempt's events, newest page first, rows in ledger order."""
+        with self.ledger.connection() as con:
+            self.ledger._row(con, attempt_id)
+            meta = self._meta(con)
+            bound = before if before else meta['cursor'] + 1
+            rows = con.execute("SELECT seq,stamp_ns,kind,payload FROM events WHERE seq<? "
+                               "AND json_extract(payload,'$.attempt')=? ORDER BY seq DESC LIMIT ?",
+                               (bound, attempt_id, limit+1)).fetchall()
+            visible = rows[:limit]
+            return {**meta, 'attempt_id': attempt_id, 'has_more': len(rows)>limit,
+                    'next_before': visible[-1]['seq'] if visible else 0,
+                    'events': [{'seq': r['seq'], 'stamp_ns': str(r['stamp_ns']), 'kind': r['kind'],
+                                'payload': {key: value for key, value in json.loads(r['payload']).items()
+                                            if key in ('attempt', 'role', 'state', 'ordinal')}} for r in reversed(visible)]}
 
     def events(self, after, limit):
         with self.ledger.connection() as con:
@@ -371,7 +402,8 @@ class DesktopService:
             handlers = {'source.check': self.check_source, 'attempt.preview': self.preview, 'attempt.start': self.start,
                         'attempt.cancel': self.cancel, 'attempt.recover': self.recover,
                         'attempt.get': self.attempt, 'attempt.lookup': self.lookup,
-                        'events.read': self.events, 'report.get': self.report, 'report.read': self.report_read}
+                        'events.read': self.events, 'attempt.events': self.attempt_events,
+                        'report.get': self.report, 'report.read': self.report_read}
             return handlers[method](**params)
 
     def close(self, timeout=15):

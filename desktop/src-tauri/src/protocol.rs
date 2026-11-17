@@ -20,6 +20,7 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "report.get",
     "report.read",
     "events.read",
+    "attempt.events",
 ];
 
 pub fn valid_id(value: &Value) -> bool {

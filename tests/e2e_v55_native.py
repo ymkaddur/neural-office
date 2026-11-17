@@ -12,6 +12,7 @@ from contextlib import closing
 import hashlib
 import json
 import os
+import re
 from pathlib import Path, PurePosixPath
 import shutil
 import socket
@@ -284,7 +285,7 @@ def main():
                 return next((p for p in psutil.Process(driver_process.pid).children(recursive=True)
                              if p.name().lower() == executable.name.lower()), None)
             owned = wait(find_host, description='owned desktop process')
-            wait(lambda: 'Núcleo local conectado' in current.body(), description='native IPC ready')
+            wait(lambda: re.search('Última conexión confirmada|Núcleo local conectado', current.body()), description='native IPC ready')
             url = current.call('GET', '/url')
             assert url.startswith(('http://tauri.localhost/', 'https://tauri.localhost/', 'tauri://localhost/')), 'DEV_SERVER_USED'
             assert current.script('return !!window.__TAURI_INTERNALS__'), 'NATIVE_HOST_MISSING'

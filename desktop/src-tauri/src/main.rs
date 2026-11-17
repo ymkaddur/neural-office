@@ -4,19 +4,21 @@ compile_error!("This host is verified only for Windows process ownership.");
 
 mod bridge;
 mod owned_job;
+mod peers;
 mod protocol;
 
 use bridge::Bridge;
+use peers::{close_peer, read_peer, BridgeSlot};
 use protocol::{allowed_navigation, cancelled_picker, validate_request};
 use serde_json::{json, Value};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
-    Arc,
+    Arc, Mutex,
 };
 use tauri::Manager;
 
 struct Host {
-    bridge: Result<Arc<Bridge>, &'static str>,
+    bridge: Arc<BridgeSlot>,
     closing: AtomicBool,
     picking: AtomicBool,
 }
@@ -35,8 +37,15 @@ async fn desktop_request(
         return Err("HOST_ORIGIN_DENIED".into());
     }
     validate_request(&message).map_err(str::to_owned)?;
-    let bridge = host.bridge.as_ref().map_err(|e| e.to_string())?.clone();
+    let slot = host.bridge.clone();
+    if host.closing.load(Ordering::Acquire) {
+        return Err("HOST_CLOSING".into());
+    }
     if message["method"] == "source.pick" {
+        let bridge = tauri::async_runtime::spawn_blocking(move || read_peer(&slot, false))
+            .await
+            .map_err(|_| "HOST_REQUEST_FAILED".to_string())?
+            .map_err(str::to_owned)?;
         if host.picking.swap(true, Ordering::AcqRel) {
             return Err("HOST_PICKER_BUSY".into());
         }
@@ -62,16 +71,20 @@ async fn desktop_request(
             .map_err(|_| "HOST_REQUEST_FAILED".to_string())?
             .map_err(str::to_owned);
     }
-    tauri::async_runtime::spawn_blocking(move || bridge.request(message))
-        .await
-        .map_err(|_| "HOST_REQUEST_FAILED".to_string())?
-        .map_err(str::to_owned)
+    tauri::async_runtime::spawn_blocking(move || {
+        // Only a read-only handshake can create a replacement for a dead peer.
+        let bridge = read_peer(&slot, message["method"] == "describe")?;
+        bridge.request(message)
+    })
+    .await
+    .map_err(|_| "HOST_REQUEST_FAILED".to_string())?
+    .map_err(str::to_owned)
 }
 
 fn main() {
     let app = tauri::Builder::default()
         .manage(Host {
-            bridge: Bridge::spawn(),
+            bridge: Arc::new(Mutex::new(Bridge::spawn())),
             closing: AtomicBool::new(false),
             picking: AtomicBool::new(false),
         })
@@ -134,11 +147,9 @@ fn main() {
                 if host.closing.swap(true, Ordering::AcqRel) {
                     return;
                 }
-                let bridge = host.bridge.as_ref().ok().cloned();
+                let slot = host.bridge.clone();
                 tauri::async_runtime::spawn_blocking(move || {
-                    if let Some(bridge) = bridge {
-                        bridge.shutdown();
-                    }
+                    close_peer(&slot);
                     handle.exit(0);
                 });
             }
@@ -147,9 +158,7 @@ fn main() {
         .expect("Neural Office could not create its desktop window");
     app.run(|handle, event| {
         if let tauri::RunEvent::Exit = event {
-            if let Ok(bridge) = &handle.state::<Host>().bridge {
-                bridge.shutdown();
-            }
+            close_peer(&handle.state::<Host>().bridge);
         }
     });
 }
