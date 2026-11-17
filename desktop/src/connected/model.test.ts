@@ -101,3 +101,16 @@ test('report corruption, a stalled chunk and wrong attempt identity fail closed'
 test('leaving a report view stops further chunk requests',async()=>{
   const fixture=await reportFixture();await assert.rejects(()=>readReport(fixture.send,'attempt',()=>false),/SUPERSEDED/);assert.equal(fixture.calls(),1);
 });
+
+test('delivery requires agreement between accepted state and a passing verdict before reading content',async()=>{
+  for(const [state,passed] of [['REJECTED',true],['ACCEPTED',false]]){
+    const fixture=await reportFixture();
+    const send:Requester=async<T>(method,params={})=>{
+      assert.equal(method,'report.get');
+      const meta=await fixture.send<Record<string,unknown>>(method,params);
+      return {...meta,state,verdict:{passed}} as T;
+    };
+    await assert.rejects(()=>readReport(send,'attempt'),/REPORT_NOT_ACCEPTED/);
+    assert.equal(fixture.calls(),1);
+  }
+});

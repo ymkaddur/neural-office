@@ -31,7 +31,7 @@ class Scan(HTMLParser):
         if tag=='label':
             self.label_depth+=1
             if values.get('for'): self.labels.add(values['for'])
-        excluded_input = tag=='input' and values.get('type','').lower() in ('hidden','submit','reset','button','image')
+        excluded_input = tag=='input' and (values.get('type') or '').lower() in ('hidden','submit','reset','button','image')
         if tag in ('input','select','textarea') and not excluded_input:
             named = bool(self.label_depth or (values.get('aria-label') or '').strip()
                          or (values.get('aria-labelledby') or '').strip() or (values.get('title') or '').strip())

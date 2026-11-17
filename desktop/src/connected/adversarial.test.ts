@@ -138,6 +138,19 @@ function savedAttemptPeer(attempt:any,reportReply?:(method:string,params:Record<
   }};
 }
 
+test('a rejected attempt cannot present retained bytes as a delivery',async()=>{
+  const fixture=validReport();
+  const peer=savedAttemptPeer({...baseAttempt,state:'REJECTED',report_available:true},async method=>
+    method==='report.get'?{...fixture.meta,state:'REJECTED',verdict:{passed:false}}:fixture.chunk);
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);
+    await until(()=>!!app.document.querySelector('.delivery-state'));
+    assert.equal(app.document.querySelector('.delivery-state')?.textContent,'Sin informe validado');
+    assert.equal(peer.calls.filter(call=>call.method.startsWith('report.')).length,0);
+  }finally{await app.close();}
+});
+
 for(const state of ['CANCELLED','FAILED'] as const)test(`terminal ${state} delivery does not promise a future report`,async()=>{
   const peer=savedAttemptPeer({...baseAttempt,state,report_available:false});
   const app=await mount(peer.send);
@@ -212,7 +225,11 @@ test('Actualizar retries a transient report read for the unchanged accepted atte
   }finally{await app.close();}
 });
 
-function enterDraft(app:Awaited<ReturnType<typeof mount>>,text:string){
+async function enterDraft(app:Awaited<ReturnType<typeof mount>>,text:string){
+  if(!app.document.querySelector('#connected-objective')){
+    const action=Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Consultar al Director');
+    assert.ok(action);action.click();await until(()=>!!app.document.querySelector('#connected-objective'));
+  }
   const field=app.document.querySelector('#connected-objective') as any;
   assert.ok(field);
   const setter=Object.getOwnPropertyDescriptor(app.window.HTMLTextAreaElement.prototype,'value')!.set!;
@@ -225,7 +242,7 @@ test('reading history returns to the unsent draft without reserving work',async(
   const app=await mount(peer.send);
   try{
     await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
-    enterDraft(app,'Revisar el formulario antes de publicarlo.');
+    await enterDraft(app,'Revisar el formulario antes de publicarlo.');
     await until(()=>app.document.querySelector('.connected-send-row')?.textContent.includes('42/2000')===true);
     await openSavedAttempt(app);
     const back=Array.from(app.document.querySelectorAll('button')).find(button=>button.textContent.includes('Volver al borrador'));
@@ -249,10 +266,10 @@ test('switching projects retains separate bounded in-memory drafts',async()=>{
   const choose=(id:string)=>(app.document.querySelector(`.connected-projects button[title="${id}"]`) as any).click();
   try{
     await until(()=>app.document.querySelectorAll('.connected-projects button').length===2);
-    enterDraft(app,'Alpha: revisar los campos.');await wait(20);
+    await enterDraft(app,'Alpha: revisar los campos.');await wait(20);
     choose('beta');await wait(20);
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'');
-    enterDraft(app,'Beta: revisar las imágenes.');await wait(20);
+    await enterDraft(app,'Beta: revisar las imágenes.');await wait(20);
     choose('alpha');await wait(20);
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'Alpha: revisar los campos.');
     choose('beta');await wait(20);
@@ -323,7 +340,7 @@ for(const found of [true,false])test(`lost start acknowledgement reconciles the 
   const button=(text:string)=>Array.from(app.document.querySelectorAll('button')).find(item=>item.textContent.includes(text));
   try{
     await until(()=>!!app.document.querySelector('.connected-projects button:not(:disabled)'));
-    enterDraft(app,'Revisión pendiente de confirmar.');await wait(20);
+    await enterDraft(app,'Revisión pendiente de confirmar.');await wait(20);
     button('Elegir archivo HTML')!.click();await until(()=>!!button('synthetic.html'));
     (app.document.querySelector('[title="other"]') as any).click();await wait(20);
     (app.document.querySelector('[title="project"]') as any).click();await wait(20);
@@ -345,5 +362,55 @@ for(const found of [true,false])test(`lost start acknowledgement reconciles the 
       assert.ok(button('synthetic.html'));
     }
     assert.equal(starts,1,'Lookup cannot repeat a start');
+  }finally{await app.close();}
+});
+
+test('static inspection pages the captured source without querying models or spending an attempt',async()=>{
+  const methods:string[]=[];
+  const source={entry_token:'grant',project_id:'project',filename:'partes.html',sha256:'a'.repeat(64),bytes:200,session_id:'session',expires_in_seconds:120};
+  const app=await mount(async(method,params)=>{
+    methods.push(method);
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='source.pick')return source;
+    if(method==='source.check'){
+      const offset=Number(params.offset);
+      assert.deepEqual({...params},{entry_token:'grant',project_id:'project',offset});
+      return {session_id:'session',project_id:'project',source_sha256:source.sha256,total:25,offset,
+        findings:Array.from({length:Math.min(24,25-offset)},(_,i)=>({code:'IMAGE_ALT_MISSING',line:1+offset+i,column:1}))};
+    }
+    throw Error('Unexpected access');
+  });
+  const button=(label:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent===label)!;
+  try{
+    await until(()=>button('Elegir archivo HTML')?.disabled===false);
+    button('Elegir archivo HTML').click();await until(()=>!button('Comprobar HTML').disabled);
+    button('Comprobar HTML').click();await until(()=>app.document.querySelectorAll('.finding-list li').length===24);
+    await until(()=>app.document.activeElement?.id==='static-result-title');
+    button('Siguientes').click();await until(()=>app.document.querySelectorAll('.finding-list li').length===1);
+    assert.match(app.document.querySelector('.finding-list')?.textContent||'',/Línea 25/);
+    assert.equal(button('Siguientes').disabled,true);
+    button('Anteriores').click();await until(()=>app.document.querySelectorAll('.finding-list li').length===24);
+    button('Quitar').click();await until(()=>!app.document.querySelector('.static-results'));
+    assert.ok(!methods.includes('models.list')&&!methods.some(m=>m.startsWith('attempt.')));
+  }finally{await app.close();}
+});
+
+test('a static response for another captured source stays out of the document',async()=>{
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='source.pick')return {entry_token:'grant',project_id:'project',filename:'sample.html',sha256:'a'.repeat(64),bytes:30,session_id:'session',expires_in_seconds:120};
+    if(method==='source.check')return {session_id:'session',project_id:'project',source_sha256:'b'.repeat(64),findings:[],offset:0,total:0};
+    throw Error('Unexpected RPC');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('#static-picker:not(:disabled)'));
+    (app.document.querySelector('#static-picker') as any).click();
+    await until(()=>!!app.document.querySelector('.static-actions button:not(:disabled)'));
+    (app.document.querySelector('.static-actions button') as any).click();
+    await until(()=>!!app.document.querySelector('[role="alert"]'));
+    assert.match(app.document.querySelector('[role="alert"]')?.textContent||'',/SOURCE_CHECK_CONTRACT/);
+    assert.ok(!app.document.querySelector('.static-results'));
   }finally{await app.close();}
 });

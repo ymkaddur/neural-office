@@ -10,6 +10,7 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "projects.list",
     "snapshot.get",
     "source.pick",
+    "source.check",
     "attempt.preview",
     "attempt.start",
     "attempt.cancel",

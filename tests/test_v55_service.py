@@ -104,10 +104,81 @@ class DesktopServiceTests(unittest.TestCase):
         self.assertEqual(self.service.snapshot()['projects'][0]['simulated_versions'], 1)
         self.assertEqual(self.service.snapshot()['projects'][0]['verified_versions'], 0)
 
+    def test_oversized_first_prompt_is_denied_before_approval_or_reservation(self):
+        grant = self.service.host_capture('example', self.file)
+        objective = '🙂' * 1800
+        with self.assertRaisesRegex(Denied, 'PROMPT_BYTE_BUDGET'):
+            self.service.preview('example', grant['entry_token'], PROFILE['model_digest'], 1, objective)
+        before = self.service.snapshot()
+        with self.assertRaisesRegex(Denied, 'PROMPT_BYTE_BUDGET'):
+            self.ledger.reserve('example', objective, SOURCE, {**PROFILE, 'roles': 1}, 'first', admit=True)
+        self.assertEqual(self.service.snapshot(), before)
+
     def test_preview_never_consumes_an_attempt(self):
         preview = self.preview()
         self.assertEqual(preview['attempts_consumed'], 0)
         self.assertEqual(self.service.snapshot()['attempts'], [])
+
+    def test_review_only_releases_accepted_deliveries(self):
+        from neural_office.audit import make_report
+        self.service.host_capture('example', self.file)
+        attempt = self.ledger.reserve('example', 'Review the selected source.', SOURCE,
+                                      {**PROFILE, 'roles': 1}, 'incomplete', admit=True)
+        generation = self.ledger.acquire(attempt, 'fixture')
+        self.ledger.release_after_termination(attempt, generation)
+        artifact = make_report(SOURCE, [])
+        self.assertEqual(self.ledger.finalize(attempt, artifact), 'REJECTED')
+        self.assertEqual(bytes(self.ledger.attempt(attempt)['artifact']), artifact)
+        self.assertFalse(self.service.attempt(attempt)['report_available'])
+        from neural_office.__main__ import main
+        with self.assertRaisesRegex(Denied, 'REPORT_NOT_ACCEPTED'):
+            main(['--state', str(self.ledger.path), 'report', attempt])
+        for method, params in [('report.get', {}), ('report.read', {'offset': 0, 'limit': 128})]:
+            with self.assertRaisesRegex(Denied, 'REPORT_NOT_ACCEPTED'):
+                self.command(method, {'attempt_id': attempt, **params})
+
+    def test_static_inspection_is_bound_to_the_capture_and_has_no_attempt_cost(self):
+        source = self.service.host_capture('example', self.file)
+        self.file.write_bytes(b'<html lang="en"><title>Different file</title></html>')
+        params = {'project_id': 'example', 'entry_token': source['entry_token'], 'offset': 0}
+        before = self.service.snapshot()
+        with patch.object(self.service, 'models', side_effect=AssertionError('Unexpected catalog access')):
+            first = self.command('source.check', params)
+            self.assertEqual(first, self.command('source.check', params))
+        self.assertEqual(first['source_sha256'], digest(SOURCE))
+        self.assertEqual(first['session_id'], source['session_id'])
+        self.assertEqual(first['total'], 2)
+        self.assertEqual(set(first), {'session_id','project_id','source_sha256','offset','findings','total'})
+        self.assertEqual(self.service.snapshot(), before)
+        for changed in ({'project_id': 'different'}, {'entry_token': 'expired'}):
+            with self.assertRaisesRegex(Denied, 'SOURCE_GRANT_INVALID_OR_EXPIRED'):
+                self.command('source.check', {**params, **changed})
+        self.clock[0] += 120
+        with self.assertRaisesRegex(Denied, 'SOURCE_GRANT_INVALID_OR_EXPIRED'):
+            self.command('source.check', params)
+
+    def test_static_overview_and_model_admission_at_finding_limit(self):
+        for count in (0, 1, 23, 24, 25):
+            with self.subTest(count=count):
+                content = b'<html lang="es"><title>T</title>' + b'<img>' * count + b'</html>'
+                self.file.write_bytes(content)
+                grant = self.service.host_capture('example', self.file)
+                params = {'project_id':'example', 'entry_token':grant['entry_token'], 'offset':0}
+                view = self.command('source.check', params)
+                self.assertEqual((view['total'], len(view['findings'])), (count, min(24, count)))
+                args = ('example', grant['entry_token'], PROFILE['model_digest'], 1, 'Review the frozen input.')
+                if count <= 24:
+                    self.service.preview(*args)
+                else:
+                    page = self.command('source.check', {**params, 'offset': 24})
+                    self.assertEqual((page['offset'], page['total'], len(page['findings'])), (24, 25, 1))
+                    with self.assertRaisesRegex(Denied, 'FINDING_OFFSET_RANGE'):
+                        self.command('source.check', {**params, 'offset': 25})
+                    with self.assertRaisesRegex(Denied, 'PILOT_FINDINGS_LIMIT'):
+                        self.service.preview(*args)
+                    with self.assertRaisesRegex(Denied, 'PILOT_FINDINGS_LIMIT'):
+                        self.ledger.reserve('example', args[-1], content, {**PROFILE, 'roles': 1}, 'large', admit=True)
+                self.assertEqual(self.service.snapshot()['attempts'], [])
 
     def test_duplicate_start_returns_same_identity_without_new_call_or_revision(self):
         preview = self.preview()

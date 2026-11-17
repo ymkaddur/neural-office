@@ -167,7 +167,9 @@ class Screen:
         dwm.DwmGetWindowAttribute.restype = ctypes.c_long
         extended = wintypes.RECT()
         has_frame = dwm.DwmGetWindowAttribute(handle, 9, ctypes.byref(extended), ctypes.sizeof(extended)) == 0
-        send = self.window.child_window(title_re='Revisar encargo.*', control_type='Button')
+        send = self.window.child_window(title='Comprobar HTML', control_type='Button')
+        if not send.exists(timeout=.1):
+            send = self.window.child_window(title_re='Revisar encargo.*', control_type='Button')
         send_rect = send.rectangle() if send.exists(timeout=.1) else None
         return {'window_rectangle_px': [rectangle.left, rectangle.top, rectangle.right, rectangle.bottom],
                 'monitor_work_area_px': list(work_area),
@@ -239,16 +241,6 @@ def main():
                     'OLLAMA_HOST': '127.0.0.1:11434', 'OLLAMA_NO_CLOUD': '1',
                     'OLLAMA_MODELS': str(work / 'models'), 'NEURAL_OFFICE_ROOT': str(root),
                     'NEURAL_OFFICE_PYTHON': sys.executable, 'NEURAL_OFFICE_STATE': str(state)})
-        log = (work / 'metadata.log').open('wb'); logs.append(log)
-        metadata = subprocess.Popen([str(ollama / 'ollama.exe'), 'serve'], env=env,
-                                    stdout=log, stderr=log, creationflags=subprocess.CREATE_NO_WINDOW)
-        wait(lambda: http('GET', 'http://127.0.0.1:11434/api/version', timeout=5), description='metadata server')
-        stage = 'pull_public_model'
-        assert http('POST', 'http://127.0.0.1:11434/api/pull', {'name': MODEL, 'stream': False}, timeout=600).get('status') == 'success'
-        models = http('GET', 'http://127.0.0.1:11434/api/tags')['models']
-        assert len(models) == 1 and models[0]['name'] == MODEL and models[0]['digest'] == MODEL_DIGEST, 'MODEL_IDENTITY_CHANGED'
-        evidence.update(model_digest=MODEL_DIGEST, ollama_version=OLLAMA_VERSION, ollama_archive_sha256=OLLAMA_SHA256)
-
         def open_desktop():
             nonlocal app, host, screen
             app = subprocess.Popen([str(executable)], env=env, stdin=subprocess.DEVNULL,
@@ -263,7 +255,7 @@ def main():
         app, host, screen = open_desktop()
         evidence['initial_geometry'] = screen.geometry()
         sampler = Samples(host)
-        wait(lambda: screen.control('Modelo local', 'ComboBox').selected_text() == MODEL, description='real model selected')
+        wait(lambda: 'Sin modelo · 0 intentos' in screen.names(), description='model-free entry visible')
         screen.screenshot(output / '01-ready.png')
         sampler.phase = 'window_differential'
         before = evidence['initial_geometry']
@@ -304,12 +296,41 @@ def main():
         checks.append({'check': 'initial-native-client-and-review-action-within-work-area', 'verified': True})
         sampler.phase = 'idle_before'
         time.sleep(5)
-        checks.append({'check': 'packaged-ui-native-ipc-real-catalog-no-devtools', 'verified': True})
-        stage = 'native_source_and_approval'; sampler.phase = 'prepare'
-        screen.objective(OBJECTIVE)
+        stage = 'native_static_review'; sampler.phase = 'prepare'
         screen.button('Elegir archivo HTML')
         native_picker(host, source)
         wait(lambda: 'audit-sample.html' in screen.names(), description='captured source')
+        inspect = screen.control('Comprobar HTML')
+        inspect.set_focus()
+        inspect.type_keys('{SPACE}')
+        wait(lambda: '4 hallazgos para revisar' in screen.names(), description='keyboard static findings')
+        region = screen.window.child_window(auto_id='static-workspace').rectangle()
+        positions = [screen.control(label, 'Text').rectangle() for label in LABELS]
+        assert all(region.top <= rect.top < rect.bottom <= region.bottom and
+                   region.left <= rect.left < rect.right <= region.right for rect in positions), 'STATIC_FINDING_CLIPPED'
+        assert readonly_counts(state) == {'attempts': 0, 'calls': 0, 'states': []}, 'STATIC_CONSUMED_WORK'
+        assert not any(p.name().lower() in ('ollama.exe', 'llama-server.exe') for p in host.children(recursive=True))
+        screen.screenshot(output / '01-static-result.png')
+        checks.append({'check':'keyboard-static-review-four-visible-positions-without-ollama-or-consumption','verified':True})
+
+        log = (work / 'metadata.log').open('wb'); logs.append(log)
+        metadata = subprocess.Popen([str(ollama / 'ollama.exe'), 'serve'], env=env,
+                                    stdout=log, stderr=log, creationflags=subprocess.CREATE_NO_WINDOW)
+        wait(lambda: http('GET', 'http://127.0.0.1:11434/api/version', timeout=5), description='metadata server')
+        stage = 'pull_public_model'
+        assert http('POST', 'http://127.0.0.1:11434/api/pull', {'name': MODEL, 'stream': False}, timeout=600).get('status') == 'success'
+        models = http('GET', 'http://127.0.0.1:11434/api/tags')['models']
+        assert len(models) == 1 and models[0]['name'] == MODEL and models[0]['digest'] == MODEL_DIGEST, 'MODEL_IDENTITY_CHANGED'
+        evidence.update(model_digest=MODEL_DIGEST, ollama_version=OLLAMA_VERSION, ollama_archive_sha256=OLLAMA_SHA256)
+
+        stage = 'native_source_and_approval'
+        screen.button('Consultar al Director')
+        wait(lambda: screen.control('Modelo local', 'ComboBox').selected_text() == MODEL, description='real model selected')
+        checks.append({'check': 'packaged-ui-native-ipc-real-catalog-no-devtools', 'verified': True})
+        assert 'audit-sample.html' in screen.names(), 'MODE_SWITCH_LOST_SOURCE'
+        assisted_geometry = screen.geometry()
+        assert viewport_checks(assisted_geometry)['review_button_within_work_area'], 'ASSISTED_ACTION_OFFSCREEN'
+        screen.objective(OBJECTIVE)
         screen.button('Revisar encargo.*', regex=True)
         wait(lambda: 'Consumirá 1 intento' in screen.names(), description='visible approval')
         assert readonly_counts(state)['attempts'] == 0, 'PREVIEW_CONSUMED_ATTEMPT'
@@ -373,6 +394,7 @@ def main():
         checks.append({'check': 'normal-close-owned-core-exit-reopen-without-new-attempt-or-call', 'verified': True})
         stage = 'cancel_second_attempt'
         screen.button('Nuevo encargo')
+        screen.button('Consultar al Director')
         screen.objective(SECOND)
         screen.button('Elegir archivo HTML'); native_picker(host, source)
         wait(lambda: 'audit-sample.html' in screen.names(), description='second source captured')

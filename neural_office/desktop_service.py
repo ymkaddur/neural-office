@@ -12,12 +12,12 @@ import threading
 import time
 
 from . import continuity
-from .audit import make_report
+from .audit import audit_html, make_report
 from .desktop_contract import MAX_SAFE_INTEGER, decode_command, valid
 from .files import capture_html, local_path
 from .ledger import Denied, TERMINAL, canonical, digest
 from .ollama import OwnedOllama, local_metadata, select_model
-from .runner import _recover_owned, run
+from .runner import MAX_MODEL_FINDINGS, _recover_owned, check_first_prompt, run
 
 GRANT_TTL_SECONDS = 120
 MAX_GRANTS = 32
@@ -175,17 +175,30 @@ class DesktopService:
                     'sha256': grant['sha256'], 'bytes': len(captured),
                     'expires_in_seconds': GRANT_TTL_SECONDS, 'session_id': self.session_id}
 
-    def preview(self, project_id, entry_token, model_digest, roles, objective):
-        if self._execution_busy(): raise Denied('GLOBAL_INFERENCE_BUSY')
+    def _source(self, project_id, entry_token):
         self._prune()
         source = self._sources.get(entry_token)
         if source is None or source['project_id'] != project_id:
             raise Denied('SOURCE_GRANT_INVALID_OR_EXPIRED')
+        return source
+
+    def check_source(self, project_id, entry_token, offset):
+        source = self._source(project_id, entry_token)
+        findings = audit_html(source['snapshot'])
+        if offset and offset >= len(findings):
+            raise Denied('FINDING_OFFSET_RANGE')
+        return {'session_id': self.session_id, 'project_id': project_id, 'source_sha256': source['sha256'],
+                'offset': offset, 'total': len(findings), 'findings': findings[offset:offset + MAX_MODEL_FINDINGS]}
+
+    def preview(self, project_id, entry_token, model_digest, roles, objective):
+        if self._execution_busy(): raise Denied('GLOBAL_INFERENCE_BUSY')
+        source = self._source(project_id, entry_token)
         if len(objective) < 12: raise Denied('OBJECTIVE_SIZE')
         if len(self._approvals) >= MAX_GRANTS: raise Denied('APPROVAL_GRANT_LIMIT')
         matching = [model for model in self.models() if model['model_digest'] == model_digest]
         if len(matching) != 1: raise Denied('MODEL_DIGEST_UNAVAILABLE')
         profile = {**matching[0], 'roles': roles}
+        check_first_prompt(source['snapshot'], objective, profile)
         with self.ledger.connection() as con:
             project = con.execute('SELECT * FROM projects WHERE id=?', (project_id,)).fetchone()
             if project is None: raise Denied('UNKNOWN_PROJECT')
@@ -260,7 +273,7 @@ class DesktopService:
             calls = [dict(item) for item in con.execute('SELECT seq,role,state FROM calls WHERE attempt=? ORDER BY seq', (attempt_id,))]
             return {**self._summary(row), 'session_id': self.session_id, 'global_revision': meta['revision'],
                     'cursor': meta['cursor'], 'calls': calls, 'outputs': outputs,
-                    'artifact_sha256': row['artifact_sha'], 'report_available': row['artifact'] is not None,
+                    'artifact_sha256': row['artifact_sha'], 'report_available': row['state'] == 'ACCEPTED' and row['artifact'] is not None,
                     'execution_error_code': self._errors.get(attempt_id)}
 
     def lookup(self, project_id, idempotency_key):
@@ -316,6 +329,8 @@ class DesktopService:
         row = self.ledger.attempt(attempt_id)
         artifact = row['artifact']
         if artifact is None: raise Denied('REPORT_NOT_AVAILABLE')
+        if row['state'] != 'ACCEPTED' or json.loads(row['verdict']).get('passed') is not True:
+            raise Denied('REPORT_NOT_ACCEPTED')
         artifact = bytes(artifact)
         if digest(artifact) != row['artifact_sha']: raise Denied('REPORT_CHANGED')
         return row, artifact
@@ -353,7 +368,7 @@ class DesktopService:
             if method == 'projects.list': return self.snapshot()
             if method == 'snapshot.get': return self.snapshot(**params)
             if method == 'source.pick': raise Denied('NATIVE_PICKER_REQUIRED')
-            handlers = {'attempt.preview': self.preview, 'attempt.start': self.start,
+            handlers = {'source.check': self.check_source, 'attempt.preview': self.preview, 'attempt.start': self.start,
                         'attempt.cancel': self.cancel, 'attempt.recover': self.recover,
                         'attempt.get': self.attempt, 'attempt.lookup': self.lookup,
                         'events.read': self.events, 'report.get': self.report, 'report.read': self.report_read}

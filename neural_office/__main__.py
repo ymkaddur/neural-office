@@ -6,7 +6,7 @@ import sys
 import uuid
 
 from . import __version__
-from .ledger import Ledger,Denied,canonical
+from .ledger import Ledger,Denied,canonical,digest
 from .ollama import local_metadata,select_model
 from .runner import run,recover
 
@@ -69,7 +69,11 @@ def main(argv=None):
     if args.action=='report':
         row=ledger.attempt(args.attempt)
         if row['artifact'] is None: raise Denied('NO_REPORT_AVAILABLE')
-        print(bytes(row['artifact']).decode('utf-8')); return
+        if row['state'] != 'ACCEPTED' or json.loads(row['verdict']).get('passed') is not True:
+            raise Denied('REPORT_NOT_ACCEPTED')
+        artifact = bytes(row['artifact'])
+        if digest(artifact) != row['artifact_sha']: raise Denied('REPORT_CHANGED')
+        print(artifact.decode('utf-8')); return
     if args.action=='resume':
         row=ledger.attempt(args.attempt)
         print(canonical({'attempt':args.attempt,'state':run(ledger,args.attempt,row['profile']['roles'])})); return

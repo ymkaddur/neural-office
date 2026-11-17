@@ -37,6 +37,18 @@ class StaticCheckTests(unittest.TestCase):
             with self.assertRaisesRegex(Denied, 'NETWORK_INPUT_EXCLUDED'):
                 main(['check', '--root', r'\\example.invalid\share', '--file', r'\\example.invalid\share\x.html'])
 
+    def test_valueless_input_type_is_checked_like_the_empty_default(self):
+        from neural_office.audit import audit_html
+        for attr in ('', ' type', ' type=""', ' type="text"'):
+            html = f'<html lang="es"><title>T</title>\n<input{attr}></html>'.encode()
+            self.assertEqual(audit_html(html), [{'code':'CONTROL_LABEL_CANDIDATE','line':2,'column':1}])
+
+    def test_capture_requires_an_ordinary_file_component(self):
+        from neural_office.files import capture_html
+        with patch.object(Path, 'resolve', side_effect=AssertionError('Filesystem consulted early')):
+            with self.assertRaisesRegex(Denied, 'FILE_STREAM_EXCLUDED'):
+                capture_html('sample:notes.html', '.')
+
 
 if __name__ == '__main__':
     unittest.main()

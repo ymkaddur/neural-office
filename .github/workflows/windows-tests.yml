@@ -72,7 +72,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: neural-office-v56-native-ui-evidence
+          name: neural-office-v57-native-ui-evidence
           path: native-e2e-evidence/
           if-no-files-found: warn
           retention-days: 14
@@ -86,7 +86,7 @@ jobs:
         run: python -B tools/collect_native_notices.py --output native-notices
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2 resolved 2026-11-16
         with:
-          name: neural-office-v56-windows-test-host
+          name: neural-office-v57-windows-test-host
           path: |
             desktop/src-tauri/target/release/neural-office-desktop.exe
             desktop/src-tauri/target/release/SHA256SUMS

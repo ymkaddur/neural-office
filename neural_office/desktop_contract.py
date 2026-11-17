@@ -14,6 +14,7 @@ METHODS = {
     'describe': {}, 'models.list': {}, 'projects.list': {},
     'snapshot.get': {'project_after': 'revision', 'attempt_after': 'revision', 'limit': 'limit'},
     'source.pick': {'project_id': 'project'},
+    'source.check': {'project_id': 'project', 'entry_token': 'id', 'offset': 'revision'},
     'attempt.preview': {'project_id': 'project', 'entry_token': 'id', 'model_digest': 'digest',
                         'roles': 'roles', 'objective': 'objective'},
     'attempt.start': {'approval_token': 'id', 'idempotency_key': 'id', 'expected_revision': 'revision'},

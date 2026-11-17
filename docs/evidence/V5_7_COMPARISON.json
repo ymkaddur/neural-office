@@ -1,0 +1,1057 @@
+{
+  "schema": 1,
+  "frozen_commit": "922583f",
+  "started_utc": "2026-11-17T18:21:05.092079+00:00",
+  "corpus_sha256": "0e90b5804ec2845a5daccb1a8a6dc559fdace760c1b5778f6d88f1c87adaf0db",
+  "rating_file_sha256_before_unmasking": "4f6be68cb6f871e99f5731a0833993d34e0c3ef054a3efcb128936c6e90c3202",
+  "model": "qwen2.5:0.5b",
+  "environment": {
+    "app_version": "5.6.0",
+    "python": "3.12.10",
+    "system": "Windows",
+    "runtime_version": "0.40.16",
+    "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "profile": {
+      "num_ctx": 8192,
+      "num_predict": 128,
+      "num_gpu": 0,
+      "timeout_seconds": 300
+    },
+    "backend_source_sha256": "1b5dd747aecc55fa701da52aa1ba0ed5ce2773c84cf0cf07fa384b7cfe08c164",
+    "runner_source_sha256": "e35165a1147b0082bad6d6b07151799085fdc31f5c1ba12963e698f105aa15f3",
+    "diagnostics_source_sha256": "98fbe3f0c179c4ba9683f0eecd863bb9744be75e49b3ca5b63f38ff212ebb73a",
+    "measurements_source_sha256": "1bc012cc00d75c154c5e1c66fd497a475fe2a30d121494341bb71d9f6e460b2a",
+    "clock": "perf_counter_ns_relative"
+  },
+  "cpu": "Intel Core Ultra 7 255HX",
+  "physical_cores": 20,
+  "logical_cpus": 20,
+  "system_ram_bytes": 33752997888,
+  "jury": "One technical evaluator, blinded labels, treatment sometimes recognizable. No customer study.",
+  "timing": "Same-process capture to report bytes available, includes reservation and owned backend lifecycle when applicable; excludes process launch of Python, UI and independent catalog discovery.",
+  "resources": "Backend Windows Job only. Working set sums may count shared pages; half-second samples miss short peaks. No Job for static. OS cache and other applications uncontrolled.",
+  "summaries": [
+    {
+      "profile": 0,
+      "tasks": 6,
+      "tp": 5,
+      "fp": 0,
+      "fn": 1,
+      "exact_tasks": 5,
+      "decision_points": 3.5,
+      "extra_tasks": 0,
+      "unsupported_tasks": 0,
+      "attempts": 0,
+      "calls": 0,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "truncated": 0,
+      "wall_s_median": 0.0009562500000000001,
+      "wall_s_range": [
+        0.0006709,
+        0.002732
+      ],
+      "job_cpu_s_median": null,
+      "max_sampled_job_working_set_MiB": null,
+      "max_job_commit_MiB": null,
+      "samples": null,
+      "incomplete_samples": null
+    },
+    {
+      "profile": 1,
+      "tasks": 6,
+      "tp": 5,
+      "fp": 0,
+      "fn": 1,
+      "exact_tasks": 5,
+      "decision_points": 3.5,
+      "extra_tasks": 0,
+      "unsupported_tasks": 2,
+      "attempts": 6,
+      "calls": 6,
+      "tokens_in": 847,
+      "tokens_out": 258,
+      "truncated": 0,
+      "wall_s_median": 10.30003905,
+      "wall_s_range": [
+        9.7726967,
+        33.1994384
+      ],
+      "job_cpu_s_median": 15.875,
+      "max_sampled_job_working_set_MiB": 622.140625,
+      "max_job_commit_MiB": 1082.57421875,
+      "samples": 176,
+      "incomplete_samples": 0
+    },
+    {
+      "profile": 3,
+      "tasks": 6,
+      "tp": 5,
+      "fp": 0,
+      "fn": 1,
+      "exact_tasks": 5,
+      "decision_points": 3.5,
+      "extra_tasks": 0,
+      "unsupported_tasks": 2,
+      "attempts": 6,
+      "calls": 18,
+      "tokens_in": 4602,
+      "tokens_out": 814,
+      "truncated": 0,
+      "wall_s_median": 19.1082392,
+      "wall_s_range": [
+        17.7472323,
+        20.0791103
+      ],
+      "job_cpu_s_median": 42.4921875,
+      "max_sampled_job_working_set_MiB": 642.3125,
+      "max_job_commit_MiB": 1019.73828125,
+      "samples": 232,
+      "incomplete_samples": 0
+    }
+  ],
+  "distinct_synthetic_model_paragraphs": [
+    "This static HTML audit verifies hallazgos and provides guidance on how to correct them. The audit focuses on static HTML heuristics, without code execution, browsing, deployment, permission changes, or self-certification.",
+    "Este audit revisa hallazgos de HTML static y guía cómo corregirlos. Se enfoca en hallazgos heurísticos no codificados, sin ejecutar código, navegar en la web, cambiar permisos o demostrar certeza.",
+    "This static HTML audit verifies hallazgos and identifies areas for improvement. Corregir hallazgos, how to verify them, and the limits of evidence are specified.",
+    "Este audit static HTML verifica hallazgos y identifica áreas para mejora. Corregir hallazgos, cómo comprobarlos y los límites de la evidencia son especificados.",
+    "This static HTML audit verifies hallazgos and provides guidance on how to correct them. The audit focuses on static HTML heuristics and limits the scope to static HTML only.",
+    "Este audit revisa hallazgos de HTML static y guía cómo corregirlos. Se enfoca en heurísticas de static HTML y limita el alcance a solo HTML static.",
+    "This static HTML audit verifies hallazgos and identifies areas for improvement. Corregir hallazgos, how to verify them, and the limits of evidence are described. Prior evidence is not code execution, browsing, deployment, permission changes, or self-certification."
+  ],
+  "trials": [
+    {
+      "task": "idioma",
+      "profile": 0,
+      "blind_id": "ecba60f0e29c",
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "report_sha256": "059d731a3e0d99b8a6c99542321279ae9fb05ef0457b459e894890dc474ba235",
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior.",
+      "added_language": "none",
+      "paragraph_indices": [],
+      "state": "STATIC",
+      "attempts": 0,
+      "wall_s": 0.002732,
+      "calls": [],
+      "backend": null,
+      "termination_verified": null
+    },
+    {
+      "task": "idioma",
+      "profile": 1,
+      "blind_id": "4f2cf822da65",
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "report_sha256": "4a9cde3d4482d739f2c5c0ef84ac0c83e74f723b8f9e92231f84df284dabe193",
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        0
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 33.1994384,
+      "calls": [
+        {
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 1361534100,
+          "total_duration": 2147718300,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 66,
+        "elapsed_seconds": 33.0992935,
+        "cpu_seconds": 19.84375,
+        "cpu_percent_machine_average": 2.9976092994250765,
+        "sampled_peak_working_set_sum_bytes": 651399168,
+        "sampled_peak_private_commit_sum_bytes": 778727424,
+        "job_peak_commit_bytes": 1059995648,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "idioma",
+      "profile": 3,
+      "blind_id": "330ff788a7f7",
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "report_sha256": "75dbb93d1b1c8ee2bea67b25059dc81b96cbbe5f0f04232d666f74cbb7d61cbf",
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior.",
+      "added_language": "mixed-en-es",
+      "paragraph_indices": [
+        0,
+        1,
+        1
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 18.8929185,
+      "calls": [
+        {
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 817174100,
+          "total_duration": 1719113300,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 252,
+          "eval_count": 56,
+          "load_duration": 7545900,
+          "total_duration": 1097523600,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 376,
+          "eval_count": 56,
+          "load_duration": 5807100,
+          "total_duration": 1431122800,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 38,
+        "elapsed_seconds": 18.8024287,
+        "cpu_seconds": 44.140625,
+        "cpu_percent_machine_average": 11.738011536775565,
+        "sampled_peak_working_set_sum_bytes": 672575488,
+        "sampled_peak_private_commit_sum_bytes": 940986368,
+        "job_peak_commit_bytes": 1019334656,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "titulo-imagen",
+      "profile": 0,
+      "blind_id": "af7b07415357",
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "report_sha256": "859fac7d2719074f3101526d09e47e0633d7e3c4588660810e0c9715de4a51a0",
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional.",
+      "added_language": "none",
+      "paragraph_indices": [],
+      "state": "STATIC",
+      "attempts": 0,
+      "wall_s": 0.0006709,
+      "calls": [],
+      "backend": null,
+      "termination_verified": null
+    },
+    {
+      "task": "titulo-imagen",
+      "profile": 3,
+      "blind_id": "e33d282cca97",
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "report_sha256": "9a32e02c24a92c709d3756d503b2b9bad7572cf5a35a9c3d53e2d8b191a2a025",
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional.",
+      "added_language": "mixed-en-es",
+      "paragraph_indices": [
+        2,
+        3,
+        2
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 19.1622168,
+      "calls": [
+        {
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 818040400,
+          "total_duration": 1599398900,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 263,
+          "eval_count": 41,
+          "load_duration": 6130500,
+          "total_duration": 1034908100,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 371,
+          "eval_count": 35,
+          "load_duration": 10391300,
+          "total_duration": 1206727300,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 39,
+        "elapsed_seconds": 19.0727705,
+        "cpu_seconds": 41.125,
+        "cpu_percent_machine_average": 10.781076613908818,
+        "sampled_peak_working_set_sum_bytes": 670535680,
+        "sampled_peak_private_commit_sum_bytes": 787222528,
+        "job_peak_commit_bytes": 1024598016,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "titulo-imagen",
+      "profile": 1,
+      "blind_id": "5f91ba875609",
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "report_sha256": "15126cfb6da6acbc0d8c588a69bfa22b89e4dfb64610813ad1444a24ccd66ef2",
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        2
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 9.7726967,
+      "calls": [
+        {
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 789397600,
+          "total_duration": 1351080100,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 20,
+        "elapsed_seconds": 9.6767883,
+        "cpu_seconds": 13.5,
+        "cpu_percent_machine_average": 6.975454862436125,
+        "sampled_peak_working_set_sum_bytes": 649908224,
+        "sampled_peak_private_commit_sum_bytes": 777326592,
+        "job_peak_commit_bytes": 971747328,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "control",
+      "profile": 1,
+      "blind_id": "73fd35074355",
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "report_sha256": "49d01d4300740315adfe508d9731c241381463ab43213ed747012a3b9a977254",
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        4
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 10.5619136,
+      "calls": [
+        {
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 834528700,
+          "total_duration": 1592232100,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 22,
+        "elapsed_seconds": 10.4655839,
+        "cpu_seconds": 15.046875,
+        "cpu_percent_machine_average": 7.188741279882147,
+        "sampled_peak_working_set_sum_bytes": 651366400,
+        "sampled_peak_private_commit_sum_bytes": 778743808,
+        "job_peak_commit_bytes": 1004560384,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "control",
+      "profile": 0,
+      "blind_id": "9682d242c8cd",
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "report_sha256": "6d2f503b581ab1baafb9e88ccd52408de7cb8ebbafa14789693339d16226bd10",
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento.",
+      "added_language": "none",
+      "paragraph_indices": [],
+      "state": "STATIC",
+      "attempts": 0,
+      "wall_s": 0.0017499,
+      "calls": [],
+      "backend": null,
+      "termination_verified": null
+    },
+    {
+      "task": "control",
+      "profile": 3,
+      "blind_id": "0206d2bb4060",
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "report_sha256": "39bee892e17953f3af267594b0e5a809e2e10723d5190b26e4c92f1c9716b4c3",
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 1,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento.",
+      "added_language": "mixed-en-es",
+      "paragraph_indices": [
+        4,
+        5,
+        5
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 17.7472323,
+      "calls": [
+        {
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 542419000,
+          "total_duration": 1300199600,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 255,
+          "eval_count": 41,
+          "load_duration": 6394600,
+          "total_duration": 970002400,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 365,
+          "eval_count": 41,
+          "load_duration": 5283200,
+          "total_duration": 1281901000,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 36,
+        "elapsed_seconds": 17.6668574,
+        "cpu_seconds": 39.84375,
+        "cpu_percent_machine_average": 11.276411276178637,
+        "sampled_peak_working_set_sum_bytes": 670826496,
+        "sampled_peak_private_commit_sum_bytes": 798748672,
+        "job_peak_commit_bytes": 1006858240,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "decoracion",
+      "profile": 1,
+      "blind_id": "2a07fe86953c",
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "report_sha256": "5f8b3d47f7d91b0107e2cbb9c3d1a3a1bc4c8c112c1d1882d206050af5458823",
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "points": 0,
+      "extra": 0,
+      "unsupported": true,
+      "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        6
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 10.0229859,
+      "calls": [
+        {
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 791741500,
+          "total_duration": 1631510200,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 21,
+        "elapsed_seconds": 9.9621461,
+        "cpu_seconds": 15.8125,
+        "cpu_percent_machine_average": 7.9362919602233095,
+        "sampled_peak_working_set_sum_bytes": 650715136,
+        "sampled_peak_private_commit_sum_bytes": 796409856,
+        "job_peak_commit_bytes": 1006243840,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "decoracion",
+      "profile": 3,
+      "blind_id": "c57bc7c3f460",
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "report_sha256": "e8812c9d4368570782a20d8db9c3e435ecc47289086f3d8e2cb5998f118ca883",
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "points": 0,
+      "extra": 0,
+      "unsupported": true,
+      "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        6,
+        6,
+        6
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 19.0542616,
+      "calls": [
+        {
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 1076405400,
+          "total_duration": 2003428100,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 6224100,
+          "total_duration": 1156983700,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 10977500,
+          "total_duration": 1386563800,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 39,
+        "elapsed_seconds": 18.98424,
+        "cpu_seconds": 44.203125,
+        "cpu_percent_machine_average": 11.642058096610663,
+        "sampled_peak_working_set_sum_bytes": 673513472,
+        "sampled_peak_private_commit_sum_bytes": 786767872,
+        "job_peak_commit_bytes": 1029709824,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "decoracion",
+      "profile": 0,
+      "blind_id": "7c41ba1ca6c3",
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "report_sha256": "c3810011200e95be8dc68c70cdafdfb35f26d11f91f5a8f13fd660495af158c2",
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "points": 0,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "La entrega no explica cuándo mantener la alternativa vacía.",
+      "added_language": "none",
+      "paragraph_indices": [],
+      "state": "STATIC",
+      "attempts": 0,
+      "wall_s": 0.0010667,
+      "calls": [],
+      "backend": null,
+      "termination_verified": null
+    },
+    {
+      "task": "referencia",
+      "profile": 3,
+      "blind_id": "b457e9cf54ec",
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "report_sha256": "0bd079c8d6d74282f76543d79bc84fe5c8f638dec20b62103228d0c58facb8f2",
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "points": 0,
+      "extra": 0,
+      "unsupported": true,
+      "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        6,
+        6,
+        6
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 20.0791103,
+      "calls": [
+        {
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 1097390100,
+          "total_duration": 1907080000,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 8117500,
+          "total_duration": 1179917600,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 5413200,
+          "total_duration": 1369321200,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 41,
+        "elapsed_seconds": 19.9967251,
+        "cpu_seconds": 43.859375,
+        "cpu_percent_machine_average": 10.966639482382043,
+        "sampled_peak_working_set_sum_bytes": 669839360,
+        "sampled_peak_private_commit_sum_bytes": 786927616,
+        "job_peak_commit_bytes": 959152128,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "referencia",
+      "profile": 0,
+      "blind_id": "3e4512ae1694",
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "report_sha256": "6fed59dbe27a749804dff2f0bbe258166f86ddfde35514583ae22c63e1ff64eb",
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "points": 0,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo.",
+      "added_language": "none",
+      "paragraph_indices": [],
+      "state": "STATIC",
+      "attempts": 0,
+      "wall_s": 0.0008097,
+      "calls": [],
+      "backend": null,
+      "termination_verified": null
+    },
+    {
+      "task": "referencia",
+      "profile": 1,
+      "blind_id": "6ec58fa522a4",
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "report_sha256": "e37bf068977f29afacaa8239399e3d9cd0ffefaddb2796a9d73513b1ecc013ed",
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "points": 0,
+      "extra": 0,
+      "unsupported": true,
+      "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        6
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 12.7735164,
+      "calls": [
+        {
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 1050509000,
+          "total_duration": 2042297400,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 26,
+        "elapsed_seconds": 12.6817337,
+        "cpu_seconds": 18.03125,
+        "cpu_percent_machine_average": 7.109142340688008,
+        "sampled_peak_working_set_sum_bytes": 650366976,
+        "sampled_peak_private_commit_sum_bytes": 778907648,
+        "job_peak_commit_bytes": 992387072,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "etiqueta",
+      "profile": 3,
+      "blind_id": "c208faa1df6e",
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "report_sha256": "0b68454f102ef3711c5b3102ff84eb6879f2d924b3cd83863337d301af7ac00e",
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 0.5,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        2,
+        2,
+        2
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 19.3111655,
+      "calls": [
+        {
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 823489700,
+          "total_duration": 1544656600,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 249,
+          "eval_count": 35,
+          "load_duration": 7768100,
+          "total_duration": 954740900,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        },
+        {
+          "prompt_eval_count": 352,
+          "eval_count": 35,
+          "load_duration": 4187600,
+          "total_duration": 1213554800,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 39,
+        "elapsed_seconds": 19.1941664,
+        "cpu_seconds": 37.671875,
+        "cpu_percent_machine_average": 9.813365742208008,
+        "sampled_peak_working_set_sum_bytes": 668971008,
+        "sampled_peak_private_commit_sum_bytes": 1047785472,
+        "job_peak_commit_bytes": 1069273088,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "etiqueta",
+      "profile": 1,
+      "blind_id": "e99acb1dbdb9",
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "report_sha256": "df4eee0a3de1f61c68b2b1e14eebd437204d160bbbf87274f1d99f133b8accce",
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 0.5,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva.",
+      "added_language": "mostly-en",
+      "paragraph_indices": [
+        2
+      ],
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "wall_s": 10.0381645,
+      "calls": [
+        {
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 839530900,
+          "total_duration": 1576436400,
+          "context_length": 8192,
+          "model_allocated_vram_bytes": 0,
+          "done_reason": "stop"
+        }
+      ],
+      "backend": {
+        "scope": "owned_backend_job_only",
+        "interval_seconds": 0.5,
+        "sample_count": 21,
+        "elapsed_seconds": 9.9089034,
+        "cpu_seconds": 15.9375,
+        "cpu_percent_machine_average": 8.042009976603465,
+        "sampled_peak_working_set_sum_bytes": 652361728,
+        "sampled_peak_private_commit_sum_bytes": 780050432,
+        "job_peak_commit_bytes": 1135161344,
+        "incomplete_samples": 0,
+        "observation_errors": [],
+        "complete": true,
+        "system_gpu_usage": null
+      },
+      "termination_verified": true
+    },
+    {
+      "task": "etiqueta",
+      "profile": 0,
+      "blind_id": "f101f005ae3e",
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "report_sha256": "d81d7dca3f8a94628f23d22e6a11624c0e1ba13e49e3da73123012269fdd5e0c",
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "points": 0.5,
+      "extra": 0,
+      "unsupported": false,
+      "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva.",
+      "added_language": "none",
+      "paragraph_indices": [],
+      "state": "STATIC",
+      "attempts": 0,
+      "wall_s": 0.0008458,
+      "calls": [],
+      "backend": null,
+      "termination_verified": null
+    }
+  ]
+}

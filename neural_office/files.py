@@ -14,6 +14,8 @@ def local_path(value, reason='NETWORK_INPUT_EXCLUDED'):
     """
     path=Path(value)
     if str(path).startswith('\\\\'): raise Denied(reason)
+    if any(':' in part for part in path.parts if part != path.anchor):
+        raise Denied('FILE_STREAM_EXCLUDED')
     return path
 
 

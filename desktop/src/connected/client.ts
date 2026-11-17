@@ -15,13 +15,16 @@ export const request:Requester=async<T>(method:string,params:Record<string,unkno
   if(!r.ok) throw Error(typeof r.error?.code==='string'&&/^[A-Z][A-Z0-9_]{0,95}$/.test(r.error.code)?r.error.code:'DESKTOP_OPERATION_FAILED');
   return r.result as T;
 };
-export type Report={schema:number;scope:string;source_sha256:string;findings:{code:string;line:number;column:number}[];model_commentary_status:string;role_outputs:{role:string;content:string}[]};
+export type Finding={code:string;line:number;column:number};
+export type FindingPage={session_id:string;project_id:string;source_sha256:string;offset:number;total:number;findings:Finding[]};
+export type Report={schema:number;scope:string;source_sha256:string;findings:Finding[];model_commentary_status:string;role_outputs:{role:string;content:string}[]};
 type ReportMetadata={attempt_id:string;state:string;sha256:string;bytes:number;encoding:string;media_type:string;verdict:{passed:boolean;coverage:string};mode:string};
 type Chunk={attempt_id:string;sha256:string;offset:number;next_offset:number;eof:boolean;chunk_sha256:string;base64:string};
 const sha=async(data:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data as Uint8Array<ArrayBuffer>)),b=>b.toString(16).padStart(2,'0')).join('');
 export async function readReport(send:Requester,attemptId:string,current:()=>boolean=()=>true) {
   const meta=await send<ReportMetadata>('report.get',{attempt_id:attemptId});
   if(meta.attempt_id!==attemptId||!Number.isSafeInteger(meta.bytes)||meta.bytes<1||meta.bytes>4*1024*1024||!/^[a-f0-9]{64}$/.test(meta.sha256)) throw Error('REPORT_CONTRACT');
+  if(meta.state!=='ACCEPTED'||meta.verdict?.passed!==true) throw Error('REPORT_NOT_ACCEPTED');
   const bytes=new Uint8Array(meta.bytes);
   let offset=0,chunks=0;
   while(offset<meta.bytes) {

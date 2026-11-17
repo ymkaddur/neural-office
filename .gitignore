@@ -24,6 +24,10 @@
 !docs/V5_1_REVIEW_REPORT.md
 !docs/V5_7_PROTOCOL.md
 !examples/v57-tasks.json
+!tools/compare_v57.py
+!docs/V5_7_REVIEW.md
+!docs/evidence/V5_7_COMPARISON.json
+!docs/images/v5.7-static.png
 !docs/V5_2_AUTHORITY_AND_COUNTERS.md
 !docs/V5_2_INTEGRATION_AND_ACCEPTANCE.md
 !docs/V5_2_PROVENANCE.md

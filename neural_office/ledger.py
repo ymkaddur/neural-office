@@ -218,6 +218,8 @@ class Ledger:
                 raise Denied('ATTEMPT_BUDGET_EXHAUSTED')
             if con.execute("SELECT 1 FROM attempts WHERE project=? AND state NOT IN ('ACCEPTED','REJECTED','FAILED','CANCELLED')", (project,)).fetchone():
                 raise Denied('UNRESOLVED_ATTEMPT')
+            from .runner import check_first_prompt
+            check_first_prompt(snapshot, objective, profile)
             attempt, stamp = uuid.uuid4().hex, time.time()
             con.execute('''INSERT INTO attempts(id,project,ordinal,request_key,request_digest,objective,
                 profile,snapshot,snapshot_sha,state,created,last_seen) VALUES(?,?,?,?,?,?,?,?,?,'QUEUED',?,?)''',
