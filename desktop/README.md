@@ -1,10 +1,10 @@
-# Escritorio Neural Office · V5.6
+# Escritorio Neural Office · V5.7
 
-Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el mismo núcleo Python del piloto. Es una **vista previa de desarrollo para Windows**, no un instalador autónomo. [Cambios y verificación](../docs/V5_6_REVIEW.md) · [Hoja de ruta V6](../ROADMAP.md).
+Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el mismo núcleo Python del piloto. Es una **vista previa de desarrollo para Windows**, no un instalador autónomo. [Cambios y verificación](../docs/V5_7_REVIEW.md) · [Hoja de ruta V6](../ROADMAP.md).
 
 ## Abrir el recorrido conectado
 
-Requiere Windows x64, Python 3.12, WebView2, Ollama instalado y al menos un modelo local descargado. El host no descarga modelos ni configura proveedores cloud. Para compilar hacen falta Node 24, el toolchain Rust fijado y las herramientas MSVC/SDK de Windows; son requisitos de desarrollo, no el onboarding prometido para V10.
+La comprobación estática requiere Windows x64, Python 3.12 y WebView2. Para consultar al Director instala también Ollama y descarga un modelo local. El host no descarga modelos ni configura proveedores cloud. Para compilar hacen falta Node 24, el toolchain Rust fijado y las herramientas MSVC/SDK de Windows; son requisitos de desarrollo, no el onboarding prometido para V10.
 
 Desde esta carpeta, compila los assets y el host de producción:
 
@@ -28,8 +28,8 @@ Windows puede bloquear el ejecutable no firmado: se ha observado con App Control
 
 ## Recorrido real
 
-1. Escribe qué quieres revisar y elige un HTML UTF-8 de hasta 256 KiB en el selector nativo. La copia capturada queda fijada; el original no se modifica.
-2. Selecciona modelo. Un rol es el valor inicial; los perfiles de tres y siete son secuenciales y consumen más llamadas, sin promesa de mejor calidad.
+1. Elige un HTML UTF-8 de hasta 256 KiB y pulsa **Comprobar HTML**. El selector captura los bytes una sola vez. Puedes abrir la orientación por hallazgo y avanzar por páginas de 24. Esta vista dura mientras trabajas con la captura. El selector registra el proyecto. Comprobar y paginar consumen cero intentos y cero llamadas.
+2. Si quieres una entrega guardada con comentarios, pulsa **Consultar al Director**, escribe tu pregunta y elige un modelo. El perfil inicial usa una llamada. Los perfiles de tres y siete roles hacen llamadas secuenciales. El modelo recibe el objetivo y las ubicaciones detectadas. La asistencia admite hasta 24 hallazgos.
 3. Pulsa **Revisar encargo**, comprueba fuente/modelo/alcance/consumo y después **Autorizar y ejecutar**. Preparar no consume un intento; la reserva sí.
 4. Revisa hallazgos y sugerencias por separado. **Evidencia y alcance** permite inspeccionar identidades y el informe original; no ejecuta HTML generado.
 5. **Detener** solicita parada y mantiene el estado pendiente hasta confirmación. Error o cancelación conserva consumo. Reabre para consultar el mismo intento; una respuesta perdida se concilia por su identidad.
@@ -50,7 +50,7 @@ La galería conserva la [revisión visual histórica](../docs/V5_4_1_UI_REVIEW.m
 
 La suite Node incluye regresiones de React con IPC simulado para cleanup terminal, cursores independientes e identificadores históricos. Las pruebas Python cubren reserva, cancelación, fuente, mensajes, muerte del controlador y respuesta perdida. Rust prueba frontera y assets. Ninguna por separado acredita el recorrido nativo.
 
-El [harness Windows CI](../tests/e2e_v55_native_uia.py) prueba el ejecutable, selector, aprobación, modelo real, informe, cierre/reapertura y parada con datos sintéticos. V5.6 añade orientación desplegable y retorno al borrador sin repetir trabajo; su resultado fechado está en el [registro V5.6](../docs/V5_6_REVIEW.md). Usa herramientas de test fuera del producto; no añade un puerto de depuración al host distribuido.
+El [harness Windows CI](../tests/e2e_v55_native_uia.py) prueba el ejecutable, selector, aprobación, modelo real, informe, cierre/reapertura y parada con datos sintéticos. V5.7 comprueba primero las cuatro ubicaciones con el teclado y el servidor de modelos apagado. Después contrasta los contadores con la consulta asistida, el cierre, la reapertura y la cancelación. [Resultados de V5.7](../docs/V5_7_REVIEW.md). Usa herramientas de test fuera del producto; no añade un puerto de depuración al host distribuido.
 
 Una prueba optativa del servicio real sin GUI usa un estado sintético nuevo y publica sólo métricas saneadas:
 

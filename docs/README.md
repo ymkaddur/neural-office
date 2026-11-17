@@ -4,7 +4,7 @@
 
 - [Compilar y abrir el escritorio](../desktop/README.md).
 - [Revisión HTML y referencia sin modelo](HTML_REVIEW.md).
-- [Qué cambió y cómo se verifica V5.6](V5_6_REVIEW.md).
+- [Qué aportó cada perfil en V5.7](V5_7_REVIEW.md).
 - [Hoja de ruta hacia V6](../ROADMAP.md).
 - [Datos, límites y seguridad](../SECURITY.md), [licencias](../LICENSING.md) y [apoyo voluntario](SUPPORT.md).
 
@@ -17,7 +17,7 @@ El escritorio utiliza el mismo estado del piloto. No borres el ledger para actua
 ## Desarrollar y comprobar
 
 - [Contribuciones](../CONTRIBUTING.md), [skills de desarrollo](../skills/README.md).
-- [Verificación actual de V5.6](V5_6_REVIEW.md), [integración original de V5.5](V5_5_VERIFICATION.md), [dependencias](V5_5_DEPENDENCIES.md).
+- [Verificación de V5.7](V5_7_REVIEW.md), [base V5.6](V5_6_REVIEW.md), [integración original de V5.5](V5_5_VERIFICATION.md), [dependencias](V5_5_DEPENDENCIES.md).
 - [Investigación comparativa y límites de transferencia](V5_5_RESEARCH.md).
 - [Historial de decisiones y evidencia](HISTORY.md).
 

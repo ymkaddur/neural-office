@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "scope": "One synthetic packaged UI exercise on GitHub Actions Windows. Desktop idle and local backend benchmark are different measurements on different machines.",
+  "workflow_run_id": 44153955070,
+  "pull_request_head": "655b7a89c4e06c6c3c1d12988c4f073b4f870a67",
+  "git_checkout_tested": "50d9d93e45511ea5d08919dba5b57388240837f2",
+  "artifact_zip_sha256": "2986743717d1e6cdaca64286b7aeced3264d71a1ee3996d2b19401ab446a54b7",
+  "executable_sha256": "d786286c86b232f23477ab6ce76df2b27c532b111f134eaebb448a94693df4ac",
+  "static_screenshot_sha256": "a1ca11a6d3549742603df24bc88b85e684c02dfe9a1e03abc1b12cb6e784a51f",
+  "source_sha256": "b8b1ee7cf6d328cf93d64ce0fdf41dbbb94749cdfed6900a9a68deb80e1321e1",
+  "source_line_endings": "CRLF",
+  "source_bytes": 192,
+  "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+  "status": "passed",
+  "window_title": "Neural Office · V5.7.0",
+  "checks": [
+    "native-window-title-matches-release",
+    "normal-restore-and-remaximize-content-within-work-area",
+    "initial-native-client-and-review-action-within-work-area",
+    "keyboard-static-review-four-visible-positions-without-ollama-or-consumption",
+    "packaged-ui-native-ipc-real-catalog-no-devtools",
+    "native-file-picker-visible-approval-no-early-consumption",
+    "four-visible-findings-expand-collapse-real-guidance-without-new-work",
+    "real-model-one-call-four-visible-findings-and-matching-visible-hashes",
+    "normal-close-owned-core-exit-reopen-without-new-attempt-or-call",
+    "history-return-retains-exact-draft-and-source-without-reservation",
+    "cancelled-delivery-header-terminal-without-report",
+    "native-cancellation-history-quota-and-owned-backend-quiescence"
+  ],
+  "initial_viewport": {
+    "client_screen_px": [
+      0,
+      23,
+      1024,
+      720
+    ],
+    "client_within_work_area": true,
+    "review_button_within_work_area": true
+  },
+  "keyboard_before_static_check": {
+    "readings": [
+      {
+        "elapsed_ns": 31000000,
+        "foreground": true,
+        "control_focused": false,
+        "enabled": true
+      },
+      {
+        "elapsed_ns": 531000000,
+        "foreground": true,
+        "control_focused": true,
+        "enabled": true
+      }
+    ],
+    "space_sends": 1
+  },
+  "static_counts": {
+    "attempts": 0,
+    "calls": 0
+  },
+  "final_counts": {
+    "attempts": 2,
+    "calls": 1,
+    "states": [
+      "ACCEPTED",
+      "CANCELLED"
+    ]
+  },
+  "idle": {
+    "phase": "idle_before",
+    "interval_seconds": 0.5,
+    "samples": [
+      {
+        "tree_rss_bytes": 373026816,
+        "tree_private_bytes": 132063232,
+        "webview_rss_bytes": 307642368,
+        "webview_private_bytes": 109744128
+      },
+      {
+        "tree_rss_bytes": 382382080,
+        "tree_private_bytes": 136761344,
+        "webview_rss_bytes": 319975424,
+        "webview_private_bytes": 114454528
+      },
+      {
+        "tree_rss_bytes": 382443520,
+        "tree_private_bytes": 136777728,
+        "webview_rss_bytes": 320036864,
+        "webview_private_bytes": 114470912
+      },
+      {
+        "tree_rss_bytes": 382181376,
+        "tree_private_bytes": 136515584,
+        "webview_rss_bytes": 319774720,
+        "webview_private_bytes": 114208768
+      },
+      {
+        "tree_rss_bytes": 382181376,
+        "tree_private_bytes": 136515584,
+        "webview_rss_bytes": 319774720,
+        "webview_private_bytes": 114208768
+      },
+      {
+        "tree_rss_bytes": 376492032,
+        "tree_private_bytes": 130813952,
+        "webview_rss_bytes": 314085376,
+        "webview_private_bytes": 108507136
+      },
+      {
+        "tree_rss_bytes": 376590336,
+        "tree_private_bytes": 130818048,
+        "webview_rss_bytes": 314183680,
+        "webview_private_bytes": 108511232
+      },
+      {
+        "tree_rss_bytes": 376627200,
+        "tree_private_bytes": 130850816,
+        "webview_rss_bytes": 314220544,
+        "webview_private_bytes": 108544000
+      },
+      {
+        "tree_rss_bytes": 376627200,
+        "tree_private_bytes": 130850816,
+        "webview_rss_bytes": 314220544,
+        "webview_private_bytes": 108544000
+      },
+      {
+        "tree_rss_bytes": 376594432,
+        "tree_private_bytes": 130818048,
+        "webview_rss_bytes": 314187776,
+        "webview_private_bytes": 108511232
+      },
+      {
+        "tree_rss_bytes": 373768192,
+        "tree_private_bytes": 130850816,
+        "webview_rss_bytes": 311361536,
+        "webview_private_bytes": 108544000
+      }
+    ],
+    "median_MiB": {
+      "tree_rss_bytes": 359.18,
+      "tree_private_bytes": 124.79,
+      "webview_rss_bytes": 299.66,
+      "webview_private_bytes": 103.52
+    },
+    "limitation": "Complete samples before choosing a source. RSS sums can include shared pages more than once. Child processes and the current host are included."
+  },
+  "local_renderer": {
+    "mode": "native",
+    "assets": [
+      {
+        "file": "index-bFxcV4IQ.css",
+        "bytes": 50114,
+        "sha256": "112431b3eea0e848872aba93ec82387e59ca30cef49cab7215eaba19a8d69820"
+      },
+      {
+        "file": "index-BJGtaTI2.js",
+        "bytes": 265962,
+        "sha256": "4c3b635b74d0923bde6ce65d7954c97dfbbbcee587e301635d36f0487990ed7e"
+      },
+      {
+        "file": "index.html",
+        "bytes": 475,
+        "sha256": "d63ba6be7abc8c0b6c08ca0cfdee22144d3ed1eb53a5018c38184b157a6864a4"
+      }
+    ],
+    "raw_bytes": 316551,
+    "edge_contrast_at_1024x697": {
+      "oscuro": {
+        ".static-heading h1": 15.7269,
+        ".static-heading p": 9.6024,
+        ".static-source .source-picker": 15.7269,
+        ".static-source small": 9.6024,
+        ".static-actions .solid-button": 12.1938,
+        ".static-actions span": 9.6024,
+        ".static-results h2": 15.7269,
+        ".static-results > p": 9.6024,
+        ".static-results li strong": 15.7269,
+        ".static-results li small": 9.6024,
+        ".static-results summary": 9.5398,
+        ".static-assist button": 15.7269,
+        ".static-assist span": 9.6024
+      },
+      "claro": {
+        ".static-heading h1": 13.1608,
+        ".static-heading p": 5.9892,
+        ".static-source .source-picker": 13.1608,
+        ".static-source small": 5.9892,
+        ".static-actions .solid-button": 12.3615,
+        ".static-actions span": 5.9892,
+        ".static-results h2": 13.1608,
+        ".static-results > p": 5.9892,
+        ".static-results li strong": 13.1608,
+        ".static-results li small": 5.9892,
+        ".static-results summary": 4.9775,
+        ".static-assist button": 13.1608,
+        ".static-assist span": 5.9892
+      }
+    }
+  }
+}

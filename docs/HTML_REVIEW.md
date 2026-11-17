@@ -1,5 +1,9 @@
 # Revisar HTML
 
+## En el escritorio
+
+**Elegir archivo HTML → Comprobar HTML** muestra las ubicaciones en la copia seleccionada. Cada página contiene hasta 24 hallazgos. Puedes abrir la orientación con teclado o pasar a **Consultar al Director** con la misma fuente. Para analizar cambios en el original, vuelve a elegir el archivo. La vista estática se consulta en la ventana. El historial conserva los encargos autorizados con modelo.
+
 ## Una referencia sin modelo
 
 ```powershell
@@ -8,7 +12,7 @@ py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.
 
 Lee una captura UTF-8 local de hasta 256 KiB, sin ejecutar sus scripts ni seguir enlaces. Imprime el informe JSON; puedes conservarlo mediante la redirección de tu terminal. Esta operación no abre un ledger, reserva intentos ni llama a Ollama. Los límites de captura son los mismos del piloto.
 
-El ejemplo debe señalar idioma ausente, título vacío, imagen sin `alt` y control candidato sin etiqueta. Las reglas no necesitan IA. En el escritorio, un modelo puede añadir comentarios sobre esos resultados; su valor adicional sigue sujeto a evaluación.
+El ejemplo debe señalar idioma ausente, título vacío, imagen sin `alt` y control candidato sin etiqueta. Las reglas no necesitan IA. En la [comparación de V5.7](V5_7_REVIEW.md), las reglas y su orientación fija resolvieron tantas decisiones como los dos perfiles con modelo en la muestra ensayada.
 
 ## Interpretar el resultado
 

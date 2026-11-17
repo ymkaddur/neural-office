@@ -14,6 +14,8 @@ Esta política describe el núcleo Windows y su adaptador desktop V5.5, no la of
 
 Los datos del piloto se guardan localmente sin cifrado. No publicar SQLite, testigos, prompts, rutas privadas, logs completos, credenciales o pesos. La reproducción de un fallo debe usar datos sintéticos.
 
+V5.7 rechaza las rutas explícitas de flujos NTFS nombrados antes de consultar el sistema de archivos. El escritorio exige una captura vigente del proyecto para leer sus hallazgos estáticos. Une estado aceptado y veredicto positivo al publicar el informe asistido. Los intentos rechazados conservan su evidencia en el ledger local. [Investigación y alcance](docs/V5_7_REVIEW.md).
+
 Las fuentes UNC y namespaces de dispositivo explícitos se rechazan antes de resolverlos. Eso no certifica unidades mapeadas, junctions ni la navegación realizada por el selector nativo. La política de red de toda la máquina y de los modelos no se deduce de ese rechazo.
 
 Antes de incorporar skills con escritura, navegación o proveedores remotos hay que definir sus capacidades, aislamiento y pruebas de efectos. Los avisos de un prompt y los permisos de la UI no sustituyen esa frontera. Un reporte aceptado comprueba integridad y heurísticas limitadas; los comentarios permanecen `UNVERIFIED_ASSISTANCE`.
