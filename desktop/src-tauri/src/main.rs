@@ -126,7 +126,7 @@ mod packaged_assets {
             !tauri::is_dev(),
             "The distributed host must use its embedded assets"
         );
-        let context = tauri::generate_context!();
+        let context: tauri::Context<tauri::Wry> = tauri::generate_context!();
         let key = "/index.html".into();
         let html = context
             .assets()

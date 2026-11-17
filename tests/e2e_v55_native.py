@@ -26,6 +26,7 @@ import urllib.request
 import zipfile
 
 MODEL = 'qwen2.5:0.5b'
+MODEL_DIGEST = 'a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67'
 OLLAMA_VERSION = '0.40.16'
 OLLAMA_SHA256 = '50fcf5ad54277f2fa5d173ebfc93bcb017adbc0c9ef2314daabc96ca9e6aa64e'
 EXPECTED_FINDINGS = [
@@ -41,10 +42,12 @@ def sha(path):
 
 
 def http(method, url, data=None, timeout=90):
+    if not url.startswith(('http://127.0.0.1:4444/', 'http://127.0.0.1:11434/')):
+        raise ValueError('TEST_CONTROL_ENDPOINT_NOT_LOCAL')
     raw = None if data is None else json.dumps(data).encode()
     request = urllib.request.Request(url, raw, {'Content-Type': 'application/json'}, method=method)
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(request, timeout=timeout) as response:
             body = response.read(24 * 1024 * 1024 + 1)
     except urllib.error.HTTPError as error:
         try:
@@ -254,6 +257,7 @@ def main():
         assert pulled.get('status') == 'success', 'MODEL_PULL_FAILED'
         models = http('GET', 'http://127.0.0.1:11434/api/tags')['models']
         assert len(models) == 1 and models[0]['name'] == MODEL, 'UNEXPECTED_MODEL_CATALOG'
+        assert models[0]['digest'] == MODEL_DIGEST, 'PUBLIC_MODEL_TAG_CHANGED'
         evidence['model_digest'] = models[0]['digest']
         evidence['ollama_version'] = OLLAMA_VERSION
         evidence['ollama_archive_sha256'] = OLLAMA_SHA256
