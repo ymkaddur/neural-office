@@ -1,0 +1,469 @@
+{
+  "schema": 1,
+  "base_commit": "d8aa4e6c9529ae220b64c4903e61500ea02475fb",
+  "source_commit": "c200eef76197c444c063b8262535db5a83bb20bd",
+  "local": {
+    "python_tests": 199,
+    "node_tests": 46,
+    "build": "tsc --noEmit && vite build --mode native",
+    "node": "v24.21.0",
+    "frontend_assets": {
+      "v55": {
+        "assets": [
+          {
+            "file": "index.html",
+            "bytes": 475,
+            "sha256": "3c72cd8245b40a16308ba6ec8b98b65a8a6817f77d4180cc76e7ecb86e93ca35"
+          },
+          {
+            "file": "assets/index-B9EQlohF.js",
+            "bytes": 261840,
+            "sha256": "80245a72dc4a4e366dbb3814a334d41c2050fde55d5ea7a545c9aba5b4feb7bc"
+          },
+          {
+            "file": "assets/index-BWhHiqHD.css",
+            "bytes": 47278,
+            "sha256": "a53964a12f80c61482b4dbeff385caf5d6f207b6b5fe2a863e5802bf36cd6fee"
+          },
+          {
+            "file": "assets/Workspace-DMTR28YR.js",
+            "bytes": 39918,
+            "sha256": "8b461919be05360afde540f5e7fe45a9e1b60059099f718d65e0b808cf42bf09"
+          }
+        ],
+        "total_bytes": 349511
+      },
+      "v56": {
+        "assets": [
+          {
+            "file": "index.html",
+            "bytes": 475,
+            "sha256": "486a2bfc46885b8334908a411979964ff672a3812a46d0acdf00665d3703db40"
+          },
+          {
+            "file": "assets/index-BGqY-2_i.css",
+            "bytes": 47989,
+            "sha256": "fd7f57c7c6bc27b3fcd0bcc79b568164c0d52301cb09f846eca5fa66489dde8b"
+          },
+          {
+            "file": "assets/index-oyPZrKFD.js",
+            "bytes": 261707,
+            "sha256": "f1612503ddb017f5abc8826fa498f5d81f056fbff4419e368ffc4d72720deea0"
+          }
+        ],
+        "total_bytes": 310171
+      }
+    }
+  },
+  "corpus": {
+    "contract_matches": 18,
+    "contract_total": 18,
+    "semantic_matches": 0,
+    "semantic_total": 2,
+    "model_calls": 0
+  },
+  "review_passes": [
+    "baseline reproduction with sources pinned",
+    "adversarial candidate review exposed failed-bootstrap and lost-ACK draft defects",
+    "candidate corrections plus independent boundary controls"
+  ],
+  "regression_instrument_note": "An initial synthetic ACK test used a guessed delay and could click a disabled button. It now awaits the enabled return action and the actual composer; this was a harness timing failure, not evidence of another product defect.",
+  "production_gallery_excluded": true,
+  "production_gallery_evidence": "Vite production assets contain no Workspace scene chunk or fixture title; independent main-entry tests also used screen/preview queries with DEV=false.",
+  "privacy": {
+    "base_tracked_files": 201,
+    "base_history_text_blobs": 322,
+    "base_reachable_commits": 22,
+    "base_images_ocr": 23,
+    "new_staged_blobs_scanned": 215,
+    "scope": "targeted patterns, safe commit identities, image OCR and metadata; not a guarantee over all cached GitHub objects or arbitrary secrets; historical PR commit objects require separate handling and are not certified clean",
+    "new_tree_pattern_matches": 0,
+    "public_pr_bodies_scanned": 8,
+    "public_pr_comments_returned": 0,
+    "public_pr_text_pattern_matches": 0,
+    "historic_pr_objects_cleanup_certified": false
+  },
+  "limits": [
+    "Asset bytes are not startup RAM; the removed fixture chunk was lazy-loaded in V5.5.",
+    "Drafts are in-memory for this window and not durable across closing.",
+    "No new hardware minimum, GPU benchmark, long-session result or human acceptance.",
+    "R13 startup intermittency remains open.",
+    "Second attempt cancelled before a second model call; no native mid-generation cancellation claim."
+  ],
+  "independent_review": [
+    {
+      "scope": "Real React components with synthetic DOM and IPC",
+      "checks": [
+        {
+          "name": "bootstrap-attempt-read-fails-then-explicit-refresh",
+          "status": "observed",
+          "initial": {
+            "gets": 1,
+            "selectedProject": "project-a",
+            "switchAllowed": false,
+            "composerPresent": false,
+            "composerEnabled": false,
+            "visibleStatus": "Trabajando",
+            "attemptShown": true
+          },
+          "afterRefresh": {
+            "gets": 2,
+            "attemptShown": true,
+            "visibleStatus": "Trabajando",
+            "problemRemaining": false
+          }
+        },
+        {
+          "name": "draft-ACK-lost-then-terminal-lookup",
+          "status": "observed",
+          "registeredObjective": "Synthetic draft submitted once.",
+          "obsoleteDraftOffered": false
+        }
+      ],
+      "subject": "failed bootstrap and lost acknowledgement",
+      "source_hashes": {
+        "desktop/src/connected/ConnectedWorkspace.tsx": "ab0ef0d990526bb8551209ac66016bb79301a2da76bb0ecffbd55db718baf44a",
+        "desktop/src/connected/model.ts": "90a6eac15e846063911e5373f0bc3b2e05891d683d3141c46f28f7f10143a624",
+        "desktop/src/workspace/PaneDivider.tsx": "b155cabc4298ddc9cc059bace18265762ae2db0deed89328644fccea370f90f7",
+        "desktop/src/connected/client.ts": "8982e7962f08a065988bda0bb2140c01c7d6616c6d8f7cb00d323f7a9c4f319f",
+        "desktop/src/workspace/panes.ts": "28729e5fc64f4c70a8ae79835494e18149fd1253e80ed70fd429f190cad6a13c",
+        "desktop/src/main.tsx": "46ea39d20e916611e7c89577fb1587c8f8ac3b3ed3154a4934bcc8f3150324b5"
+      },
+      "source_commit": "7590df8ee33fa9f0e0bfd0514f13506d6acd75cb",
+      "hashes_matched_when_reviewed": true
+    },
+    {
+      "scope": "Actual React/main source snapshot, synthetic DOM and IPC, no native execution",
+      "checks": [
+        {
+          "name": "cap20-actual-clear-text-remove-source-reuse-slot",
+          "status": "observed",
+          "capRejectsWithoutEditorLoss": true,
+          "explicitClearTextKeepsSourceUntilRemoved": true,
+          "oldestDraftAndSourcePreserved": true,
+          "freedSlotReusable": true,
+          "previewOrStartCalls": 0
+        },
+        {
+          "name": "same-session-draft-keeps-source-but-requires-new-preview",
+          "status": "observed",
+          "sourceRestoredInSameSession": true,
+          "approvalNotRestored": true,
+          "newPreviewBoundToOriginalSource": true,
+          "startCalls": 0
+        },
+        {
+          "name": "session-change-revokes-stored-source-keeps-unsent-text",
+          "status": "observed",
+          "textPreserved": true,
+          "priorSessionSourceRemoved": true,
+          "previewUnavailableUntilNewSelection": true
+        },
+        {
+          "name": "expired-source-cannot-reopen-consent",
+          "status": "observed",
+          "expiredGrantErrorRespected": true,
+          "noConsentOpened": true,
+          "noStart": true,
+          "scope": "Renderer rejects injected expired-grant response; not a new backend TTL experiment"
+        },
+        {
+          "name": "development-gallery-links-retain-explicit-opt-in",
+          "status": "observed",
+          "links": [
+            "?preview=1&screen=ready",
+            "?preview=1&screen=running",
+            "?preview=1&screen=result",
+            "?preview=1&screen=error",
+            "?preview=1&screen=stopping"
+          ],
+          "explicitOptInPreserved": true
+        }
+      ],
+      "subject": "bounded drafts, captured source and session changes",
+      "source_hashes": {
+        "desktop/src/connected/ConnectedWorkspace.tsx": "ab0ef0d990526bb8551209ac66016bb79301a2da76bb0ecffbd55db718baf44a",
+        "desktop/src/connected/client.ts": "8982e7962f08a065988bda0bb2140c01c7d6616c6d8f7cb00d323f7a9c4f319f",
+        "desktop/src/workspace/PaneDivider.tsx": "b155cabc4298ddc9cc059bace18265762ae2db0deed89328644fccea370f90f7",
+        "desktop/src/connected/model.ts": "90a6eac15e846063911e5373f0bc3b2e05891d683d3141c46f28f7f10143a624",
+        "desktop/src/workspace/panes.ts": "28729e5fc64f4c70a8ae79835494e18149fd1253e80ed70fd429f190cad6a13c",
+        "desktop/src/main.tsx": "46ea39d20e916611e7c89577fb1587c8f8ac3b3ed3154a4934bcc8f3150324b5",
+        "desktop/src/workspace/Workspace.tsx": "0d59b0fcb63df7ebd05bd12b805f4d5bb7f92583b231811545b616824317c02f",
+        "desktop/src/workspace/model.ts": "2ae9426272b3dc241db89f332ad74a65d3c961c649a815788cc3495acd42e8e2",
+        "desktop/src/workspace/fixtures.ts": "88b7f5e3922c2ed10a5fe5adccf5c412693d0793ea61a6f0e50ca315fdb54c55"
+      },
+      "source_commit": "7590df8ee33fa9f0e0bfd0514f13506d6acd75cb",
+      "hashes_matched_when_reviewed": true
+    },
+    {
+      "scope": "Production-defined main bundle in happy-dom, not native package",
+      "checks": [
+        {
+          "name": "production-main-route-",
+          "status": "observed",
+          "query": "",
+          "connected": true,
+          "previewVisible": false,
+          "nativeRpcCalls": 3
+        },
+        {
+          "name": "production-main-route-?screen=result",
+          "status": "observed",
+          "query": "?screen=result",
+          "connected": true,
+          "previewVisible": false,
+          "nativeRpcCalls": 3
+        },
+        {
+          "name": "production-main-route-?preview=1&screen=result",
+          "status": "observed",
+          "query": "?preview=1&screen=result",
+          "connected": true,
+          "previewVisible": false,
+          "nativeRpcCalls": 3
+        },
+        {
+          "name": "production-main-route-?screen=unrelated",
+          "status": "observed",
+          "query": "?screen=unrelated",
+          "connected": true,
+          "previewVisible": false,
+          "nativeRpcCalls": 3
+        }
+      ],
+      "subject": "production main routing",
+      "source_hashes": {
+        "desktop/src/connected/ConnectedWorkspace.tsx": "ab0ef0d990526bb8551209ac66016bb79301a2da76bb0ecffbd55db718baf44a",
+        "desktop/src/workspace/PaneDivider.tsx": "b155cabc4298ddc9cc059bace18265762ae2db0deed89328644fccea370f90f7",
+        "desktop/src/connected/client.ts": "8982e7962f08a065988bda0bb2140c01c7d6616c6d8f7cb00d323f7a9c4f319f",
+        "desktop/src/connected/model.ts": "90a6eac15e846063911e5373f0bc3b2e05891d683d3141c46f28f7f10143a624",
+        "desktop/src/workspace/panes.ts": "28729e5fc64f4c70a8ae79835494e18149fd1253e80ed70fd429f190cad6a13c",
+        "desktop/src/main.tsx": "46ea39d20e916611e7c89577fb1587c8f8ac3b3ed3154a4934bcc8f3150324b5"
+      },
+      "source_commit": "7590df8ee33fa9f0e0bfd0514f13506d6acd75cb",
+      "hashes_matched_when_reviewed": true
+    }
+  ],
+  "review_limits": "Additional adversarial probes used private synthetic harnesses. Public regression tests cover the core failures; the extra probe observations are not a separate released test suite.",
+  "first_native_run": {
+    "run_id": 44082339198,
+    "source_commit": "7590df8ee33fa9f0e0bfd0514f13506d6acd75cb",
+    "tested_merge_commit": "3cc1fea88b105f097a4b8bc42d9e30f1916cf724",
+    "result": "failed",
+    "signature": "FINDINGS_NOT_RENDERED",
+    "cause": "Expanded guidance pushed the fourth finding outside the visible report region on the 1024x697 client; UIA exposed it as not visible. The report header showed four findings and the attempt was accepted.",
+    "artifact_id": 14327753660,
+    "artifact_zip_sha256": "4a84532c437f85aa4d40691c6dc60c90374cf49f7860bc81e74569395450e9e7"
+  },
+  "layout_counterfactual": {
+    "scope": "Synthetic React/IPC in Edge, not native evidence",
+    "browser": "157.0.4341.60",
+    "viewport": {
+      "width": 1024,
+      "height": 697
+    },
+    "variants": [
+      {
+        "variant": "base",
+        "findings": [
+          {
+            "text": "Falta un título de documento no vacío",
+            "top": 383.3125,
+            "bottom": 400.3125,
+            "within": true
+          },
+          {
+            "text": "El documento no declara su idioma",
+            "top": 503.703125,
+            "bottom": 520.703125,
+            "within": true
+          },
+          {
+            "text": "Una imagen no tiene atributo alt",
+            "top": 624.09375,
+            "bottom": 641.09375,
+            "within": true
+          },
+          {
+            "text": "Un control podría necesitar una etiqueta",
+            "top": 744.484375,
+            "bottom": 761.484375,
+            "within": false
+          }
+        ],
+        "guidanceExpanded": false,
+        "overviewRestored": false
+      },
+      {
+        "variant": "candidate",
+        "findings": [
+          {
+            "text": "Falta un título de documento no vacío",
+            "top": 322.828125,
+            "bottom": 339.828125,
+            "within": true
+          },
+          {
+            "text": "El documento no declara su idioma",
+            "top": 415.421875,
+            "bottom": 432.421875,
+            "within": true
+          },
+          {
+            "text": "Una imagen no tiene atributo alt",
+            "top": 508.015625,
+            "bottom": 525.015625,
+            "within": true
+          },
+          {
+            "text": "Un control podría necesitar una etiqueta",
+            "top": 600.609375,
+            "bottom": 617.609375,
+            "within": true
+          }
+        ],
+        "guidanceExpanded": true,
+        "overviewRestored": true
+      }
+    ]
+  },
+  "skill_update": {
+    "name": "neural-office-evidence-review",
+    "validation": "quick_validate.py passed",
+    "installed_copy_matches": true,
+    "meaning": "A narrow review lesson; not runtime learning or proof of user acceptance."
+  },
+  "second_native_run": {
+    "run_id": 44084630669,
+    "source_commit": "f21cf7141a09f0907e84b3d3b25180c5adebdc94",
+    "result": "failed-instrument",
+    "signature": "pywinauto.uia_defines.NoPatternInterfaceError",
+    "stage": "finding_guidance_disclosure",
+    "observation": "The four visible finding assertion passed and 04-result.png was captured. The HTML summary exposes no UIA Invoke provider. The test had not yet exercised its disclosure.",
+    "intervention": "Use visible control click_input and retain exact open/close and no-new-work postconditions. No production change.",
+    "artifact_id": 14328628566,
+    "artifact_zip_sha256": "dbba4e0cd52206fb510a7c1ad2aa3f780afb369df40f10c1514bf1932f44f893",
+    "documentation": "https://pywinauto.readthedocs.io/en/latest/code/pywinauto.base_wrapper.html#pywinauto.base_wrapper.BaseWrapper.click_input"
+  },
+  "native": {
+    "run": "https://github.com/ymkaddur/neural-office/actions/runs/44085924979",
+    "branch_head": "c200eef76197c444c063b8262535db5a83bb20bd",
+    "tested_merge_sha": "d5e681a83b877d48898b2d9d9fd05ecfdd7b6df4",
+    "original_json_sha256": "fefd2ef4d5a24f5e9adc14caaeea238cbc49a01f26b5f88e09f41bdc189ed6ed",
+    "evidence_artifact_id": 14330605462,
+    "evidence_zip_sha256": "a92e5dfa5ce52463377047499c8638f346bf11cef6f80bfceee23d53aec355e8",
+    "host_artifact_id": 14328838481,
+    "host_zip_sha256": "a0dcd9700e38d67a889e421e8ef75ff38fe60611f35283573c05cfc1bd09c920",
+    "status": "passed",
+    "checks": 10,
+    "first_delivery_seconds": 11.437,
+    "final_counts": {
+      "attempts": 2,
+      "calls": 1,
+      "states": [
+        "ACCEPTED",
+        "CANCELLED"
+      ]
+    },
+    "resources": {
+      "phases": {
+        "idle_before": {
+          "samples": 11,
+          "complete": 11,
+          "rss_sum_peak_MiB": 381.953,
+          "private_commit_sum_peak_MiB": 134.914,
+          "observed_process_cpu_counter_sum_max_seconds": 3.453125
+        },
+        "window_differential": {
+          "samples": 3,
+          "complete": 3,
+          "rss_sum_peak_MiB": 372.207,
+          "private_commit_sum_peak_MiB": 131.426,
+          "observed_process_cpu_counter_sum_max_seconds": 3.171875
+        },
+        "prepare": {
+          "samples": 8,
+          "complete": 8,
+          "rss_sum_peak_MiB": 415.254,
+          "private_commit_sum_peak_MiB": 141.066,
+          "observed_process_cpu_counter_sum_max_seconds": 5.921875
+        },
+        "work": {
+          "samples": 22,
+          "complete": 22,
+          "rss_sum_peak_MiB": 1012.555,
+          "private_commit_sum_peak_MiB": 872.633,
+          "observed_process_cpu_counter_sum_max_seconds": 16.5625
+        },
+        "idle_after": {
+          "samples": 17,
+          "complete": 17,
+          "rss_sum_peak_MiB": 428.953,
+          "private_commit_sum_peak_MiB": 153.715,
+          "observed_process_cpu_counter_sum_max_seconds": 10.953125
+        }
+      },
+      "total_samples": 61,
+      "sample_span_seconds": 30.797,
+      "scope": "Only first opening, prepare, first inference and brief after-work observation. Reopening and cancellation verified functionally, not resource-sampled.",
+      "limits": [
+        "RSS may double-count shared pages; sampled peaks are not absolute peaks.",
+        "CPU is the maximum sum of counters of currently observed processes, not lifetime CPU or utilization.",
+        "The separate metadata server and test harness are excluded; no GPU or long-session measurement."
+      ]
+    },
+    "notices": {
+      "components": {
+        "cargo": 241,
+        "npm": 4
+      },
+      "verified_notice_hashes_including_own_license": 433,
+      "missing_or_mismatched": 0,
+      "components_json_sha256": "c0dbb8392d88795d985d2ecdfd79481d8b29a342a97a79e91e753015633e1aeb",
+      "scope": "Cargo Windows build dependency superset plus installed frontend runtime packages; not an exhaustive binary SBOM",
+      "executable_sha256": "9f1a245f30fca7fc7b6545d49378033a77e866261649d33643868ff32fc22711",
+      "executable_bytes": 4623872
+    },
+    "jobs": [
+      {
+        "name": "tests",
+        "id": 134048208228,
+        "conclusion": "success",
+        "python_tests": 199
+      },
+      {
+        "name": "desktop-preview",
+        "id": 134048208093,
+        "conclusion": "success",
+        "node_tests": 46
+      },
+      {
+        "name": "desktop-native",
+        "id": 134048207791,
+        "conclusion": "success",
+        "rust_tests": 6,
+        "native_checks": 10
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "docs/images/v5.6-result.png",
+      "artifact_file": "04-result.png",
+      "sha256": "54123c9da68a69e7db69c51e68a0a76bd94813015a6062a0e1d9a2436a436d53",
+      "review": "Visually inspected; synthetic CI task only; original image bytes."
+    },
+    {
+      "file": "docs/images/v5.6-draft-return.png",
+      "artifact_file": "05-draft-return.png",
+      "sha256": "3d6ca1304fb9e1fb3b2708028bf2d0553752dc7eb8b2fe2e56c2cb0fd4208bd1",
+      "review": "Visually inspected; synthetic CI task only; original image bytes."
+    }
+  ],
+  "publication_check": {
+    "relative_links_checked_in_updated_guides": 59,
+    "broken_relative_links": 0,
+    "new_screenshots_embedded_text_or_exif_chunks": 0,
+    "runtime_and_test_sources_unchanged_since_verified_commit": "c200eef76197c444c063b8262535db5a83bb20bd"
+  }
+}

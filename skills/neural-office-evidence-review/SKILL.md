@@ -22,6 +22,8 @@ Check the transition from an open narrow-screen navigation drawer to a wide layo
 
 These are risk-directed examples, not a demand to redesign every component or claim universal accessibility. Record measured CSS viewport sizes and distinguish DOM assertions from visual inspection and real assistive-technology tests.
 
+When adding guidance to a result, recheck the overview at the same small viewport with real content. V5.6's expanded recommendations pushed a fourth finding outside the report region although the accepted report contained it. Separate existence in the DOM, visibility within the scroll container and visibility on screen. If overview is the acceptance criterion, preserve it through progressive disclosure and verify opening/closing details without another execution. Do not weaken a visibility assertion merely to obtain a green build; reproduce the geometry and retain the failed result.
+
 ## Resource and reference discipline
 
 Compare equivalent production builds and state the byte/compression method. Separate JS heap, process working set, committed memory, CPU time and GPU/VRAM. Short idle samples do not establish leak freedom, sustained latency or total application RAM. A smaller shell does not include the Python runtime or model weights automatically.

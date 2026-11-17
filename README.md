@@ -9,9 +9,9 @@ Un espacio de trabajo para encargar una revisión, seguir su ejecución y recupe
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![Informe real de Neural Office sobre el ejemplo incluido](docs/images/v5.5-result.png)
+![Informe real de Neural Office sobre el ejemplo incluido](docs/images/v5.6-result.png)
 
-Captura de la ejecución nativa verificada en V5.5. [Cambios y verificación de V5.6](docs/V5_6_REVIEW.md).
+V5.6 en Windows, con el ejemplo incluido y un modelo local real. [Cambios y verificación](docs/V5_6_REVIEW.md).
 
 ## Qué puedes hacer
 

@@ -50,7 +50,7 @@ La galería conserva la [revisión visual histórica](../docs/V5_4_1_UI_REVIEW.m
 
 La suite Node incluye regresiones de React con IPC simulado para cleanup terminal, cursores independientes e identificadores históricos. Las pruebas Python cubren reserva, cancelación, fuente, mensajes, muerte del controlador y respuesta perdida. Rust prueba frontera y assets. Ninguna por separado acredita el recorrido nativo.
 
-El [harness Windows CI](../tests/e2e_v55_native_uia.py) prueba el ejecutable, selector, aprobación, modelo real, informe, cierre/reapertura y parada con datos sintéticos. Su resultado fechado está en el [registro V5.5](../docs/V5_5_VERIFICATION.md). Usa herramientas de test fuera del producto; no añade un puerto de depuración al host distribuido.
+El [harness Windows CI](../tests/e2e_v55_native_uia.py) prueba el ejecutable, selector, aprobación, modelo real, informe, cierre/reapertura y parada con datos sintéticos. V5.6 añade orientación desplegable y retorno al borrador sin repetir trabajo; su resultado fechado está en el [registro V5.6](../docs/V5_6_REVIEW.md). Usa herramientas de test fuera del producto; no añade un puerto de depuración al host distribuido.
 
 Una prueba optativa del servicio real sin GUI usa un estado sintético nuevo y publica sólo métricas saneadas:
 

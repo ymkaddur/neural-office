@@ -17,7 +17,7 @@ El escritorio utiliza el mismo estado del piloto. No borres el ledger para actua
 ## Desarrollar y comprobar
 
 - [Contribuciones](../CONTRIBUTING.md), [skills de desarrollo](../skills/README.md).
-- [Integración nativa verificada en V5.5](V5_5_VERIFICATION.md), [dependencias](V5_5_DEPENDENCIES.md).
+- [Verificación actual de V5.6](V5_6_REVIEW.md), [integración original de V5.5](V5_5_VERIFICATION.md), [dependencias](V5_5_DEPENDENCIES.md).
 - [Investigación comparativa y límites de transferencia](V5_5_RESEARCH.md).
 - [Historial de decisiones y evidencia](HISTORY.md).
 
