@@ -1,3 +1,4 @@
+param([switch]$UIAutomationOnly)
 $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_OS -ne 'Windows') {
     throw 'This harness operates only on an isolated GitHub Windows runner.'
@@ -6,14 +7,20 @@ $testTools = Join-Path $env:RUNNER_TEMP 'neural-office-native-tools'
 New-Item -ItemType Directory -Path $testTools -ErrorAction Stop | Out-Null
 python -m pip install --only-binary=:all: --require-hashes -r tests/requirements-native-ci.txt
 if ($LASTEXITCODE -ne 0) { throw 'Pinned test dependency installation failed.' }
-cargo install tauri-driver --version 2.1.0 --locked
-if ($LASTEXITCODE -ne 0) { throw 'tauri-driver installation failed.' }
 $runtimeBase = Join-Path ${env:ProgramFiles(x86)} 'Microsoft/EdgeWebView/Application'
 $runtime = Get-ChildItem -LiteralPath $runtimeBase -Directory |
     Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
     Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
 if (-not $runtime) { throw 'A WebView2 runtime is required; none is installed on this runner.' }
 $runtimeVersion = $runtime.Name
+if ($UIAutomationOnly) {
+    @{ webview2_version = $runtimeVersion; automation = 'Windows UI Automation; no DevTools or WebDriver' } |
+        ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $testTools 'tools.json')
+    "NO_E2E_TOOLS=$testTools" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+    exit 0
+}
+cargo install tauri-driver --version 2.1.0 --locked
+if ($LASTEXITCODE -ne 0) { throw 'tauri-driver installation failed.' }
 $driverArchive = Join-Path $testTools 'edge.zip'
 Invoke-WebRequest -Uri "https://msedgedriver.microsoft.com/$runtimeVersion/edgedriver_win64.zip" -OutFile $driverArchive
 Expand-Archive -LiteralPath $driverArchive -DestinationPath (Join-Path $testTools 'edge')

@@ -228,3 +228,4 @@
 !skills/neural-office-user-validation/references/
 !skills/neural-office-user-validation/references/evidence.md
 !.gitattributes
+!tests/e2e_v55_native_uia.py

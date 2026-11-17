@@ -64,10 +64,10 @@ jobs:
         run: cargo build --locked --release --features custom-protocol
       - name: Prepare isolated native UI test tools
         shell: pwsh
-        run: ./tests/Prepare-V55NativeCI.ps1
+        run: ./tests/Prepare-V55NativeCI.ps1 -UIAutomationOnly
       - name: Exercise packaged UI, native picker, real model and restart
         timeout-minutes: 15
-        run: python -B tests/e2e_v55_native.py --output native-e2e-evidence
+        run: python -B tests/e2e_v55_native_uia.py --output native-e2e-evidence
       - name: Upload synthetic native UI evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

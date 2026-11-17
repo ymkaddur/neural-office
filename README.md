@@ -48,7 +48,7 @@ Se admite una inferencia administrada por ledger y hasta dos proyectos activos. 
 | Conciliación histórica y restauración | Verificadas para los esquemas y límites documentados |
 | Respuesta 401 intermitente del gateway histórico | Reproducida y corregida; diff y regresión publicados |
 | Timeout histórico al arrancar Ollama | Causa pendiente; instrumentación por etapas verificada |
-| Medición CPU, memoria del backend y comparación 1/3/7 | V5.3: seis intentos reales aceptados; calidad comparada y GPU pendientes; la auditoría actual usa datos sintéticos |
+| Medición CPU, memoria del backend y comparación 1/3/7 | V5.3: seis intentos reales aceptados. [V5.5](docs/V5_5_VERIFICATION.md): servicio/modelo real, informe, reapertura y cancelación sobre HTML sintético; calidad comparada y GPU pendientes |
 | Escritorio V5.5 | Interfaz conectada mediante Tauri/Python; [recorrido real y limitaciones](docs/V5_5_VERIFICATION.md). Galería sintética aparte; aceptación visual pendiente |
 | Contrato de escritorio | Transporte restringido, captura nativa, reserva durable, aprobación ligada a revisión y lectura verificada del informe |
 | Memoria, skills aprendidas y tareas generales | Planificadas |
@@ -66,7 +66,7 @@ La [auditoría de V5.4.1](docs/FORENSIC_AUDIT_V5_4_1.md) documenta tres defectos
 
 Dos ensayos por perfil, una máquina, el HTML incluido y un modelo en CPU. ¹ Suma muestreada de memoria residente; puede contar páginas compartidas varias veces y excluye interfaz/controlador. Estas cifras no son requisitos mínimos ni una comparación de calidad. [Protocolo, entorno y recibos](docs/V5_3_MEASUREMENT_PROTOCOL.md).
 
-V5.4 publica una [nueva línea base](docs/V5_4_RESOURCE_BASELINE.md): tres ensayos CPU del motor conservado y muestras de la UI por separado. No se anuncia una aceleración ni un consumo total del futuro escritorio. V5.5 añade integración real y conserva abierta la aceptación visual; el corpus amplio y las comparaciones controladas siguen pendientes. [Contrato de integración](docs/V5_3_DESKTOP_CONTRACT.md) · [revisión dirigida de vídeos](docs/V5_3_VIDEO_RESEARCH.md).
+V5.4 publica una [nueva línea base](docs/V5_4_RESOURCE_BASELINE.md): tres ensayos CPU del motor conservado y muestras de la UI por separado. No se anuncia una aceleración ni un consumo total del futuro escritorio. V5.5 añade integración real y conserva abierta la aceptación visual; el corpus amplio y las comparaciones controladas siguen pendientes. [Integración actual y pruebas](docs/V5_5_VERIFICATION.md) · [revisión dirigida de vídeos](docs/V5_3_VIDEO_RESEARCH.md).
 
 La entrega visual original V5.4.1 mantuvo el motor intacto y [midió solo el frontend](docs/V5_4_1_RESOURCE_BASELINE.md). Corrigió reenvío involuntario, bloqueo de navegación entre tamaños y prioridad visual de la parada. La auditoría posterior incorpora las correcciones del núcleo 5.3.1 documentadas arriba; las dependencias de ejecución siguen iguales. La [revisión visual](docs/V5_4_1_UI_REVIEW.md) conserva su alcance original.
 
