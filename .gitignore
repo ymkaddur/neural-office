@@ -10,6 +10,7 @@
 !neural_office/
 !tests/
 !.github/workflows/windows-tests.yml
+!.github/workflows/v58-native.yml
 !.github/FUNDING.yml
 !.gitignore
 !LICENSE

@@ -1,0 +1,137 @@
+name: V5.8 native reconnection
+on:
+  push:
+    branches: [ci/v58-native-reconnect]
+    paths:
+      - '.github/workflows/v58-native.yml'
+      - 'tests/e2e_v58_reconnect.py'
+
+permissions:
+  contents: read
+
+env:
+  CANDIDATE_SHA: 66fa7278cadc7ebb1329cce38059e4c4525e17c3
+  PYTHONUTF8: '1'
+
+jobs:
+  verify:
+    runs-on: windows-2025
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Confirm the candidate source and verification branch
+        run: |
+          $ErrorActionPreference='Stop'
+          $PSNativeCommandUseErrorActionPreference=$true
+          if ($env:GITHUB_REF -ne 'refs/heads/ci/v58-native-reconnect') { throw 'Unexpected verification ref' }
+          git merge-base --is-ancestor $env:CANDIDATE_SHA HEAD
+          git diff --quiet $env:CANDIDATE_SHA HEAD -- . ':(exclude).github/workflows/v58-native.yml' ':(exclude)tests/e2e_v58_reconnect.py' ':(exclude).gitignore' ':(exclude)PUBLICATION_MANIFEST.sha256'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - name: Embed the production renderer
+        working-directory: desktop
+        run: |
+          $PSNativeCommandUseErrorActionPreference=$true
+          npm.cmd ci --ignore-scripts
+          npm.cmd run build -- --mode native
+      - name: Compile the Tauri executable for Windows
+        working-directory: desktop/src-tauri
+        run: cargo build --locked --release --features custom-protocol
+      - name: Verify native peer ownership and concurrent handshakes
+        working-directory: desktop/src-tauri
+        run: cargo test --locked --release --features custom-protocol --test peer_lifecycle
+      - name: Prepare Windows UI Automation
+        run: ./tests/Prepare-V55NativeCI.ps1 -UIAutomationOnly
+      - name: Interrupt and reconnect the same attempt twice in the compiled window
+        timeout-minutes: 5
+        run: |
+          $ErrorActionPreference='Stop'
+          $PSNativeCommandUseErrorActionPreference=$true
+          $exe=Get-Item -LiteralPath desktop/src-tauri/target/release/neural-office-desktop.exe
+          if ($exe.VersionInfo.ProductVersion -ne '5.8.0') { throw 'Unexpected executable version' }
+          python -B -c "import sys; sys.exit(0 if __debug__ else 1)"
+          python -B tests/e2e_v58_reconnect.py --executable $exe.FullName --output "$env:RUNNER_TEMP/v58-reconnect" --cycles 2
+      - name: Record the executable and the observed charges
+        run: |
+          $ErrorActionPreference='Stop'
+          $receipt=Get-Content -LiteralPath "$env:RUNNER_TEMP/v58-reconnect/receipt.json" -Raw | ConvertFrom-Json
+          if ($receipt.status -ne 'passed' -or $receipt.host -ne 'native-tauri-executable' -or $receipt.observations.cycles.Count -ne 2) { throw 'Incomplete native receipt' }
+          $exe=Get-Item -LiteralPath desktop/src-tauri/target/release/neural-office-desktop.exe
+          $tools=Get-Content -LiteralPath (Join-Path $env:NO_E2E_TOOLS 'tools.json') -Raw | ConvertFrom-Json
+          New-Item -ItemType Directory -Path ci-result | Out-Null
+          $result=[ordered]@{
+            product_commit=$env:CANDIDATE_SHA
+            verification_commit=$env:GITHUB_SHA
+            run_id=$env:GITHUB_RUN_ID
+            run_attempt=$env:GITHUB_RUN_ATTEMPT
+            runner_image=$env:ImageOS
+            runner_image_version=$env:ImageVersion
+            webview2=$tools.webview2_version
+            executable=[ordered]@{name=$exe.Name;version=$exe.VersionInfo.ProductVersion;bytes=$exe.Length;sha256=(Get-FileHash -LiteralPath $exe.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
+            harness_sha256=(Get-FileHash -LiteralPath tests/e2e_v58_reconnect.py -Algorithm SHA256).Hash.ToLowerInvariant()
+            test=$receipt
+          }
+          $result | ConvertTo-Json -Depth 24 | Set-Content -LiteralPath ci-result/v58-native-result.json -Encoding utf8NoBOM
+          "V5.8.0 · same window and same attempt across both outages. Reconnection charges: $($receipt.observations.reconnection_cost). Fixture invocations: $($receipt.observations.after_reconnect.fixture_invocations)." >> $env:GITHUB_STEP_SUMMARY
+          "Executable SHA256: $($result.executable.sha256)" >> $env:GITHUB_STEP_SUMMARY
+      - name: Preserve notices and encrypt the test host for local delivery
+        run: |
+          $ErrorActionPreference='Stop'
+          $PSNativeCommandUseErrorActionPreference=$true
+          $package=Join-Path $env:RUNNER_TEMP 'v58-test-host'
+          [void](New-Item -ItemType Directory -Path $package)
+          python -B tools/collect_native_notices.py --output "$package/notices"
+          Copy-Item -LiteralPath desktop/src-tauri/target/release/neural-office-desktop.exe -Destination $package
+          Copy-Item -LiteralPath LICENSE -Destination $package
+          $public=Join-Path $env:RUNNER_TEMP 'v58-delivery.crt'
+          @'
+          -----BEGIN CERTIFICATE-----
+          MIIERjCCAq6gAwIBAgIUEUwyMAFlsR4bbHbo/ay8Cdx/glAwDQYJKoZIhvcNAQEL
+          BQAwLDEqMCgGA1UEAwwhTmV1cmFsIE9mZmljZSBuYXRpdmUgdmVyaWZpY2F0aW9u
+          MB4XDTI2MTExNzIzMjgyOVoXDTI2MTIwODIzMjgyOVowLDEqMCgGA1UEAwwhTmV1
+          cmFsIE9mZmljZSBuYXRpdmUgdmVyaWZpY2F0aW9uMIIBojANBgkqhkiG9w0BAQEF
+          AAOCAY8AMIIBigKCAYEAquL64itZF8pPmbEXeqP2SmxU1OIG0vmB8/03isTIHbLx
+          iZq1Yce9Di9QBLPmG7wZ3cPfiKyblNCqMXPrMZZzfjQMA+ipqg+fzSpmXitIRIDs
+          hUO0RlNTjUU8XNVVZr7oKxmMMsY5QnTvM8X+WgsWmb3rhZZf84lMFPdfBn5w6xdq
+          uhrTmU8TGwaM1FIMg2Dv3fi35dRJ4QN8SWBgIxhzJlfCOjIbIoQMOoEJnxX6EA3F
+          z4fyLsYi7upuTjyW4uVPKNXEJmxXCCmEYmnwfMmwE3+Zvo0YRnWMk9S0mDYaRsQI
+          qpXD6hlJSAWb3tBHvuJb2UDX2+cSAQvWuI8RSsV2ohPekEtCy4dKfd8OD6LWNGLa
+          38fpsPXl9nTPWdalgxO24xHil06oQj/q5nZa34lWuyAc9g0UuNzQG37KmCEB+ua7
+          BgHiP31TfYtRcxuNOpNJfD7Bfgx1bKwDgjBf9qLsDR5KLVGTKfg6hKFJ9BeLC8sd
+          VinUnp1sCeq4govC2gd7AgMBAAGjYDBeMB0GA1UdDgQWBBSVZkycMkSuQG1uQQVK
+          rp4lUrjX+DAfBgNVHSMEGDAWgBSVZkycMkSuQG1uQQVKrp4lUrjX+DAPBgNVHRMB
+          Af8EBTADAQH/MAsGA1UdDwQEAwIFIDANBgkqhkiG9w0BAQsFAAOCAYEAC3g1ZNbx
+          rPkqBmEEYLUuKJM23fHWVFGqXj4ETRgiXZ7iHFHzrWE+1Wrr01qQn2kEt3KxvoWP
+          CcLaNhPxpQlau1+gyoLlWEzRyaJdQnYmou1NGbbzXDVm8FJwFIJAWFXU/ySEGUUz
+          4TxEsOsxe2ktxok2Z6N9AK0YwexuFGNQ45J/zI6c6A15xEjrJdrP9GVFpOgiMnEC
+          eMWOoHL7PXQxHuivnG2no3ebXXExUTAr6A7+TLN7KDUPMQGmSu0QYKZfS42vSevu
+          0vhHoOV3DKpmvx986WTnpzpnLSYlBqlMkgKWpKHMkPyaqq/URxYQ63irtCOh68yW
+          EKcvXltPKFQVwmKwHk6+T7CRqfhYM6IdoAb9aT229sEpMh8djwALKo53K06nnrkf
+          i0pQ0a4skr+UZ2Pmw+T++2+5/19CQTNfNsKr8kr4Nn5XZ/qcpliH2LgKtcFP2tjP
+          1VIKA/Mb0VCkx4s2yAsBQie6V6WJoO8oreL0DKLL7D7UqvDBjW/sFNgU
+          -----END CERTIFICATE-----
+          '@ | Set-Content -LiteralPath $public -Encoding ascii
+          $archive=Join-Path $env:RUNNER_TEMP 'v58-test-host.zip'
+          Compress-Archive -LiteralPath $package -DestinationPath $archive
+          $openssl=Join-Path $env:ProgramFiles 'Git/usr/bin/openssl.exe'
+          & $openssl cms -encrypt -binary -aes-256-cbc -outform DER -in $archive -out ci-result/v58-test-host.zip.cms $public
+      - name: Retain the synthetic receipt and encrypted test host
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: v58-native-verification
+          path: |
+            ci-result/v58-native-result.json
+            ci-result/v58-test-host.zip.cms
+          if-no-files-found: error
+          retention-days: 3
