@@ -331,6 +331,17 @@ def main():
         assert 'Entrega disponible' in content and all(label in content for label in LABELS), 'FINDINGS_NOT_RENDERED'
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'CALL_OR_QUOTA_MISMATCH'
         screen.screenshot(output / '04-result.png')
+        stage = 'finding_guidance_disclosure'
+        guidance = 'Añade un title descriptivo en head. Debe identificar el propósito de esta página.'
+        assert guidance not in screen.names(), 'GUIDANCE_NOT_COLLAPSED'
+        screen.button('Qué revisar: Falta un título de documento no vacío')
+        wait(lambda: guidance in screen.names(), description='selected finding guidance visible')
+        screen.screenshot(output / '04-finding-guidance.png')
+        screen.button('Qué revisar: Falta un título de documento no vacío')
+        wait(lambda: guidance not in screen.names() and all(label in screen.names() for label in LABELS),
+             description='collapsed guidance restores overview of all four findings')
+        assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'GUIDANCE_REEXECUTED_WORK'
+        checks.append({'check': 'four-visible-findings-expand-collapse-real-guidance-without-new-work', 'verified': True})
         screen.tab('Evidencia y alcance')
         with closing(sqlite3.connect(state.as_uri() + '?mode=ro', uri=True)) as con:
             artifact, artifact_hash = con.execute('SELECT artifact,artifact_sha FROM attempts WHERE ordinal=1').fetchone()

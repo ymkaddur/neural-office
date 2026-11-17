@@ -7,3 +7,4 @@
 @media(prefers-reduced-motion:reduce){.connected *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 .connected-close-nav{display:none}@media(max-width:850px){.connected-close-nav{display:block;color:#bdcbe2;font-size:11px;text-align:left;padding:0 0 18px}}
 .connected.theme-dark{color-scheme:dark}.connected:not(.theme-dark){color-scheme:light}.finding-action{font-size:12px;line-height:1.65;color:var(--muted);margin:8px 0 0}.connected-projects>button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.connected-projects small{flex:none}
+.connected-report .report-scope{margin-bottom:16px}.connected-report h3{font-size:21px;margin:10px 0}.finding-list li{padding:12px 0}.finding-action summary{cursor:pointer;color:var(--accent)}.finding-action p{margin:8px 0 0}.finding-action summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
