@@ -1,6 +1,6 @@
-# Escritorio Neural Office · V5.5
+# Escritorio Neural Office · V5.6
 
-Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el mismo núcleo Python del piloto. Es una **vista previa de desarrollo para Windows**, no un instalador autónomo. [Pruebas, recursos y límites](../docs/V5_5_VERIFICATION.md) · [Hoja de ruta V6](../docs/V5_5_TO_V6.md).
+Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el mismo núcleo Python del piloto. Es una **vista previa de desarrollo para Windows**, no un instalador autónomo. [Cambios y verificación](../docs/V5_6_REVIEW.md) · [Hoja de ruta V6](../ROADMAP.md).
 
 ## Abrir el recorrido conectado
 
@@ -39,11 +39,10 @@ Los límites actuales son tres intentos por proyecto, dos proyectos activos y un
 ## Revisar sólo las escenas históricas
 
 ```powershell
-npm run build
-npm run preview -- --port 5316 --strictPort
+npm run dev -- --port 5316 --strictPort
 ```
 
-Abre `http://127.0.0.1:5316/?preview=1&screen=ready`. Las escenas `ready`, `running`, `result`, `error` y `stopping` son ejemplos sintéticos V5.4.1, cargados de forma separada. No generan contenido ni comprueban cierre de procesos. La ruta principal en un navegador explica cómo abrir el escritorio; no finge conectarse al núcleo.
+Abre `http://127.0.0.1:5316/?preview=1&screen=ready`. Las escenas `ready`, `running`, `result`, `error` y `stopping` son ejemplos sintéticos V5.4.1, disponibles sólo en desarrollo; los builds de producción no los incorporan. No generan contenido ni comprueban cierre de procesos. La ruta principal en un navegador explica cómo abrir el escritorio; no finge conectarse al núcleo.
 
 La galería conserva la [revisión visual histórica](../docs/V5_4_1_UI_REVIEW.md) y sus limitaciones. La UI conectada mantiene paneles ajustables, temas y controles de teclado; esa reutilización no implica que haya superado un estudio de usuarios o lector de pantalla.
 

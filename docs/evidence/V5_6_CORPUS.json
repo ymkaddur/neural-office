@@ -1,0 +1,367 @@
+{
+  "schema": 1,
+  "created_utc": "2026-11-17T12:10:50.153120+00:00",
+  "scope": "static HTML, no model; manually authored synthetic expectations",
+  "corpus_sha256": "2096964fdc9e30a372b6d81a026ea841c8bee506e55ef25e4278c8a053c50174",
+  "auditor_sha256": "28fc1c736225ecaff7a04357e461b6a852ff95c7eab738ec3522801f12cf7b15",
+  "model_calls": 0,
+  "contract_passed": true,
+  "results": {
+    "contract": {
+      "case_count": 18,
+      "matched_count": 18,
+      "not_matched_count": 0,
+      "cases": [
+        {
+          "id": "empty_document",
+          "expected": [
+            {
+              "code": "DOCUMENT_TITLE_MISSING",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "code": "HTML_ELEMENT_MISSING",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "observed": [
+            {
+              "code": "DOCUMENT_TITLE_MISSING",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "code": "HTML_ELEMENT_MISSING",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "minimal_named_document",
+          "expected": [],
+          "observed": [],
+          "matched": true
+        },
+        {
+          "id": "four_missing_features",
+          "expected": [
+            {
+              "code": "DOCUMENT_TITLE_MISSING",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "code": "HTML_LANGUAGE_MISSING",
+              "line": 2,
+              "column": 1
+            },
+            {
+              "code": "IMAGE_ALT_MISSING",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 6,
+              "column": 3
+            }
+          ],
+          "observed": [
+            {
+              "code": "DOCUMENT_TITLE_MISSING",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "code": "HTML_LANGUAGE_MISSING",
+              "line": 2,
+              "column": 1
+            },
+            {
+              "code": "IMAGE_ALT_MISSING",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 6,
+              "column": 3
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "document_fragment_boundary",
+          "expected": [
+            {
+              "code": "HTML_ELEMENT_MISSING",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "observed": [
+            {
+              "code": "HTML_ELEMENT_MISSING",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "whitespace_title_and_language",
+          "expected": [
+            {
+              "code": "DOCUMENT_TITLE_MISSING",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "code": "HTML_LANGUAGE_MISSING",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "observed": [
+            {
+              "code": "DOCUMENT_TITLE_MISSING",
+              "line": 1,
+              "column": 1
+            },
+            {
+              "code": "HTML_LANGUAGE_MISSING",
+              "line": 1,
+              "column": 1
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "informative_image_missing_alt",
+          "expected": [
+            {
+              "code": "IMAGE_ALT_MISSING",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "observed": [
+            {
+              "code": "IMAGE_ALT_MISSING",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "decorative_image_empty_alt",
+          "expected": [],
+          "observed": [],
+          "matched": true
+        },
+        {
+          "id": "explicit_label_after_control",
+          "expected": [],
+          "observed": [],
+          "matched": true
+        },
+        {
+          "id": "implicit_nonempty_label",
+          "expected": [],
+          "observed": [],
+          "matched": true
+        },
+        {
+          "id": "mismatched_label_target",
+          "expected": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 5,
+              "column": 3
+            }
+          ],
+          "observed": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 5,
+              "column": 3
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "three_unnamed_control_kinds",
+          "expected": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 6,
+              "column": 3
+            }
+          ],
+          "observed": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 5,
+              "column": 3
+            },
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 6,
+              "column": 3
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "explicit_name_attributes",
+          "expected": [],
+          "observed": [],
+          "matched": true
+        },
+        {
+          "id": "input_types_excluded_from_label_candidate",
+          "expected": [],
+          "observed": [],
+          "matched": true
+        },
+        {
+          "id": "comments_and_script_are_not_markup_findings",
+          "expected": [],
+          "observed": [],
+          "matched": true
+        },
+        {
+          "id": "bom_crlf_unicode_column",
+          "expected": [
+            {
+              "code": "IMAGE_ALT_MISSING",
+              "line": 4,
+              "column": 5
+            }
+          ],
+          "observed": [
+            {
+              "code": "IMAGE_ALT_MISSING",
+              "line": 4,
+              "column": 5
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "whitespace_name_attributes",
+          "expected": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "observed": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "select_type_hidden_is_not_hidden_input",
+          "expected": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "observed": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "matched": true
+        },
+        {
+          "id": "textarea_type_button_is_not_button_input",
+          "expected": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "observed": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "matched": true
+        }
+      ]
+    },
+    "semantic_probes": {
+      "case_count": 2,
+      "matched_count": 0,
+      "not_matched_count": 2,
+      "cases": [
+        {
+          "id": "aria_labelledby_missing_target",
+          "expected": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 4,
+              "column": 3
+            }
+          ],
+          "observed": [],
+          "matched": false
+        },
+        {
+          "id": "empty_explicit_label",
+          "expected": [
+            {
+              "code": "CONTROL_LABEL_CANDIDATE",
+              "line": 5,
+              "column": 3
+            }
+          ],
+          "observed": [],
+          "matched": false
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Twenty selected synthetic cases do not estimate real-world precision, recall or user utility.",
+    "A matching result is not WCAG conformance, browser rendering, accessible-name computation or a security audit.",
+    "No model commentary is generated or scored; this corpus cannot establish a winning model or agent count.",
+    "Heuristic presence checks do not establish that language, image alternatives or labels are appropriate.",
+    "Semantic probes retain the desired manual expectation even when the current checker cannot meet it. They are not counted as passing heuristic cases."
+  ],
+  "interpretation": "Contract matches and semantic omissions are separate. These counts are not WCAG conformance, real-world accuracy or model quality."
+}

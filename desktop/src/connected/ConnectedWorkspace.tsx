@@ -8,6 +8,7 @@ import './connected.css';
 
 type LoadedReport=Awaited<ReturnType<typeof readReport>>;
 type Description={session_id:string;inference:string;office_id:string};
+type Draft={objective:string;source:Source|null;modelDigest:string;roleCount:number};
 let initialFlight:Promise<{description:Description;snapshot:Snapshot}>|null=null;
 function initialData() {
   if(!initialFlight) initialFlight=Promise.all([
@@ -44,6 +45,7 @@ function DirectorMark(){return <span className="director-mark" aria-hidden="true
 
 export function ConnectedWorkspace() {
   const native=hasNativeHost();
+  const [initializing,setInitializing]=useState(native);
   const [session,setSession]=useState('');
   const [officeId,setOfficeId]=useState('');
   const [snapshot,setSnapshot]=useState<Snapshot|null>(null);
@@ -70,9 +72,11 @@ export function ConnectedWorkspace() {
   const shell=useRef<HTMLDivElement>(null),surface=useRef<HTMLElement>(null),approvalDialog=useRef<HTMLDialogElement>(null);
   const mounted=useRef(false),operation=useRef(false),generation=useRef(0),eventsRef=useRef(events),sessionRef=useRef(''),officeRef=useRef('');
   const currentAttempt=useRef<Attempt|null>(null),previousFocus=useRef<HTMLElement|null>(null),navOpener=useRef<HTMLElement|null>(null);
+  // Unsent text stays in this window only. Cap storage without silently evicting work.
+  const drafts=useRef(new Map<string,Draft>());
   const active=attempt!==null&&!terminal(attempt.state);
   const project=snapshot?.projects.find(p=>p.id===projectId);
-  const busy=active||!!pending||storageBlocked;
+  const busy=initializing||active||!!pending||storageBlocked;
   const selectedModel=models.find(m=>m.model_digest===modelDigest);
   const status=attempt?stateLabels[attempt.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
   const epoch=()=>generation.current;
@@ -87,7 +91,11 @@ export function ConnectedWorkspace() {
   async function refreshSnapshot() {
     const next=validateSnapshot(await request<Snapshot>('snapshot.get',{project_after:0,attempt_after:0,limit:100}));
     if(!mounted.current) return next;
-    if(sessionRef.current&&sessionRef.current!==next.session_id) {invalidate();setSource(null);setModels([]);setModelDigest('');}
+    if(sessionRef.current&&sessionRef.current!==next.session_id) {
+      invalidate();setSource(null);setModels([]);setModelDigest('');
+      for(const draft of drafts.current.values())draft.source=null;
+      if(officeRef.current!==next.office_id){drafts.current.clear();setObjective('');}
+    }
     sessionRef.current=next.session_id;officeRef.current=next.office_id;setSession(next.session_id);setOfficeId(next.office_id);setSnapshot(next);
     return next;
   }
@@ -96,7 +104,7 @@ export function ConnectedWorkspace() {
     const result=await request<{found:boolean;attempt:Attempt|null}>('attempt.lookup',{project_id:saved.project_id,idempotency_key:saved.idempotency_key});
     if(!mounted.current) return;
     setProjectId(saved.project_id);
-    if(result.found&&result.attempt) {if(result.attempt.project_id!==saved.project_id||result.attempt.request_key!==saved.idempotency_key)throw Error('LOOKUP_IDENTITY_CHANGED');putAttempt(result.attempt);setPendingMissing(false);setNotice('Encargo recuperado por su identidad original. No se ha vuelto a ejecutar.');}
+    if(result.found&&result.attempt) {if(result.attempt.project_id!==saved.project_id||result.attempt.request_key!==saved.idempotency_key)throw Error('LOOKUP_IDENTITY_CHANGED');drafts.current.delete(saved.project_id);putAttempt(result.attempt);setPendingMissing(false);setNotice('Encargo recuperado por su identidad original. No se ha vuelto a ejecutar.');}
     else if(result.found===false&&result.attempt===null) {setPendingMissing(true);setNotice('El núcleo no tiene una reserva para esta identidad. No se ha reenviado nada.');}
     else throw Error('LOOKUP_CONTRACT');
   }
@@ -134,10 +142,13 @@ export function ConnectedWorkspace() {
         const activeProject=first.projects.find(p=>p.active)||first.projects[0];
         if(activeProject)setProjectId(activeProject.id);
         const unresolved=first.attempts.find(a=>!terminal(a.state));
-        if(unresolved){setProjectId(unresolved.project_id);putAttempt(await request<Attempt>('attempt.get',{attempt_id:unresolved.id}));}
+        if(unresolved){
+          setProjectId(unresolved.project_id);putAttempt(unresolved);
+          putAttempt(await request<Attempt>('attempt.get',{attempt_id:unresolved.id}));
+        }
       }
       if(live) await loadModels();
-    }).catch(error=>{if(live)noteError(error);});
+    }).catch(error=>{if(live)noteError(error);}).finally(()=>{if(live)setInitializing(false);});
     return ()=>{live=false;mounted.current=false;generation.current++;};
   },[native]);
   useEffect(()=>{try{localStorage.setItem('neural-office.v55.theme',dark?'dark':'light');}catch{}},[dark]);
@@ -151,7 +162,7 @@ export function ConnectedWorkspace() {
     try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);}catch{setStorageBlocked(true);}
   },[attempt,pending]);
   useEffect(()=>{
-    if(!active||!attempt)return;
+    if(initializing||!active||!attempt)return;
     const id=attempt.id;let cancelled=false,timer:ReturnType<typeof setTimeout>|undefined,failures=0;
     const tick=async()=>{
       try{
@@ -176,7 +187,7 @@ export function ConnectedWorkspace() {
     };
     timer=setTimeout(tick,250);
     return()=>{cancelled=true;if(timer)clearTimeout(timer);};
-  },[active,attempt?.id]);
+  },[initializing,active,attempt?.id]);
   useEffect(()=>{
     setReport(null);
     if(!attempt?.report_available)return;
@@ -229,19 +240,34 @@ export function ConnectedWorkspace() {
     // Identity is durable before send. Any ambiguous failure remains reconcilable.
     const next=await request<Attempt>('attempt.start',{approval_token:reviewed.value.approval_token,idempotency_key:identity.idempotency_key,expected_revision:reviewed.value.expected_revision});
     if(!mounted.current)return;
+    drafts.current.delete(projectId);
     putAttempt(next);setSource(null);setObjective('');await refreshSnapshot();
   }
-  function newTask(newProject=false) {
-    if(busy||operation.current)return;
-    invalidate();setSource(null);setObjective('');setReport(null);setAttempt(null);currentAttempt.current=null;
-    if(newProject)setProjectId(makeProject());
+  function retainDraft() {
+    if(attempt)return true;
+    if(!objective&&!source){drafts.current.delete(projectId);return true;}
+    if(!drafts.current.has(projectId)&&drafts.current.size>=20){
+      setNotice('Hay veinte borradores en esta ventana. Vacía o envía uno antes de cambiar de proyecto; tu texto actual sigue aquí.');return false;
+    }
+    drafts.current.set(projectId,{objective,source,modelDigest,roleCount});return true;
+  }
+  function openDraft(id:string) {
+    if(busy||operation.current||!retainDraft())return;
+    const draft=drafts.current.get(id);
+    invalidate();setProjectId(id);setSource(draft?.source?.session_id===session?draft.source:null);
+    setObjective(draft?.objective||'');setRoleCount(draft?.roleCount||1);
+    if(draft)setModelDigest(models.some(m=>m.model_digest===draft.modelDigest)?draft.modelDigest:'');
+    setReport(null);setAttempt(null);currentAttempt.current=null;
     setNavOpen(false);requestAnimationFrame(()=>document.getElementById('connected-objective')?.focus());
   }
+  function newTask(newProject=false) {
+    openDraft(newProject?makeProject():projectId);
+  }
   function chooseProject(id:string) {
-    if(busy||operation.current)return;
-    newTask();setProjectId(id);
+    openDraft(id);
   }
   async function chooseAttempt(item:Attempt) {
+    if(!retainDraft())return;
     invalidate();const expected=epoch();
     const next=await request<Attempt>('attempt.get',{attempt_id:item.id});
     if(!mounted.current||expected!==epoch())return;
@@ -279,29 +305,29 @@ export function ConnectedWorkspace() {
   }
 
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.5</span></div>
-    <section className="offline-content"><span className="eyebrow">Tu oficina, en tu equipo</span><h1>El trabajo real vive<br/>en el escritorio.</h1><p>Esta pestaña permite revisar la interfaz. Para elegir un archivo, usar tu modelo local y conservar el encargo, abre la aplicación de Neural Office.</p><a className="solid-button" href="?preview=1&screen=ready">Explorar las cinco pantallas de ejemplo <span aria-hidden="true">→</span></a><p className="offline-note">Los ejemplos son estáticos. No ejecutan modelos ni consumen intentos.</p></section>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.6</span></div>
+    <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa un archivo.<br/>Conserva la evidencia.</h1><p>Abre Neural Office en el escritorio para seleccionar un HTML, consultar tu modelo local y recuperar sus informes.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
 
   return <div className={`v541 connected ${dark?'theme-dark':''}`}>
     <div ref={shell} className={`office-shell connected-shell ${navOpen?'nav-open':''}`}>
       <nav className="office-nav connected-nav" aria-label="Proyectos y encargos">
-        <div className="wordmark"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.5</span></div>
+        <div className="wordmark"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.6</span></div>
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo encargo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
         <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===projectId?'selected':''} disabled={busy||!!doing} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>Presupuesto por confirmar</small></div>}</div>
         <div className="connected-nav-heading">Encargos guardados</div>
-        <div className="connected-history">{snapshot?.attempts.filter(a=>a.project_id===projectId).map(a=><button key={a.id} className={a.id===attempt?.id?'selected':''} disabled={active||!!doing||!!pending} onClick={()=>void act('Abriendo encargo',()=>chooseAttempt(a))}><span className={`history-dot ${terminal(a.state)?'finished':''}`}/><span><strong>{a.objective}</strong><small>{stateLabels[a.state]} · intento {a.ordinal}</small></span></button>)}{!snapshot?.attempts.some(a=>a.project_id===projectId)&&<p className="history-empty">Aquí quedarán las entregas de este proyecto.</p>}</div>
-        {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={!!doing} onClick={()=>void act('Cargando proyectos',()=>nextHistoryPage('projects'))}>Siguientes proyectos →</button>}
-        {snapshot?.has_more.attempts&&<button className="nav-secondary" disabled={!!doing} onClick={()=>void act('Cargando encargos',()=>nextHistoryPage('attempts'))}>Siguientes encargos →</button>}
+        <div className="connected-history">{snapshot?.attempts.filter(a=>a.project_id===projectId).map(a=><button key={a.id} className={a.id===attempt?.id?'selected':''} disabled={initializing||active||!!doing||!!pending} onClick={()=>void act('Abriendo encargo',()=>chooseAttempt(a))}><span className={`history-dot ${terminal(a.state)?'finished':''}`}/><span><strong>{a.objective}</strong><small>{stateLabels[a.state]} · intento {a.ordinal}</small></span></button>)}{!snapshot?.attempts.some(a=>a.project_id===projectId)&&<p className="history-empty">Aquí quedarán las entregas de este proyecto.</p>}</div>
+        {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',()=>nextHistoryPage('projects'))}>Siguientes proyectos →</button>}
+        {snapshot?.has_more.attempts&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando encargos',()=>nextHistoryPage('attempts'))}>Siguientes encargos →</button>}
         <div className="nav-bottom"><div className="local-engine"><span className={`connected-indicator ${session?'online':''}`}/><div><strong>{session?'Núcleo local conectado':'Conexión pendiente'}</strong><small>Una inferencia a la vez<br/>CPU · contexto 8K</small></div></div><div className="nav-footer"><span>Registro local del encargo</span><button aria-label={dark?'Activar tema claro':'Activar tema oscuro'} onClick={()=>setDark(!dark)}>{dark?'☼':'◐'}</button></div></div>
       </nav>
       <PaneDivider kind="navigation" container={shell} controls="connected-main" label="Ancho de navegación"/>
       {navOpen&&<button className="connected-nav-backdrop" aria-label="Cerrar navegación" onClick={()=>setNavOpen(false)}/>}
       <main id="connected-main" className="office-workspace" tabIndex={-1} inert={navOpen||undefined}>
-        <header className="workspace-header connected-header"><div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><span>Oficina</span><span aria-hidden="true">/</span><strong>{source?.filename||'Revisión HTML'}</strong></div><div className="header-actions"><span className="connected-quota">{project?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</span><button className="quiet-button" disabled={!!doing||!session} onClick={()=>void act('Actualizando estado',refreshAll)}>Actualizar</button></div></header>
+        <header className="workspace-header connected-header"><div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><span>Oficina</span><span aria-hidden="true">/</span><strong>{source?.filename||'Revisión HTML'}</strong></div><div className="header-actions"><span className="connected-quota">{project?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</span><button className="quiet-button" disabled={initializing||!!doing||!session} onClick={()=>void act('Actualizando estado',refreshAll)}>Actualizar</button></div></header>
         {(problem||notice)&&<div className={`connected-notice ${problem?'problem':''}`} role={problem?'alert':'status'}><span>{problem?.message||notice}{problem&&<code>{problem.code}</code>}</span><button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button></div>}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={!!doing} onClick={()=>void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={!!doing} onClick={()=>{try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);setNotice('Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}}}>Descartar petición sin reserva</button>}</div>}
         <section ref={surface} className={`connected-surface ${attempt?'with-delivery':''}`} aria-label="Encargo y entrega">
@@ -311,13 +337,13 @@ export function ConnectedWorkspace() {
               {!attempt?<div className="connected-opening"><span className="eyebrow">Un encargo. Una entrega revisable.</span><h1>¿Qué revisamos?</h1><p>Elige un HTML y un modelo local. El Director explicará los hallazgos del análisis estático; tú decides qué hacer con ellos.</p><div className="connected-scope"><span aria-hidden="true">↳</span><p>Se comprueban idioma, título, alternativas de imagen y posibles controles sin etiqueta. El archivo se lee sin ejecutarlo.</p></div></div>:<><div className="connected-user-request"><span>Tu encargo</span><p>{attempt.objective}</p></div><div className="connected-work-status"><strong>{stateLabels[attempt.state]}</strong><p>{attempt.state==='STOPPING'?'La parada está solicitada. Esperamos a que el núcleo confirme que sus procesos han terminado.':attempt.state==='RECOVERY_REQUIRED'?'El cierre anterior no quedó confirmado. La recuperación comprobará el proceso y conservará el consumo; no volverá a ejecutar el modelo.':attempt.state==='QUEUED'?'La identidad y el consumo están guardados. Si se interrumpió el arranque, recupera este intento; no lo reenvíes.':attempt.state==='ACCEPTED'?'El informe coincide con las comprobaciones estáticas y sus recibos. Revisa por separado las sugerencias del modelo.':attempt.state==='FAILED'?'El intento terminó sin una entrega validada. Consulta el estado y prepara otro encargo sólo cuando tengas claro el motivo.':attempt.state==='CANCELLED'?'El núcleo ha confirmado la parada. El intento consumido se conserva.':attempt.state==='VERIFYING'?'El núcleo está contrastando el informe con la fuente capturada y los recibos.':'El modelo trabaja con los hallazgos y el objetivo, dentro del perfil aprobado.'}</p></div>
                 <ol className="connected-call-list" aria-label="Llamadas del modelo">{(attempt.calls||[]).map(call=><li key={call.seq}><span className="call-order">{call.seq}</span><strong>{roles[call.role]||call.role}</strong><span>{call.state==='DONE'?'Respuesta registrada':call.state==='STARTED'?'En curso':call.state}</span></li>)}</ol>
                 {active&&<div className="connected-action-row"><button className="stop-button" disabled={!!doing||attempt.state==='STOPPING'} onClick={()=>void act('Solicitando parada',async()=>{putAttempt(await request<Attempt>('attempt.cancel',{attempt_id:attempt.id}));})}>■ {attempt.state==='STOPPING'?'Parada solicitada':'Detener trabajo'}</button><button className="quiet-button" disabled={!!doing} onClick={()=>void act('Comprobando recuperación',async()=>{putAttempt(await request<Attempt>('attempt.recover',{attempt_id:attempt.id,expected_revision:attempt.revision}));await refreshSnapshot();})}>Comprobar recuperación</button></div>}
-                {terminal(attempt.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>newTask()}>Preparar otro encargo →</button>}
+                {terminal(attempt.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>newTask()}>{drafts.current.has(projectId)?'Volver al borrador':'Preparar otro encargo →'}</button>}
                 {!!events.events.length&&<details className="connected-event-details"><summary>Actividad desde esta apertura <span>{events.events.length}</span></summary><ol>{events.events.filter(e=>e.payload.attempt===attempt.id).map(e=><li key={e.seq}><code>#{e.seq}</code> {e.kind.replaceAll('_',' ').toLowerCase()}</li>)}</ol><p>Vista acotada a cien eventos. Las llamadas y el informe se consultan en el registro durable.</p></details>}
               </>}
             </div>
             {!attempt&&<form className="connected-composer" onSubmit={e=>{e.preventDefault();void act('Preparando revisión',prepare);}}>
               <label htmlFor="connected-objective">Tu encargo al Director</label><textarea id="connected-objective" placeholder="Ej.: revisa las barreras de accesibilidad de este HTML y prioriza qué debería corregir." value={objective} maxLength={2000} rows={4} disabled={busy||!session} onChange={e=>{invalidate();setObjective(e.target.value);}} onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229){e.preventDefault();if(!doing)void act('Preparando revisión',prepare);}}}/>
-              <div className="connected-source-row"><button type="button" className="source-picker" disabled={busy||!!doing||!session} onClick={()=>void act('Eligiendo fuente',pickSource)}><span aria-hidden="true">＋</span>{source?source.filename:'Elegir archivo HTML'}</button>{source&&<span>{Math.ceil(source.bytes/1024)} KB · copia capturada</span>}</div>
+              <div className="connected-source-row"><button type="button" className="source-picker" disabled={busy||!!doing||!session} onClick={()=>void act('Eligiendo fuente',pickSource)}><span aria-hidden="true">＋</span>{source?source.filename:'Elegir archivo HTML'}</button>{source&&<><span>{Math.ceil(source.bytes/1024)} KB · copia capturada</span><button type="button" aria-label="Quitar fuente del borrador" disabled={busy||!!doing} onClick={()=>{invalidate();setSource(null);}}>×</button></>}</div>
               <div className="connected-model-row"><label htmlFor="connected-model">Modelo local</label><select id="connected-model" value={modelDigest} disabled={busy||!!doing} onChange={e=>{invalidate();setModelDigest(e.target.value);}}><option value="" disabled>{models.length?'Selecciona un modelo':'No hay modelos disponibles'}</option>{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select><button type="button" aria-label="Actualizar modelos locales" title="Actualizar modelos locales" disabled={busy||!!doing||!session} onClick={()=>void act('Consultando modelos',loadModels)}>↻</button></div>
               <details className="connected-profile"><summary>Perfil acotado <span>{roleCount} {roleCount===1?'rol':'roles'} · CPU</span></summary><label htmlFor="connected-roles">Roles secuenciales</label><select id="connected-roles" value={roleCount} disabled={busy||!!doing} onChange={e=>{invalidate();setRoleCount(Number(e.target.value));}}><option value={1}>1 · Director</option><option value={3}>3 · Director, revisor e integrador</option><option value={7}>7 · Equipo completo</option></select><p>Más roles producen más llamadas. No implican mayor calidad. Un solo modelo, contexto 8K y hasta 128 tokens de salida por llamada.</p></details>
               <div className="connected-send-row"><span>{doing||'Ctrl + Enter para revisar'}<small>{objective.length}/2000</small></span><button className="solid-button" type="submit" disabled={busy||!!doing||!source||!selectedModel||objective.trim().length<12}>Revisar encargo <span aria-hidden="true">→</span></button></div>
@@ -334,6 +360,13 @@ export function ConnectedWorkspace() {
   </div>;
 }
 const findingLabels:Record<string,string>={HTML_LANGUAGE_MISSING:'El documento no declara su idioma',HTML_ELEMENT_MISSING:'No se encontró el elemento HTML',DOCUMENT_TITLE_MISSING:'Falta un título de documento no vacío',IMAGE_ALT_MISSING:'Una imagen no tiene atributo alt',CONTROL_LABEL_CANDIDATE:'Un control podría necesitar una etiqueta'};
+const findingActions:Record<string,string>={
+  HTML_LANGUAGE_MISSING:'Declara en html el idioma principal del contenido, por ejemplo lang="es" si corresponde.',
+  HTML_ELEMENT_MISSING:'Comprueba si elegiste un documento completo o un fragmento. Esta revisión espera un documento HTML.',
+  DOCUMENT_TITLE_MISSING:'Añade un title descriptivo en head. Debe identificar el propósito de esta página.',
+  IMAGE_ALT_MISSING:'Describe la información o función de la imagen. Si sólo decora, usa alt=""; decide según su contexto.',
+  CONTROL_LABEL_CANDIDATE:'Comprueba el nombre accesible en el navegador. Asocia una etiqueta descriptiva al control; placeholder no sustituye a label.',
+};
 function ReportView({report}:{report:Report}) {
-  return <article className="connected-report"><span className="eyebrow">Comprobaciones estáticas</span><h3>{report.findings.length?`${report.findings.length} ${report.findings.length===1?'hallazgo para revisar':'hallazgos para revisar'}`:'Sin hallazgos en estas comprobaciones'}</h3><p className="report-scope">El alcance es limitado: estos resultados no sustituyen una revisión de accesibilidad en el navegador.</p><ol className="finding-list">{report.findings.map((f,index)=><li key={`${f.code}-${f.line}-${f.column}-${index}`}><span>{String(index+1).padStart(2,'0')}</span><div><strong>{findingLabels[f.code]||f.code}</strong><small>Línea {f.line} · columna {f.column}</small></div></li>)}</ol><div className="commentary-heading"><h3>Criterio del equipo</h3><span>Sugerencias por revisar</span></div>{report.role_outputs.map((r,index)=><section className="role-commentary" key={`${r.role}-${index}`}><h4>{roles[r.role]||r.role}</h4><p>{r.content}</p></section>)}</article>;
+  return <article className="connected-report"><span className="eyebrow">Comprobaciones estáticas</span><h3>{report.findings.length?`${report.findings.length} ${report.findings.length===1?'hallazgo para revisar':'hallazgos para revisar'}`:'Sin hallazgos en estas comprobaciones'}</h3><p className="report-scope">Revisa cada ubicación en tu editor. Idioma y título se comprueban por presencia; el nombre accesible y el contexto requieren revisión en el navegador.</p><ol className="finding-list">{report.findings.map((f,index)=><li key={`${f.code}-${f.line}-${f.column}-${index}`}><span>{String(index+1).padStart(2,'0')}</span><div><strong>{findingLabels[f.code]||f.code}</strong><small>Línea {f.line} · columna {f.column}{f.code==='DOCUMENT_TITLE_MISSING'||f.code==='HTML_ELEMENT_MISSING'?' · comprobación global del documento':''}</small>{findingActions[f.code]&&<p className="finding-action">{findingActions[f.code]}</p>}</div></li>)}</ol><div className="commentary-heading"><h3>Comentarios del modelo</h3><span>Sugerencias por revisar</span></div>{report.role_outputs.map((r,index)=><section className="role-commentary" key={`${r.role}-${index}`}><h4>{roles[r.role]||r.role}</h4><p>{r.content}</p></section>)}</article>;
 }

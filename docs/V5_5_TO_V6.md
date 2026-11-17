@@ -1,3 +1,5 @@
+Plan histórico de V5.5. La hoja de ruta vigente está en [ROADMAP.md](../ROADMAP.md).
+
 # De V5.5 a V6: una oficina que termina un encargo
 
 Fecha: 17 de noviembre de 2026. Este documento actualiza el tramo corto de [ROADMAP](../ROADMAP.md). Las capacidades futuras son propuestas, no funciones presentes. La evidencia de ejecución se mantiene en [la entrega V5.5](V5_5_VERIFICATION.md); la [investigación](V5_5_RESEARCH.md) conserva fuentes y contraejemplos.

@@ -1,6 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #[cfg(not(windows))]
-compile_error!("This V5.5 host is verified only for Windows process ownership.");
+compile_error!("This host is verified only for Windows process ownership.");
 
 mod bridge;
 mod owned_job;
@@ -82,7 +82,7 @@ fn main() {
                 "main",
                 tauri::WebviewUrl::App("index.html".into()),
             )
-            .title("Neural Office · V5.5")
+            .title("Neural Office · V5.6")
             .inner_size(1320.0, 860.0)
             .min_inner_size(760.0, 540.0)
             .on_navigation(|url| allowed_navigation(url, cfg!(debug_assertions)))

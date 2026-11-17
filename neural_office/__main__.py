@@ -22,6 +22,8 @@ def main(argv=None):
     parser.add_argument('--state',help='Office ledger; defaults to one per user. Preserve its witness when restoring.')
     sub=parser.add_subparsers(dest='action',required=True)
     sub.add_parser('init'); sub.add_parser('status'); sub.add_parser('models'); sub.add_parser('gui')
+    check=sub.add_parser('check',help='Static HTML findings only: no model, ledger or inference')
+    check.add_argument('--root',required=True); check.add_argument('--file',required=True)
     sub.add_parser('protect',help='Enroll an idle schema-1 V5.2 ledger without resetting history')
     for action in ('backup','restore'):
         command=sub.add_parser(action); command.add_argument('file')
@@ -38,6 +40,9 @@ def main(argv=None):
     for action in ('cancel','recover','report','resume'):
         command=sub.add_parser(action); command.add_argument('attempt')
     args=parser.parse_args(argv)
+    if args.action=='check':
+        from .audit import make_report
+        print(make_report(snapshot_file(args.file,args.root),[]).decode('utf-8')); return
     if args.action=='models':
         print(canonical({'models':[{'name':m['name'],'digest':m.get('digest'),'size':m.get('size')} for m in local_metadata()['models']]})); return
     ledger=Ledger(args.state)

@@ -245,3 +245,19 @@
 !docs/images/v5.5-result.png
 !docs/images/v5.5-reopened.png
 !docs/images/v5.5-cancelled.png
+
+# V5.6 public source and sanitized evidence.
+!docs/README.md
+!docs/HISTORY.md
+!docs/SUPPORT.md
+!docs/HTML_REVIEW.md
+!docs/V5_6_REVIEW.md
+!examples/html-review-corpus.json
+!tests/test_v56_check.py
+!tests/test_v56_html_corpus.py
+!tools/evaluate_v56_html.py
+!docs/evidence/V5_6_CORPUS.json
+!docs/evidence/V5_6_VERIFICATION.json
+!docs/evidence/V5_6_NATIVE.json
+!docs/images/v5.6-result.png
+!docs/images/v5.6-draft-return.png

@@ -3,7 +3,7 @@ from html.parser import HTMLParser
 import json
 from .ledger import canonical, digest
 
-SCOPE = 'static-html-checks-v1'
+SCOPE = 'static-html-checks-v2'
 
 
 class Scan(HTMLParser):
@@ -31,7 +31,8 @@ class Scan(HTMLParser):
         if tag=='label':
             self.label_depth+=1
             if values.get('for'): self.labels.add(values['for'])
-        if tag in ('input','select','textarea') and values.get('type','').lower() not in ('hidden','submit','reset','button','image'):
+        excluded_input = tag=='input' and values.get('type','').lower() in ('hidden','submit','reset','button','image')
+        if tag in ('input','select','textarea') and not excluded_input:
             named = bool(self.label_depth or (values.get('aria-label') or '').strip()
                          or (values.get('aria-labelledby') or '').strip() or (values.get('title') or '').strip())
             self.controls.append((values.get('id'),named,self.getpos()))
@@ -75,6 +76,6 @@ def verify_report(source, artifact):
         checks['outputs_type']=type(report.get('role_outputs')) is list
     except (ValueError,TypeError,AttributeError,UnicodeError):
         checks['parse']=False
-    return {'verifier':'static-html-recompute-v1','source_sha256':digest(source),
+    return {'verifier':'static-html-recompute-v2','source_sha256':digest(source),
             'artifact_sha256':digest(artifact),'checks':checks,'passed':bool(checks) and all(checks.values()),
             'coverage':'Four static heuristics; no browser rendering, WCAG certification or security certification.'}

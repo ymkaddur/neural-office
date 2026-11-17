@@ -126,7 +126,7 @@ export function Workspace() {
     <a className="skip-link" href="#workspace-main">Saltar al trabajo</a>
     <div className="review-strip" aria-label="Revisión del prototipo">
       <span className="review-label"><strong>V5.4.1</strong><span className="review-descriptor">Vista previa · sin motor</span></span>
-      <nav aria-label="Cinco pantallas de diseño">{screens.map((screen,i)=><a key={screen} href={`?screen=${screen}`} aria-current={state.screen===screen?'page':undefined}><span>{i+1}</span>{screenLabels[screen]}</a>)}</nav>
+      <nav aria-label="Cinco pantallas de diseño">{screens.map((screen,i)=><a key={screen} href={`?preview=1&screen=${screen}`} aria-current={state.screen===screen?'page':undefined}><span>{i+1}</span>{screenLabels[screen]}</a>)}</nav>
       <button className="review-measure" onClick={()=>setOverlay({kind:'measure'})}><Icon name="chip" size={14}/><span>Medir</span></button>
     </div>
     <div ref={shell} className={`office-shell ${navOpen?'nav-open':''}`}>

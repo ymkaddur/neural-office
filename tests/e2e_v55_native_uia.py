@@ -363,6 +363,17 @@ def main():
         screen.objective(SECOND)
         screen.button('Elegir archivo HTML'); native_picker(host, source)
         wait(lambda: 'audit-sample.html' in screen.names(), description='second source captured')
+        stage = 'history_preserves_unsent_draft'
+        screen.button(re.escape(OBJECTIVE) + '.*', regex=True)
+        wait(lambda: '4 hallazgos para revisar' in screen.names(), description='previous report opened from draft')
+        screen.button('Volver al borrador')
+        wait(lambda: screen.control('Tu encargo al Director', 'Edit').get_value() == SECOND,
+             description='unsent draft survived history without rewriting it')
+        assert 'audit-sample.html' in screen.names(), 'HISTORY_LOST_CAPTURED_SOURCE'
+        assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'DRAFT_NAVIGATION_RESERVED_WORK'
+        checks.append({'check': 'history-return-retains-exact-draft-and-source-without-reservation', 'verified': True})
+        screen.screenshot(output / '05-draft-return.png')
+        stage = 'cancel_second_attempt'
         screen.button('Revisar encargo.*', regex=True)
         wait(lambda: 'Consumirá 1 intento' in screen.names(), description='second visible approval')
         screen.button('Autorizar y ejecutar.*', regex=True)

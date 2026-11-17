@@ -1,0 +1,300 @@
+{
+  "schema": 1,
+  "name": "neural-office-static-html-review-v1",
+  "authorship": "Synthetic cases and literal expected findings authored by the reviewing agent before running this corpus. audit_html was not used to generate expectations. The reviewer read the implementation to identify the declared scope; this is not a blind or held-out evaluation.",
+  "purpose": "A deterministic no-model baseline for four heuristic families, plus explicit semantic probes that can expose omissions.",
+  "encoding": "UTF-8 by default; line and column are one-based Unicode character positions. Global document findings use line 1, column 1.",
+  "limitations": [
+    "Twenty selected synthetic cases do not estimate real-world precision, recall or user utility.",
+    "A matching result is not WCAG conformance, browser rendering, accessible-name computation or a security audit.",
+    "No model commentary is generated or scored; this corpus cannot establish a winning model or agent count.",
+    "Heuristic presence checks do not establish that language, image alternatives or labels are appropriate.",
+    "Semantic probes retain the desired manual expectation even when the current checker cannot meet it. They are not counted as passing heuristic cases."
+  ],
+  "sources": {
+    "labels": "https://www.w3.org/WAI/tutorials/forms/labels/",
+    "decorative_images": "https://www.w3.org/WAI/tutorials/images/decorative/",
+    "select_and_textarea": "https://html.spec.whatwg.org/multipage/form-elements.html",
+    "accessible_name_recommendation": "https://www.w3.org/TR/accname-1.1/#mapping_additional_nd_te",
+    "title": "https://html.spec.whatwg.org/multipage/semantics.html#the-title-element",
+    "language": "https://html.spec.whatwg.org/multipage/dom.html#the-lang-and-xml:lang-attributes"
+  },
+  "cases": [
+    {
+      "id": "empty_document",
+      "group": "contract",
+      "purpose": "Zero input: distinguish a missing document root from missing title text.",
+      "html": "",
+      "expected_findings": [
+        {
+          "code": "DOCUMENT_TITLE_MISSING",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "code": "HTML_ELEMENT_MISSING",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "rationale": "There is no literal html element and no title text. This is a full-document heuristic, not an HTML fragment validator."
+    },
+    {
+      "id": "minimal_named_document",
+      "group": "contract",
+      "purpose": "Negative control: a named, language-declared document with no images or controls.",
+      "html": "<!doctype html>\n<html lang=\"es\">\n<head><title>Agenda del equipo</title></head>\n<body><h1>Agenda</h1></body>\n</html>",
+      "expected_findings": [],
+      "rationale": "All applicable presence checks are satisfied; no assertion is made about the rest of accessibility."
+    },
+    {
+      "id": "four_missing_features",
+      "group": "contract",
+      "purpose": "Positive control with one finding from each heuristic family and independent source positions.",
+      "html": "<!doctype html>\n<html>\n<head><title> </title></head>\n<body>\n  <img src=\"diagram.png\">\n  <input id=\"name\">\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "DOCUMENT_TITLE_MISSING",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "code": "HTML_LANGUAGE_MISSING",
+          "line": 2,
+          "column": 1
+        },
+        {
+          "code": "IMAGE_ALT_MISSING",
+          "line": 5,
+          "column": 3
+        },
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 6,
+          "column": 3
+        }
+      ],
+      "rationale": "Whitespace does not provide title text. Neither image alternative nor control name is present."
+    },
+    {
+      "id": "document_fragment_boundary",
+      "group": "contract",
+      "purpose": "Declare the full-document boundary when the source contains only a fragment.",
+      "html": "<title>Fragmento</title>\n<p>Contenido sintético.</p>",
+      "expected_findings": [
+        {
+          "code": "HTML_ELEMENT_MISSING",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "rationale": "The heuristic requires a literal html element. Browsers may infer elements and HTML permits some tag omission; this finding is not a claim that a fragment is invalid or inaccessible."
+    },
+    {
+      "id": "whitespace_title_and_language",
+      "group": "contract",
+      "purpose": "Whitespace and character references must not masquerade as meaningful title or language values.",
+      "html": "<html lang=\"  \t \" >\n<head><title> &#32; \t </title></head>\n<body><p>Texto.</p></body>\n</html>",
+      "expected_findings": [
+        {
+          "code": "DOCUMENT_TITLE_MISSING",
+          "line": 1,
+          "column": 1
+        },
+        {
+          "code": "HTML_LANGUAGE_MISSING",
+          "line": 1,
+          "column": 1
+        }
+      ],
+      "rationale": "Both values are whitespace-only. Ordering is by source position and then code."
+    },
+    {
+      "id": "informative_image_missing_alt",
+      "group": "contract",
+      "purpose": "Image presence check with an author-declared informative use.",
+      "html": "<html lang=\"es\">\n<head><title>Distribución</title></head>\n<body>\n  <img src=\"distribution.png\">\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "IMAGE_ALT_MISSING",
+          "line": 4,
+          "column": 3
+        }
+      ],
+      "rationale": "The image has no alt attribute. The checker does not interpret pixels or synthesize a correct alternative."
+    },
+    {
+      "id": "decorative_image_empty_alt",
+      "group": "contract",
+      "purpose": "Negative control: an explicitly decorative image uses an empty alternative.",
+      "html": "<html lang=\"es\">\n<head><title>Separador</title></head>\n<body>\n  <img src=\"border.png\" alt=\"\">\n</body></html>",
+      "expected_findings": [],
+      "rationale": "Empty alt is intentional for the decorative role stated by the case author. This does not imply empty alt is suitable for informative images."
+    },
+    {
+      "id": "explicit_label_after_control",
+      "group": "contract",
+      "purpose": "Order independence: the matching explicit label may follow its control.",
+      "html": "<html lang=\"es\">\n<head><title>Registro</title></head>\n<body>\n  <input id=\"email\" type=\"email\">\n  <label for=\"email\">Correo</label>\n</body></html>",
+      "expected_findings": [],
+      "rationale": "The label for value exactly matches the control id and supplies text even though it appears later."
+    },
+    {
+      "id": "implicit_nonempty_label",
+      "group": "contract",
+      "purpose": "Negative control for a nonempty wrapping label.",
+      "html": "<html lang=\"es\">\n<head><title>Preferencia</title></head>\n<body>\n  <label>Recibir avisos <input type=\"checkbox\"></label>\n</body></html>",
+      "expected_findings": [],
+      "rationale": "The checkbox is nested in the label that describes its purpose."
+    },
+    {
+      "id": "mismatched_label_target",
+      "group": "contract",
+      "purpose": "An unrelated label must not suppress a candidate for another control.",
+      "html": "<html lang=\"es\">\n<head><title>Entrega</title></head>\n<body>\n  <label for=\"other\">Destino</label>\n  <input id=\"destination\">\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 5,
+          "column": 3
+        }
+      ],
+      "rationale": "The for/id values differ; there is no alternate naming attribute."
+    },
+    {
+      "id": "three_unnamed_control_kinds",
+      "group": "contract",
+      "purpose": "Exercise input, select and textarea independently with ordered findings.",
+      "html": "<html lang=\"es\">\n<head><title>Formulario</title></head>\n<body>\n  <input>\n  <select><option>Uno</option></select>\n  <textarea></textarea>\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 4,
+          "column": 3
+        },
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 5,
+          "column": 3
+        },
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 6,
+          "column": 3
+        }
+      ],
+      "rationale": "An option value and textarea content are not the label of their enclosing control."
+    },
+    {
+      "id": "explicit_name_attributes",
+      "group": "contract",
+      "purpose": "Negative controls for nonempty aria-label, a real aria-labelledby target and title fallback.",
+      "html": "<html lang=\"es\">\n<head><title>Preferencias</title></head>\n<body>\n  <input aria-label=\"Nombre\">\n  <span id=\"language-label\">Idioma</span>\n  <select aria-labelledby=\"language-label\"><option>Español</option></select>\n  <textarea title=\"Comentario\"></textarea>\n</body></html>",
+      "expected_findings": [],
+      "rationale": "These are candidates for naming in the declared heuristic. Title alone is not asserted to be a good visible-label design."
+    },
+    {
+      "id": "input_types_excluded_from_label_candidate",
+      "group": "contract",
+      "purpose": "Document exclusions for hidden and action input types without claiming they need no accessibility review.",
+      "html": "<html lang=\"es\">\n<head><title>Acciones</title></head>\n<body>\n  <input type=\"hidden\" value=\"synthetic\">\n  <input type=\"submit\" value=\"Enviar\">\n  <input type=\"reset\" value=\"Restablecer\">\n  <input type=\"button\" value=\"Vista previa\">\n  <input type=\"image\" src=\"send.png\" alt=\"Enviar\">\n</body></html>",
+      "expected_findings": [],
+      "rationale": "The control-label candidate check excludes these input types. The image input supplies its own alt; image-input semantics are outside the img-only heuristic."
+    },
+    {
+      "id": "comments_and_script_are_not_markup_findings",
+      "group": "contract",
+      "purpose": "Do not scan commented markup or a script string as if they were elements in the document.",
+      "html": "<html lang=\"es\">\n<head><title>Texto inerte</title></head>\n<body>\n  <!-- <img src='comment.png'><input> -->\n  <script>const sample = \"<img src='string.png'><input>\"; throw new Error('must not run');</script>\n</body></html>",
+      "expected_findings": [],
+      "rationale": "The parser should treat these regions as inert source content. No browser or script runtime is invoked by this test."
+    },
+    {
+      "id": "bom_crlf_unicode_column",
+      "group": "contract",
+      "purpose": "BOM, CRLF, uppercase HTML and multibyte characters preserve readable one-based source coordinates.",
+      "byte_encoding": "utf-8-sig",
+      "html": "<HTML LANG=\"es\">\r\n<HEAD><TITLE>Ámbito 🧪</TITLE></HEAD>\r\n<BODY>\r\n  Á🧪<IMG SRC=\"diagram.png\">\r\n</BODY></HTML>",
+      "expected_findings": [
+        {
+          "code": "IMAGE_ALT_MISSING",
+          "line": 4,
+          "column": 5
+        }
+      ],
+      "rationale": "The img begins after two spaces and two Unicode characters. Column is not a UTF-8 byte offset."
+    },
+    {
+      "id": "whitespace_name_attributes",
+      "group": "contract",
+      "purpose": "Whitespace-only naming attributes cannot suppress a missing-label candidate.",
+      "html": "<html lang=\"es\">\n<head><title>Nombre vacío</title></head>\n<body>\n  <input aria-label=\"  \" aria-labelledby=\" \t \" title=\"\t\">\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 4,
+          "column": 3
+        }
+      ],
+      "rationale": "No nonempty naming value, label association or label ancestor exists."
+    },
+    {
+      "id": "select_type_hidden_is_not_hidden_input",
+      "group": "contract",
+      "purpose": "An inapplicable type attribute must not suppress review of an unnamed select.",
+      "html": "<html lang=\"es\">\n<head><title>Selector</title></head>\n<body>\n  <select type=\"hidden\"><option>Uno</option></select>\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 4,
+          "column": 3
+        }
+      ],
+      "rationale": "Select has no type content attribute that makes it a hidden input. Adding this irrelevant attribute should not remove the candidate seen for the ordinary unnamed select."
+    },
+    {
+      "id": "textarea_type_button_is_not_button_input",
+      "group": "contract",
+      "purpose": "An inapplicable input-style type must not suppress review of an unnamed textarea.",
+      "html": "<html lang=\"es\">\n<head><title>Comentario</title></head>\n<body>\n  <textarea type=\"button\"></textarea>\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 4,
+          "column": 3
+        }
+      ],
+      "rationale": "The textarea remains a multiline text control; the unrelated type attribute does not supply a label or change it to an action input."
+    }
+  ],
+  "semantic_probes": [
+    {
+      "id": "aria_labelledby_missing_target",
+      "group": "semantic_probe",
+      "purpose": "An unresolved IDREF should not count as a demonstrated accessible name.",
+      "html": "<html lang=\"es\">\n<head><title>Referencia ausente</title></head>\n<body>\n  <input aria-labelledby=\"missing-label\">\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 4,
+          "column": 3
+        }
+      ],
+      "rationale": "No element has the referenced id, and no other naming source is supplied. This tests a semantic gap beyond attribute presence; it does not require claiming a full accessible-name algorithm."
+    },
+    {
+      "id": "empty_explicit_label",
+      "group": "semantic_probe",
+      "purpose": "Association alone does not establish a nonempty control name.",
+      "html": "<html lang=\"es\">\n<head><title>Etiqueta vacía</title></head>\n<body>\n  <label for=\"name\"></label>\n  <input id=\"name\">\n</body></html>",
+      "expected_findings": [
+        {
+          "code": "CONTROL_LABEL_CANDIDATE",
+          "line": 5,
+          "column": 3
+        }
+      ],
+      "rationale": "The associated label has no text, descendants or alternative name and there is no other naming source. Detecting this requires more than matching for/id."
+    }
+  ]
+}

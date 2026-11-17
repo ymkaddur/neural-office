@@ -17,7 +17,7 @@ const bundle=build({stdin:{contents:`
   globalThis.disposeWorkspace=()=>root.unmount();
   root.render(<ConnectedWorkspace/>);`,resolveDir:dirname(fileURLToPath(import.meta.url)),sourcefile:'adversarial-entry.tsx',loader:'tsx'},
   write:false,bundle:true,format:'iife',platform:'browser',jsx:'automatic',
-  define:{'process.env.NODE_ENV':'"production"'},loader:{'.css':'empty'}}).then(result=>result.outputFiles[0].text);
+  define:{'process.env.NODE_ENV':'"production"','import.meta.env.DEV':'false'},loader:{'.css':'empty'}}).then(result=>result.outputFiles[0].text);
 const wait=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(condition:()=>boolean){
   const deadline=performance.now()+3000;
@@ -114,8 +114,8 @@ async function openSavedAttempt(app:Awaited<ReturnType<typeof mount>>){
   (app.document.querySelector('.connected-history button') as any).click();
   await until(()=>!!app.document.querySelector('.connected-user-request'));
 }
-function validReport(){
-  const text=JSON.stringify({schema:1,scope:'static-html-checks-v1',source_sha256:baseAttempt.source_sha256,findings:[],model_commentary_status:'UNVERIFIED_ASSISTANCE',role_outputs:[{role:'director',content:'Synthetic report for component verification.'}]});
+function validReport(scope='static-html-checks-v1',findings:{code:string;line:number;column:number}[]=[]){
+  const text=JSON.stringify({schema:1,scope,source_sha256:baseAttempt.source_sha256,findings,model_commentary_status:'UNVERIFIED_ASSISTANCE',role_outputs:[{role:'director',content:'Synthetic report for component verification.'}]});
   const bytes=Buffer.from(text),sha=createHash('sha256').update(bytes).digest('hex');
   return {
     meta:{attempt_id:baseAttempt.id,state:'ACCEPTED',sha256:sha,bytes:bytes.length,encoding:'utf-8',media_type:'application/json',verdict:{passed:true,coverage:'synthetic'},mode:'fixture'},
@@ -173,8 +173,8 @@ for(const outcome of ['deferred','failed'] as const)test(`accepted report ${outc
   }finally{release?.();await app.close();}
 });
 
-test('valid accepted report control renders the verified bytes without another attempt',async()=>{
-  const fixture=validReport();
+for(const scope of ['static-html-checks-v1','static-html-checks-v2'])test(`${scope} accepted report renders the verified bytes without another attempt`,async()=>{
+  const fixture=validReport(scope);
   const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>method==='report.get'?fixture.meta:fixture.chunk);
   const app=await mount(peer.send);
   try{
@@ -209,5 +209,141 @@ test('Actualizar retries a transient report read for the unchanged accepted atte
     assert.equal(peer.calls.filter(call=>call.method==='report.read').length,1);
     assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
     assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/1 de 3/);
+  }finally{await app.close();}
+});
+
+function enterDraft(app:Awaited<ReturnType<typeof mount>>,text:string){
+  const field=app.document.querySelector('#connected-objective') as any;
+  assert.ok(field);
+  const setter=Object.getOwnPropertyDescriptor(app.window.HTMLTextAreaElement.prototype,'value')!.set!;
+  setter.call(field,text);
+  field.dispatchEvent(new app.window.Event('input',{bubbles:true}));
+}
+
+test('reading history returns to the unsent draft without reserving work',async()=>{
+  const peer=savedAttemptPeer({...baseAttempt,state:'CANCELLED',report_available:false});
+  const app=await mount(peer.send);
+  try{
+    await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
+    enterDraft(app,'Revisar el formulario antes de publicarlo.');
+    await until(()=>app.document.querySelector('.connected-send-row')?.textContent.includes('42/2000')===true);
+    await openSavedAttempt(app);
+    const back=Array.from(app.document.querySelectorAll('button')).find(button=>button.textContent.includes('Volver al borrador'));
+    assert.ok(back,'History is a read operation: the composer needs a return path');
+    back.click();
+    await until(()=>!!app.document.querySelector('#connected-objective'));
+    assert.equal((app.document.querySelector('#connected-objective') as any).value,'Revisar el formulario antes de publicarlo.');
+    assert.equal(peer.calls.filter(call=>call.method==='attempt.start'||call.method==='attempt.preview').length,0);
+  }finally{await app.close();}
+});
+
+test('switching projects retains separate bounded in-memory drafts',async()=>{
+  const calls:string[]=[];
+  const app=await mount(async method=>{
+    calls.push(method);
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('alpha',0),project('beta',0)]);
+    if(method==='models.list')return {models:[],session_id:'session'};
+    throw Error('Unexpected RPC while navigating drafts');
+  });
+  const choose=(id:string)=>(app.document.querySelector(`.connected-projects button[title="${id}"]`) as any).click();
+  try{
+    await until(()=>app.document.querySelectorAll('.connected-projects button').length===2);
+    enterDraft(app,'Alpha: revisar los campos.');await wait(20);
+    choose('beta');await wait(20);
+    assert.equal((app.document.querySelector('#connected-objective') as any).value,'');
+    enterDraft(app,'Beta: revisar las imágenes.');await wait(20);
+    choose('alpha');await wait(20);
+    assert.equal((app.document.querySelector('#connected-objective') as any).value,'Alpha: revisar los campos.');
+    choose('beta');await wait(20);
+    assert.equal((app.document.querySelector('#connected-objective') as any).value,'Beta: revisar las imágenes.');
+    assert.equal(calls.filter(method=>method.startsWith('attempt.')).length,0);
+  }finally{await app.close();}
+});
+
+test('bootstrap cannot expose another project while its active attempt is still loading',async()=>{
+  let release:(()=>void)|undefined,requested=false;
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([baseAttempt],[project('project',1),project('other',0)]);
+    if(method==='attempt.get'){
+      requested=true;await new Promise<void>(resolve=>{release=resolve;});return {...baseAttempt};
+    }
+    if(method==='models.list')return {models:[],session_id:'session'};
+    if(method==='events.read')return {session_id:'session',cursor:2,next_after:2,has_more:false,events:[]};
+    throw Error('Unexpected RPC');
+  });
+  try{
+    await until(()=>requested&&!!app.document.querySelector('[title="other"]'));
+    assert.equal((app.document.querySelector('[title="other"]') as any).disabled,true,
+      'Bootstrap must reconcile the active identity before enabling project changes');
+    const composer=app.document.querySelector('#connected-objective') as any;
+    assert.ok(!composer||composer.disabled,'No editable composer before active identity reconciliation');
+    release?.();await until(()=>!!app.document.querySelector('.connected-user-request'));
+    assert.equal(app.document.querySelector('.connected-projects .selected')?.getAttribute('title'),'project');
+    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/1 de 3/);
+  }finally{release?.();await app.close();}
+});
+
+test('a failed bootstrap detail read keeps the authoritative active identity and can be refreshed',async()=>{
+  let reads=0;
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([baseAttempt],[project('project',1),project('other',0)]);
+    if(method==='attempt.get'){if(++reads===1)throw 'TRANSIENT_READ_FAILURE';return {...baseAttempt};}
+    if(method==='events.read')return {session_id:'session',cursor:2,next_after:2,has_more:false,events:[]};
+    if(method==='models.list')return {models:[],session_id:'session'};
+    throw Error('Unexpected RPC');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('[role="alert"]'));
+    assert.ok(!app.document.querySelector('#connected-objective'),'A failed detail read cannot erase the active snapshot');
+    assert.equal((app.document.querySelector('[title="other"]') as any).disabled,true);
+    assert.equal(app.document.querySelector('.connected-projects .selected')?.getAttribute('title'),'project');
+    const refresh=Array.from(app.document.querySelectorAll('button')).find(button=>button.textContent==='Actualizar');
+    assert.ok(refresh);await until(()=>!refresh.disabled);refresh.click();
+    await until(()=>reads>=2&&!refresh.disabled);
+    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/1 de 3/);
+    assert.ok(!app.document.querySelector('[role="alert"]'));
+  }finally{await app.close();}
+});
+
+for(const found of [true,false])test(`lost start acknowledgement reconciles the draft only when its receipt is found=${found}`,async()=>{
+  let starts=0,key='',lookups=0;
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0),project('other',0)]);
+    if(method==='models.list')return {session_id:'session',models:[{model:'synthetic',model_digest:'b'.repeat(64),mode:'fixture'}]};
+    if(method==='source.pick')return {entry_token:'source',project_id:'project',filename:'synthetic.html',sha256:'a'.repeat(64),bytes:60,session_id:'session',expires_in_seconds:120};
+    if(method==='attempt.preview')return {session_id:'session',approval_token:'approval',expected_revision:2,expires_in_seconds:120,project_id:'project',source_sha256:'a'.repeat(64),objective:params.objective,roles:1,model:'synthetic',model_digest:'b'.repeat(64),mode:'fixture',attempts_consumed:0,attempts_remaining:3};
+    if(method==='attempt.start'){starts++;key=String(params.idempotency_key);throw 'HOST_REQUEST_TIMEOUT';}
+    if(method==='attempt.lookup'){lookups++;return {found,attempt:found?{...baseAttempt,state:'CANCELLED',request_key:key}:null};}
+    throw Error(`Unexpected RPC ${method}`);
+  });
+  const button=(text:string)=>Array.from(app.document.querySelectorAll('button')).find(item=>item.textContent.includes(text));
+  try{
+    await until(()=>!!app.document.querySelector('.connected-projects button:not(:disabled)'));
+    enterDraft(app,'Revisión pendiente de confirmar.');await wait(20);
+    button('Elegir archivo HTML')!.click();await until(()=>!!button('synthetic.html'));
+    (app.document.querySelector('[title="other"]') as any).click();await wait(20);
+    (app.document.querySelector('[title="project"]') as any).click();await wait(20);
+    app.document.querySelector('form')!.dispatchEvent(new app.window.Event('submit',{bubbles:true,cancelable:true}));
+    await until(()=>!!button('Autorizar y ejecutar'));button('Autorizar y ejecutar')!.click();
+    await until(()=>starts===1&&!!app.document.querySelector('[role="alert"]'));
+    await until(()=>!!button('Comprobar encargo')&&!button('Comprobar encargo')!.disabled);
+    button('Comprobar encargo')!.click();await until(()=>lookups===1);
+    if(found){
+      await until(()=>!!button('Preparar otro encargo')&&!button('Preparar otro encargo')!.disabled);
+      assert.ok(!button('Volver al borrador'),'The confirmed sent draft is not an unsent task');
+      button('Preparar otro encargo')!.click();await until(()=>!!app.document.querySelector('#connected-objective'));
+      assert.equal((app.document.querySelector('#connected-objective') as any).value,'');
+      assert.ok(!button('synthetic.html'));
+    }else{
+      await until(()=>!!button('Descartar petición sin reserva')&&!button('Descartar petición sin reserva')!.disabled);
+      button('Descartar petición sin reserva')!.click();await until(()=>!(app.document.querySelector('#connected-objective') as any)?.disabled);
+      assert.equal((app.document.querySelector('#connected-objective') as any).value,'Revisión pendiente de confirmar.');
+      assert.ok(button('synthetic.html'));
+    }
+    assert.equal(starts,1,'Lookup cannot repeat a start');
   }finally{await app.close();}
 });
