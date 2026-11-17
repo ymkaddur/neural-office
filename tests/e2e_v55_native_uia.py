@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import platform
 import re
 import shutil
 import socket
@@ -204,6 +205,10 @@ def main():
                 'source_sha256': sha(source), 'executable_sha256': sha(executable),
                 'tools': json.loads((tools / 'tools.json').read_text(encoding='utf-8-sig')),
                 'runner_elevated': bool(ctypes.windll.shell32.IsUserAnAdmin()),
+                'runner_environment': {
+                    'system': platform.system(), 'release': platform.release(), 'machine': platform.machine(),
+                    'python': sys.version, 'logical_cpus': psutil.cpu_count(logical=True),
+                    'physical_cpus': psutil.cpu_count(logical=False), 'total_ram_bytes': psutil.virtual_memory().total},
                 'checks': [], 'limitations': [
                     'One synthetic HTML task and one cancellation; no semantic model quality claim.',
                     'Windows CI runner only, not a user-machine policy override or clean-machine installer test.',
@@ -367,6 +372,13 @@ def main():
         assert counts['attempts'] == 2 and counts['calls'] in (1, 2) and counts['states'] == ['ACCEPTED', 'CANCELLED'], 'CANCEL_CONTRACT'
         assert '2 de 3 intentos' in screen.names(), 'CANCEL_BUDGET_NOT_VISIBLE'
         assert 'Encargo detenido' in screen.control(re.escape(SECOND) + '.*', regex=True).window_text(), 'HISTORY_TERMINAL_STATE_STALE'
+        def cancelled_delivery_header():
+            delivery = screen.window.child_window(auto_id='connected-delivery').wrapper_object()
+            labels = [control.element_info.name for control in delivery.descendants(control_type='Text')
+                      if control.is_visible()]
+            return 'Sin informe validado' in labels and 'Esperando informe' not in labels
+        wait(cancelled_delivery_header, timeout=15, description='cancelled delivery section no longer promises a report')
+        checks.append({'check': 'cancelled-delivery-header-terminal-without-report', 'verified': True})
         wait(lambda: not any(p.name().lower() in ('ollama.exe', 'llama-server.exe') for p in host.children(recursive=True)), description='backend stopped')
         screen.screenshot(output / '06-cancelled.png')
         evidence['final_counts'] = counts

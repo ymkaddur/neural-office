@@ -1,0 +1,2112 @@
+{
+  "schema": 1,
+  "commit": "4bfb8133fbefd59af61df6a1aefaff7a80f0fb36",
+  "status": "passed",
+  "test": "real-packaged-windows-desktop-uia",
+  "model": "qwen2.5:0.5b",
+  "source_sha256": "b8b1ee7cf6d328cf93d64ce0fdf41dbbb94749cdfed6900a9a68deb80e1321e1",
+  "executable_sha256": "c71d36f93481d5193876743d86fcebdaca2deefcc2323054e8a1cfdee4b61085",
+  "tools": {
+    "automation": "Windows UI Automation; no DevTools or WebDriver",
+    "webview2_version": "156.0.4314.58"
+  },
+  "runner_elevated": true,
+  "checks": [
+    {
+      "check": "normal-restore-and-remaximize-content-within-work-area",
+      "verified": true
+    },
+    {
+      "check": "initial-native-client-and-review-action-within-work-area",
+      "verified": true
+    },
+    {
+      "check": "packaged-ui-native-ipc-real-catalog-no-devtools",
+      "verified": true
+    },
+    {
+      "check": "native-file-picker-visible-approval-no-early-consumption",
+      "verified": true
+    },
+    {
+      "check": "real-model-one-call-four-visible-findings-and-matching-visible-hashes",
+      "verified": true
+    },
+    {
+      "check": "normal-close-owned-core-exit-reopen-without-new-attempt-or-call",
+      "verified": true
+    },
+    {
+      "check": "native-cancellation-history-quota-and-owned-backend-quiescence",
+      "verified": true
+    }
+  ],
+  "limitations": [
+    "One synthetic HTML task and one cancellation; no semantic model quality claim.",
+    "Windows CI runner only, not a user-machine policy override or clean-machine installer test.",
+    "UI Automation is instrumentation, not a human usability or accessibility audit.",
+    "RSS may double-count shared pages; half-second samples are not absolute peaks or leak proof.",
+    "CPU fields sum counters of currently observed processes, not total lifetime CPU of the run.",
+    "The separate metadata server and test harness are outside the sampled application tree."
+  ],
+  "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+  "ollama_version": "0.40.16",
+  "ollama_archive_sha256": "50fcf5ad54277f2fa5d173ebfc93bcb017adbc0c9ef2314daabc96ca9e6aa64e",
+  "input_acknowledgements": [
+    {
+      "requested_length": 81,
+      "readings": [
+        {
+          "elapsed_ns": 31000000,
+          "type": "str",
+          "length": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "elapsed_ns": 531000000,
+          "type": "str",
+          "length": 81,
+          "sha256": "92c65472f21dc43a40f056a1383d25d7e484569181a01c1257478772191dc54c"
+        }
+      ],
+      "matched": true
+    },
+    {
+      "requested_length": 78,
+      "readings": [
+        {
+          "elapsed_ns": 16000000,
+          "type": "str",
+          "length": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "elapsed_ns": 516000000,
+          "type": "str",
+          "length": 78,
+          "sha256": "14214876cf180ee3dfb95bd54f477ae2c671895df0d9abc586373fc97c2f8107"
+        }
+      ],
+      "matched": true
+    }
+  ],
+  "initial_geometry": {
+    "window_rectangle_px": [
+      -8,
+      -8,
+      1032,
+      728
+    ],
+    "monitor_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "primary_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "win32_window_rectangle_px": [
+      -8,
+      -8,
+      1032,
+      728
+    ],
+    "client_rectangle_px": [
+      0,
+      0,
+      1024,
+      697
+    ],
+    "client_origin_screen_px": [
+      0,
+      23
+    ],
+    "extended_frame_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "review_button_rectangle_px": [
+      849,
+      627,
+      988,
+      662
+    ],
+    "dpi": 96,
+    "scale_factor": 1.0,
+    "maximized": true
+  },
+  "restored_geometry": {
+    "window_rectangle_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "monitor_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "primary_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "win32_window_rectangle_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "client_rectangle_px": [
+      0,
+      0,
+      1008,
+      681
+    ],
+    "client_origin_screen_px": [
+      8,
+      31
+    ],
+    "extended_frame_px": [
+      7,
+      0,
+      1017,
+      713
+    ],
+    "review_button_rectangle_px": [
+      844,
+      619,
+      983,
+      654
+    ],
+    "dpi": 96,
+    "scale_factor": 1.0,
+    "maximized": false
+  },
+  "restored_geometry_readings": [
+    {
+      "geometry": {
+        "window_rectangle_px": [
+          0,
+          0,
+          1024,
+          720
+        ],
+        "monitor_work_area_px": [
+          0,
+          0,
+          1024,
+          720
+        ],
+        "primary_work_area_px": [
+          0,
+          0,
+          1024,
+          720
+        ],
+        "win32_window_rectangle_px": [
+          0,
+          0,
+          1024,
+          720
+        ],
+        "client_rectangle_px": [
+          0,
+          0,
+          1008,
+          681
+        ],
+        "client_origin_screen_px": [
+          8,
+          31
+        ],
+        "extended_frame_px": [
+          7,
+          0,
+          1017,
+          713
+        ],
+        "review_button_rectangle_px": [
+          844,
+          619,
+          983,
+          654
+        ],
+        "dpi": 96,
+        "scale_factor": 1.0,
+        "maximized": false
+      },
+      "checks": {
+        "client_screen_px": [
+          8,
+          31,
+          1016,
+          712
+        ],
+        "client_within_work_area": true,
+        "review_button_within_work_area": true
+      }
+    }
+  ],
+  "remaximized_geometry": {
+    "window_rectangle_px": [
+      -8,
+      -8,
+      1032,
+      728
+    ],
+    "monitor_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "primary_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "win32_window_rectangle_px": [
+      -8,
+      -8,
+      1032,
+      728
+    ],
+    "client_rectangle_px": [
+      0,
+      0,
+      1024,
+      697
+    ],
+    "client_origin_screen_px": [
+      0,
+      23
+    ],
+    "extended_frame_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "review_button_rectangle_px": [
+      849,
+      627,
+      988,
+      662
+    ],
+    "dpi": 96,
+    "scale_factor": 1.0,
+    "maximized": true
+  },
+  "remaximized_geometry_readings": [
+    {
+      "geometry": {
+        "window_rectangle_px": [
+          -8,
+          -8,
+          1032,
+          728
+        ],
+        "monitor_work_area_px": [
+          0,
+          0,
+          1024,
+          720
+        ],
+        "primary_work_area_px": [
+          0,
+          0,
+          1024,
+          720
+        ],
+        "win32_window_rectangle_px": [
+          -8,
+          -8,
+          1032,
+          728
+        ],
+        "client_rectangle_px": [
+          0,
+          0,
+          1024,
+          697
+        ],
+        "client_origin_screen_px": [
+          0,
+          23
+        ],
+        "extended_frame_px": [
+          0,
+          0,
+          1024,
+          720
+        ],
+        "review_button_rectangle_px": [
+          849,
+          627,
+          988,
+          662
+        ],
+        "dpi": 96,
+        "scale_factor": 1.0,
+        "maximized": true
+      },
+      "checks": {
+        "client_screen_px": [
+          0,
+          23,
+          1024,
+          720
+        ],
+        "client_within_work_area": true,
+        "review_button_within_work_area": true
+      }
+    }
+  ],
+  "window_differential": "initial maximized -> restored content fits -> maximized content fits",
+  "initial_viewport_checks": {
+    "client_screen_px": [
+      0,
+      23,
+      1024,
+      720
+    ],
+    "client_within_work_area": true,
+    "review_button_within_work_area": true
+  },
+  "after_start_capture": {
+    "counts_before": {
+      "attempts": 1,
+      "calls": 0,
+      "states": [
+        "RUNNING"
+      ]
+    },
+    "counts_after": {
+      "attempts": 1,
+      "calls": 0,
+      "states": [
+        "RUNNING"
+      ]
+    },
+    "meaning": "after authorization; not an atomic RUNNING snapshot"
+  },
+  "first_delivery_seconds": 9.422,
+  "report_sha256": "88c477fec4053517d57be94841d254868b44ef71a39510999612dceb218c9cb5",
+  "resource_samples": [
+    {
+      "monotonic_ns": 505500000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 32542720,
+          "private_bytes": 5341184,
+          "cpu_seconds": 0.21875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 317022208,
+          "private_bytes": 107876352,
+          "cpu_seconds": 1.546875
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 506015000000,
+      "phase": "window_differential",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.328125
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 322605056,
+          "private_bytes": 108240896,
+          "cpu_seconds": 1.640625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 506515000000,
+      "phase": "window_differential",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.453125
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 323313664,
+          "private_bytes": 111300608,
+          "cpu_seconds": 1.75
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 507031000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 323260416,
+          "private_bytes": 111251456,
+          "cpu_seconds": 1.859375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 507531000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 332918784,
+          "private_bytes": 114880512,
+          "cpu_seconds": 2.0
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 508046000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 333869056,
+          "private_bytes": 115392512,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 508546000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 332464128,
+          "private_bytes": 113950720,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 509062000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 332464128,
+          "private_bytes": 113950720,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 509562000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 326770688,
+          "private_bytes": 108150784,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 510078000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 326774784,
+          "private_bytes": 108150784,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 510578000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 326774784,
+          "private_bytes": 108150784,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 511093000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 326774784,
+          "private_bytes": 108150784,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 511593000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 321617920,
+          "private_bytes": 108212224,
+          "cpu_seconds": 2.015625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 512093000000,
+      "phase": "prepare",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29581312,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.578125
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 321736704,
+          "private_bytes": 108331008,
+          "cpu_seconds": 2.03125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 512609000000,
+      "phase": "prepare",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29622272,
+          "private_bytes": 5332992,
+          "cpu_seconds": 0.640625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 329162752,
+          "private_bytes": 111632384,
+          "cpu_seconds": 2.078125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 513109000000,
+      "phase": "prepare",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 30117888,
+          "private_bytes": 5390336,
+          "cpu_seconds": 0.796875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 332300288,
+          "private_bytes": 112308224,
+          "cpu_seconds": 2.203125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 513625000000,
+      "phase": "prepare",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 57606144,
+          "private_bytes": 11444224,
+          "cpu_seconds": 1.0625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 332378112,
+          "private_bytes": 112287744,
+          "cpu_seconds": 2.203125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 514125000000,
+      "phase": "prepare",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 64348160,
+          "private_bytes": 13504512,
+          "cpu_seconds": 1.46875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 332300288,
+          "private_bytes": 112136192,
+          "cpu_seconds": 2.203125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 514640000000,
+      "phase": "prepare",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 64499712,
+          "private_bytes": 13488128,
+          "cpu_seconds": 1.78125
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25964544,
+          "private_bytes": 16142336,
+          "cpu_seconds": 0.1875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 332296192,
+          "private_bytes": 112132096,
+          "cpu_seconds": 2.203125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 515140000000,
+      "phase": "prepare",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61145088,
+          "private_bytes": 12419072,
+          "cpu_seconds": 2.0
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26247168,
+          "private_bytes": 15650816,
+          "cpu_seconds": 0.21875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 334839808,
+          "private_bytes": 114257920,
+          "cpu_seconds": 2.390625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 515656000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61149184,
+          "private_bytes": 12423168,
+          "cpu_seconds": 2.140625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26247168,
+          "private_bytes": 15650816,
+          "cpu_seconds": 0.234375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 338804736,
+          "private_bytes": 116543488,
+          "cpu_seconds": 2.59375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 516156000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.234375
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 42217472,
+          "private_bytes": 24838144,
+          "cpu_seconds": 0.34375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348667904,
+          "private_bytes": 119148544,
+          "cpu_seconds": 2.9375
+        },
+        "other_child": {
+          "processes": 3,
+          "rss_bytes": 21532672,
+          "private_bytes": 3850240,
+          "cpu_seconds": 0.03125
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 22851584,
+          "private_bytes": 53530624,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 516671000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.25
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 42283008,
+          "private_bytes": 24936448,
+          "cpu_seconds": 0.359375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348721152,
+          "private_bytes": 119193600,
+          "cpu_seconds": 2.953125
+        },
+        "other_child": {
+          "processes": 5,
+          "rss_bytes": 47706112,
+          "private_bytes": 31490048,
+          "cpu_seconds": 0.171875
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 22884352,
+          "private_bytes": 53530624,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 517171000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.265625
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 42283008,
+          "private_bytes": 24936448,
+          "cpu_seconds": 0.375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348467200,
+          "private_bytes": 118956032,
+          "cpu_seconds": 3.0
+        },
+        "other_child": {
+          "processes": 5,
+          "rss_bytes": 67239936,
+          "private_bytes": 40620032,
+          "cpu_seconds": 0.328125
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 22884352,
+          "private_bytes": 53530624,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 517671000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.265625
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 42287104,
+          "private_bytes": 24940544,
+          "cpu_seconds": 0.40625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348565504,
+          "private_bytes": 119037952,
+          "cpu_seconds": 3.0625
+        },
+        "other_child": {
+          "processes": 5,
+          "rss_bytes": 97099776,
+          "private_bytes": 63160320,
+          "cpu_seconds": 0.5
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 22884352,
+          "private_bytes": 53530624,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 518187000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.3125
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 42291200,
+          "private_bytes": 25952256,
+          "cpu_seconds": 0.40625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348815360,
+          "private_bytes": 119152640,
+          "cpu_seconds": 3.1875
+        },
+        "other_child": {
+          "processes": 5,
+          "rss_bytes": 127897600,
+          "private_bytes": 88723456,
+          "cpu_seconds": 0.71875
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 22884352,
+          "private_bytes": 53530624,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 518687000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.390625
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 42299392,
+          "private_bytes": 25952256,
+          "cpu_seconds": 0.4375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348844032,
+          "private_bytes": 119181312,
+          "cpu_seconds": 3.25
+        },
+        "other_child": {
+          "processes": 5,
+          "rss_bytes": 171515904,
+          "private_bytes": 132800512,
+          "cpu_seconds": 1.03125
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 22884352,
+          "private_bytes": 53530624,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 519203000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.390625
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 42299392,
+          "private_bytes": 25952256,
+          "cpu_seconds": 0.4375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348835840,
+          "private_bytes": 119173120,
+          "cpu_seconds": 3.28125
+        },
+        "other_child": {
+          "processes": 5,
+          "rss_bytes": 177917952,
+          "private_bytes": 138870784,
+          "cpu_seconds": 1.078125
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 22884352,
+          "private_bytes": 53530624,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 519703000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.421875
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 41910272,
+          "private_bytes": 25497600,
+          "cpu_seconds": 0.453125
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 348975104,
+          "private_bytes": 119312384,
+          "cpu_seconds": 3.359375
+        },
+        "other_child": {
+          "processes": 5,
+          "rss_bytes": 120614912,
+          "private_bytes": 81362944,
+          "cpu_seconds": 0.53125
+        },
+        "model_backend": {
+          "processes": 1,
+          "rss_bytes": 23273472,
+          "private_bytes": 53841920,
+          "cpu_seconds": 0.09375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 520218000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.4375
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 41918464,
+          "private_bytes": 25366528,
+          "cpu_seconds": 0.46875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 349986816,
+          "private_bytes": 120008704,
+          "cpu_seconds": 3.484375
+        },
+        "other_child": {
+          "processes": 4,
+          "rss_bytes": 28610560,
+          "private_bytes": 5083136,
+          "cpu_seconds": 0.03125
+        },
+        "model_backend": {
+          "processes": 2,
+          "rss_bytes": 36921344,
+          "private_bytes": 60125184,
+          "cpu_seconds": 0.25
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 520750000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.484375
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 41934848,
+          "private_bytes": 25395200,
+          "cpu_seconds": 0.46875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 350081024,
+          "private_bytes": 120045568,
+          "cpu_seconds": 3.5625
+        },
+        "other_child": {
+          "processes": 4,
+          "rss_bytes": 28700672,
+          "private_bytes": 5173248,
+          "cpu_seconds": 0.03125
+        },
+        "model_backend": {
+          "processes": 2,
+          "rss_bytes": 278151168,
+          "private_bytes": 500174848,
+          "cpu_seconds": 0.75
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 521437000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.484375
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 41947136,
+          "private_bytes": 25395200,
+          "cpu_seconds": 0.484375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 330194944,
+          "private_bytes": 119869440,
+          "cpu_seconds": 3.578125
+        },
+        "other_child": {
+          "processes": 4,
+          "rss_bytes": 28803072,
+          "private_bytes": 5255168,
+          "cpu_seconds": 0.03125
+        },
+        "model_backend": {
+          "processes": 2,
+          "rss_bytes": 594063360,
+          "private_bytes": 744652800,
+          "cpu_seconds": 3.109375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 521953000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.53125
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 41947136,
+          "private_bytes": 25395200,
+          "cpu_seconds": 0.484375
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 330190848,
+          "private_bytes": 119865344,
+          "cpu_seconds": 3.59375
+        },
+        "other_child": {
+          "processes": 4,
+          "rss_bytes": 28803072,
+          "private_bytes": 5255168,
+          "cpu_seconds": 0.03125
+        },
+        "model_backend": {
+          "processes": 2,
+          "rss_bytes": 596054016,
+          "private_bytes": 746483712,
+          "cpu_seconds": 5.0
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 522453000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.53125
+        },
+        "python": {
+          "processes": 2,
+          "rss_bytes": 41906176,
+          "private_bytes": 25333760,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 330493952,
+          "private_bytes": 120094720,
+          "cpu_seconds": 3.671875
+        },
+        "other_child": {
+          "processes": 4,
+          "rss_bytes": 28803072,
+          "private_bytes": 5255168,
+          "cpu_seconds": 0.03125
+        },
+        "model_backend": {
+          "processes": 2,
+          "rss_bytes": 596078592,
+          "private_bytes": 746483712,
+          "cpu_seconds": 6.734375
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 522968000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.546875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26324992,
+          "private_bytes": 16375808,
+          "cpu_seconds": 0.546875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 330530816,
+          "private_bytes": 120107008,
+          "cpu_seconds": 3.734375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 523468000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26324992,
+          "private_bytes": 16375808,
+          "cpu_seconds": 0.546875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 330649600,
+          "private_bytes": 120295424,
+          "cpu_seconds": 3.75
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 523984000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61161472,
+          "private_bytes": 12435456,
+          "cpu_seconds": 2.5625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26324992,
+          "private_bytes": 16375808,
+          "cpu_seconds": 0.546875
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 330608640,
+          "private_bytes": 120254464,
+          "cpu_seconds": 3.75
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 524484000000,
+      "phase": "work",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.59375
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 344014848,
+          "private_bytes": 121729024,
+          "cpu_seconds": 3.875
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 525000000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.609375
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 344195072,
+          "private_bytes": 121905152,
+          "cpu_seconds": 4.03125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 525500000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 343818240,
+          "private_bytes": 121823232,
+          "cpu_seconds": 4.28125
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 526000000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 343859200,
+          "private_bytes": 121860096,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 526515000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 343130112,
+          "private_bytes": 121335808,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 527031000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 343130112,
+          "private_bytes": 121335808,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 527546000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 342978560,
+          "private_bytes": 121335808,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 528046000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 343306240,
+          "private_bytes": 121356288,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 528562000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 343232512,
+          "private_bytes": 121356288,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 529062000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 343150592,
+          "private_bytes": 121274368,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 529578000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 337764352,
+          "private_bytes": 121274368,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 530078000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 337764352,
+          "private_bytes": 121274368,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 530593000000,
+      "phase": "idle_after",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 61173760,
+          "private_bytes": 12447744,
+          "cpu_seconds": 2.65625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 26443776,
+          "private_bytes": 16465920,
+          "cpu_seconds": 0.5625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 331149312,
+          "private_bytes": 121266176,
+          "cpu_seconds": 4.359375
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1290240,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    }
+  ],
+  "first_close_core_quiescence": {
+    "scope": "captured Python/Ollama descendants; WebView sharing not certified",
+    "identities": [
+      {
+        "pid": 5124,
+        "created": 1794907382.6620488,
+        "name": "python.exe"
+      }
+    ],
+    "exited": true
+  },
+  "final_counts": {
+    "attempts": 2,
+    "calls": 1,
+    "states": [
+      "ACCEPTED",
+      "CANCELLED"
+    ]
+  },
+  "provenance": {
+    "run": "https://github.com/ymkaddur/neural-office/actions/runs/44054010908",
+    "branch_head": "b7e92d9d05a21d698ebe8f7ce2dbac30971c836a",
+    "tested_merge_sha": "4bfb8133fbefd59af61df6a1aefaff7a80f0fb36",
+    "original_json_sha256": "e9704ed212f57670e8e692f3019379f66d80ea75669eb47653f371e7ec73912e"
+  },
+  "review_scope": "First complete native baseline; later visual review found contradictory terminal delivery label. This does not invalidate the seven narrowly named checks or certify final UI wording."
+}

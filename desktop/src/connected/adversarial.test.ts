@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {Window} from 'happy-dom';
 import {acceptAttempt,readPending,validateSnapshot,writePending} from './model.ts';
@@ -106,4 +107,107 @@ test('legacy project identifiers roundtrip without weakening opaque request iden
     assert.throws(()=>acceptAttempt(null,{...baseAttempt,project_id:invalid}),/CONTRACT/);
   }
   assert.throws(()=>acceptAttempt(null,{...baseAttempt,id:'opaque id with spaces'}),/CONTRACT/);
+});
+
+async function openSavedAttempt(app:Awaited<ReturnType<typeof mount>>){
+  await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
+  (app.document.querySelector('.connected-history button') as any).click();
+  await until(()=>!!app.document.querySelector('.connected-user-request'));
+}
+function validReport(){
+  const text=JSON.stringify({schema:1,scope:'static-html-checks-v1',source_sha256:baseAttempt.source_sha256,findings:[],model_commentary_status:'UNVERIFIED_ASSISTANCE',role_outputs:[{role:'director',content:'Synthetic report for component verification.'}]});
+  const bytes=Buffer.from(text),sha=createHash('sha256').update(bytes).digest('hex');
+  return {
+    meta:{attempt_id:baseAttempt.id,state:'ACCEPTED',sha256:sha,bytes:bytes.length,encoding:'utf-8',media_type:'application/json',verdict:{passed:true,coverage:'synthetic'},mode:'fixture'},
+    chunk:{attempt_id:baseAttempt.id,sha256:sha,offset:0,next_offset:bytes.length,eof:true,chunk_sha256:sha,base64:bytes.toString('base64')},
+  };
+}
+function savedAttemptPeer(attempt:any,reportReply?:(method:string,params:Record<string,unknown>)=>Promise<unknown>){
+  const calls:{method:string;params:Record<string,unknown>}[]=[];
+  return {calls,send:async(method:string,params:Record<string,unknown>)=>{
+    calls.push({method,params});
+    if(method==='describe')return {session_id:'session',office_id:'office',inference:'injected-test-backend'};
+    if(method==='snapshot.get')return snapshot([attempt]);
+    if(method==='attempt.get')return {...attempt};
+    if(method==='models.list')return {models:[],session_id:'session'};
+    if(method==='report.get'||method==='report.read'){
+      assert.equal(params.attempt_id,attempt.id,'Report reads must stay bound to the saved attempt');
+      if(reportReply)return reportReply(method,params);
+    }
+    throw Error(`Unexpected synthetic RPC: ${method}`);
+  }};
+}
+
+for(const state of ['CANCELLED','FAILED'] as const)test(`terminal ${state} delivery does not promise a future report`,async()=>{
+  const peer=savedAttemptPeer({...baseAttempt,state,report_available:false});
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);
+    assert.match(app.document.querySelector('.delivery-empty')?.textContent||'',/No hay informe validado/);
+    const status=app.document.querySelector('.delivery-state');
+    assert.ok(status?.textContent.trim(),'The delivery must retain an explicit state');
+    assert.doesNotMatch(status.textContent,/Esperando informe/,
+      'A terminal attempt without a report cannot advertise that its report is still coming');
+    assert.equal(peer.calls.filter(call=>call.method==='report.get'||call.method==='attempt.start').length,0);
+  }finally{await app.close();}
+});
+
+for(const outcome of ['deferred','failed'] as const)test(`accepted report ${outcome} read is not reported as an absent validated report`,async()=>{
+  const fixture=validReport();let release:(()=>void)|undefined;
+  const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>{
+    if(method==='report.read')return fixture.chunk;
+    if(outcome==='failed')throw 'REPORT_TEMPORARILY_UNAVAILABLE';
+    await new Promise<void>(resolve=>{release=resolve;});
+    return fixture.meta;
+  });
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);
+    await until(()=>peer.calls.some(call=>call.method==='report.get'));
+    if(outcome==='failed')await until(()=>!!app.document.querySelector('[role="alert"]'));
+    const delivery=app.document.querySelector('.connected-delivery-body');
+    assert.ok(delivery?.textContent.trim(),'The existing report needs a visible read state');
+    assert.doesNotMatch(delivery.textContent,/No hay informe validado/,
+      'The ledger says the report exists; its read state must not overwrite that fact');
+    assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
+  }finally{release?.();await app.close();}
+});
+
+test('valid accepted report control renders the verified bytes without another attempt',async()=>{
+  const fixture=validReport();
+  const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>method==='report.get'?fixture.meta:fixture.chunk);
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);
+    await until(()=>!!app.document.querySelector('.connected-report'));
+    assert.match(app.document.querySelector('.connected-report')?.textContent||'',/Synthetic report for component verification\./);
+    assert.equal(app.document.querySelector('.delivery-state')?.textContent,'Informe recibido');
+    assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
+  }finally{await app.close();}
+});
+
+test('Actualizar retries a transient report read for the unchanged accepted attempt without starting work',async()=>{
+  const fixture=validReport();let reads=0;
+  const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>{
+    if(method==='report.read')return fixture.chunk;
+    if(++reads===1)throw 'REPORT_TEMPORARILY_UNAVAILABLE';
+    return fixture.meta;
+  });
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);
+    await until(()=>!!app.document.querySelector('[role="alert"]'));
+    assert.equal(reads,1,'A failed report read must not start an uncontrolled retry loop');
+    const refresh=Array.from(app.document.querySelectorAll('button')).find(button=>button.textContent==='Actualizar');
+    assert.ok(refresh);assert.equal(refresh.disabled,false);refresh.click();
+    await until(()=>peer.calls.filter(call=>call.method==='attempt.get').length===2&&!refresh.disabled);
+    assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
+    await assert.doesNotReject(()=>until(()=>reads===2),
+      'Explicit refresh must retry the report even when attempt ID, revision and availability are unchanged');
+    await until(()=>!!app.document.querySelector('.connected-report'));
+    assert.equal(peer.calls.filter(call=>call.method==='report.get').length,2);
+    assert.equal(peer.calls.filter(call=>call.method==='report.read').length,1);
+    assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
+    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/1 de 3/);
+  }finally{await app.close();}
 });

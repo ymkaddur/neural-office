@@ -6,6 +6,8 @@ Investigación consultada el 16–17 de noviembre de 2026. Los mecanismos extern
 
 Regla de entrega derivada de la investigación propia: separar compilación, assets embebidos, ejecución nativa y autorización del sistema operativo. El caso V5.5 mostró que un build CI por sí solo no verifica que el artefacto arranque en la máquina del usuario. La comprobación del paquete debe usar las features y versiones resueltas, no una analogía con otro shell.
 
+En la prueba nativa V5.5, leer inmediatamente el textarea devolvió vacío a 16 ms y el valor exacto a 531 ms; la captura inicial mostraba el texto, por lo que no se corrigió producción por un fallo del instrumento. El selector de archivo exponía Edit 1148 y no el supuesto 1001. Además, el texto «Tu encargo» ya estaba dentro de la etiqueta anterior a reservar: una búsqueda por subcadena no probaba la transición. El [registro del ensayo](https://github.com/ymkaddur/neural-office/blob/b7e92d9d05a21d698ebe8f7ce2dbac30971c836a/docs/evidence/V5_5_NATIVE_GEOMETRY.json) conserva la observación y sus límites; el [harness revisado](https://github.com/ymkaddur/neural-office/blob/b7e92d9d05a21d698ebe8f7ce2dbac30971c836a/tests/e2e_v55_native_uia.py) exige postcondiciones e identidades de procesos. Son errores concretos de verificación; no justifican usar esos IDs para otros diálogos o asumir que todo control necesita el mismo retraso.
+
 El canal público y la captura privada se declaran en `desktop/src-tauri/src/protocol.rs` y `neural_office/desktop_contract.py`. Son localizadores del proyecto, no una afirmación de que cualquier revisión futura conserve esas garantías. Comprueba cada ruta antes de transferirlas a una funcionalidad nueva.
 
 

@@ -66,12 +66,12 @@
     },
     {
       "path": "skills/neural-office-native-boundary/SKILL.md",
-      "sha256": "886f9a17e8f5eb76da6a0f8fba395833e5ae0ac84fc12f0a69ec1b2f37376e99",
+      "sha256": "cd414d8f10a1f3d6a8a08e046ba0a2de0ebc938c5f10a95a071457240ec525f6",
       "installed_copy_matches": true
     },
     {
       "path": "skills/neural-office-native-boundary/references/evidence.md",
-      "sha256": "25d4dc004f26e272341df03738510b175deccf175740dcbdc4253c5f7e41db16",
+      "sha256": "2e194093284b18ed7cdea349af75688ea1fa504573ea7ab1faca2588cf426c7f",
       "installed_copy_matches": true
     },
     {
@@ -105,5 +105,6 @@
       "installed_copy_matches": true
     }
   ],
-  "reference_classification_review": "Six unexecuted test sources normalized from generic source-inspected; no claim of executed upstream tests."
+  "reference_classification_review": "Six unexecuted test sources normalized from generic source-inspected; no claim of executed upstream tests.",
+  "native_instrument_review": "Native-boundary skill records observed asynchronous acknowledgement, wrong picker selector, premature predicate and process identity scope; no fixed sleep or universal selector rule. Independent review clarified that existing durable receipts can prove idempotent replay; a new state is not required."
 }
