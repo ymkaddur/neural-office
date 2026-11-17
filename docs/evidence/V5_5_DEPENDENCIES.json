@@ -1,0 +1,4370 @@
+{
+  "schema": 1,
+  "started_utc": "2026-11-17T08:06:55.493475+00:00",
+  "completed_utc": "2026-11-17T08:09:08.341459+00:00",
+  "git_head_observed": "b59bd6fff7afc413e3fd85cf165ecbe47026f3b2",
+  "inputs": {
+    "desktop/src-tauri/Cargo.lock": "7de12e25786b9ece9be599bc0faa71624495f034070c6665538e28c129c80c94",
+    "desktop/package-lock.json": "69cc53de70505e0262fd09595d958fe28d80dd348dd438dd9e2257548dd79c6c",
+    "cargo_windows_metadata_sha256": "e81debe07eae49663274c2da26b5afe5d1eb250f43ff05a0f64206ad41bcb4b8"
+  },
+  "method": {
+    "osv_api": "https://api.osv.dev/v1/querybatch",
+    "osv_documentation": "https://google.github.io/osv.dev/post-v1-querybatch/",
+    "npm_documentation": "https://docs.npmjs.com/cli/v11/commands/npm-audit/",
+    "osv_batch_size": 100,
+    "package_versions_only_sent": true,
+    "no_install_or_fix": true,
+    "osv_missing_advisories_vs_database_completeness": "An empty successful result means no matching advisory returned by this database at this time; package/version recognition and database completeness are not independently proven."
+  },
+  "cargo": {
+    "all_lock_entries": 444,
+    "third_party_entries": 443,
+    "windows_target_metadata_entries": 241,
+    "windows_scope": "filtered cargo metadata; includes build dependencies, not proof all linked in shipped runtime",
+    "complete_queries": 443,
+    "failures": [],
+    "packages": [
+      {
+        "name": "adler2",
+        "version": "2.0.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "aho-corasick",
+        "version": "1.1.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "alloc-no-stdlib",
+        "version": "3.0.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c2fb6cfd47bf496ff64095c20eaba0c201404ee38714d4142fcfa1dc334fcc7a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "alloc-stdlib",
+        "version": "0.3.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "0b5c1865780388bfa186411ab5f247819487fc4864c6e9c3106611fa347586e1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "android_system_properties",
+        "version": "0.1.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ae221649c9976a6f6c56ae1facf410f3ddb33cc661c4b7b61020a912d4237fbc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "anyhow",
+        "version": "1.0.104",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "atk",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "241b621213072e993be4f6f3a9e4b45f65b7e6faad43001be957184b7bb1824b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "atk-sys",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "c5e48b684b0ca77d2bbadeef17424c2ea3c897d44d566a1617e7e8f30614d086",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "atomic-waker",
+        "version": "1.1.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "autocfg",
+        "version": "1.5.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "base64",
+        "version": "0.21.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "base64",
+        "version": "0.23.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bit-set",
+        "version": "0.8.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bit-set",
+        "version": "0.11.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "56d87354e4229f54a44f7bf2435906a4656dba36026ab6eaca629a2c436a691c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bit-vec",
+        "version": "0.8.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bit-vec",
+        "version": "0.10.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "72503af1e72be411d74ca45cd6b309878fcb35354e252fc2a3a8bda3a97082a0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bitflags",
+        "version": "1.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bitflags",
+        "version": "2.13.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "block-buffer",
+        "version": "0.10.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "block-buffer",
+        "version": "0.12.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d2f6c7dbe95a6ed67ad9f18e57daf93a2f034c524b99fd2b76d18fdfeb6660aa",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "block2",
+        "version": "0.6.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "cdeb9d870516001442e364c5220d3574d2da8dc765554b4a617230d33fa58ef5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "brotli",
+        "version": "9.1.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "9071f285ed78f04f37d675abaaef5de7689e2f30a216c8dc6795465d81910a13",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "brotli-decompressor",
+        "version": "6.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cc031cd87c6529082b0b65c604e86af0ed7744841b17ccfe60b1e31fa606179e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bs58",
+        "version": "0.5.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "bf88ba1141d185c399bee5288d850d63b8369520c1eafc32a0430b5b6c287bf4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bumpalo",
+        "version": "3.20.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "87a0cf66fd1eb2fb7b822cb78370d82303750809bc6ba855f3f58e517d3238db",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bytemuck",
+        "version": "1.25.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "95832e849adfb21180ccb6826a99da14e5d266ae5c2e668e1602cf234f153797",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "byteorder",
+        "version": "1.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "bytes",
+        "version": "1.12.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cairo-rs",
+        "version": "0.18.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "8ca26ef0159422fb77631dc9d17b102f253b876fe1586b03b803e63a309b4ee2",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cairo-sys-rs",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "685c9fa8e590b8b3d678873528d83411db17242a73fccaed827770ea0fedda51",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "camino",
+        "version": "1.2.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "bbbad30e4b4c14a39e3cc8aed085a12a327257c316619c93581e017bc52be591",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cargo-platform",
+        "version": "0.1.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e35af189006b9c0f00a064685c727031e3ed2d8020f7ba284d78cc2671bd36ea",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cargo_metadata",
+        "version": "0.19.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "dd5eb614ed4c27c5d706420e4320fbe3216ab31fa1c33cd8246ac36dae4479ba",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cargo_toml",
+        "version": "1.0.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "82f4b26e751e711a5302649417f2da046dce6391b2ea30a4820f37462314f0b9",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cc",
+        "version": "1.11.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "33ef9e3e8154a45c7a95cff4c1299702106ad94062d7bb85fdc5d3a5afd91d45",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cesu8",
+        "version": "1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "6d43a04d8753f35258c91f8ec639f792891f748a1edbd759cf1dcea3382ad83c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cfb",
+        "version": "0.14.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "a347dcabdae9c31b0825fd6a8bed285ec9c2acb89c47827126d52fa4f59cece3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cfg-expr",
+        "version": "0.15.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d067ad48b8650848b989a59a86c6c36a995d02d2bf778d45c3c5d57bc2718f02",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cfg-if",
+        "version": "1.0.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "chrono",
+        "version": "0.4.45",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1aa79e62e7697b8e29b513a68abacf485adcd1fe8284a4316c5ae868e6633327",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "combine",
+        "version": "4.6.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "4356eba6976435498d05a311ee9fc486da3bc81c200d3f0d7dd9703b41913f92",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "const-oid",
+        "version": "0.10.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "be95d4a884358a21a199689323c29e9256b4a1b315e22f183d155422041d3a9a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cookie",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1a373e3602691c3cdea496d2f0ee5935151e6168fe87739483c463db1b2f2f87",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "core-foundation",
+        "version": "0.10.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b2a6cd9ae233e7f62ba4e9353e81a88df7fc8a5987b8d445b4d90c879bd156f6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "core-foundation-sys",
+        "version": "0.8.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "core-graphics",
+        "version": "0.25.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "064badf302c3194842cf2c5d61f56cc88e54a759313879cdf03abdd27d0c3b97",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "core-graphics-types",
+        "version": "0.2.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "3d44a101f213f6c4cdc1853d4b78aef6db6bdfa3468798cc1d9912f4735013eb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cpufeatures",
+        "version": "0.2.17",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cpufeatures",
+        "version": "0.3.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "crc32fast",
+        "version": "1.5.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "2b929dd2a135771f40afabd1073f85eed59c800b7c61901e5c254270497dad64",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "crossbeam-channel",
+        "version": "0.5.17",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "crossbeam-utils",
+        "version": "0.8.23",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "a31eee39dddec8330830986fcd7625edb5a24ec90ea038215273bbc3adb08ac6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "crypto-common",
+        "version": "0.1.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "crypto-common",
+        "version": "0.2.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ce6e4c961d6cd6c9a86db418387425e8bdeaf05b3c8bc1411e6dca4c252f1453",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cssparser",
+        "version": "0.37.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "8c9cdaae01d5ed7882b04d795e7f752f46ff52d2fa3b50a20d28c464510bba98",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cssparser",
+        "version": "0.38.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "11119743ad110e8c1bdccd930d7f5c30c99e5fc76a7b63ec9807e84eef0c5f59",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "cssparser-macros",
+        "version": "0.7.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d045de693cb712d0b22c6a64be5b953f67b3ce00ab5ad3dd5d8b441886ab8e1a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ctor",
+        "version": "1.0.14",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ea691ed9f36489d087419b8b2ba3ef27d89621380b4178c73e2445a379e4e0f4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "darling",
+        "version": "0.24.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ed17f5901b6630b993ca003def43f2f8ef4014fc13b047b57aad617ff32bc2ec",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "darling_core",
+        "version": "0.24.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "6837e2cf7485aaae18f86181d2f0e9a7ed297a025e220aeabf63fdebd3a2ddff",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "darling_macro",
+        "version": "0.24.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "2ac7135c3ef02b2f7833bbeb1be5ba7f966dcde8a87c6b87f65a778d71a02785",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dbus",
+        "version": "0.9.12",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "3ab69f03cc8c4340c9c8e315114e1658e6775a9b16a04357973aa21cec22b32e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "deranged",
+        "version": "0.5.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "9e9de72ce2ad1f90dc62fa25f0f430ef85eb4b0d8fa0be4f30373bc40a21d28e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "derive_more",
+        "version": "2.1.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d751e9e49156b02b44f9c1815bcb94b984cdcc4396ecc32521c739452808b134",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "derive_more-impl",
+        "version": "2.1.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "799a97264921d8623a957f6c3b9011f3b5492f557bbb7a5a19b7fa6d06ba8dcb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "digest",
+        "version": "0.10.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "digest",
+        "version": "0.11.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dirs",
+        "version": "7.0.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "8d57d423b3c82e89b9a24ca3091fee61f456a26edbd28d26c65906f4bc1dcd8f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dirs-sys",
+        "version": "0.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e01a3366d27ee9890022452ee61b2b63a67e6f13f58900b651ff5665f0bb1fab",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dispatch2",
+        "version": "0.3.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "1e0e367e4e7da84520dedcac1901e4da967309406d1e51017ae1abfb97adbd38",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "displaydoc",
+        "version": "0.2.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c6232dd377dcc64799954cbd3a9bb882e9cdc1308ccd87b1c098f1fb2eaf82a8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dlib",
+        "version": "0.5.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ab8ecd87370524b461f8557c119c405552c396ed91fc0a8eec68679eab26f94a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dlopen2",
+        "version": "0.8.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "5e2c5bd4158e66d1e215c49b837e11d62f3267b30c92f1d171c4d3105e3dc4d4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dlopen2_derive",
+        "version": "0.4.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0fbbb781877580993a8707ec48672673ec7b81eeba04cfd2310bd28c08e47c8f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dom_query",
+        "version": "0.28.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "fac5fca71e65e94cc718a6e2af65d6e0f9c6027751c2aa562fbb5087fda639bc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dom_query",
+        "version": "0.29.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "498c698ac51127148a3984450e51fca7f01805a91d7a1f7a24af0a5f761e3385",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "downcast-rs",
+        "version": "1.2.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dpi",
+        "version": "0.1.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d8b14ccef22fc6f5a8f4d7d768562a182c04ce9a3b3157b91390b52ddfdf1a76",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dtoa",
+        "version": "1.0.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "4c3cf4824e2d5f025c7b531afcb2325364084a16806f6d47fbc1f5fbd9960590",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dtoa-short",
+        "version": "0.3.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cd1511a7b6a56299bd043a9c167a6d2bfb37bf84a6dfceaba651168adfb43c87",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dunce",
+        "version": "1.0.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "dyn-clone",
+        "version": "1.0.20",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "embed-resource",
+        "version": "3.0.12",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "6168487b5e7eb2673e6efe1200b1848016e436a6ca0b8031bf04bd9d493a249f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "embed_plist",
+        "version": "1.2.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "4ef6b89e5b37196644d8796de5268852ff179b44e96276cf4290264843743bb7",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "equivalent",
+        "version": "1.0.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "erased-serde",
+        "version": "0.4.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1e59b668157f32d3459d4bd634861a06ffa2503a461ca5f0916b9f0252605e66",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "errno",
+        "version": "0.3.15",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e35d6e78f4cebb90e51d543db8fe41528851d6deeef6ef21ebd4bfdc1e784776",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "fastrand",
+        "version": "2.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "fdeflate",
+        "version": "0.3.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1e6853b52649d4ac5c0bd02320cddc5ba956bdb407c4b75a2c6b75bf51500f8c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "field-offset",
+        "version": "0.3.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "38e2275cc4e4fc009b0669731a1e5ab7ebf11f469eaede2bab9309a5b4d6057f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "find-msvc-tools",
+        "version": "0.1.15",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1c66915cc5391097de7a2b0b972e8505aa33c0df401fd3a6811dbdb32881ba48",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "flate2",
+        "version": "1.1.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "626d4928326b646e70f65ed36fc7cf9f206bdb68a0019ee7c6b4709da4e084c4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "fnv",
+        "version": "1.0.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "foldhash",
+        "version": "0.2.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "foreign-types",
+        "version": "0.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d737d9aa519fb7b749cbc3b962edcf310a8dd1f4b67c91c4f83975dbdd17d965",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "foreign-types-macros",
+        "version": "0.2.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ea5190182e6915eb873ddbc16e23b711b6eb1f9c00a0d0a3a91b5f6228475225",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "foreign-types-shared",
+        "version": "0.3.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "form_urlencoded",
+        "version": "1.2.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-channel",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b1f9e3d69d39e4862ffed03ed071a76f9a13ba1d9109d355b0f0aa6b15e393c4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-core",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "92d699e522242e69e3003b94ecc1f960f3a5e015aa7c5d7486e65ad01dd94f5e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-executor",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "031b47cf1a3c6cc8bc2fc76cd437f521619387907d469316e7c0bc278f1f5432",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-io",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "53c0fa8157de1303bfffdaa1cc2a673bfffb60102f76b0ef4441659124373fed",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-macro",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "9fb9654ba8355388abeb8dcb4fc62f511300867002afc858860463bdd9fe0c44",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-sink",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "1944426bf7d03f1d14f708785e4b33efd750b36d48a157b836b3efc15ede8e1d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-task",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "cd417de3d1d015fc3bfd2b1ea46dfc7bab72ef86f1cc7cc9c78e728b34a6d1fd",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "futures-util",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0d50a92467f8ba5dd6e3ee5d4bd04d73ab2e4e1c44474a0674821dfce14b79bc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gdk",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d9f245958c627ac99d8e529166f9823fb3b838d1d41fd2b297af3075093c2691",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gdk-pixbuf",
+        "version": "0.18.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "50e1f5f1b0bfb830d6ccc8066d18db35c487b1b2b1e8589b5dfe9f07e8defaec",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gdk-pixbuf-sys",
+        "version": "0.18.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "3f9839ea644ed9c97a34d129ad56d38a25e6756f99f3a88e15cd39c20629caf7",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gdk-sys",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "5c2d13f38594ac1e66619e188c6d5a1adb98d11b2fcf7894fc416ad76aa2f3f7",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gdkwayland-sys",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "140071d506d223f7572b9f09b5e155afbd77428cd5cc7af8f2694c41d98dfe69",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gdkx11",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "3caa00e14351bebbc8183b3c36690327eb77c49abc2268dd4bd36b856db3fbfe",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gdkx11-sys",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "6e2e7445fe01ac26f11601db260dd8608fe172514eb63b3b5e261ea6b0f4428d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "generic-array",
+        "version": "0.14.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "getrandom",
+        "version": "0.3.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "getrandom",
+        "version": "0.4.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gio",
+        "version": "0.18.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d4fc8f532f87b79cbc51a79748f16a6828fb784be93145a322fa14d06d354c73",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gio-sys",
+        "version": "0.18.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "37566df850baf5e4cb0dfb78af2e4b9898d817ed9263d1090a2df958c64737d2",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "glib",
+        "version": "0.18.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "233daaf6e83ae6a12a52055f568f9d7cf4671dabb78ff9560ab6da230ce00ee5",
+        "status": "queried_complete",
+        "advisories": [
+          {
+            "id": "GHSA-wrw7-89jp-8q8g",
+            "modified": "2025-10-28T06:29:26.473225Z"
+          },
+          {
+            "id": "RUSTSEC-2024-0429",
+            "modified": "2025-10-28T06:29:26.473225Z"
+          }
+        ]
+      },
+      {
+        "name": "glib-macros",
+        "version": "0.18.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0bb0228f477c0900c880fd78c8759b95c7636dbd7842707f49e132378aa2acdc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "glib-sys",
+        "version": "0.18.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "063ce2eb6a8d0ea93d2bf8ba1957e78dbab6be1c2220dd3daca57d5a9d869898",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "glob",
+        "version": "0.3.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gobject-sys",
+        "version": "0.18.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0850127b514d1c4a4654ead6dedadb18198999985908e6ffe4436f53c785ce44",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gtk",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "fd56fb197bfc42bd5d2751f4f017d44ff59fbb58140c6b49f9b3b2bdab08506a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gtk-sys",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "8f29a1c21c59553eb7dd40e918be54dccd60c52b049b75119d5d96ce6b624414",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "gtk3-macros",
+        "version": "0.18.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "52ff3c5b21f14f0736fed6dcfc0bfb4225ebf5725f3c0209edeec181e4d73e9d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "hashbrown",
+        "version": "0.12.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "hashbrown",
+        "version": "0.17.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "heck",
+        "version": "0.4.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "heck",
+        "version": "0.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "hex",
+        "version": "0.4.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "html5ever",
+        "version": "0.39.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "46a1761807faccc9a19e86944bbf40610014066306f96edcdedc2fb714bcb7b8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "html5ever",
+        "version": "0.40.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "456a1a377e608e555d22ddab27ac0114bc7a7b4199078108e34c2aeae6c9b130",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "http",
+        "version": "1.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "918d3568bebf352712bc2ef3d46a8bcf1a75b373be6539de198e9105cbbf9ce0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "http-body",
+        "version": "1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ca2a8f2913ee65f60facd6a5905613afaa448497a0230cc41ce022d93290bc2c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "http-body-util",
+        "version": "0.1.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "23169fe34a5fbcdd3f3862e78fb9b6fccd5f02a6dc6f732547005d45631ce71c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "httparse",
+        "version": "1.10.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "hybrid-array",
+        "version": "0.4.15",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "27f864f10dfb56725ce5ce5472bc52252c8f93a4ab86327122cebf62c5f59a17",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "hyper",
+        "version": "1.12.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "2c3e324da4c95177d6291d4c8730197c0d1822f8a9766814a4a44fa5ab797c9c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "hyper-util",
+        "version": "0.1.21",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ddc03d96684f9226b8a787cdb71488417b53ab5ea8fdb1dac946cb9431cc8bff",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "iana-time-zone",
+        "version": "0.1.65",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e31bc9ad994ba00e440a8aa5c9ef0ec67d5cb5e5cb0cc7f8b744a35b389cc470",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "iana-time-zone-haiku",
+        "version": "0.1.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "f31827a206f56af32e590ba56d5d2d085f558508192593743f16b2306495269f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ico",
+        "version": "0.6.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d75e94d66081e4d8dcd098bd8dc5254800fea14a26389b298410158d834de167",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "icu_collections",
+        "version": "2.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "fe090a42a0d3140fed8c63263ed1fecc02422cb2f4bfe55cd8de2de1b8e105dd",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "icu_locale_core",
+        "version": "2.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "25d29b57c17c6528d0dc4c2141cfa2d08200465acb537a3909c8b9b8a4a984c0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "icu_normalizer",
+        "version": "2.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "404a3b8c486f205c87fe7f23ab6894d84a4ad76d6e4671ae1981ba7def87c599",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "icu_normalizer_data",
+        "version": "2.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "20f0088bfb7441f7a37fa0c9e20cb1e9cba1cac6b9ce8cd2a6dc44294f8e8cbc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "icu_properties",
+        "version": "2.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "2ea83d991c56158f7cf898bf86436c1dfe7c07ee82fe88951f2695c9f37a379f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "icu_properties_data",
+        "version": "2.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b98f29af82d02b163fe50161388350e743bb3107cc8e8c2f7314cb505faddfcf",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "icu_provider",
+        "version": "2.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "413099315636c588ee8f011190b329b971a09a8fae9d157e01dcae8379468514",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ident_case",
+        "version": "1.0.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "idna",
+        "version": "1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3b0875f23caa03898994f6ddc501886a45c7d3d62d04d2d90788d47be1b1e4de",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "idna_adapter",
+        "version": "1.2.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cb68373c0d6620ef8105e855e7745e18b0d00d3bdb07fb532e434244cdb9a714",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "indexmap",
+        "version": "1.9.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "indexmap",
+        "version": "2.14.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "infer",
+        "version": "0.22.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f4200d433cbd5178df7797c9c2e75b348b728e39631cf14520d1e2fc424201f4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ipnet",
+        "version": "2.12.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "791930b43c0d5973160d90a8f3894509f2b273430f5c5c73b668636d0287c5c0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "itoa",
+        "version": "1.0.19",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3bd1574e617a9a6c1f8f8181bd7e841e1f20e4277607ef28945765188d6284d4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "javascriptcore-rs",
+        "version": "1.1.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ca5671e9ffce8ffba57afc24070e906da7fc4b1ba66f2cabebf61bf2ea257fcc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "javascriptcore-rs-sys",
+        "version": "1.1.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "af1be78d14ffa4b75b66df31840478fef72b51f8c2465d4ca7c194da9f7a5124",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jiff",
+        "version": "0.2.46",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "175dc66334db3b9ab9985bf8b61cfed50dc16d20964bb47f9e479adcae984a7f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jiff-core",
+        "version": "0.1.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e599b80292e597019b8b3e392de3f4bea2959ddfb8c7dff60e035e9e311a2c1b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jiff-static",
+        "version": "0.2.46",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "c7b1af7547d47354bc438d797e3854601bde8f8d185780c5ba4ab27afa54f1ba",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jiff-tzdb",
+        "version": "0.1.10",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "0980fca2cc272465bd60e82397607ba9f33add9e48defd77923301bbd03808f2",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jiff-tzdb-platform",
+        "version": "0.1.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "875a5a69ac2bab1a891711cf5eccbec1ce0341ea805560dcd90b7a2e925132e8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jni",
+        "version": "0.21.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "1a87aa2bb7d2af34197c04845522473242e1aa17c12f4935d5856491a7fb8c97",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jni-sys",
+        "version": "0.3.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "41a652e1f9b6e0275df1f15b32661cf0d4b78d4d87ddec5e0c3c20f097433258",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jni-sys",
+        "version": "0.4.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "c6377a88cb3910bee9b0fa88d4f42e1d2da8e79915598f65fb0c7ee14c878af2",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jni-sys-macros",
+        "version": "0.4.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "38c0b942f458fe50cdac086d2f946512305e5631e720728f2a61aabcd47a6264",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "js-sys",
+        "version": "0.3.107",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "8dc09d2154098bbf4ef54eab6b117a3c24cbbffe94046b16ee6d6d4510584d3a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "json-patch",
+        "version": "4.2.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7421438de105a0827e44fadd05377727847d717c80ce29a229f85fd04c427b72",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "jsonptr",
+        "version": "0.7.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "a5a3cc660ba5d72bce0b3bb295bf20847ccbb40fd423f3f05b61273672e561fe",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "keyboard-types",
+        "version": "0.8.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "0fbe853b403ae61a04233030ae8a79d94975281ed9770a1f9e246732b534b28d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "libappindicator",
+        "version": "0.9.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "03589b9607c868cc7ae54c0b2a22c8dc03dd41692d48f2d7df73615c6a95dc0a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "libappindicator-sys",
+        "version": "0.9.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "6e9ec52138abedcc58dc17a7c6c0c00a2bdb4f3427c7f63fa97fd0d859155caf",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "libc",
+        "version": "0.2.191",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "65cd87c9a6d60536580b316ad985726104730a5151c99845f2490428ef91240a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "libdbus-sys",
+        "version": "0.2.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "328c4789d42200f1eeec05bd86c9c13c7f091d2ba9a6ea35acdf51f31bc0f043",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "libloading",
+        "version": "0.7.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "libloading",
+        "version": "0.8.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "libredox",
+        "version": "0.1.25",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "61ff90caf6077a803a240f62fdbe88645a890bbca49ef8174c3cb0404362171d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "link-section",
+        "version": "0.19.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "4d9aae57673c1a235149777a74d152f3210ebd3e3b13346d2cdb6809e566bd3c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "linux-raw-sys",
+        "version": "0.12.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "litemap",
+        "version": "0.8.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "47d9d19d1d6efa0109d2f65ff4c85cddd50bd572e5a00127ab10987290bcefae",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "lock_api",
+        "version": "0.4.14",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "log",
+        "version": "0.4.35",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "5d15f86d12da44cd8d4ec3c73984537eb7f4cadcb9776a575a0a8a05ca11005c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "markup5ever",
+        "version": "0.39.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7122d987ec5f704ee56f6e5b41a7d93722e9aae27ae07cafa4036c4d3f9757de",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "markup5ever",
+        "version": "0.40.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0ab3dc68ac4a0f5719e560136778c1ee716e296030d75dbd4484e37e39e3a842",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "memchr",
+        "version": "2.8.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "memoffset",
+        "version": "0.9.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "488016bfae457b036d996092f6cb448677611ce4449e970ceaf42695203f218a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "mime",
+        "version": "0.3.18",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d5848f5a9e8117cf94f2f90faac24a87ff81600ff8628c1e3deaab572e76bfa1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "miniz_oxide",
+        "version": "0.8.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "miniz_oxide",
+        "version": "0.9.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b63fbc4a50860e98e7b2aa7804ded1db5cbc3aff9193adaff57a6931bf7c4b4c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "mio",
+        "version": "1.2.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "20521a903f02b0a573cd6840e9d0a5a0cc043d361fe924092cd70f8556cc9c4a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "muda",
+        "version": "0.20.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cca139e57da4383727f189e43e66e84fa372347027fc996f9f1a007ec0a37996",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ndk",
+        "version": "0.9.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "c3f42e7bbe13d351b6bead8286a43aac9534b82bd3cc43e47037f012ebfd62d4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ndk-context",
+        "version": "0.1.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ndk-sys",
+        "version": "0.6.0+11769913",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ee6cda3051665f1fb8d9e08fc35c96d5a244fb1be711a03b71118828afc9a873",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "new_debug_unreachable",
+        "version": "1.0.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "num-conv",
+        "version": "0.2.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "521739c6d2bac4aa25192232afe6841231376b2b26d4d9fae5ecf8ca5772e441",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "num-traits",
+        "version": "0.2.19",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "num_enum",
+        "version": "0.7.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "5d0bca838442ec211fa11de3a8b0e0e8f3a4522575b5c4c06ed722e005036f26",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "num_enum_derive",
+        "version": "0.7.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "680998035259dcfcafe653688bf2aa6d3e2dc05e98be6ab46afb089dc84f1df8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2",
+        "version": "0.6.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "08849bbd4767dfae9457696856ae1c84fe4e0281bbe4a7abff2d0e06fb7981f8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-app-kit",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d49e936b501e5c5bf01fda3a9452ff86dc3ea98ad5f283e1455153142d97518c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-cloud-kit",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "73ad74d880bb43877038da939b7427bba67e9dd42004a18b809ba7d87cee241c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-core-data",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0b402a653efbb5e82ce4df10683b6b28027616a2715e90009947d50b8dd298fa",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-core-foundation",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "2a180dd8642fa45cdb7dd721cd4c11b1cadd4929ce112ebd8b9f5803cc79d536",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-core-graphics",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e022c9d066895efa1345f8e33e584b9f958da2fd4cd116792e15e07e4720a807",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-core-image",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e5d563b38d2b97209f8e861173de434bd0214cf020e3423a52624cd1d989f006",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-core-location",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ca347214e24bc973fc025fd0d36ebb179ff30536ed1f80252706db19ee452009",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-core-text",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0cde0dfb48d25d2b4862161a4d5fcc0e3c24367869ad306b0c9ec0073bfed92d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-encode",
+        "version": "4.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ef25abbcd74fb2609453eb695bd2f860d389e457f67dc17cafc8b8cbc89d0c33",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-exception-helper",
+        "version": "0.1.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "c7a1c5fbb72d7735b076bb47b578523aedc40f3c439bea6dfd595c089d79d98a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-foundation",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e3e0adef53c21f888deb4fa59fc59f7eb17404926ee8a6f59f5df0fd7f9f3272",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-io-surface",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "180788110936d59bab6bd83b6060ffdfffb3b922ba1396b312ae795e1de9d81d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-quartz-core",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "96c1358452b371bf9f104e21ec536d37a650eb10f7ee379fff67d2e08d537f1f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-ui-kit",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d87d638e33c06f577498cbcc50491496a3ed4246998a7fbba7ccb98b1e7eab22",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-uniform-type-identifiers",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "7902ac02859fc1f7045f8b598c63f1ae0cc7efeaa06a9bc9f3d9a3c955974fa4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-user-notifications",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "9df9128cbbfef73cda168416ccf7f837b62737d748333bfe9ab71c245d76613e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "objc2-web-kit",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b2e5aaab980c433cf470df9d7af96a7b46a9d892d521a2cbbb2f8a4c16751e7f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "once_cell",
+        "version": "1.21.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "option-ext",
+        "version": "0.2.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "pango",
+        "version": "0.18.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "7ca27ec1eb0457ab26f3036ea52229edbdb74dee1edd29063f5b9b010e7ebee4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "pango-sys",
+        "version": "0.18.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "436737e391a843e5933d6d9aa102cb126d501e815b83601365a948a518555dc5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "parking_lot",
+        "version": "0.12.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "parking_lot_core",
+        "version": "0.9.12",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "percent-encoding",
+        "version": "2.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf",
+        "version": "0.13.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c1562dc717473dbaa4c1f85a36410e03c047b2e7df7f45ee938fbef64ae7fadf",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf",
+        "version": "0.14.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "010378780309880b08997fae13be7834dba947d36393bd372f2b1556deb2a2f6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_codegen",
+        "version": "0.13.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "49aa7f9d80421bca176ca8dbfebe668cc7a2684708594ec9f3c0db0805d5d6e1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_codegen",
+        "version": "0.14.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "41b585a510fb76fdebead6897982ef2a03a21d8e6cbcca904999742a4afc6ffe",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_generator",
+        "version": "0.13.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "135ace3a761e564ec88c03a77317a7c6b80bb7f7135ef2544dbe054243b89737",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_generator",
+        "version": "0.14.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "aeb62e0959d5a1bebc965f4d15d9e2b7cea002b6b0f5ba8cde6cc26738467100",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_macros",
+        "version": "0.13.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "812f032b54b1e759ccd5f8b6677695d5268c588701effba24601f6932f8269ef",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_macros",
+        "version": "0.14.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "5fa8d0ca26d424d27630da600c6624696e7dec8bf7b3b492b383c5dc49e5e085",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_shared",
+        "version": "0.13.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e57fef6bc5981e38c2ce2d63bfa546861309f875b8a75f092d1d54ae2d64f266",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "phf_shared",
+        "version": "0.14.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "c6fd9027e2d9319be6349febd1db4e8d02aa544921200c9b777720ac34a3aa89",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "pin-project-lite",
+        "version": "0.2.17",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "pkg-config",
+        "version": "0.3.34",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "plist",
+        "version": "1.10.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d86a77b7d9cdebd9643c180c158748db7d894b24a3935ed4b5843e698ae086eb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "png",
+        "version": "0.18.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "60769b8b31b2a9f263dae2776c37b1b28ae246943cf719eb6946a1db05128a61",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "pollster",
+        "version": "1.0.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "bc6355899e1c9462875b6757c79f3caa011a1fdae12bbb1a2e72dd1f234f8336",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "portable-atomic",
+        "version": "1.15.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "05c8b63e8d9609db387f0324918f81d68fe27748f084ef092fb35954d0539a85",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "portable-atomic-util",
+        "version": "0.2.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "10ab3eb7f3becc3a1cbc4f2c6f20267996cfc1a6467a873763411b136a122715",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "potential_utf",
+        "version": "0.1.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d83eb9bc6d8e5cf568e7a1101d60ee05e81ed50ea106026f3d18deeb046d7661",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "powerfmt",
+        "version": "0.2.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "4a6394b9e965e73d0a289ee54f589087e2c676aedf60885baf52c76b771e4958",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "precomputed-hash",
+        "version": "0.1.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "925383efa346730478fb4838dbe9137d2a47675ad789c546d150a6e1dd4ab31c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "proc-macro-crate",
+        "version": "1.3.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "7f4c021e1093a56626774e81216a4ce732a735e5bad4868a03f3ed65ca0c3919",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "proc-macro-crate",
+        "version": "2.0.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b00f26d3400549137f92511a46ac1cd8ce37cb5598a96d382381458b992a5d24",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "proc-macro-crate",
+        "version": "3.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "proc-macro-error",
+        "version": "1.0.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "da25490ff9892aab3fcf7c36f08cfb902dd3e71ca0f9f9517bea02a73a5ce38c",
+        "status": "queried_complete",
+        "advisories": [
+          {
+            "id": "RUSTSEC-2024-0370",
+            "modified": "2026-06-07T20:00:03.923932Z"
+          }
+        ]
+      },
+      {
+        "name": "proc-macro-error-attr",
+        "version": "1.0.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "a1be40180e52ecc98ad80b184934baf3d0d29f979574e439af5a55274b35f869",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "proc-macro2",
+        "version": "1.0.107",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "quick-xml",
+        "version": "0.41.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "quick-xml",
+        "version": "0.42.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "41b1177fdf999d2321d3fb46ff47159d9c1fb9ad66a4879f8c50a0b504615e9b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "quote",
+        "version": "1.0.47",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "r-efi",
+        "version": "5.3.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "r-efi",
+        "version": "6.0.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "raw-window-handle",
+        "version": "0.6.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "20675572f6f24e9e76ef639bc5552774ed45f1c30e2951e1e99c59888861c539",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "redox_syscall",
+        "version": "0.5.18",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "redox_users",
+        "version": "0.5.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "60dc65c0ff1a7ae1294b0c67b9f14baf70b644404010370171787bfac1038fc0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ref-cast",
+        "version": "1.0.27",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7e440fb4e4b4147295338efb76001ab9e4efc0e5839df2c47fc5ac2381d365c3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "ref-cast-impl",
+        "version": "1.0.27",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "92ecd8964f8453721699a1ed72037b0db49ce2f5a5138486ee89bed6f67cdf3a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "regex",
+        "version": "1.13.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f020237b6c8eed93db2e2cb53c00c60a8e1bc73da7d073199a1180401450218d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "regex-automata",
+        "version": "0.4.18",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "regex-syntax",
+        "version": "0.8.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "reqwest",
+        "version": "0.13.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "rfd",
+        "version": "0.18.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c4b9d4857b10297ffb0f64cae711e983a7aeaee561848d56d429d3858bd8ed93",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "rustc-hash",
+        "version": "2.1.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "6b1e7f9a428571be2dc5bc0505c13fb6bf936822b894ec87abf8a08a4e51742d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "rustc_version",
+        "version": "0.4.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cfcb3a22ef46e85b45de6ee7e79d063319ebb6594faafcf1c225ea92ab6e9b92",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "rustix",
+        "version": "1.1.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e5e76742e5294153d4dde1207dbec5bdd81eef6fabdc0d2118babadabfd858aa",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "rustversion",
+        "version": "1.0.23",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "same-file",
+        "version": "1.0.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "schemars",
+        "version": "0.8.22",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3fbf2ae1b8bc8e02df939598064d22402220cd5bbcca1c76f7d6a310974d5615",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "schemars",
+        "version": "0.9.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "4cd191f9397d57d581cddd31014772520aa448f65ef991055d7f61582c65165f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "schemars",
+        "version": "1.2.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ab508826f74a77ca9d5aba6ff19b522583ee3eaf28a19384ff3d0e5835fadf6e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "schemars_derive",
+        "version": "0.8.22",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "32e265784ad618884abaea0600a9adf15393368d840e0222d101a072f3f7534d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "scoped-tls",
+        "version": "1.0.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e1cf6437eb19a8f4a6cc0f7dca544973b0b78843adbfeb3683d1a94a0024a294",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "scopeguard",
+        "version": "1.2.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "selectors",
+        "version": "0.38.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "8adfa1c298912827b8a28b223b3b874357397ae706e6190acd9bf28cee99114d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "selectors",
+        "version": "0.41.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "8322aebea94a6cc288ff884e8a49bdbceef60206c400c6c46d22e62fc4fd91a6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "semver",
+        "version": "1.0.28",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "8a7852d02fc848982e0c167ef163aaff9cd91dc640ba85e263cb1ce46fae51cd",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde",
+        "version": "1.0.229",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde-untagged",
+        "version": "0.1.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f9faf48a4a2d2693be24c6289dbe26552776eb7737074e6722891fadbe6c5058",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_core",
+        "version": "1.0.229",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_derive",
+        "version": "1.0.229",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_derive_internals",
+        "version": "0.29.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_json",
+        "version": "1.0.154",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_repr",
+        "version": "0.1.21",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "8d3b1629de253c70a0508c3899572da79ca359fdab27c7920ff00406df418906",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_spanned",
+        "version": "0.6.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "bf41e0cfaf7226dca15e8197172c295a782857fcb97fad1808a166870dee75a3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_spanned",
+        "version": "1.1.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "9c187e0a369471c550af028cba56d4f4fa2a489ad28151ae95a4d340a2a8b782",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_with",
+        "version": "3.24.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "df9adc193c780ef8f159aee8b61e2d5801aaa555e6eb0947fe45530ec506296f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serde_with_macros",
+        "version": "3.24.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3e17bbc68e28663bbbb90df47e058aa7eda4fb445b89fe70457bb94fbccf6e49",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serialize-to-javascript",
+        "version": "0.1.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "04f3666a07a197cdb77cdf306c32be9b7f598d7060d50cfd4d5aa04bfd92f6c5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "serialize-to-javascript-impl",
+        "version": "0.1.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "772ee033c0916d670af7860b6e1ef7d658a4629a6d0b4c8c3e67f09b3765b75d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "servo_arc",
+        "version": "0.4.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "170fb83ab34de17dc69aa7c67482b22218ddb85da56546f9bd6b929e32a05930",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "servo_arc",
+        "version": "0.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b4eceb519ec34d8290aaf6e46f435102f2bfa63f22b05a144fb16ab266d3b198",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "sha2",
+        "version": "0.10.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "a7507d819769d01a365ab707794a4084392c824f54a7a6a7862f8c3d0892b283",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "sha2",
+        "version": "0.11.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "47d7069beb7d6ac7b9acd1039986e73443f24234f41074da099d6f994ac9ad19",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "shlex",
+        "version": "2.0.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "simd-adler32",
+        "version": "0.3.10",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "siphasher",
+        "version": "1.0.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "33f4fe9184a62d842c9ef383018f3306d8ba224fd9d836f56d7288308847c256",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "slab",
+        "version": "0.4.12",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "smallvec",
+        "version": "1.16.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "149309498a5f7334b12ddae0cad8aba81ce785fe91755068867e017cf98fee46",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "socket2",
+        "version": "0.6.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "softbuffer",
+        "version": "0.4.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "aac18da81ebbf05109ab275b157c22a653bb3c12cf884450179942f81bcbf6c3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "soup3",
+        "version": "0.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "471f924a40f31251afc77450e781cb26d55c0b650842efafc9c6cbd2f7cc4f9f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "soup3-sys",
+        "version": "0.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "7ebe8950a680a12f24f15ebe1bf70db7af98ad242d9db43596ad3108aab86c27",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "stable_deref_trait",
+        "version": "1.2.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "6ce2be8dc25455e1f91df71bfa12ad37d7af1092ae736f3a6cd0e37bc7810596",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "static_vcruntime",
+        "version": "3.0.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ff7589a1859b09232522bb9edf076ca7fcf14ded96685d3fa629db73023ffbb7",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "string_cache",
+        "version": "0.9.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "a18596f8c785a729f2819c0f6a7eae6ebeebdfffbfe4214ae6b087f690e31901",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "string_cache",
+        "version": "0.11.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ffa8a5dbe8b3f0bbe29d4c3225daafaeead63afdc1b65fc4c01a1384166038e6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "string_cache_codegen",
+        "version": "0.6.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "585635e46db231059f76c5849798146164652513eb9e8ab2685939dd90f29b69",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "string_cache_codegen",
+        "version": "0.11.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "928dcdf75e47626b3617a976ec205d9f057584c371c1f23b782129268d0e6edc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "strsim",
+        "version": "0.11.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "swift-rs",
+        "version": "1.0.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "cefd87076fd385308ee4aff597256c902f1fbb4d031de1558efc12f8ffefadd9",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "syn",
+        "version": "1.0.109",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "syn",
+        "version": "2.0.119",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "872831b642d1a07999a962a351ed35b955ea2cfc8f3862091e2a240a84f17297",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "syn",
+        "version": "3.0.10",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "4ae9ccbea3a7b0b09443036490c8f34a8b1b760fd345e5c0dae0aac718faea79",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "sync_wrapper",
+        "version": "1.0.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "0bf256ce5efdfa370213c1dabab5935a12e49f2c58d15e9eac2870d3b4f27263",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "synstructure",
+        "version": "0.14.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "901704edd0dfe137f1987838ee4f259e4e063c31371bdb423f7ae38ec6f77f02",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "system-deps",
+        "version": "6.2.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "a3e535eb8dded36d55ec13eddacd30dec501792ff23a0b1682c38601b8cf2349",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tao",
+        "version": "0.37.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d5777b06fe6435126ae8d816eba269e050e1e10d302cf5461e9c49eccabc3548",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tao-macros",
+        "version": "0.1.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "5f7eeb6d99155545da6150a1795945f16ac9c178deb2a5f2e74d776107bd5849",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "target-lexicon",
+        "version": "0.12.16",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri",
+        "version": "2.12.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "9c2a5cad3827d1fa46c206a6bcaee8ca14203e9b0aaabe447dd4acef33ecd065",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri-build",
+        "version": "2.7.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3e03658bfc9cb60f96a05b7d07a7f7cdfbf4c30b1bbfcb5cf6b5342cc2c9e0bc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri-codegen",
+        "version": "2.7.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7c454a15120b885bf57d0cb9ab218c01e12bc672f793452cb6527b460db883aa",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri-macros",
+        "version": "2.7.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f8f7513896f637528ec27ff76effd90638b1cdfa77499fae3db078043aed7ecb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri-runtime",
+        "version": "2.12.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3c4b2a71c4bf51cde5cdcf1b45d7943282c7c669d3d26f7a324cce25f1b53e75",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri-runtime-wry",
+        "version": "2.12.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "0d9be5e7af9560a4a60cdd441389a066cdd3e7c5d464a006ae34cb276cc78abd",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri-utils",
+        "version": "2.10.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d6bf649f12d6fb11e1867214973cd37d89786ae2c0904f79b787b1db4fdcd14c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tauri-winres",
+        "version": "0.3.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c52bb6904475a6ca662f15ef787f18ade61d5740a1ee12c45d3b748efdb6f796",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tendril",
+        "version": "0.5.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "5fed54709c5b3a53d09bb1c113ea4f5ceafd1e772ddcb0030a82e1d56c087b08",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "thiserror",
+        "version": "1.0.69",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "thiserror",
+        "version": "2.0.21",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "thiserror-impl",
+        "version": "1.0.69",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "thiserror-impl",
+        "version": "2.0.21",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "time",
+        "version": "0.3.55",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "cdb87b95ec50ddfa440816d227a17b2ccbdda963a316a727fda0fc4334f7d134",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "time-core",
+        "version": "0.1.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "9e1c906769ad99c88eaa54e728060edef082f8e358ff32030cb7c7d315e81109",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "time-macros",
+        "version": "0.2.32",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7e689342a48d2ea927c87ea50cabf8594854bf940e9310208848d680d668ed85",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tinystr",
+        "version": "0.8.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "abc840c238154d58f9e86b2792261edfde565a17696e1cda1a449de27979801a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tinyvec",
+        "version": "1.13.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "fd3ca314f692efd6c868f8408f53fe444634a845f96c028b97d35f6a1f79f0ee",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tokio",
+        "version": "1.54.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b52fd3255258d26fac7264ab5a76b53c13367136dc011d3d6ad4f8ed070396a3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tokio-util",
+        "version": "0.7.20",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e464cf451ba96ebfc6f9b6542f17ee8b8956e33f1e40d9690624e59d7a7f8a4b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml",
+        "version": "0.8.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "185d8ab0dfbb35cf1399a6344d8484209c088f75f8f68230da55d48d95d43e3d",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml",
+        "version": "1.2.1+spec-1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "d5755c51863cdac711f1956baf8eb9588e060755f7d3c4c979e70ea1e1f32cd7",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml_datetime",
+        "version": "0.6.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "7cda73e2f1397b1262d6dfdcef8aafae14d1de7748d66822d3bfeeb6d03e5e4b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml_datetime",
+        "version": "1.1.3+spec-1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "173f25c883cd2176a2d8212155638c0a60d484a9d84546d270866f40f56b6e49",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml_edit",
+        "version": "0.19.15",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml_edit",
+        "version": "0.20.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "396e4d48bbb2b7554c944bde63101b5ae446cff6ec4a24227428f15eb72ef338",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml_edit",
+        "version": "0.25.19+spec-1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "dd43688c4858d7264ae1cf9a9f874a67c3feb74a883b1cd7bebd6a4ea8307218",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml_parser",
+        "version": "1.1.5+spec-1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "baa693a8032d7e1cada7d0041e96126df243179ff061456783ac7f12bda4744c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "toml_writer",
+        "version": "1.2.0+spec-1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "009dbb7700f11c55ef83aebbe4c0e9cf1f1ac0844bd8d6f00dc38f302026e13a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tower",
+        "version": "0.5.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ebe5ef63511595f1344e2d5cfa636d973292adc0eec1f0ad45fae9f0851ab1d4",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tower-http",
+        "version": "0.6.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "4cfcf7e2740e6fc6d4d688b4ef00650406bb94adf4731e43c096c3a19fe40840",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tower-layer",
+        "version": "0.3.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "121c2a6cda46980bb0fcd1647ffaf6cd3fc79a013de288782836f6df9c48780e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tower-service",
+        "version": "0.3.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tracing",
+        "version": "0.1.44",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "63e71662fa4b2a2c3a26f570f037eb95bb1f85397f3cd8076caed2f026a6d100",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tracing-core",
+        "version": "0.1.36",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "tray-icon",
+        "version": "0.25.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b2b9c52859a94554803ccd4a24b98f74148ebc73b90676d783f3490b1bff9d72",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "try-lock",
+        "version": "0.2.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "typeid",
+        "version": "1.0.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "bc7d623258602320d5c55d1bc22793b57daff0ec7efc270ea7d55ce1d5f5471c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "typenum",
+        "version": "1.20.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b6f5e870be6c3b371b77fe0ee0bafb859fa4964b4404c27de1d380043c4dda20",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "unicode-ident",
+        "version": "1.0.27",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "a2c754d6c33795a1c324727428e5a7dedb5b06195f9890bdbcba760d3e246563",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "unicode-segmentation",
+        "version": "1.13.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "url",
+        "version": "2.5.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ff67a8a4397373c3ef660812acab3268222035010ab8680ec4215f38ba3d0eed",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "urlpattern",
+        "version": "0.6.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "df16f50ef4cc145211879a3867ba757076b25dfee812040dcb0658bd9ae7904b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "utf8_iter",
+        "version": "1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "af3bd9d3e571c26fcce9d033b87ea5ab061b8d2ffe9b7a5675d810d68f03edf0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "utf_types",
+        "version": "1.0.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3a3b425286980a367278453f3b6d28cdcb134b574e5a35824a6ff5eebad50bb6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "uuid",
+        "version": "1.29.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "bed99139f7dac9b5cfe5f17be4d66dc7079a34dee1d74bcc77217119240e267c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "version-compare",
+        "version": "0.2.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "03c2856837ef78f57382f06b2b8563a2f512f7185d732608fd9176cb3b8edf0e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "version_check",
+        "version": "0.9.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "vswhom",
+        "version": "0.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "be979b7f07507105799e854203b470ff7c78a1639e330a58f183b5fea574608b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "vswhom-sys",
+        "version": "0.1.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "fb067e4cbd1ff067d1df46c9194b5de0e98efd2810bbc95c5d5e5f25a3231150",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "walkdir",
+        "version": "2.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "want",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ec4cdd0dd910afe868b7ef477227d8d538b46b3075031afee8a9f2acb0a2ed0b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasi",
+        "version": "0.11.1+wasi-snapshot-preview1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasip2",
+        "version": "1.0.4+wasi-0.2.12",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "b67efb37e106e55ce722a510d6b5f9c17f083e5fc79afc2badeb12cc313d9487",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasm-bindgen",
+        "version": "0.2.130",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "a0181c14ddd6c7b8b0b0132a5f1ea2f32be0d893cd3ea97b6e3b28886b8a3d1c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasm-bindgen-futures",
+        "version": "0.4.80",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "5e14e0327cb5368ad60ccb22d04a9827a693c95a926d8d125e9fa39e0baec501",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasm-bindgen-macro",
+        "version": "0.2.130",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "6e931a02a39abdbf66966fc35902b5ed58344750a70885bed4ebb3d8eaf28ed9",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasm-bindgen-macro-support",
+        "version": "0.2.130",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "2ca4b54280e455bd831e33a6b8e734baf432fe63fbc35c42ac14ce67a043a53a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasm-bindgen-shared",
+        "version": "0.2.130",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "3b1f9c3798725016c6ee5f2f57869ec0831e8bbc0ab0310a86e787e97f41389e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wasm-streams",
+        "version": "0.5.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "9d1ec4f6517c9e11ae630e200b2b65d193279042e28edd4a2cda233e46670bbb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wayland-backend",
+        "version": "0.3.17",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "38a91b4eaddff87b1cd1074985e3713da4af2c49742d1b356b2c01670a67a078",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wayland-client",
+        "version": "0.31.15",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e3c36a0f861ad76d0901f2800b46321410d9f73f2ea88aac0650d86c32688073",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wayland-protocols",
+        "version": "0.32.13",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "23d0c813de3daa2ed6520af85a3bd49b0e722a3078506899aa9686fea58dc4b6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wayland-scanner",
+        "version": "0.31.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "338e30461b3a2b67d70eb30a6d89f8e0c93a833e07d2ae89085cd070c4a00ac0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wayland-sys",
+        "version": "0.31.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d8eab23fefc9e41f8e841df4a9c707e8a8c4ed26e944ef69297184de2785e3be",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "web-sys",
+        "version": "0.3.107",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "d7d179596ff5ec0f6de4db64d54011bde6289cc49603d3a6e4ce3f329207ab88",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "web-time",
+        "version": "1.1.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "web_atoms",
+        "version": "0.2.6",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ba8b815c1b593dc0baf78dd0f4fc8fdb2de53198fb1163738093e9a311c33fb3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "web_atoms",
+        "version": "0.3.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "7572660c8890448ba236b7376f27e389c6a7e1c70195622faced601f855c0ada",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "webkit2gtk",
+        "version": "2.0.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "a1027150013530fb2eaf806408df88461ae4815a45c541c8975e61d6f2fc4793",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "webkit2gtk-sys",
+        "version": "2.0.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "916a5f65c2ef0dfe12fff695960a2ec3d4565359fdbb2e9943c974e06c734ea5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "webview2-com",
+        "version": "0.39.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3f89fca7a704cee10dcb3654c1dbb8941d1783132f1917358af75bec37a7d7e6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "webview2-com-macros",
+        "version": "0.8.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "67a921c1b6914c367b2b823cd4cde6f96beec77d30a939c8199bb377cf9b9b54",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "webview2-com-sys",
+        "version": "0.39.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b3a07132775117d6065853d9d1178157b8c90e228de47129d6bce2c7edebedfb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "winapi",
+        "version": "0.3.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "winapi-i686-pc-windows-gnu",
+        "version": "0.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "winapi-util",
+        "version": "0.1.11",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "winapi-x86_64-pc-windows-gnu",
+        "version": "0.4.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "window-vibrancy",
+        "version": "0.8.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "111e51caca442cafd9bab396628ac4d814880eaea4e63dfd76a12e9f342b5580",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows",
+        "version": "0.62.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "527fadee13e0c05939a6a05d5bd6eec6cd2e3dbd648b9f8e447c6518133d8580",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-collections",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "23b2d95af1a8a14a3c7367e1ed4fc9c20e0a26e79551b1454d72583c97cc6610",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-core",
+        "version": "0.62.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b8e83a14d34d0623b51dce9581199302a221863196a1dde71a7663a4c2be9deb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-future",
+        "version": "0.3.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e1d6f90251fe18a279739e78025bd6ddc52a7e22f921070ccdc67dde84c605cb",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-implement",
+        "version": "0.60.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "053e2e040ab57b9dc951b72c264860db7eb3b0200ba345b4e4c3b14f67855ddf",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-interface",
+        "version": "0.59.3",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3f316c4a2570ba26bbec722032c4099d8c8bc095efccdc15688708623367e358",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-link",
+        "version": "0.2.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-numerics",
+        "version": "0.3.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "6e2e40844ac143cdb44aead537bbf727de9b044e107a0f1220392177d15b0f26",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-result",
+        "version": "0.4.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7781fa89eaf60850ac3d2da7af8e5242a5ea78d1a11c49bf2910bb5a73853eb5",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-strings",
+        "version": "0.5.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7837d08f69c77cf6b07689544538e017c1bfcf57e34b4c0ff58e6c2cd3b37091",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-sys",
+        "version": "0.45.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "75283be5efb2831d37ea142365f009c02ec203cd29a3ebecbc093d52315b66d0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-sys",
+        "version": "0.61.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-targets",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "8e5180c00cd44c9b1c88adb3693291f1cd93605ded80c250a75d472756b4d071",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-threading",
+        "version": "0.2.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3949bd5b99cafdf1c7ca86b43ca564028dfe27d66958f2470940f73d86d75b37",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows-version",
+        "version": "0.1.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "e4060a1da109b9d0326b7262c8e12c84df67cc0dbc9e33cf49e01ccc2eb63631",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows_aarch64_gnullvm",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "597a5118570b68bc08d8d59125332c54f1ba9d9adeedeef5b99b02ba2b0698f8",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows_aarch64_msvc",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "e08e8864a60f06ef0d0ff4ba04124db8b0fb3be5776a5cd47641e942e58c4d43",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows_i686_gnu",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "c61d927d8da41da96a81f029489353e68739737d3beca43145c8afec9a31a84f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows_i686_msvc",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "44d840b6ec649f480a41c8d80f9c65108b92d89345dd94027bfe06ac444d1060",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows_x86_64_gnu",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "8de912b8b8feb55c064867cf047dda097f92d51efad5b491dfb98f6bbb70cb36",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows_x86_64_gnullvm",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "26d41b46a36d453748aedef1486d5c7a85db22e56aff34643984ea85514e94a3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "windows_x86_64_msvc",
+        "version": "0.42.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "9aec5da331524158c6d1a4ac0ab1541149c0b9505fde06423b02f5ef0106b9f0",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "winnow",
+        "version": "0.5.40",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "winnow",
+        "version": "1.0.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "8c3b93199df0ab874cdf0c6a94f0a0dc3423fe41f1cafb62b8bd7b1deb277aef",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "winreg",
+        "version": "0.56.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "7d6f32a0ff4a9f6f01231eb2059cc85479330739333e0e58cadf03b6af2cca10",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wit-bindgen",
+        "version": "0.57.1",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "writeable",
+        "version": "0.6.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "wry",
+        "version": "0.57.2",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "a490119196d02a51d0871df7b9119a1f3e46d75b7e90053a801454d5c6b3491c",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "x11",
+        "version": "2.21.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "502da5464ccd04011667b11c435cb992822c2c0dbde1770c988480d312a0db2e",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "x11-dl",
+        "version": "2.21.0",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": false,
+        "checksum": "38735924fedd5314a6e548792904ed8c6de6636285cb9fec04d5b1db85c1516f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "yoke",
+        "version": "0.8.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "417ef3fcf6c300b7dbd25c85531a746931c02ad536f3cf4786ed1e88223340b3",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "yoke-derive",
+        "version": "0.8.4",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "ec8ebde2db3681e8c9980cc27822030e68752690ddfa9473e739aeb4dbde6d71",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "zerofrom",
+        "version": "0.1.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "0ec05a11813ea801ff6d75110ad09cd0824ddba17dfe17128ea0d5f68e6c5272",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "zerofrom-derive",
+        "version": "0.1.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f75b4683f6c7f45248d4d64056a24298c6281e0993356d7d1b4a1a962ef10d4a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "zerotrie",
+        "version": "0.2.5",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "4ea269c3bd32f0a32c321907a2ae912ba6f4649bb0fc764a15627e99a7095a3f",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "zerovec",
+        "version": "0.11.9",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "f58a2799cfe9a1670c7ea8edbd52ef8edb93cb37a7f83bf31ba9e35d9dae6a40",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "zerovec-derive",
+        "version": "0.11.7",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "c3743ddbf47738d929cd1ae2e199d40d0162979dfe31aef8ae646d2bf00bf97a",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "zlib-rs",
+        "version": "0.6.8",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "b268e58e7c693d7c271f93ffc4ba3b380412554231c85bf61ca7af91042a4112",
+        "status": "queried_complete",
+        "advisories": []
+      },
+      {
+        "name": "zmij",
+        "version": "1.0.23",
+        "ecosystem": "crates.io",
+        "in_windows_target_metadata": true,
+        "checksum": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b",
+        "status": "queried_complete",
+        "advisories": []
+      }
+    ],
+    "advisory_details": {
+      "GHSA-wrw7-89jp-8q8g": {
+        "id": "GHSA-wrw7-89jp-8q8g",
+        "summary": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
+        "details": "The `VariantStrIter::impl_get` function (called internally by implementations of the `Iterator` and `DoubleEndedIterator` traits for this type) was unsound, resulting in undefined behaviour.\n\nAn immutable reference `&p` to a `*mut libc::c_char` pointer initialized to `NULL` was passed as an argument to a C function that that mutates the pointer behind `&p` in-place (i.e. as an out-argument), which was unsound. After changes in recent versions of the Rust compiler, these unsound writes through `&p` now seem to be completely disregarded when building the `glib` crate with optimizations.\n\nThis subsequently caused all calls of `VariantStrIter::impl_get` to violate the safety requirements of the `std::ffi::CStr::from_ptr` function - which requires its argument to be a valid pointer to a C-style string - resulting in crashes due to `NULL` pointer dereferences.\n\nThis was fixed by passing the out-argument pointer explitly as `&mut p` instead of `&p`.\n\nThis issue has been present since this code was initially added in `glib` v0.15.0. The mismatch in mutability was likely missed (and not raised as an error by the compiler) because the C function wrapped by `VariantStrIter::impl_get` is variadic (`glib_sys::g_variant_get_child`), and the pointer in question is one of the variadic arguments.\n\n",
+        "aliases": [
+          "RUSTSEC-2024-0429"
+        ],
+        "modified": "2025-10-28T06:29:26.473225Z",
+        "published": "2024-12-23T20:19:24Z",
+        "database_specific": {
+          "nvd_published_at": null,
+          "cwe_ids": [],
+          "severity": "MODERATE",
+          "github_reviewed": true,
+          "github_reviewed_at": "2024-12-23T20:19:24Z"
+        },
+        "references": [
+          {
+            "type": "WEB",
+            "url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
+          },
+          {
+            "type": "PACKAGE",
+            "url": "https://github.com/gtk-rs/gtk-rs-core"
+          },
+          {
+            "type": "WEB",
+            "url": "https://rustsec.org/advisories/RUSTSEC-2024-0429.html"
+          }
+        ],
+        "affected": [
+          {
+            "package": {
+              "name": "glib",
+              "ecosystem": "crates.io",
+              "purl": "pkg:cargo/glib"
+            },
+            "ranges": [
+              {
+                "type": "SEMVER",
+                "events": [
+                  {
+                    "introduced": "0.15.0"
+                  },
+                  {
+                    "fixed": "0.20.0"
+                  }
+                ]
+              }
+            ],
+            "database_specific": {
+              "source": "https://github.com/github/advisory-database/blob/main/advisories/github-reviewed/2024/12/GHSA-wrw7-89jp-8q8g/GHSA-wrw7-89jp-8q8g.json"
+            }
+          }
+        ],
+        "schema_version": "1.9.0",
+        "severity": [
+          {
+            "type": "CVSS_V4",
+            "score": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N"
+          }
+        ]
+      },
+      "RUSTSEC-2024-0370": {
+        "id": "RUSTSEC-2024-0370",
+        "summary": "proc-macro-error is unmaintained",
+        "details": "proc-macro-error's maintainer seems to be unreachable, with no commits for 2 years, no releases pushed for 4 years, and no activity on the GitLab repo or response to email.\n\nproc-macro-error also depends on `syn 1.x`, which may be bringing duplicate dependencies into dependant build trees.\n\n## Possible Alternative(s)\n\n- [manyhow](https://crates.io/crates/manyhow)\n- [proc-macro2-diagnostics](https://github.com/SergioBenitez/proc-macro2-diagnostics)",
+        "modified": "2026-06-07T20:00:03.923932350Z",
+        "published": "2024-09-01T12:00:00Z",
+        "database_specific": {
+          "license": "CC0-1.0"
+        },
+        "references": [
+          {
+            "type": "PACKAGE",
+            "url": "https://crates.io/crates/proc-macro-error"
+          },
+          {
+            "type": "ADVISORY",
+            "url": "https://rustsec.org/advisories/RUSTSEC-2024-0370.html"
+          },
+          {
+            "type": "REPORT",
+            "url": "https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20"
+          }
+        ],
+        "affected": [
+          {
+            "package": {
+              "name": "proc-macro-error",
+              "ecosystem": "crates.io",
+              "purl": "pkg:cargo/proc-macro-error"
+            },
+            "ranges": [
+              {
+                "type": "SEMVER",
+                "events": [
+                  {
+                    "introduced": "0.0.0-0"
+                  }
+                ]
+              }
+            ],
+            "ecosystem_specific": {
+              "affects": {
+                "functions": [],
+                "arch": [],
+                "os": []
+              },
+              "affected_functions": null
+            },
+            "database_specific": {
+              "cvss": null,
+              "informational": "unmaintained",
+              "source": "https://github.com/rustsec/advisory-db/blob/osv/crates/RUSTSEC-2024-0370.json",
+              "categories": []
+            }
+          }
+        ],
+        "schema_version": "1.7.5"
+      },
+      "RUSTSEC-2024-0429": {
+        "id": "RUSTSEC-2024-0429",
+        "summary": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
+        "details": "The `VariantStrIter::impl_get` function (called internally by implementations of the `Iterator` and `DoubleEndedIterator` traits for this type) was unsound, resulting in undefined behaviour.\n\nAn immutable reference `&p` to a `*mut libc::c_char` pointer initialized to `NULL` was passed as an argument to a C function that that mutates the pointer behind `&p` in-place (i.e. as an out-argument), which was unsound. After changes in recent versions of the Rust compiler, these unsound writes through `&p` now seem to be completely disregarded when building the `glib` crate with optimizations.\n\nThis subsequently caused all calls of `VariantStrIter::impl_get` to violate the safety requirements of the `std::ffi::CStr::from_ptr` function - which requires its argument to be a valid pointer to a C-style string - resulting in crashes due to `NULL` pointer dereferences.\n\nThis was fixed by passing the out-argument pointer explitly as `&mut p` instead of `&p`.\n\nThis issue has been present since this code was initially added in `glib` v0.15.0. The mismatch in mutability was likely missed (and not raised as an error by the compiler) because the C function wrapped by `VariantStrIter::impl_get` is variadic (`glib_sys::g_variant_get_child`), and the pointer in question is one of the variadic arguments.",
+        "aliases": [
+          "GHSA-wrw7-89jp-8q8g"
+        ],
+        "modified": "2025-10-28T06:29:26.473225Z",
+        "published": "2024-03-30T12:00:00Z",
+        "database_specific": {
+          "license": "CC0-1.0"
+        },
+        "references": [
+          {
+            "type": "PACKAGE",
+            "url": "https://crates.io/crates/glib"
+          },
+          {
+            "type": "ADVISORY",
+            "url": "https://rustsec.org/advisories/RUSTSEC-2024-0429.html"
+          },
+          {
+            "type": "WEB",
+            "url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
+          }
+        ],
+        "affected": [
+          {
+            "package": {
+              "name": "glib",
+              "ecosystem": "crates.io",
+              "purl": "pkg:cargo/glib"
+            },
+            "ranges": [
+              {
+                "type": "SEMVER",
+                "events": [
+                  {
+                    "introduced": "0.15.0"
+                  },
+                  {
+                    "fixed": "0.20.0"
+                  }
+                ]
+              }
+            ],
+            "ecosystem_specific": {
+              "affected_functions": null,
+              "affects": {
+                "arch": [],
+                "functions": [
+                  "glib::VariantStrIter::last",
+                  "glib::VariantStrIter::next",
+                  "glib::VariantStrIter::next_back",
+                  "glib::VariantStrIter::nth",
+                  "glib::VariantStrIter::nth_back"
+                ],
+                "os": []
+              }
+            },
+            "database_specific": {
+              "cvss": null,
+              "informational": "unsound",
+              "source": "https://github.com/rustsec/advisory-db/blob/osv/crates/RUSTSEC-2024-0429.json",
+              "categories": []
+            }
+          }
+        ],
+        "schema_version": "1.7.3"
+      }
+    },
+    "windows_metadata_command": "cargo metadata --locked --format-version 1 --features custom-protocol --filter-platform x86_64-pc-windows-msvc",
+    "windows_inverse_tree_checks": [
+      {
+        "package": "glib",
+        "command": "cargo tree --locked --features custom-protocol --target x86_64-pc-windows-msvc -i glib",
+        "exit_code": 0,
+        "result": "nothing to print"
+      },
+      {
+        "package": "proc-macro-error",
+        "command": "cargo tree --locked --features custom-protocol --target x86_64-pc-windows-msvc -i proc-macro-error",
+        "exit_code": 0,
+        "result": "nothing to print"
+      }
+    ],
+    "triage": [
+      {
+        "package": "glib",
+        "version": "0.18.5",
+        "canonical_advisory": "RUSTSEC-2024-0429",
+        "alias": "GHSA-wrw7-89jp-8q8g",
+        "classification": "known memory-unsoundness advisory; GitHub MODERATE; RustSec informational unsound",
+        "windows_target_present": false,
+        "reachability": "not in the resolved Windows custom-protocol dependency graph; no exploit executed",
+        "source_locations": [
+          "desktop/src-tauri/Cargo.lock:1138",
+          "desktop/src-tauri/src/main.rs:2"
+        ],
+        "future_gate": "Before supporting Linux, update/replace the GTK dependency chain or prove the affected VariantStrIter path unreachable for that artifact; do not force an incompatible glib version in the current lock."
+      },
+      {
+        "package": "proc-macro-error",
+        "version": "1.0.4",
+        "canonical_advisory": "RUSTSEC-2024-0370",
+        "classification": "informational unmaintained; not a demonstrated exploitable vulnerability",
+        "windows_target_present": false,
+        "reachability": "not in the resolved Windows custom-protocol dependency graph; macro build-time dependency in other target chain",
+        "source_locations": [
+          "desktop/src-tauri/Cargo.lock:2514",
+          "desktop/src-tauri/src/main.rs:2"
+        ],
+        "future_gate": "Review upstream replacement and maintenance before adopting the other-target build graph."
+      }
+    ]
+  },
+  "npm": {
+    "lock_entries": 123,
+    "runtime_packages": [
+      {
+        "name": "@tauri-apps/api",
+        "version": "2.12.5",
+        "development": false,
+        "optional": false
+      },
+      {
+        "name": "react",
+        "version": "19.3.1",
+        "development": false,
+        "optional": false
+      },
+      {
+        "name": "react-dom",
+        "version": "19.3.1",
+        "development": false,
+        "optional": false
+      },
+      {
+        "name": "scheduler",
+        "version": "0.28.0",
+        "development": false,
+        "optional": false
+      }
+    ],
+    "development_entries": 119,
+    "audits": {
+      "runtime": {
+        "exit_code": 0,
+        "command": "npm audit --json --package-lock-only --ignore-scripts --registry=https://registry.npmjs.org --omit=dev",
+        "report": {
+          "auditReportVersion": 2,
+          "vulnerabilities": {},
+          "metadata": {
+            "vulnerabilities": {
+              "info": 0,
+              "low": 0,
+              "moderate": 0,
+              "high": 0,
+              "critical": 0,
+              "total": 0
+            },
+            "dependencies": {
+              "prod": 5,
+              "dev": 119,
+              "optional": 91,
+              "peer": 0,
+              "peerOptional": 0,
+              "total": 123
+            }
+          }
+        },
+        "stderr_present": false
+      },
+      "all_declared": {
+        "exit_code": 0,
+        "command": "npm audit --json --package-lock-only --ignore-scripts --registry=https://registry.npmjs.org",
+        "report": {
+          "auditReportVersion": 2,
+          "vulnerabilities": {},
+          "metadata": {
+            "vulnerabilities": {
+              "info": 0,
+              "low": 0,
+              "moderate": 0,
+              "high": 0,
+              "critical": 0,
+              "total": 0
+            },
+            "dependencies": {
+              "prod": 5,
+              "dev": 119,
+              "optional": 91,
+              "peer": 0,
+              "peerOptional": 0,
+              "total": 123
+            }
+          }
+        },
+        "stderr_present": false
+      }
+    },
+    "earlier_incomplete_invocation": {
+      "result": "JSONDecodeError, no conclusion drawn; rerun with separate empty user/global config files"
+    },
+    "tool_versions": {
+      "node": "v24.21.0",
+      "npm": "11.19.0"
+    },
+    "count_note": "npm metadata prod includes the workspace root: 5 = root + 4 third-party runtime packages. Optional/dev metadata counts can overlap and are not summed as unique installed runtime components."
+  },
+  "limitations": [
+    "Known-advisory lookup at recorded time; zero matches is not proof of security.",
+    "No exploit or reachability claim follows from package presence alone.",
+    "Windows metadata includes build dependencies; all-target Cargo.lock includes packages not used by Windows.",
+    "Python standard library/runtime, Rust compiler, system WebView2, OS and model/runtime binaries are outside these lockfile queries.",
+    "No package install, automatic fix, production test or SDK action was performed."
+  ],
+  "git_head_observed_at_end": "b59bd6fff7afc413e3fd85cf165ecbe47026f3b2"
+}

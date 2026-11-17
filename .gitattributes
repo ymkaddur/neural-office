@@ -1,0 +1,2 @@
+# Preserve the exact upstream notice bytes verified by overrides.json.
+desktop/licenses/*.LICENSE -text

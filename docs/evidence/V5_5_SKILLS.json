@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "date": "2026-11-17",
+  "new_skills": 7,
+  "existing_skills_unchanged": 2,
+  "structural_validations_passed": 14,
+  "evaluation_kind": "agent-assisted, non-blind instruction forward-review; no product user study",
+  "cases": [
+    {
+      "case": "lost ACK and unknown token metadata",
+      "decision": "lookup same office/project/key; no new attempt; unknown is not zero"
+    },
+    {
+      "case": "independent history cursors",
+      "decision": "preserve bounded other page, require compatible revision; do not load entire ledger"
+    },
+    {
+      "case": "cancel before spawn and late event",
+      "decision": "close admission, await owned termination, preserve consumption"
+    },
+    {
+      "case": "obscured approval, IME and imported document instruction",
+      "decision": "preserve context and focus; no submit during composition; document text cannot grant authority"
+    },
+    {
+      "case": "X403, restricted source and university/market claims",
+      "decision": "exclude unread sources; respect licensing; no institution endorsement or runtime skills claim"
+    }
+  ],
+  "clarification_applied": "task-design keeps the same operational key through acceptance; draft revision remains distinct",
+  "limitations": [
+    "Evaluator knew prior integration regressions; not a blind test.",
+    "Five reasoning cases are not five executed product tests or five participants.",
+    "Format validity is not proof of future skill effectiveness."
+  ],
+  "files": [
+    {
+      "path": "skills/neural-office-task-design/SKILL.md",
+      "sha256": "23194d801ce9926fc2530a86df9963f09b99631cb0c36962f801ceb49ef511bf",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-task-design/references/evidence.md",
+      "sha256": "c622312c49ac4be8b44c9969beb6222350c2ae71b726fd746bfd5149196ee83f",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-accessible-workspace/SKILL.md",
+      "sha256": "bf906733122a38d7d5a45d014992c9d27535000b1069216473939e9245de5f99",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-accessible-workspace/references/evidence.md",
+      "sha256": "8ba54639c52897e643f643645bf2549608d9886215f49e2725eb785bc90563b5",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-durable-interactions/SKILL.md",
+      "sha256": "9ea3a3e73684deec470cc7e1489d62e149add79d96652590c704169b74c4771e",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-durable-interactions/references/evidence.md",
+      "sha256": "929f58a90473be9b23ea2bbc3f9ba737d96fc1cdba97fb65b9e8f487ae7b65d5",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-native-boundary/SKILL.md",
+      "sha256": "886f9a17e8f5eb76da6a0f8fba395833e5ae0ac84fc12f0a69ec1b2f37376e99",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-native-boundary/references/evidence.md",
+      "sha256": "25d4dc004f26e272341df03738510b175deccf175740dcbdc4253c5f7e41db16",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-local-model-budget/SKILL.md",
+      "sha256": "6eacc125520e95824ea1f0f081e49d730c59dd32680e66f21e5ef4f6f000ae86",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-local-model-budget/references/evidence.md",
+      "sha256": "98025e0076acc4262af39c0c99b08876df3545cca6ba895632892fa97e6fffae",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-memory-provenance/SKILL.md",
+      "sha256": "11e033d2df25f5142524d8926bdee52b463fdbc65657bec0363f37ecb9ecb8a2",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-memory-provenance/references/evidence.md",
+      "sha256": "58c635f3cabd4288d575751e19f7a46c9a335064f382883f74724f2afb2b9940",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-user-validation/SKILL.md",
+      "sha256": "eea6dc62902fa255b1081b728b8a08e00b6ff0858f7f3f6cf666115db700bf42",
+      "installed_copy_matches": true
+    },
+    {
+      "path": "skills/neural-office-user-validation/references/evidence.md",
+      "sha256": "a4633bff02dd1b9b3306713be52126794cced7d8b10ab67666f15c6b60397878",
+      "installed_copy_matches": true
+    }
+  ]
+}

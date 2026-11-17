@@ -51,10 +51,13 @@ def http(method, url, data=None, timeout=90):
             body = response.read(24 * 1024 * 1024 + 1)
     except urllib.error.HTTPError as error:
         try:
-            code = json.loads(error.read(65536)).get('value', {}).get('error', '')
+            value = json.loads(error.read(65536)).get('value', {})
+            code, message = value.get('error', ''), value.get('message', '')
         except (ValueError, AttributeError):
-            code = ''
-        raise RuntimeError(f'HTTP_{error.code}:{code}') from None
+            code, message = '', ''
+        # A status alone concealed the cause of the first native-session failure.
+        # Keep bounded diagnostic detail; main sanitizes this CI-only evidence.
+        raise RuntimeError(f'HTTP_{error.code}:{code}:{message[:8000]}') from None
     if len(body) > 24 * 1024 * 1024:
         raise RuntimeError('TEST_RESPONSE_TOO_LARGE')
     return json.loads(body)
@@ -237,6 +240,13 @@ def main():
     steps = evidence['checks']
     driver = host = sampler = metadata = driver_process = None
     logs = []
+    def sanitized(text):
+        for path, label in ((str(work), '<synthetic-work>'), (str(root), '<repository>'),
+                            (str(tools), '<test-tools>'), (str(Path.home()), '<runner-home>'),
+                            (sys.executable, '<test-python>')):
+            text = text.replace(path, label).replace(path.replace('\\', '/'), label)
+        return text
+
     stage = 'prepare_tools'
     try:
         ollama_root = prepare_ollama(tools)
@@ -359,7 +369,14 @@ def main():
     except Exception as error:
         evidence['status'] = 'failed'
         evidence['failure'] = {'stage': stage, 'type': type(error).__name__,
-                               'message': str(error)[:250].replace(str(work), '<synthetic-work>')}
+                               'message': sanitized(str(error))[:8000]}
+        if driver_process and driver_process.poll() is None:
+            try:
+                evidence['failure']['owned_driver_processes'] = [
+                    {'name': child.name(), 'running': child.is_running()}
+                    for child in psutil.Process(driver_process.pid).children(recursive=True)]
+            except psutil.Error:
+                evidence['failure']['owned_process_inventory'] = 'unavailable'
         if driver:
             try:
                 driver.screenshot(output / 'failure.png')
@@ -390,6 +407,13 @@ def main():
                     if owned.poll() is None: owned.kill()
         for log in logs:
             log.close()
+        if evidence['status'] == 'failed':
+            driver_log_path = work / 'driver.log'
+            if driver_log_path.is_file():
+                with driver_log_path.open('rb') as diagnostic:
+                    diagnostic.seek(max(0, driver_log_path.stat().st_size - 32768))
+                    tail = diagnostic.read().decode('utf-8', errors='replace')
+                (output / 'driver-diagnostic.txt').write_text(sanitized(tail), encoding='utf-8')
         (output / 'verification.json').write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding='utf-8')
         print(json.dumps({'native_e2e': evidence['status'], 'checks': len(steps), 'last_stage': stage}))
 

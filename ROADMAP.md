@@ -2,6 +2,8 @@
 
 **Visión:** descargar la aplicación, elegir un modelo local compatible y poner a trabajar un equipo con tareas, memoria y skills bajo control del usuario. Software gratuito, MIT para las aportaciones propias y apoyo voluntario sin funciones exclusivas.
 
+**Tramo actual:** [V5.5 → V6: decisiones, tareas y puertas de salida](docs/V5_5_TO_V6.md). La investigación de 80 repositorios y los ensayos reales cambian prioridades: conectar un recorrido, comprobar utilidad frente a no usar modelo y adelantar la distribución/firma. El arranque R13 y la aceptación visual siguen abiertos.
+
 ```mermaid
 flowchart LR
     A["V5.3 · Medir y diseñar"] --> B["V5.4 · Diseño y referencia"]
@@ -32,7 +34,7 @@ Las versiones se cierran por capacidades y evidencia, no por numeración o fecha
 
 La numeración organiza puertas de salida; no fija fechas ni declara implementadas las capacidades. V5.4.1 publica progreso revisable y divisores ajustables. G-UI continúa pendiente de aceptación y pruebas formativas.
 
-La [auditoría posterior](docs/FORENSIC_AUDIT_V5_4_1.md) incorpora mantenimiento del núcleo 5.3.1: propiedad durante arranque/recuperación, reintento de protección interrumpida y rechazo temprano de rutas de red. Antes de ampliar capacidades, la prioridad es demostrar un solo recorrido con identidad durable, respuesta perdida, cierre y recuperación. El coste de validar toda la historia debe medirse dentro de la latencia de cancelación. Esto no cierra G-UI ni conecta el escritorio.
+La [auditoría posterior](docs/FORENSIC_AUDIT_V5_4_1.md) incorpora mantenimiento del núcleo 5.3.1: propiedad durante arranque/recuperación, reintento de protección interrumpida y rechazo temprano de rutas de red. Antes de ampliar capacidades, la prioridad es demostrar un solo recorrido con identidad durable, respuesta perdida, cierre y recuperación. El coste de validar toda la historia debe medirse dentro de la latencia de cancelación. Esto no cerró G-UI; V5.5 conecta ahora el escritorio y documenta su verificación por separado.
 
 | Fase | Resultado para el usuario | Condición antes de avanzar |
 | --- | --- | --- |
@@ -42,7 +44,7 @@ La [auditoría posterior](docs/FORENSIC_AUDIT_V5_4_1.md) incorpora mantenimiento
 | V5.6 | Plan breve, primera entrega y revisión con salida anticipada | Hasta tres iteraciones internas propuestas, sin confundirlas con intentos; llamadas/tokens/tiempo acotados; comparar con una pasada |
 | V5.7 | Skills de solo lectura y memoria mínima inspeccionable | Fuente, versión, permisos, ámbito, borrado y actualizaciones atómicas; nada generado se promociona por sí solo |
 | V5.8 | Menor coste del recorrido completo con utilidad conservada | Corpus independiente, un cambio por experimento, carga/prefill/generación separados; sin activar siete roles por estética |
-| V5.9 | Uso estable con errores, cierres y restauraciones | Beta con usuarios, accesibilidad, casos largos, treinta ciclos y recuperación adversarial; R13 resuelto o contenido explícitamente |
+| V5.9 | Uso estable con errores, cierres y restauraciones | Beta con usuarios, accesibilidad, casos largos, treinta ciclos y recuperación adversarial; firma/distribución en equipos limpios; R13 resuelto o contenido explícitamente |
 | V6 | Dos trabajos acotados desde la app: HTML y síntesis de TXT/Markdown seleccionados | Entregas verificables, fuentes y versiones, límites, persistencia y recursos contrastados; paquete de prueba, no soporte universal |
 
 La optimización se mantiene en cada fase. V5.8 integra los ahorros comprobados; no es permiso para ignorar consumo antes. Los presupuestos provisionales y lo aún no medido figuran en [V5.4 recursos](docs/V5_4_RESOURCE_BASELINE.md). La investigación dirigida de vídeos orienta contexto selectivo, memoria con procedencia y separación de fases de inferencia; no aporta cifras transferibles a este equipo.
@@ -63,4 +65,4 @@ V5.3 mantiene intactos los caminos de ejecución del núcleo e incorpora observa
 
 La investigación visual de vídeos está [delimitada por frames y timestamps](docs/V5_3_VIDEO_RESEARCH.md). Las pistas sobre caché, memoria y evaluación alimentan experimentos futuros; no se anuncian como capacidades ya incorporadas.
 
-**Siguiente trabajo concreto:** cerrar aceptación de las cinco pantallas V5.4.1 y fijar una tarea/rúbrica; después conectar un solo recorrido y probar pérdida de respuesta, cierre/reinicio y conservación de identidad/cuota. Ampliar el corpus y medir recursos con esa tarea estable. Las comparaciones CPU/GPU/contexto varían una condición por ensayo y preservan los recibos anteriores. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [auditoría actual](docs/FORENSIC_AUDIT_V5_4_1.md).
+**Siguiente trabajo concreto:** completar la evidencia del recorrido nativo V5.5 y su aceptación visual, mantener visible R13 y fijar tarea/rúbrica antes de añadir loops. Pérdida de respuesta, cierre/reinicio e identidad/cuota tienen regresiones, con alcance en la [entrega V5.5](docs/V5_5_VERIFICATION.md). Ampliar el corpus y medir recursos con esa tarea estable. Las comparaciones CPU/GPU/contexto varían una condición por ensayo y preservan los recibos anteriores. [Referencia medida](docs/V5_3_MEASUREMENT_PROTOCOL.md) · [contrato de escritorio](docs/V5_3_DESKTOP_CONTRACT.md) · [auditoría actual](docs/FORENSIC_AUDIT_V5_4_1.md).

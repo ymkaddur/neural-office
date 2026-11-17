@@ -1,0 +1,337 @@
+{
+  "schema": 1,
+  "timestamp_utc": "2026-11-17T07:54:45.515918+00:00",
+  "scope": "real DesktopService / OwnedOllama; excludes native GUI and whole-app RAM",
+  "model": "qwen2.5:0.5b",
+  "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+  "environment": {
+    "app_version": "5.5.0",
+    "python": "3.12.10",
+    "system": "Windows",
+    "runtime_version": "0.40.16",
+    "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "profile": {
+      "num_ctx": 8192,
+      "num_predict": 128,
+      "num_gpu": 0,
+      "timeout_seconds": 300
+    },
+    "backend_source_sha256": "1b5dd747aecc55fa701da52aa1ba0ed5ce2773c84cf0cf07fa384b7cfe08c164",
+    "runner_source_sha256": "e35165a1147b0082bad6d6b07151799085fdc31f5c1ba12963e698f105aa15f3",
+    "diagnostics_source_sha256": "98fbe3f0c179c4ba9683f0eecd863bb9744be75e49b3ca5b63f38ff212ebb73a",
+    "measurements_source_sha256": "1bc012cc00d75c154c5e1c66fd497a475fe2a30d121494341bb71d9f6e460b2a",
+    "clock": "perf_counter_ns_relative"
+  },
+  "machine_architecture": "AMD64",
+  "trials": [
+    {
+      "label": "complete",
+      "state": "ACCEPTED",
+      "mode": "ollama-owned",
+      "wall_seconds": 11.375,
+      "call_states": [
+        "DONE"
+      ],
+      "error_code": null,
+      "backend": {
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 1078800
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 7282300
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 15923500
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 16003000,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 4054223200,
+            "probe": 1,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 4054291700
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 6658274000
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 6658284200,
+            "probe": 1,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 6658667200
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6736888400
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 6736935600,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 6737005200
+          },
+          {
+            "stage": "CALL_BEGIN",
+            "elapsed_ns": 6762704100,
+            "ordinal": 1
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 6762710200
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6818052600
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 6818055700
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 9664971700
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 11187947700
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 11232316100
+          },
+          {
+            "stage": "CALL_END",
+            "elapsed_ns": 11233944200,
+            "ordinal": 1
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 11257258100
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 11257675000,
+            "active_processes": 0
+          }
+        ],
+        "calls": [
+          {
+            "ordinal": 1,
+            "wall_seconds": 4.4711782,
+            "request_sha256": "0af34aa9805d1d2c011d9362530d66fd7b7c3307b2d3b9b58991369605e65039",
+            "model_allocated_vram_bytes": 0,
+            "context_length": 8192,
+            "total_duration": 1500302400,
+            "load_duration": 797079700,
+            "prompt_eval_count": 164,
+            "prompt_eval_cached_count": 0,
+            "prompt_eval_duration": 472801000,
+            "eval_count": 23,
+            "eval_duration": 225274000,
+            "generated_tokens_per_second": 102.09788968101068,
+            "first_token_ms": null,
+            "first_token_reason": "non_streaming_backend"
+          }
+        ],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 24,
+          "elapsed_seconds": 11.2573927,
+          "cpu_seconds": 15.1875,
+          "cpu_percent_machine_average": 6.745567292859917,
+          "sampled_peak_working_set_sum_bytes": 655036416,
+          "sampled_peak_private_commit_sum_bytes": 779341824,
+          "job_peak_commit_bytes": 1191264256,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      }
+    },
+    {
+      "label": "cancel-after-real-call-entry",
+      "state": "CANCELLED",
+      "mode": "ollama-owned",
+      "wall_seconds": 9.063000000023749,
+      "call_states": [
+        "INTERRUPTED"
+      ],
+      "error_code": null,
+      "backend": {
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 509100
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 4027200
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 10030500
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 10080500,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 3668738300,
+            "probe": 1,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 3668828800
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 6169911800
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 6169923800,
+            "probe": 1,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 6170196300
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6225773600
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 6225816300,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 6225876400
+          },
+          {
+            "stage": "CALL_BEGIN",
+            "elapsed_ns": 6244384900,
+            "ordinal": 1
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 6244388600
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 6300709200
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 6300712800
+          },
+          {
+            "stage": "OWNER_QUERY_ERROR",
+            "elapsed_ns": 8993413200,
+            "error_type": "Denied"
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 8993445300
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 8993653000,
+            "active_processes": 0
+          }
+        ],
+        "calls": [],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 19,
+          "elapsed_seconds": 8.9936276,
+          "cpu_seconds": 4.28125,
+          "cpu_percent_machine_average": 2.380157479502487,
+          "sampled_peak_working_set_sum_bytes": 633630720,
+          "sampled_peak_private_commit_sum_bytes": 1007095808,
+          "job_peak_commit_bytes": 1144770560,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      }
+    }
+  ],
+  "checks": {
+    "real_attempt_accepted": true,
+    "report_digest": true,
+    "manual_four_finding_oracle": true,
+    "source_digest": true,
+    "commentary_is_unverified": true,
+    "restart_identity": true,
+    "restart_office": true,
+    "restart_does_not_consume": true,
+    "restart_does_not_execute": true,
+    "cancellation_preceded_terminal": true,
+    "cancelled": true,
+    "cancel_preserves_consumption": true,
+    "owned_backends_terminated": true
+  },
+  "error": null,
+  "report_sha256": "aa7d6f192c237aa2f3c145e0f467fe70c8fb7bd1f649228c0c6b5fcfcf90432f",
+  "findings": [
+    {
+      "code": "DOCUMENT_TITLE_MISSING",
+      "column": 1,
+      "line": 1
+    },
+    {
+      "code": "HTML_LANGUAGE_MISSING",
+      "column": 1,
+      "line": 2
+    },
+    {
+      "code": "IMAGE_ALT_MISSING",
+      "column": 3,
+      "line": 6
+    },
+    {
+      "code": "CONTROL_LABEL_CANDIDATE",
+      "column": 3,
+      "line": 7
+    }
+  ],
+  "cancellation": {
+    "call_entry_observed": true,
+    "state_at_request": "RUNNING",
+    "seconds_until_worker_join": 2.5160000000032596
+  },
+  "passed": true
+}

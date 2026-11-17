@@ -1,0 +1,125 @@
+{
+  "trial": {
+    "wall_seconds": 8.909904,
+    "error": null,
+    "cleanup_error": null,
+    "inference_calls": 0,
+    "events": [
+      {
+        "stage": "START_BEGIN",
+        "elapsed_ns": 1755600
+      },
+      {
+        "stage": "BOOTSTRAP_SPAWN_BEGIN",
+        "elapsed_ns": 10217000
+      },
+      {
+        "stage": "BOOTSTRAP_LAUNCHED",
+        "elapsed_ns": 27845300
+      },
+      {
+        "stage": "STARTUP_PROBE_BEGIN",
+        "elapsed_ns": 27969200,
+        "probe": 1,
+        "phase": "metadata"
+      },
+      {
+        "stage": "STARTUP_PHASE",
+        "elapsed_ns": 4805073600,
+        "probe": 1,
+        "phase": "listener_owner"
+      },
+      {
+        "stage": "OWNER_QUERY_BEGIN",
+        "elapsed_ns": 4805133900
+      },
+      {
+        "stage": "OWNER_QUERY_END",
+        "elapsed_ns": 8828418300
+      },
+      {
+        "stage": "STARTUP_PHASE",
+        "elapsed_ns": 8828428100,
+        "probe": 1,
+        "phase": "model_identity"
+      },
+      {
+        "stage": "MODEL_IDENTITY_BEGIN",
+        "elapsed_ns": 8828520000
+      },
+      {
+        "stage": "MODEL_IDENTITY_END",
+        "elapsed_ns": 8909238600
+      },
+      {
+        "stage": "OWNED_BACKEND_READY",
+        "elapsed_ns": 8909287600,
+        "active_processes": 3
+      },
+      {
+        "stage": "START_END",
+        "elapsed_ns": 8909382000
+      },
+      {
+        "stage": "TERMINATE_BEGIN",
+        "elapsed_ns": 8909384600
+      },
+      {
+        "stage": "TERMINATE_END",
+        "elapsed_ns": 8909660200,
+        "active_processes": 0
+      }
+    ],
+    "calls": [],
+    "resources": {
+      "scope": "owned_backend_job_only",
+      "interval_seconds": 0.5,
+      "sample_count": 19,
+      "elapsed_seconds": 8.9098577,
+      "cpu_seconds": 5.171875,
+      "cpu_percent_machine_average": 2.9023331090910687,
+      "sampled_peak_working_set_sum_bytes": 361656320,
+      "sampled_peak_private_commit_sum_bytes": 666624000,
+      "job_peak_commit_bytes": 1137451008,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "complete": true,
+      "system_gpu_usage": null
+    },
+    "termination_verified": true
+  },
+  "network_trace": [
+    {
+      "phase": "connected",
+      "ns": 555134800,
+      "route": "/api/version"
+    },
+    {
+      "phase": "request_sent",
+      "ns": 555308600,
+      "route": "/api/version"
+    },
+    {
+      "phase": "headers",
+      "status": 200,
+      "ns": 4805333700,
+      "route": "/api/version"
+    },
+    {
+      "phase": "connected",
+      "ns": 8849892900,
+      "route": "/api/tags"
+    },
+    {
+      "phase": "request_sent",
+      "ns": 8850062300,
+      "route": "/api/tags"
+    },
+    {
+      "phase": "headers",
+      "status": 200,
+      "ns": 8909365800,
+      "route": "/api/tags"
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "schema": 1,
+  "timestamp_utc": "2026-11-17T07:52:14.858428+00:00",
+  "scope": "real DesktopService / OwnedOllama; excludes native GUI and whole-app RAM",
+  "model": "qwen2.5:0.5b",
+  "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+  "environment": {
+    "app_version": "5.5.0",
+    "python": "3.12.10",
+    "system": "Windows",
+    "runtime_version": "0.40.16",
+    "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "profile": {
+      "num_ctx": 8192,
+      "num_predict": 128,
+      "num_gpu": 0,
+      "timeout_seconds": 300
+    },
+    "backend_source_sha256": "1b5dd747aecc55fa701da52aa1ba0ed5ce2773c84cf0cf07fa384b7cfe08c164",
+    "runner_source_sha256": "e35165a1147b0082bad6d6b07151799085fdc31f5c1ba12963e698f105aa15f3",
+    "diagnostics_source_sha256": "98fbe3f0c179c4ba9683f0eecd863bb9744be75e49b3ca5b63f38ff212ebb73a",
+    "measurements_source_sha256": "1bc012cc00d75c154c5e1c66fd497a475fe2a30d121494341bb71d9f6e460b2a",
+    "clock": "perf_counter_ns_relative"
+  },
+  "machine_architecture": "AMD64",
+  "trials": [
+    {
+      "label": "complete",
+      "state": "FAILED",
+      "mode": "ollama-owned",
+      "wall_seconds": 31.48399999999674,
+      "call_states": [],
+      "error_code": "OWNED_BACKEND_START_TIMEOUT",
+      "backend": {
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 880100
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 10285600
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 21134300
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 21274900,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 5564416800,
+            "probe": 1,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 5664977900,
+            "probe": 2,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 10750272300,
+            "probe": 2,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 10850880300,
+            "probe": 3,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 15888449900,
+            "probe": 3,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 15989056700,
+            "probe": 4,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 21023466300,
+            "probe": 4,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 21124150900,
+            "probe": 5,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 26139876500,
+            "probe": 5,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 26240313800,
+            "probe": 6,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_RETRY",
+            "elapsed_ns": 31270712100,
+            "probe": 6,
+            "phase": "metadata",
+            "error_type": "TimeoutError"
+          },
+          {
+            "stage": "START_TIMEOUT",
+            "elapsed_ns": 31371234500,
+            "active_processes": 4,
+            "last_error": "TimeoutError",
+            "phase": "metadata",
+            "probe": 6
+          },
+          {
+            "stage": "START_ERROR",
+            "elapsed_ns": 31371350600,
+            "error_type": "Denied"
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 31371513700
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 31372616900,
+            "active_processes": 0
+          }
+        ],
+        "calls": [],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 63,
+          "elapsed_seconds": 31.3725567,
+          "cpu_seconds": 5.328125,
+          "cpu_percent_machine_average": 0.8491697139876393,
+          "sampled_peak_working_set_sum_bytes": 363495424,
+          "sampled_peak_private_commit_sum_bytes": 496238592,
+          "job_peak_commit_bytes": 623636480,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      }
+    }
+  ],
+  "checks": {
+    "real_attempt_accepted": false
+  },
+  "error": {
+    "type": "RuntimeError",
+    "code": null
+  },
+  "passed": false
+}
