@@ -1,0 +1,395 @@
+{
+  "schema": 1,
+  "commit": "137ab905773c1cfb35dc0877b9b2b578204923bd",
+  "status": "failed",
+  "test": "real-packaged-windows-desktop-uia",
+  "model": "qwen2.5:0.5b",
+  "source_sha256": "b8b1ee7cf6d328cf93d64ce0fdf41dbbb94749cdfed6900a9a68deb80e1321e1",
+  "executable_sha256": "42aa3ea8257daebf80d51e09b449b711d3c567af32bc4ffde57a39f98202d5fb",
+  "tools": {
+    "webview2_version": "156.0.4314.58",
+    "automation": "Windows UI Automation; no DevTools or WebDriver"
+  },
+  "runner_elevated": true,
+  "checks": [
+    {
+      "check": "packaged-ui-native-ipc-real-catalog-no-devtools",
+      "verified": true
+    }
+  ],
+  "limitations": [
+    "One synthetic HTML task and one cancellation; no semantic model quality claim.",
+    "Windows CI runner only, not a user-machine policy override or clean-machine installer test.",
+    "UI Automation is instrumentation, not a human usability or accessibility audit.",
+    "RSS may double-count shared pages; half-second samples are not absolute peaks or leak proof.",
+    "CPU fields sum counters of currently observed processes, not total lifetime CPU of the run.",
+    "The separate metadata server and test harness are outside the sampled application tree."
+  ],
+  "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+  "ollama_version": "0.40.16",
+  "ollama_archive_sha256": "50fcf5ad54277f2fa5d173ebfc93bcb017adbc0c9ef2314daabc96ca9e6aa64e",
+  "resource_samples": [
+    {
+      "monotonic_ns": 385968000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29282304,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.15625
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 323039232,
+          "private_bytes": 109391872,
+          "cpu_seconds": 1.0625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 386484000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 323235840,
+          "private_bytes": 109535232,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 387000000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 322830336,
+          "private_bytes": 109043712,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 387515000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 322826240,
+          "private_bytes": 109039616,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 388015000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 322826240,
+          "private_bytes": 109039616,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 388531000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 319885312,
+          "private_bytes": 106094592,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 389031000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 319889408,
+          "private_bytes": 106094592,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 389531000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 319901696,
+          "private_bytes": 106094592,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 390031000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 319901696,
+          "private_bytes": 106094592,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 390546000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 320880640,
+          "private_bytes": 106729472,
+          "cpu_seconds": 1.140625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    },
+    {
+      "monotonic_ns": 391046000000,
+      "phase": "idle_before",
+      "groups": {
+        "host": {
+          "processes": 1,
+          "rss_bytes": 29302784,
+          "private_bytes": 5345280,
+          "cpu_seconds": 0.171875
+        },
+        "python": {
+          "processes": 1,
+          "rss_bytes": 25657344,
+          "private_bytes": 15720448,
+          "cpu_seconds": 0.0625
+        },
+        "webview": {
+          "processes": 6,
+          "rss_bytes": 323948544,
+          "private_bytes": 109891584,
+          "cpu_seconds": 1.15625
+        },
+        "other_child": {
+          "processes": 1,
+          "rss_bytes": 7221248,
+          "private_bytes": 1318912,
+          "cpu_seconds": 0.015625
+        }
+      },
+      "unreadable_processes": 0,
+      "complete": true
+    }
+  ],
+  "failure": {
+    "stage": "native_source_and_approval",
+    "type": "AssertionError",
+    "message": "EDIT_VALUE_NOT_ACCEPTED"
+  },
+  "ci_run": "https://github.com/ymkaddur/neural-office/actions/runs/44046964063",
+  "head_commit": "88ed16dbe4f8ec8a326a1030b9e21a4bce3cb1f1",
+  "artifact_id": 14311209686,
+  "artifact_zip_sha256": "819e8bebca4e8aa27cb6e54e1c78e40a0de0e4285afd4f9f664b6bd64af22130",
+  "interpretation": "Native window, real IPC and model catalog observed. Test stopped before source selection; input acknowledgement and window geometry require discrimination. Not a passed end-to-end test."
+}

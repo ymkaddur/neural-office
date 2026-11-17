@@ -119,6 +119,8 @@ class Screen:
         user32.SystemParametersInfoW.restype = wintypes.BOOL
         user32.GetDpiForWindow.argtypes = [wintypes.HWND]
         user32.GetDpiForWindow.restype = wintypes.UINT
+        user32.IsZoomed.argtypes = [wintypes.HWND]
+        user32.IsZoomed.restype = wintypes.BOOL
         primary = wintypes.RECT()
         if not user32.SystemParametersInfoW(48, 0, ctypes.byref(primary), 0):
             raise ctypes.WinError(ctypes.get_last_error())
@@ -138,7 +140,7 @@ class Screen:
                 'client_origin_screen_px': list(win32gui.ClientToScreen(handle, (0, 0))),
                 'extended_frame_px': [extended.left, extended.top, extended.right, extended.bottom] if has_frame else None,
                 'review_button_rectangle_px': [send_rect.left, send_rect.top, send_rect.right, send_rect.bottom] if send_rect else None,
-                'dpi': dpi, 'scale_factor': dpi / 96 if dpi else None, 'maximized': bool(win32gui.IsZoomed(handle))}
+                'dpi': dpi, 'scale_factor': dpi / 96 if dpi else None, 'maximized': bool(user32.IsZoomed(handle))}
 
     def maximize(self, enabled):
         from pywinauto import Application
