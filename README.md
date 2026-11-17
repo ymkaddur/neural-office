@@ -12,6 +12,10 @@ Hoy puedes revisar un HTML local con un modelo instalado, conservar su informe y
 
 [Abrir el escritorio de desarrollo](desktop/README.md) · [Hoja de ruta hasta V6](docs/V5_5_TO_V6.md) · [Investigación de 80 repositorios](docs/V5_5_RESEARCH.md) · [Skills de desarrollo](skills/README.md).
 
+![Resultado real del escritorio V5.5 sobre el HTML sintético incluido](docs/images/v5.5-result.png)
+
+Captura del ejecutable Windows: una llamada al modelo local y cuatro comprobaciones estáticas. [Ver el recorrido, las pruebas y el consumo](docs/V5_5_VERIFICATION.md#recorrido-final-verificado).
+
 La [galería V5.4.1](docs/V5_4_1_UI_REVIEW.md) se conserva como ejemplo sintético separado. En un navegador se abre explícitamente con `?preview=1&screen=ready`: sus escenas no ejecutan modelos. El escritorio usa el servicio real y conserva el estado del piloto; no se borra una oficina para actualizarla.
 
 ## Usar el piloto HTML desde Python

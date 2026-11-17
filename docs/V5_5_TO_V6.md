@@ -67,6 +67,6 @@ El primer candidato de ahorro es **evitar trabajo sin valor**: los cuatro hallaz
 
 ## Próxima acción y confianza
 
-Cerrar la evidencia nativa V5.5, revisar su entrega visual y aislar el arranque R13 con la siguiente traza discriminante. Después fijar el corpus y la rúbrica V5.6 antes de implementar loops. Las [skills de desarrollo](../skills/README.md) codifican los errores y métodos, sin añadir una capacidad de aprendizaje autónomo al producto.
+La evidencia nativa acotada de V5.5 ya está cerrada en el registro de entrega. Revisar la interfaz con personas y aislar el arranque R13 con la siguiente traza discriminante; fijar el corpus y la rúbrica V5.6 antes de implementar loops. Las [skills de desarrollo](../skills/README.md) codifican los errores y métodos, sin añadir una capacidad de aprendizaje autónomo al producto.
 
 Confianza de ingeniería **90% en la secuencia propuesta**, no probabilidad de éxito comercial o ausencia de errores. La suposición crítica es que las dos tareas acotadas resuelvan una necesidad real; el estudio de uso y la comparación con una solución sin modelo pueden invalidarla y cambiar prioridades.

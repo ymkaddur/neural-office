@@ -1,0 +1,18 @@
+{
+  "components": {
+    "cargo": 241,
+    "npm": 4
+  },
+  "verified_notice_hashes_including_own_license": 433,
+  "missing_or_mismatched": 0,
+  "components_json_sha256": "f3fbb56374fb8d1105525f369288227d666166ea1534d121604eb5effc87c78f",
+  "scope": "Cargo Windows build dependency superset plus installed frontend runtime packages; not an exhaustive binary SBOM",
+  "final_artifact": {
+    "run": "https://github.com/ymkaddur/neural-office/actions/runs/44056901513",
+    "artifact_id": 14316377357,
+    "zip_sha256": "bad475ceb23a4f690b96ec9fb2617ee9392ea66d672dde91f609e2424689e085",
+    "executable_sha256": "d6e5a0f8b46869063f74d4a46559e04dee58511af2527d00c65e5da24c60da49",
+    "executable_bytes": 4635136,
+    "hashes_reverified_for_final_artifact": 433
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "idle_before": {
+    "samples": 11,
+    "complete": 11,
+    "rss_sum_peak_MiB": 380.492,
+    "private_commit_sum_peak_MiB": 136.102
+  },
+  "window_differential": {
+    "samples": 2,
+    "complete": 2,
+    "rss_sum_peak_MiB": 370.355,
+    "private_commit_sum_peak_MiB": 132.18
+  },
+  "prepare": {
+    "samples": 7,
+    "complete": 7,
+    "rss_sum_peak_MiB": 415.609,
+    "private_commit_sum_peak_MiB": 143.887
+  },
+  "work": {
+    "samples": 18,
+    "complete": 18,
+    "rss_sum_peak_MiB": 1011.68,
+    "private_commit_sum_peak_MiB": 872.965
+  },
+  "idle_after": {
+    "samples": 11,
+    "complete": 11,
+    "rss_sum_peak_MiB": 421.539,
+    "private_commit_sum_peak_MiB": 149.996
+  },
+  "total_samples": 49,
+  "sample_span_seconds": 24.391,
+  "runner_environment": {
+    "system": "Windows",
+    "release": "2025Server",
+    "machine": "AMD64",
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "logical_cpus": 4,
+    "physical_cpus": 2,
+    "total_ram_bytes": 17174360064
+  },
+  "verification_json_sha256": "0040fe277aab3aa7c235b14dda5c1f81a21c17ca030630ad5132021c23df4bf8",
+  "run_id": 44056901513,
+  "tested_merge_sha": "f4c10c4d81a88adf1176dfe71777c743cb720baa",
+  "pr_head": "03dc482be0847add3230e3b8d6001d9f17187b9e"
+}
