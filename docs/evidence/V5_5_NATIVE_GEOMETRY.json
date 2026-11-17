@@ -1,0 +1,223 @@
+{
+  "schema": 1,
+  "commit": "8d73a264dc665884860ab7f09692276ff843ed85",
+  "status": "failed",
+  "test": "real-packaged-windows-desktop-uia",
+  "executable_sha256": "f1d11eca51712e54bdfd871fd90ffd5226d59aa0e77c23dccdae2fc8a01f55c7",
+  "tools": {
+    "webview2_version": "156.0.4314.58",
+    "automation": "Windows UI Automation; no DevTools or WebDriver"
+  },
+  "checks": [
+    {
+      "check": "packaged-ui-native-ipc-real-catalog-no-devtools",
+      "verified": true
+    }
+  ],
+  "input_acknowledgements": [
+    {
+      "requested_length": 81,
+      "readings": [
+        {
+          "elapsed_ns": 16000000,
+          "type": "str",
+          "length": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "elapsed_ns": 531000000,
+          "type": "str",
+          "length": 81,
+          "sha256": "92c65472f21dc43a40f056a1383d25d7e484569181a01c1257478772191dc54c"
+        }
+      ],
+      "matched": true
+    }
+  ],
+  "initial_geometry": {
+    "window_rectangle_px": [
+      0,
+      0,
+      1044,
+      788
+    ],
+    "monitor_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "primary_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "win32_window_rectangle_px": [
+      0,
+      0,
+      1044,
+      788
+    ],
+    "client_rectangle_px": [
+      0,
+      0,
+      1028,
+      749
+    ],
+    "client_origin_screen_px": [
+      8,
+      31
+    ],
+    "extended_frame_px": [
+      7,
+      0,
+      1037,
+      781
+    ],
+    "review_button_rectangle_px": [
+      859,
+      687,
+      998,
+      722
+    ],
+    "dpi": 96,
+    "scale_factor": 1.0,
+    "maximized": false
+  },
+  "maximized_geometry": {
+    "window_rectangle_px": [
+      -8,
+      -8,
+      1032,
+      728
+    ],
+    "monitor_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "primary_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "win32_window_rectangle_px": [
+      -8,
+      -8,
+      1032,
+      728
+    ],
+    "client_rectangle_px": [
+      0,
+      0,
+      1024,
+      697
+    ],
+    "client_origin_screen_px": [
+      0,
+      23
+    ],
+    "extended_frame_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "review_button_rectangle_px": [
+      849,
+      627,
+      988,
+      662
+    ],
+    "dpi": 96,
+    "scale_factor": 1.0,
+    "maximized": true
+  },
+  "restored_geometry": {
+    "window_rectangle_px": [
+      0,
+      0,
+      1044,
+      788
+    ],
+    "monitor_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "primary_work_area_px": [
+      0,
+      0,
+      1024,
+      720
+    ],
+    "win32_window_rectangle_px": [
+      0,
+      0,
+      1044,
+      788
+    ],
+    "client_rectangle_px": [
+      0,
+      0,
+      1028,
+      749
+    ],
+    "client_origin_screen_px": [
+      8,
+      31
+    ],
+    "extended_frame_px": [
+      7,
+      0,
+      1037,
+      781
+    ],
+    "review_button_rectangle_px": [
+      859,
+      687,
+      998,
+      722
+    ],
+    "dpi": 96,
+    "scale_factor": 1.0,
+    "maximized": false
+  },
+  "failure": {
+    "stage": "native_source_and_approval",
+    "type": "TimeoutError",
+    "message": "timed out"
+  },
+  "provenance": {
+    "run": "https://github.com/ymkaddur/neural-office/actions/runs/44050803268",
+    "branch_head": "a483d7ef263417a7817d6569c976cc8fefa78b33",
+    "artifact_zip_sha256": "9af79b56c4fd176c6f2dd5bf10533fc29640e2f35e56b37adda6f352b28ebde1"
+  },
+  "interpretation": [
+    "Baseline native window exceeded the monitor work area; maximize fixed measured client/button bounds and restore reproduced overflow.",
+    "DPI 96 and one Windows CI monitor; not a high-DPI or multi-monitor certification.",
+    "The run stopped at an incorrect automation selector, before native inference; no end-to-end pass.",
+    "Input acknowledgement moved from empty at 16ms to the exact requested text at 531ms without resending or a production change."
+  ],
+  "picker_control_evidence": [
+    {
+      "automation_id": "1148",
+      "type": "Edit",
+      "name": "File name:"
+    },
+    {
+      "automation_id": "1",
+      "type": "Button",
+      "name": "Open"
+    },
+    {
+      "automation_id": "1001",
+      "type": "ToolBar",
+      "name": "Address: Documents"
+    }
+  ]
+}

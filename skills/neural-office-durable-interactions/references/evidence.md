@@ -19,7 +19,7 @@ VERIFICADO en la regresión de cancelación: una parada sobre un Job vacío no i
 
 ### pingdotgg/t3code
 
-[Archivo en el commit inspeccionado](https://github.com/pingdotgg/t3code/blob/747ed9c5b1d9b2d41638ef94003bda1d996f4353/apps/server/src/orchestration-v2/Orchestrator.receipt-race.test.ts#L69). Líneas 69-111; nivel: `source-inspected`.
+[Archivo en el commit inspeccionado](https://github.com/pingdotgg/t3code/blob/747ed9c5b1d9b2d41638ef94003bda1d996f4353/apps/server/src/orchestration-v2/Orchestrator.receipt-race.test.ts#L69). Líneas 69-111; nivel: `test-source-inspected-not-executed`.
 
 OBSERVADO: el test fuerza la llegada concurrente de dos comandos con el mismo commandId y distinto threadId; exige un éxito, un conflicto tipado y que el modelo del thread perdedor no cambie. APLICACIÓN PROPUESTA V5.5: vincular commandId a payload y ámbito, y probar la carrera con barreras deterministas antes de permitir reenvíos desde la UI.
 

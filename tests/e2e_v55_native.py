@@ -197,8 +197,8 @@ def native_picker(host, source):
     from pywinauto import Application
     dialog = Application(backend='uia').connect(process=host.pid).window(title='Elegir HTML para revisar')
     dialog.wait('visible', timeout=20)
-    # File name is the native IFileDialog edit (1001), not an injected JS path.
-    field = dialog.child_window(auto_id='1001', control_type='Edit')
+    # Observed in the runner's IFileDialog: 1148 is File name; 1001 is the address toolbar.
+    field = dialog.child_window(auto_id='1148', control_type='Edit')
     field.wait('enabled', timeout=10)
     field.set_edit_text(str(source))
     dialog.child_window(auto_id='1', control_type='Button').invoke()

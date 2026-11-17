@@ -1,0 +1,774 @@
+{
+  "schema": 1,
+  "completed_utc": "2026-11-17T09:09:54.040661+00:00",
+  "scope": "three sequential owned metadata-only startup traces; no production edits, ledger, inference or model download",
+  "timing_notes": "Network deltas use one perf_counter origin per probe; backend events use the MeasuredBackend origin. Cross-stream absolute nanosecond alignment was not captured, so compare within-stream durations and code-defined precedence, not exact cross-stream offsets. Nanosecond units do not claim nanosecond measurement accuracy.",
+  "historical_evidence": {
+    "docs/evidence/V5_5_REAL_FAILURE.json": {
+      "sha256": "d50e3711853c6dd3c5bb7d3b7aed2d51a1d39cd5520a0bdbd5528cdad0626a5e"
+    },
+    "docs/evidence/V5_5_STARTUP_TRACE.json": {
+      "sha256": "5b5488057fd5de7055448377b0ac14163ef743f150eaa59551e4f27437fa1947"
+    }
+  },
+  "metrics": [
+    {
+      "trial": "01",
+      "wall_seconds": 7.4189732,
+      "version_connect_seconds": 0.522434,
+      "version_request_to_headers_seconds": 4.074399,
+      "version_body_seconds": 1.9e-05,
+      "listener_owner_query_seconds": 2.749826,
+      "tags_request_to_headers_seconds": 0.054483,
+      "tags_body_seconds": 8.2e-05,
+      "native_log_lines": 0
+    },
+    {
+      "trial": "02",
+      "wall_seconds": 5.8827976,
+      "version_connect_seconds": 0.524901,
+      "version_request_to_headers_seconds": 2.878968,
+      "version_body_seconds": 1.8e-05,
+      "listener_owner_query_seconds": 2.375933,
+      "tags_request_to_headers_seconds": 0.090233,
+      "tags_body_seconds": 8.7e-05,
+      "native_log_lines": 0
+    },
+    {
+      "trial": "03",
+      "wall_seconds": 5.3887224,
+      "version_connect_seconds": 0.521432,
+      "version_request_to_headers_seconds": 2.575782,
+      "version_body_seconds": 2.5e-05,
+      "listener_owner_query_seconds": 2.185648,
+      "tags_request_to_headers_seconds": 0.07261,
+      "tags_body_seconds": 6.2e-05,
+      "native_log_lines": 0
+    }
+  ],
+  "trials": [
+    {
+      "schema": 1,
+      "trial": "01",
+      "started_utc": "2026-11-17T09:04:07.779014+00:00",
+      "completed_utc": "2026-11-17T09:04:15.203371+00:00",
+      "git_head": "a483d7ef263417a7817d6569c976cc8fefa78b33",
+      "scope": "one new owned Windows Job/backend; metadata only, no ledger, inference or download",
+      "unchanged_timeouts": {
+        "metadata_socket_seconds": 5,
+        "startup_retry_window_seconds": 30,
+        "owner_query_seconds": 15
+      },
+      "cache_state": {
+        "new_owned_backend": true,
+        "os_page_cache_reset": false,
+        "os_page_cache_state": "unknown",
+        "model_load_requested": false,
+        "model_store_mutation_requested": false,
+        "model_residency": "not measured; only metadata requests issued"
+      },
+      "instrumentation": "HTTPConnection wrappers preserve original methods, timeout and reads; log observer every 50ms; timing observer may perturb scheduling",
+      "environment": {
+        "python": "3.12.10",
+        "system": "Windows",
+        "backend_source_sha256": "1b5dd747aecc55fa701da52aa1ba0ed5ce2773c84cf0cf07fa384b7cfe08c164",
+        "diagnostics_source_sha256": "98fbe3f0c179c4ba9683f0eecd863bb9744be75e49b3ca5b63f38ff212ebb73a",
+        "ollama_executable_sha256": "4ccefcbfecc50fb6526471adabbc20869dd614e29e351120b15083cb174b0b8a"
+      },
+      "profile": {
+        "mode": "ollama-owned",
+        "model": "qwen2.5:0.5b",
+        "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+        "num_ctx": 8192,
+        "num_predict": 128,
+        "num_gpu": 0,
+        "timeout_seconds": 300
+      },
+      "trial_result": {
+        "wall_seconds": 7.4189732,
+        "error": null,
+        "cleanup_error": null,
+        "inference_calls": 0,
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 322500
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 4128800
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 13920200
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 14013600,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 4611735200,
+            "probe": 1,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 4611805800
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 7361631900
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 7361639600,
+            "probe": 1,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 7362287000
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 7417766400
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 7417869600,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 7417955900
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 7417959700
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 7418300900,
+            "active_processes": 0
+          }
+        ],
+        "calls": [],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 16,
+          "elapsed_seconds": 7.4185781,
+          "cpu_seconds": 4.046875,
+          "cpu_percent_machine_average": 2.7275273950408367,
+          "sampled_peak_working_set_sum_bytes": 309624832,
+          "sampled_peak_private_commit_sum_bytes": 596115456,
+          "job_peak_commit_bytes": 1192185856,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      },
+      "network_trace": [
+        {
+          "phase": "request_begin",
+          "elapsed_ns": 15245100,
+          "route": "/api/version",
+          "socket_timeout_seconds": 5
+        },
+        {
+          "phase": "connect_begin",
+          "elapsed_ns": 15534100,
+          "route": "/api/version"
+        },
+        {
+          "phase": "connected",
+          "elapsed_ns": 537968200,
+          "route": "/api/version"
+        },
+        {
+          "phase": "request_sent",
+          "elapsed_ns": 538396300,
+          "route": "/api/version"
+        },
+        {
+          "phase": "headers_begin",
+          "elapsed_ns": 538402600,
+          "route": "/api/version"
+        },
+        {
+          "phase": "headers_received",
+          "elapsed_ns": 4612795500,
+          "route": "/api/version",
+          "status": 200
+        },
+        {
+          "phase": "body_begin",
+          "elapsed_ns": 4612799200,
+          "route": "/api/version"
+        },
+        {
+          "phase": "body_complete",
+          "elapsed_ns": 4612818300,
+          "route": "/api/version",
+          "bytes": 21
+        },
+        {
+          "phase": "request_begin",
+          "elapsed_ns": 7363505500,
+          "route": "/api/tags",
+          "socket_timeout_seconds": 5
+        },
+        {
+          "phase": "connect_begin",
+          "elapsed_ns": 7363561900,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "connected",
+          "elapsed_ns": 7364088800,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "request_sent",
+          "elapsed_ns": 7364129600,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "headers_begin",
+          "elapsed_ns": 7364131800,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "headers_received",
+          "elapsed_ns": 7418612300,
+          "route": "/api/tags",
+          "status": 200
+        },
+        {
+          "phase": "body_begin",
+          "elapsed_ns": 7418619400,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "body_complete",
+          "elapsed_ns": 7418701800,
+          "route": "/api/tags",
+          "bytes": 5038
+        }
+      ],
+      "child_log_observation": {
+        "first_noninstrumentation_line": null,
+        "noninstrumentation_lines_observed": 0,
+        "raw_log_private_only": true,
+        "server_origin_proven": false,
+        "post_close_noninstrumentation_lines": 0
+      },
+      "inference_calls": 0,
+      "downloads": 0
+    },
+    {
+      "schema": 1,
+      "trial": "02",
+      "started_utc": "2026-11-17T09:05:00.536232+00:00",
+      "completed_utc": "2026-11-17T09:05:06.426835+00:00",
+      "git_head": "a483d7ef263417a7817d6569c976cc8fefa78b33",
+      "scope": "one new owned Windows Job/backend; metadata only, no ledger, inference or download",
+      "unchanged_timeouts": {
+        "metadata_socket_seconds": 5,
+        "startup_retry_window_seconds": 30,
+        "owner_query_seconds": 15
+      },
+      "cache_state": {
+        "new_owned_backend": true,
+        "os_page_cache_reset": false,
+        "os_page_cache_state": "unknown",
+        "model_load_requested": false,
+        "model_store_mutation_requested": false,
+        "model_residency": "not measured; only metadata requests issued"
+      },
+      "instrumentation": "HTTPConnection wrappers preserve original methods, timeout and reads; log observer every 50ms; timing observer may perturb scheduling",
+      "environment": {
+        "python": "3.12.10",
+        "system": "Windows",
+        "backend_source_sha256": "1b5dd747aecc55fa701da52aa1ba0ed5ce2773c84cf0cf07fa384b7cfe08c164",
+        "diagnostics_source_sha256": "98fbe3f0c179c4ba9683f0eecd863bb9744be75e49b3ca5b63f38ff212ebb73a",
+        "ollama_executable_sha256": "4ccefcbfecc50fb6526471adabbc20869dd614e29e351120b15083cb174b0b8a"
+      },
+      "profile": {
+        "mode": "ollama-owned",
+        "model": "qwen2.5:0.5b",
+        "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+        "num_ctx": 8192,
+        "num_predict": 128,
+        "num_gpu": 0,
+        "timeout_seconds": 300
+      },
+      "trial_result": {
+        "wall_seconds": 5.8827976,
+        "error": null,
+        "cleanup_error": null,
+        "inference_calls": 0,
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 287700
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 3651700
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 9310900
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 9369200,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 3413580900,
+            "probe": 1,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 3413649500
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 5789583000
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 5789599500,
+            "probe": 1,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 5789996800
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 5881901100
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 5881964800,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 5882065700
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 5882069500
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 5882406300,
+            "active_processes": 0
+          }
+        ],
+        "calls": [],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 13,
+          "elapsed_seconds": 5.8827295,
+          "cpu_seconds": 3.984375,
+          "cpu_percent_machine_average": 3.386501963076834,
+          "sampled_peak_working_set_sum_bytes": 592740352,
+          "sampled_peak_private_commit_sum_bytes": 998301696,
+          "job_peak_commit_bytes": 1105440768,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      },
+      "network_trace": [
+        {
+          "phase": "request_begin",
+          "elapsed_ns": 10290100,
+          "route": "/api/version",
+          "socket_timeout_seconds": 5
+        },
+        {
+          "phase": "connect_begin",
+          "elapsed_ns": 10328100,
+          "route": "/api/version"
+        },
+        {
+          "phase": "connected",
+          "elapsed_ns": 535229400,
+          "route": "/api/version"
+        },
+        {
+          "phase": "request_sent",
+          "elapsed_ns": 535353500,
+          "route": "/api/version"
+        },
+        {
+          "phase": "headers_begin",
+          "elapsed_ns": 535357800,
+          "route": "/api/version"
+        },
+        {
+          "phase": "headers_received",
+          "elapsed_ns": 3414321700,
+          "route": "/api/version",
+          "status": 200
+        },
+        {
+          "phase": "body_begin",
+          "elapsed_ns": 3414325100,
+          "route": "/api/version"
+        },
+        {
+          "phase": "body_complete",
+          "elapsed_ns": 3414343200,
+          "route": "/api/version",
+          "bytes": 21
+        },
+        {
+          "phase": "request_begin",
+          "elapsed_ns": 5790923400,
+          "route": "/api/tags",
+          "socket_timeout_seconds": 5
+        },
+        {
+          "phase": "connect_begin",
+          "elapsed_ns": 5791004300,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "connected",
+          "elapsed_ns": 5792072500,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "request_sent",
+          "elapsed_ns": 5792163900,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "headers_begin",
+          "elapsed_ns": 5792168300,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "headers_received",
+          "elapsed_ns": 5882396600,
+          "route": "/api/tags",
+          "status": 200
+        },
+        {
+          "phase": "body_begin",
+          "elapsed_ns": 5882404600,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "body_complete",
+          "elapsed_ns": 5882491100,
+          "route": "/api/tags",
+          "bytes": 5038
+        }
+      ],
+      "child_log_observation": {
+        "first_noninstrumentation_line": null,
+        "noninstrumentation_lines_observed": 0,
+        "raw_log_private_only": true,
+        "server_origin_proven": false,
+        "post_close_noninstrumentation_lines": 0
+      },
+      "inference_calls": 0,
+      "downloads": 0
+    },
+    {
+      "schema": 1,
+      "trial": "03",
+      "started_utc": "2026-11-17T09:05:06.903569+00:00",
+      "completed_utc": "2026-11-17T09:05:12.297878+00:00",
+      "git_head": "a483d7ef263417a7817d6569c976cc8fefa78b33",
+      "scope": "one new owned Windows Job/backend; metadata only, no ledger, inference or download",
+      "unchanged_timeouts": {
+        "metadata_socket_seconds": 5,
+        "startup_retry_window_seconds": 30,
+        "owner_query_seconds": 15
+      },
+      "cache_state": {
+        "new_owned_backend": true,
+        "os_page_cache_reset": false,
+        "os_page_cache_state": "unknown",
+        "model_load_requested": false,
+        "model_store_mutation_requested": false,
+        "model_residency": "not measured; only metadata requests issued"
+      },
+      "instrumentation": "HTTPConnection wrappers preserve original methods, timeout and reads; log observer every 50ms; timing observer may perturb scheduling",
+      "environment": {
+        "python": "3.12.10",
+        "system": "Windows",
+        "backend_source_sha256": "1b5dd747aecc55fa701da52aa1ba0ed5ce2773c84cf0cf07fa384b7cfe08c164",
+        "diagnostics_source_sha256": "98fbe3f0c179c4ba9683f0eecd863bb9744be75e49b3ca5b63f38ff212ebb73a",
+        "ollama_executable_sha256": "4ccefcbfecc50fb6526471adabbc20869dd614e29e351120b15083cb174b0b8a"
+      },
+      "profile": {
+        "mode": "ollama-owned",
+        "model": "qwen2.5:0.5b",
+        "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+        "num_ctx": 8192,
+        "num_predict": 128,
+        "num_gpu": 0,
+        "timeout_seconds": 300
+      },
+      "trial_result": {
+        "wall_seconds": 5.3887224,
+        "error": null,
+        "cleanup_error": null,
+        "inference_calls": 0,
+        "events": [
+          {
+            "stage": "START_BEGIN",
+            "elapsed_ns": 392600
+          },
+          {
+            "stage": "BOOTSTRAP_SPAWN_BEGIN",
+            "elapsed_ns": 3928200
+          },
+          {
+            "stage": "BOOTSTRAP_LAUNCHED",
+            "elapsed_ns": 11739800
+          },
+          {
+            "stage": "STARTUP_PROBE_BEGIN",
+            "elapsed_ns": 11815300,
+            "probe": 1,
+            "phase": "metadata"
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 3109416000,
+            "probe": 1,
+            "phase": "listener_owner"
+          },
+          {
+            "stage": "OWNER_QUERY_BEGIN",
+            "elapsed_ns": 3109486900
+          },
+          {
+            "stage": "OWNER_QUERY_END",
+            "elapsed_ns": 5295134700
+          },
+          {
+            "stage": "STARTUP_PHASE",
+            "elapsed_ns": 5295145700,
+            "probe": 1,
+            "phase": "model_identity"
+          },
+          {
+            "stage": "MODEL_IDENTITY_BEGIN",
+            "elapsed_ns": 5295483100
+          },
+          {
+            "stage": "MODEL_IDENTITY_END",
+            "elapsed_ns": 5388040800
+          },
+          {
+            "stage": "OWNED_BACKEND_READY",
+            "elapsed_ns": 5388089400,
+            "active_processes": 3
+          },
+          {
+            "stage": "START_END",
+            "elapsed_ns": 5388147300
+          },
+          {
+            "stage": "TERMINATE_BEGIN",
+            "elapsed_ns": 5388149500
+          },
+          {
+            "stage": "TERMINATE_END",
+            "elapsed_ns": 5388423800,
+            "active_processes": 0
+          }
+        ],
+        "calls": [],
+        "resources": {
+          "scope": "owned_backend_job_only",
+          "interval_seconds": 0.5,
+          "sample_count": 12,
+          "elapsed_seconds": 5.3886687,
+          "cpu_seconds": 3.71875,
+          "cpu_percent_machine_average": 3.4505275857838504,
+          "sampled_peak_working_set_sum_bytes": 526880768,
+          "sampled_peak_private_commit_sum_bytes": 893952000,
+          "job_peak_commit_bytes": 1137090560,
+          "incomplete_samples": 0,
+          "observation_errors": [],
+          "complete": true,
+          "system_gpu_usage": null
+        },
+        "termination_verified": true
+      },
+      "network_trace": [
+        {
+          "phase": "request_begin",
+          "elapsed_ns": 12809500,
+          "route": "/api/version",
+          "socket_timeout_seconds": 5
+        },
+        {
+          "phase": "connect_begin",
+          "elapsed_ns": 12853700,
+          "route": "/api/version"
+        },
+        {
+          "phase": "connected",
+          "elapsed_ns": 534286200,
+          "route": "/api/version"
+        },
+        {
+          "phase": "request_sent",
+          "elapsed_ns": 534449700,
+          "route": "/api/version"
+        },
+        {
+          "phase": "headers_begin",
+          "elapsed_ns": 534455400,
+          "route": "/api/version"
+        },
+        {
+          "phase": "headers_received",
+          "elapsed_ns": 3110231600,
+          "route": "/api/version",
+          "status": 200
+        },
+        {
+          "phase": "body_begin",
+          "elapsed_ns": 3110237200,
+          "route": "/api/version"
+        },
+        {
+          "phase": "body_complete",
+          "elapsed_ns": 3110262500,
+          "route": "/api/version",
+          "bytes": 21
+        },
+        {
+          "phase": "request_begin",
+          "elapsed_ns": 5296468100,
+          "route": "/api/tags",
+          "socket_timeout_seconds": 5
+        },
+        {
+          "phase": "connect_begin",
+          "elapsed_ns": 5296517700,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "connected",
+          "elapsed_ns": 5315977700,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "request_sent",
+          "elapsed_ns": 5316108000,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "headers_begin",
+          "elapsed_ns": 5316111600,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "headers_received",
+          "elapsed_ns": 5388718000,
+          "route": "/api/tags",
+          "status": 200
+        },
+        {
+          "phase": "body_begin",
+          "elapsed_ns": 5388723400,
+          "route": "/api/tags"
+        },
+        {
+          "phase": "body_complete",
+          "elapsed_ns": 5388785700,
+          "route": "/api/tags",
+          "bytes": 5038
+        }
+      ],
+      "child_log_observation": {
+        "first_noninstrumentation_line": null,
+        "noninstrumentation_lines_observed": 0,
+        "raw_log_private_only": true,
+        "server_origin_proven": false,
+        "post_close_noninstrumentation_lines": 0
+      },
+      "inference_calls": 0,
+      "downloads": 0
+    }
+  ],
+  "observations": [
+    "All three runs completed startup and confirmed owned-process termination.",
+    "The historical failure remained in metadata phase before listener-owner and model-identity checks.",
+    "Successful current runs spend substantially more time awaiting /api/version headers than reading its body.",
+    "The owned raw logs contain only the Python instrumentation lines; no first Ollama server log was captured, including post-close verification."
+  ],
+  "status": "R13_OPEN_CAUSE_NOT_REPRODUCED_WITH_FINE_TRACE",
+  "ranked_candidates": [
+    {
+      "rank": 1,
+      "candidate": "Delay awaiting HTTP response headers during backend startup",
+      "support": "Largest observed pre-owner metadata latency in successful runs; earlier successful trace also waited after TCP connection",
+      "counterevidence": "No failing run with headers_error captured; six historical timeouts might occur in another metadata subphase",
+      "falsifier": "A faithful failing trace identifies connect_error or body_error without headers waiting at the failing operation"
+    },
+    {
+      "rank": 2,
+      "candidate": "TCP connection establishment stalls in the historical failing startup",
+      "support": "Historical TimeoutError did not record the socket subphase",
+      "counterevidence": "All three current connections succeed in roughly half a second",
+      "falsifier": "Failing trace records connected and request_sent before headers_error"
+    },
+    {
+      "rank": 3,
+      "candidate": "Body read stalls after successful HTTP headers",
+      "support": "Historical wrapper combined getresponse and read, leaving this path observationally possible",
+      "counterevidence": "Successful current body reads are short; no body_error was observed",
+      "falsifier": "Failing trace never reaches headers_received"
+    }
+  ],
+  "excluded_explanations_for_historical_signature": [
+    "Listener-owner subprocess timeout alone: historical retries are still phase metadata, before owner query.",
+    "An issued model inference call stalled: historical call_states is empty; these probes never invoke inference. Internal server initialization and model-store I/O remain unknown.",
+    "Catalog identity work alone: /api/tags is reached only after version metadata and ownership; historical retries did not reach that phase."
+  ],
+  "next_discriminant": {
+    "action": "Capture the next naturally failing owned startup with the same network subphase wrapper and establish child stderr/stdout observability first, using a private bootstrap diagnostic that explicitly connects only its owned child output to a private file.",
+    "required_observations": [
+      "first owned server startup/listen message or explicit absence with a confirmed working capture path",
+      "connect/request/headers/body error phase and monotonic timestamps",
+      "unchanged timeouts and owned process termination"
+    ],
+    "limits": "Do not read or modify the existing user service log or relax OS policy. Changing diagnostic output plumbing may perturb timing and must be recorded. No timeout increase is a causal fix."
+  },
+  "uncertainty": [
+    "Three successes do not estimate the historical failure probability or eliminate the incident.",
+    "OS filesystem/page cache was not reset; cold-cache state is unknown.",
+    "No native server first-log timestamp is available from the current capture path.",
+    "Instrumentation and concurrent unrelated applications may change scheduling; no controlled stress was applied."
+  ],
+  "confidence": "High in the measured stage ordering and cleanup for these three trials; insufficient evidence for a root cause or fix."
+}

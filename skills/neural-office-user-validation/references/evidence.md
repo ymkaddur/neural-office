@@ -40,7 +40,7 @@ OBSERVADO: Faithfulness valida entradas, genera afirmaciones atómicas y luego v
 
 ### promptfoo/promptfoo
 
-[Archivo en el commit inspeccionado](https://github.com/promptfoo/promptfoo/blob/ccafd6daf4c760e25a7e688c6a8b57ebedb3c5fd/test/evaluator/repeatCache.test.ts#L25). Líneas 25-74,76-117,119-183; nivel: `source-inspected`.
+[Archivo en el commit inspeccionado](https://github.com/promptfoo/promptfoo/blob/ccafd6daf4c760e25a7e688c6a8b57ebedb3c5fd/test/evaluator/repeatCache.test.ts#L25). Líneas 25-74,76-117,119-183; nivel: `test-source-inspected-not-executed`.
 
 OBSERVADO: los tests distinguen repeticiones mediante namespaces de caché y verifican que una segunda evaluación reutiliza resultados; desactivar caché viaja también en el contexto del proveedor. PROPUESTO V6: registrar cache hit/miss y separar repeticiones estocásticas de replay durable. Prueba: mismo corpus, repeticiones independientes con caché de respuesta desactivada frente a repetición de una clave operacional que nunca debe volver a inferir.
 

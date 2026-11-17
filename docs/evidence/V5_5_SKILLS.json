@@ -61,7 +61,7 @@
     },
     {
       "path": "skills/neural-office-durable-interactions/references/evidence.md",
-      "sha256": "929f58a90473be9b23ea2bbc3f9ba737d96fc1cdba97fb65b9e8f487ae7b65d5",
+      "sha256": "925de2b118c84fdc455cd57306e5adbad23135d57b34af2a479cb86c4ee20146",
       "installed_copy_matches": true
     },
     {
@@ -81,7 +81,7 @@
     },
     {
       "path": "skills/neural-office-local-model-budget/references/evidence.md",
-      "sha256": "98025e0076acc4262af39c0c99b08876df3545cca6ba895632892fa97e6fffae",
+      "sha256": "4a5204c457417509077c208bb7acd06c8b6eba883490149bdff875838a7492ad",
       "installed_copy_matches": true
     },
     {
@@ -101,8 +101,9 @@
     },
     {
       "path": "skills/neural-office-user-validation/references/evidence.md",
-      "sha256": "a4633bff02dd1b9b3306713be52126794cced7d8b10ab67666f15c6b60397878",
+      "sha256": "30073856dbbf3e2fb969ebe4bd1ee167f5238d2b3a48268957c2dc63adf05838",
       "installed_copy_matches": true
     }
-  ]
+  ],
+  "reference_classification_review": "Six unexecuted test sources normalized from generic source-inspected; no claim of executed upstream tests."
 }

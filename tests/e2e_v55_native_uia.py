@@ -46,6 +46,20 @@ def wait(test, timeout=45, description='condition'):
     raise AssertionError(f'TIMEOUT:{description}:{last or "not observed"}')
 
 
+def viewport_checks(geometry):
+    area = geometry['monitor_work_area_px']
+    client = geometry['client_rectangle_px']
+    origin = geometry['client_origin_screen_px']
+    client_screen = [origin[0] + client[0], origin[1] + client[1],
+                     origin[0] + client[2], origin[1] + client[3]]
+    def contained(rectangle):
+        return rectangle is not None and area[0] <= rectangle[0] < rectangle[2] <= area[2] and \
+            area[1] <= rectangle[1] < rectangle[3] <= area[3]
+    # Maximized outer borders may exceed Work; content and the primary action may not.
+    return {'client_screen_px': client_screen, 'client_within_work_area': contained(client_screen),
+            'review_button_within_work_area': contained(geometry['review_button_rectangle_px'])}
+
+
 class Screen:
     def __init__(self, host):
         from pywinauto import Application
@@ -93,8 +107,30 @@ class Screen:
 
     def close(self):
         from pywinauto import Application
+        import psutil
+        identities = []
+        for process in self.host.children(recursive=True):
+            try:
+                name = process.name().lower()
+                if name.startswith('python') or name in ('ollama.exe', 'llama-server.exe'):
+                    identities.append({'pid': process.pid, 'created': process.create_time(), 'name': name})
+            except psutil.NoSuchProcess:
+                continue  # This identity had already exited before capture.
+        if not identities:
+            raise AssertionError('NO_OWNED_CORE_OBSERVED_BEFORE_CLOSE')
         Application(backend='win32').connect(process=self.host.pid).window(title_re='Neural Office.*').close(wait_time=30)
         self.host.wait(timeout=30)
+        def still_alive(identity):
+            try:
+                current = psutil.Process(identity['pid'])
+                return current.create_time() == identity['created'] and current.is_running()
+            except psutil.NoSuchProcess:
+                return False
+        # Read-only verification of captured identities; never kill a reused PID.
+        wait(lambda: not any(still_alive(identity) for identity in identities), timeout=15,
+             description='pre-close owned Python/Ollama identities exited')
+        return {'scope': 'captured Python/Ollama descendants; WebView sharing not certified',
+                'identities': identities, 'exited': True}
 
     def inventory(self):
         from pywinauto import Application
@@ -227,7 +263,29 @@ def main():
         sampler.phase = 'window_differential'
         before = evidence['initial_geometry']
         frame, area = before['win32_window_rectangle_px'], before['monitor_work_area_px']
-        if frame[2] - frame[0] > area[2] - area[0] or frame[3] - frame[1] > area[3] - area[1]:
+        if before['maximized']:
+            def fits_after_resize(label):
+                observations = evidence.setdefault(label + '_readings', [])
+                def acknowledged():
+                    geometry = screen.geometry()
+                    checks = viewport_checks(geometry)
+                    observations.append({'geometry': geometry, 'checks': checks})
+                    return geometry if checks['client_within_work_area'] and checks['review_button_within_work_area'] else None
+                return wait(acknowledged, timeout=5, description=label + ' client and review action within work area')
+            # Exercise Restore as a real user would; retain the initial state afterward.
+            try:
+                screen.maximize(False)
+                evidence['restored_geometry'] = screen.geometry()
+                screen.screenshot(output / '01-restored-contrast.png')
+                evidence['restored_geometry'] = fits_after_resize('restored_geometry')
+            finally:
+                screen.maximize(True)
+                evidence['remaximized_geometry'] = screen.geometry()
+                screen.screenshot(output / '01-remaximized-contrast.png')
+            evidence['remaximized_geometry'] = fits_after_resize('remaximized_geometry')
+            evidence['window_differential'] = 'initial maximized -> restored content fits -> maximized content fits'
+            checks.append({'check': 'normal-restore-and-remaximize-content-within-work-area', 'verified': True})
+        elif frame[2] - frame[0] > area[2] - area[0] or frame[3] - frame[1] > area[3] - area[1]:
             screen.maximize(True)
             evidence['maximized_geometry'] = screen.geometry()
             screen.screenshot(output / '01-maximized-contrast.png')
@@ -235,6 +293,10 @@ def main():
             evidence['restored_geometry'] = screen.geometry()
         else:
             evidence['window_differential'] = 'not needed: initial outer dimensions fit the work area'
+        evidence['initial_viewport_checks'] = viewport_checks(before)
+        assert evidence['initial_viewport_checks']['client_within_work_area'], 'INITIAL_CLIENT_OUTSIDE_WORK_AREA'
+        assert evidence['initial_viewport_checks']['review_button_within_work_area'], 'INITIAL_REVIEW_ACTION_OUTSIDE_WORK_AREA'
+        checks.append({'check': 'initial-native-client-and-review-action-within-work-area', 'verified': True})
         sampler.phase = 'idle_before'
         time.sleep(5)
         checks.append({'check': 'packaged-ui-native-ipc-real-catalog-no-devtools', 'verified': True})
@@ -250,8 +312,13 @@ def main():
         checks.append({'check': 'native-file-picker-visible-approval-no-early-consumption', 'verified': True})
         stage = 'real_inference'; sampler.phase = 'work'; began = time.monotonic()
         screen.button('Autorizar y ejecutar.*', regex=True)
-        wait(lambda: 'Tu encargo' in screen.names(), description='reserved attempt')
-        screen.screenshot(output / '03-running.png')
+        wait(lambda: screen.window.child_window(title='Tu encargo', control_type='Text').exists(timeout=.1),
+             description='exact post-reservation request label')
+        assert readonly_counts(state)['attempts'] == 1, 'UI_REQUEST_WITHOUT_DURABLE_RESERVATION'
+        before_capture = readonly_counts(state)
+        screen.screenshot(output / '03-after-start.png')
+        evidence['after_start_capture'] = {'counts_before': before_capture, 'counts_after': readonly_counts(state),
+                                           'meaning': 'after authorization; not an atomic RUNNING snapshot'}
         wait(lambda: '4 hallazgos para revisar' in screen.names(), timeout=360, description='real report rendered')
         evidence['first_delivery_seconds'] = round(time.monotonic() - began, 3)
         sampler.phase = 'idle_after'
@@ -263,8 +330,12 @@ def main():
         with closing(sqlite3.connect(state.as_uri() + '?mode=ro', uri=True)) as con:
             artifact, artifact_hash = con.execute('SELECT artifact,artifact_sha FROM attempts WHERE ordinal=1').fetchone()
         artifact = bytes(artifact); report = json.loads(artifact)
-        content = screen.names()
-        assert artifact_hash in content and sha(source) in content and MODEL_DIGEST in content, 'VISIBLE_EVIDENCE_HASH_MISSING'
+        expected_hashes = (artifact_hash, sha(source), MODEL_DIGEST)
+        def evidence_exposed():
+            content = screen.names()
+            return all(value in content for value in expected_hashes)
+        wait(evidence_exposed, timeout=15,
+             description='evidence tab exposes all expected hashes after Select')
         assert hashlib.sha256(artifact).hexdigest() == artifact_hash, 'STORED_REPORT_HASH_CHANGED'
         assert [(f['code'], f['line'], f['column']) for f in report['findings']] == EXPECTED_FINDINGS, 'STATIC_ORACLE_MISMATCH'
         assert report['source_sha256'] == sha(source) and report['model_commentary_status'] == 'UNVERIFIED_ASSISTANCE'
@@ -273,14 +344,15 @@ def main():
         checks.append({'check': 'real-model-one-call-four-visible-findings-and-matching-visible-hashes', 'verified': True})
         time.sleep(5); sampler.finish(); evidence['resource_samples'] = sampler.rows
         stage = 'close_reopen'
-        screen.close(); screen = None; host = None; app = None
+        evidence['first_close_core_quiescence'] = screen.close()
+        screen = None; host = None; app = None
         app, host, screen = open_desktop()
         screen.button(re.escape(OBJECTIVE) + '.*', regex=True)
         wait(lambda: '4 hallazgos para revisar' in screen.names(), description='persisted report visible')
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'REOPEN_REEXECUTED_WORK'
         assert '1 de 3 intentos' in screen.names(), 'REOPEN_LOST_BUDGET'
         screen.screenshot(output / '05-reopened.png')
-        checks.append({'check': 'normal-window-close-reopen-without-new-attempt-or-call', 'verified': True})
+        checks.append({'check': 'normal-close-owned-core-exit-reopen-without-new-attempt-or-call', 'verified': True})
         stage = 'cancel_second_attempt'
         screen.button('Nuevo encargo')
         screen.objective(SECOND)

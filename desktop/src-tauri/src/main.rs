@@ -77,7 +77,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![desktop_request])
         .setup(|app| {
-            tauri::WebviewWindowBuilder::new(
+            let window = tauri::WebviewWindowBuilder::new(
                 app,
                 "main",
                 tauri::WebviewUrl::App("index.html".into()),
@@ -88,6 +88,42 @@ fn main() {
             .on_navigation(|url| allowed_navigation(url, cfg!(debug_assertions)))
             .on_new_window(|_, _| tauri::webview::NewWindowResponse::Deny)
             .build()?;
+            // Keep the normal/restored size inside a small monitor's work area,
+            // then let Windows maximize it without covering the taskbar.
+            if let Some(monitor) = window.current_monitor()? {
+                let outer = window.outer_size()?;
+                let area = monitor.work_area();
+                if outer.width > area.size.width || outer.height > area.size.height {
+                    let inner = window.inner_size()?;
+                    let fit = tauri::PhysicalSize::new(
+                        inner
+                            .width
+                            .min(
+                                area.size
+                                    .width
+                                    .saturating_sub(outer.width.saturating_sub(inner.width)),
+                            )
+                            .max(1),
+                        inner
+                            .height
+                            .min(
+                                area.size
+                                    .height
+                                    .saturating_sub(outer.height.saturating_sub(inner.height)),
+                            )
+                            .max(1),
+                    );
+                    let minimum = tauri::LogicalSize::new(760.0, 540.0)
+                        .to_physical::<u32>(window.scale_factor()?);
+                    window.set_min_size(Some(tauri::PhysicalSize::new(
+                        minimum.width.min(fit.width),
+                        minimum.height.min(fit.height),
+                    )))?;
+                    window.set_size(fit)?;
+                    window.set_position(area.position)?;
+                    window.maximize()?;
+                }
+            }
             Ok(())
         })
         .on_window_event(|window, event| {

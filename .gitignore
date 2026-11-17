@@ -231,3 +231,5 @@
 !tests/e2e_v55_native_uia.py
 !docs/evidence/V5_5_NATIVE_FIRST.json
 !docs/images/v5.5-window-before.png
+!docs/evidence/V5_5_NATIVE_GEOMETRY.json
+!docs/evidence/V5_5_STARTUP_FOLLOWUP.json

@@ -2,13 +2,13 @@
 
 Ventana de consulta: 16–17 de noviembre de 2026. **OBSERVADO:** 80 repositorios distintos consultados mediante la conexión GitHub, 20 instituciones y 14 fuentes públicas leídas sobre experiencia de uso/práctica profesional. Se distribuyó el trabajo entre 20 subagentes distintos, en tandas de hasta tres trabajadores además del coordinador; no hubo veinte procesos simultáneos. La coordinación no elimina la necesidad de revisar sus resultados.
 
-La profundidad es una pieza seleccionada por repositorio: 73 registros `source-inspected`, dos `test-source-inspected-not-executed`, uno `test-source-inspected-skipped-not-executed`, dos `docs-inspected`, un contrato y un contrato propuesto. Ningún test ajeno fue ejecutado. **No son 80 auditorías completas**, 20 avales universitarios ni una muestra representativa de compradores. Dos URLs de X devolvieron 403: se conserva la limitación, no contenido inventado. No se ha consultado un ranking para llamarlas las veinte mejores universidades.
+La profundidad es una pieza seleccionada por repositorio: 67 registros `source-inspected`, ocho `test-source-inspected-not-executed`, uno `test-source-inspected-skipped-not-executed`, dos `docs-inspected`, un contrato y un contrato propuesto. Ningún test ajeno fue ejecutado. **No son 80 auditorías completas**, 20 avales universitarios ni una muestra representativa de compradores. Dos URLs de X devolvieron 403: se conserva la limitación, no contenido inventado. No se ha consultado un ranking para llamarlas las veinte mejores universidades.
 
 ## Qué cambia nuestra manera de trabajar
 
 | Evidencia observada | Error que evita en Neural Office | Decisión y comprobación |
 |---|---|---|
-| T3 vincula identidad de comando y conflicto de payload; OpenClaw limita su deduplicación al contexto | Confundir doble clic bloqueado con idempotencia durable | La reserva precede al worker; identidad persistida antes de enviar; respuesta perdida se consulta, no se vuelve a ejecutar con una clave nueva. Pruebas de crash y reapertura |
+| El test inspeccionado de T3 exige conflicto ante una identidad de comando con payload distinto; OpenClaw limita su deduplicación al contexto | Confundir doble clic bloqueado con idempotencia durable | La reserva precede al worker; identidad persistida antes de enviar; respuesta perdida se consulta, no se vuelve a ejecutar con una clave nueva. Pruebas de crash y reapertura |
 | Codex reevalúa aprobación/cancelación; Claude Code publica reglas de hooks con alcance limitado | Dar autoridad a la UI, al modelo o a una aprobación caducada | Fuente congelada + revisión + alcance + sesión; comprobar autorización en el punto del efecto |
 | Dusk detecta desacuerdos entre estado, eventos y resultados | Pintar éxito porque terminó una animación | Estado del ledger y artefacto comprobado; lo desconocido se presenta explícitamente. Su detector no garantiza todas las mutaciones |
 | VS Code conserva cancelación anterior a crear el token; Cursor describe notificaciones que reactivaban trabajo | Tratar Detener como un efecto momentáneo | Latch de parada anterior al spawn; evitar resurrección por mensajes tardíos; prueba con barreras |
@@ -34,7 +34,7 @@ Licencias requieren alcance: Dusk usa PolyForm Noncommercial; Claude Code no equ
 
 | Repositorio / fuente fijada | Alcance leído |
 |---|---|
-| [pingdotgg/t3code](https://github.com/pingdotgg/t3code/blob/747ed9c5b1d9b2d41638ef94003bda1d996f4353/apps/server/src/orchestration-v2/Orchestrator.receipt-race.test.ts#L69) · `747ed9c5` | source-inspected · `apps/server/src/orchestration-v2/Orchestrator.receipt-race.test.ts`:69-111 |
+| [pingdotgg/t3code](https://github.com/pingdotgg/t3code/blob/747ed9c5b1d9b2d41638ef94003bda1d996f4353/apps/server/src/orchestration-v2/Orchestrator.receipt-race.test.ts#L69) · `747ed9c5` | test-source-inspected-not-executed · `apps/server/src/orchestration-v2/Orchestrator.receipt-race.test.ts`:69-111 |
 | [DuskBotAI/duskbot](https://github.com/DuskBotAI/duskbot/blob/750caf446d0417b95971e7bb2c7ac98ba76f94e0/server/runtime/invariants.ts#L37) · `750caf44` | source-inspected · `server/runtime/invariants.ts`:37-99 |
 | [openclaw/openclaw](https://github.com/openclaw/openclaw/blob/6a6007663b36db8badd6967e7f2bed5c6b3a724e/src/gateway/server-methods/session-create-idempotency.ts#L32) · `6a600766` | source-inspected · `src/gateway/server-methods/session-create-idempotency.ts`:32-35,58-75,91-136,139-198 |
 | [openai/codex](https://github.com/openai/codex/blob/d5a478e31c3296e544d53424a7a6c995e7dfb0f5/codex-rs/core/src/tools/approvals.rs#L525) · `d5a478e3` | source-inspected · `codex-rs/core/src/tools/approvals.rs`:525-547,594-640,687-705,807-864 |
@@ -51,7 +51,7 @@ Licencias requieren alcance: Dusk usa PolyForm Noncommercial; Claude Code no equ
 | [electron/electron](https://github.com/electron/electron/blob/ca3e18572bbfa2645a15e7c0e81f2319f1dcb7a7/docs/tutorial/security.md#L743) · `ca3e1857` | docs-inspected · `docs/tutorial/security.md`:743-777,780-799 |
 | [microsoft/vscode](https://github.com/microsoft/vscode/blob/a3cabfed1ada486415b1d3b4fff66bb2d47771ac/src/vs/base/common/cancellation.ts#L86) · `a3cabfed` | source-inspected · `src/vs/base/common/cancellation.ts`:86-120,123-167 |
 | [zed-industries/zed](https://github.com/zed-industries/zed/blob/482e76524bd33d8cbdfc352f1fef3eefbf2fad92/crates/gpui/src/executor.rs#L144) · `482e7652` | source-inspected · `crates/gpui/src/executor.rs`:144-185,188-234,519-557 |
-| [lmstudio-ai/lms](https://github.com/lmstudio-ai/lms/blob/138dcffbc40e5fe3d9c0d38cf75dcdc1d883d849/src/subcommands/load.test.ts#L7) · `138dcffb` | source-inspected · `src/subcommands/load.test.ts`:7-68,130-176 |
+| [lmstudio-ai/lms](https://github.com/lmstudio-ai/lms/blob/138dcffbc40e5fe3d9c0d38cf75dcdc1d883d849/src/subcommands/load.test.ts#L7) · `138dcffb` | test-source-inspected-not-executed · `src/subcommands/load.test.ts`:7-68,130-176 |
 | [browser-use/browser-use](https://github.com/browser-use/browser-use/blob/4b5b1b0aa0ab45a1d6a2a31984d37d3e748c0134/browser_use/domains.py#L1) · `4b5b1b0a` | source-inspected · `browser_use/domains.py`:1-19,57-95,101-119,140-175 |
 | [continuedev/continue](https://github.com/continuedev/continue/blob/5522c6f44ca0ac3528b37244818fbfa39b5af470/core/tools/policies/fileAccess.ts#L10) · `5522c6f4` | source-inspected · `core/tools/policies/fileAccess.ts`:10-25 |
 ### Accessibility
@@ -85,7 +85,7 @@ Licencias requieren alcance: Dusk usa PolyForm Noncommercial; Claude Code no equ
 | [TanStack/query](https://github.com/TanStack/query/blob/d63a027c26b2489b8be065ad76f638e36216854a/packages/query-core/src/mutation.ts#L239) · `d63a027c` | source-inspected · `packages/query-core/src/mutation.ts`:239-268,301-330 |
 | [pmndrs/zustand](https://github.com/pmndrs/zustand/blob/9fed2eb2f3af672da9f7bf694b996df3831fc207/src/middleware/persist.ts#L250) · `9fed2eb2` | source-inspected · `src/middleware/persist.ts`:250-259,285-325,340-342 |
 | [reduxjs/redux-toolkit](https://github.com/reduxjs/redux-toolkit/blob/1a7d3b5251ceda61b77928e357a22086b45aaab1/packages/toolkit/src/query/core/buildMiddleware/queryLifecycle.ts#L431) · `1a7d3b52` | source-inspected · `packages/toolkit/src/query/core/buildMiddleware/queryLifecycle.ts`:431-465,508-522 |
-| [electric-sql/electric-pglite](https://github.com/electric-sql/electric-pglite/blob/5ece6ad149d33607b2d72c8819af72a30baffff3/packages/pglite/tests/targets/runtimes/node-fs.test.js#L16) · `5ece6ad1` | source-inspected · `packages/pglite/tests/targets/runtimes/node-fs.test.js`:16-35 |
+| [electric-sql/electric-pglite](https://github.com/electric-sql/electric-pglite/blob/5ece6ad149d33607b2d72c8819af72a30baffff3/packages/pglite/tests/targets/runtimes/node-fs.test.js#L16) · `5ece6ad1` | test-source-inspected-not-executed · `packages/pglite/tests/targets/runtimes/node-fs.test.js`:16-35 |
 | [automerge/automerge](https://github.com/automerge/automerge/blob/09b19d5080a86548c72721a82747bebe272c6c31/rust/automerge/src/transaction/manual_transaction.rs#L15) · `09b19d50` | source-inspected · `rust/automerge/src/transaction/manual_transaction.rs`:15-19,73-110,140-149 |
 | [sqlite/sqlite](https://github.com/sqlite/sqlite/blob/2439a84bbd1304c4b93184da04370f5ce32801c0/src/pager.c#L26) · `2439a84b` | source-inspected · `src/pager.c`:26-35,49-85,101-107 |
 | [dexie/Dexie.js](https://github.com/dexie/Dexie.js/blob/95666bf5370a222a21d7f53130d87b42e9b7bac7/src/classes/transaction/transaction.ts#L115) · `95666bf5` | source-inspected · `src/classes/transaction/transaction.ts`:115-155,167-173,213-243 |
@@ -106,14 +106,14 @@ Licencias requieren alcance: Dusk usa PolyForm Noncommercial; Claude Code no equ
 
 | Repositorio / fuente fijada | Alcance leído |
 |---|---|
-| [promptfoo/promptfoo](https://github.com/promptfoo/promptfoo/blob/ccafd6daf4c760e25a7e688c6a8b57ebedb3c5fd/test/evaluator/repeatCache.test.ts#L25) · `ccafd6da` | source-inspected · `test/evaluator/repeatCache.test.ts`:25-74,76-117,119-183 |
+| [promptfoo/promptfoo](https://github.com/promptfoo/promptfoo/blob/ccafd6daf4c760e25a7e688c6a8b57ebedb3c5fd/test/evaluator/repeatCache.test.ts#L25) · `ccafd6da` | test-source-inspected-not-executed · `test/evaluator/repeatCache.test.ts`:25-74,76-117,119-183 |
 | [confident-ai/deepeval](https://github.com/confident-ai/deepeval/blob/c0bd9c89f33853b2dedc7db8415b3036894fb204/deepeval/metrics/g_eval/g_eval.py#L73) · `c0bd9c89` | source-inspected · `deepeval/metrics/g_eval/g_eval.py`:73-98,110-151,332-362 |
 | [vibrantlabsai/ragas](https://github.com/vibrantlabsai/ragas/blob/8c63f10d500c44efbf24fdb9e2920de2104c321c/src/ragas/metrics/collections/faithfulness/metric.py#L102) · `8c63f10d` | source-inspected · `src/ragas/metrics/collections/faithfulness/metric.py`:102-161 |
 | [langfuse/langfuse](https://github.com/langfuse/langfuse/blob/01e7f5f746b15493d18fe06b24ae06ac08d5ae74/worker/src/features/evaluation/deterministicSampling.ts#L4) · `01e7f5f7` | source-inspected · `worker/src/features/evaluation/deterministicSampling.ts`:4-30 |
-| [Arize-ai/phoenix](https://github.com/Arize-ai/phoenix/blob/a111c1d4bfdf82829587f86c9911d41b2369a284/js/packages/phoenix-client/test/experiments/runExperimentProviderLifecycle.test.ts#L165) · `a111c1d4` | source-inspected · `js/packages/phoenix-client/test/experiments/runExperimentProviderLifecycle.test.ts`:165-223 |
+| [Arize-ai/phoenix](https://github.com/Arize-ai/phoenix/blob/a111c1d4bfdf82829587f86c9911d41b2369a284/js/packages/phoenix-client/test/experiments/runExperimentProviderLifecycle.test.ts#L165) · `a111c1d4` | test-source-inspected-not-executed · `js/packages/phoenix-client/test/experiments/runExperimentProviderLifecycle.test.ts`:165-223 |
 | [open-telemetry/opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python/blob/b4dff8c663110a866a5f263016679da25bd02f33/opentelemetry-sdk/src/opentelemetry/sdk/_shared_internal/__init__.py#L100) · `b4dff8c6` | source-inspected · `opentelemetry-sdk/src/opentelemetry/sdk/_shared_internal/__init__.py`:100-104,197-244 |
 | [microsoft/playwright](https://github.com/microsoft/playwright/blob/826ce42b8664ea940424e77ce51f1cdf96dcd37f/packages/playwright/src/matchers/toMatchSnapshot.ts#L341) · `826ce42b` | source-inspected · `packages/playwright/src/matchers/toMatchSnapshot.ts`:341-359,382-447 |
-| [vitest-dev/vitest](https://github.com/vitest-dev/vitest/blob/efba8cbfe94b1402a7ccab8a73994cb389cffa4d/test/unit/test/fixture-retry.test.ts#L1) · `efba8cbf` | source-inspected · `test/unit/test/fixture-retry.test.ts`:1-18 |
+| [vitest-dev/vitest](https://github.com/vitest-dev/vitest/blob/efba8cbfe94b1402a7ccab8a73994cb389cffa4d/test/unit/test/fixture-retry.test.ts#L1) · `efba8cbf` | test-source-inspected-not-executed · `test/unit/test/fixture-retry.test.ts`:1-18 |
 ### Security tooling
 
 | Repositorio / fuente fijada | Alcance leído |
