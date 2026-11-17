@@ -1,5 +1,5 @@
 {
-  "scope": "local Windows x64. Synthetic office and fixture backend. No provider account.",
+  "scope": "Windows x64 on the development machine and a GitHub-hosted Windows runner. Synthetic offices with a counted fixture provider.",
   "baseline": {
     "commit": "31e85868a5b07500e7de131c49e6d9b4e051572a",
     "host": "packaged Tauri 5.7.0",
@@ -111,11 +111,89 @@
       }
     ]
   },
-  "packaged_candidate": {
+  "local_build": {
     "verified": false,
     "dependency": "quote 1.0.47",
     "stage": "custom build program before application compilation",
     "windows_error": 4551,
     "cargo_exit": 101
+  },
+  "packaged_candidate": {
+    "verified": true,
+    "product_commit": "66fa7278cadc7ebb1329cce38059e4c4525e17c3",
+    "verification_commit": "8be090054de54adcf72348d8cfb1d245dc3239c2",
+    "run_id": "44200455347",
+    "job_url": "https://github.com/ymkaddur/neural-office/actions/runs/44200455347/job/134452879727",
+    "runner_image": "win25-vs2026",
+    "runner_image_version": "20261103.298.1",
+    "webview2": "156.0.4314.58",
+    "host": "native-tauri-executable",
+    "window_title": "Neural Office · V5.8.0",
+    "executable": {
+      "name": "neural-office-desktop.exe",
+      "version": "5.8.0",
+      "bytes": 4636672,
+      "sha256": "89bbcb48778df2ab82ab81d392a6152558b9c5a2a1fdfee8c288bac3393aaee3"
+    },
+    "harness_sha256": "c84f1a3d045f49821ff74024ce7c7a708c8a7e6e826d83a02a116fdda1108677",
+    "provider": "counted fixture, in-flight call owned separately from the interrupted stdio process",
+    "active_attempt": {
+      "id": "390bb8b984824e069f93c55b21ba1755",
+      "ordinal": 2,
+      "request_key": "current-key",
+      "call_sequence": 1
+    },
+    "initial_target_cost": 1,
+    "before": {
+      "office_charges": 2,
+      "target_calls": 1,
+      "fixture_provider_invocations": 1
+    },
+    "cycles": [
+      {
+        "cycle": 1,
+        "target_attempt": "390bb8b984824e069f93c55b21ba1755",
+        "same_window": true,
+        "replacement_peer_verified": true,
+        "disconnected_status_observed": true,
+        "during": {
+          "office_charges": 2,
+          "target_calls": 1,
+          "fixture_provider_invocations": 1
+        },
+        "after": {
+          "office_charges": 2,
+          "target_calls": 1,
+          "fixture_provider_invocations": 1
+        }
+      },
+      {
+        "cycle": 2,
+        "target_attempt": "390bb8b984824e069f93c55b21ba1755",
+        "same_window": true,
+        "replacement_peer_verified": true,
+        "disconnected_status_observed": true,
+        "during": {
+          "office_charges": 2,
+          "target_calls": 1,
+          "fixture_provider_invocations": 1
+        },
+        "after": {
+          "office_charges": 2,
+          "target_calls": 1,
+          "fixture_provider_invocations": 1
+        }
+      }
+    ],
+    "reconnection_cost": 0,
+    "history_read_kept_charge": true,
+    "final_history_state": "FAILED",
+    "final_active_state": "CANCELLED",
+    "confirmed_cancel_target": "390bb8b984824e069f93c55b21ba1755",
+    "after_cancel": {
+      "office_charges": 2,
+      "target_calls": 1,
+      "fixture_provider_invocations": 1
+    }
   }
 }

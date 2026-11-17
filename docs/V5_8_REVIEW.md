@@ -1,6 +1,6 @@
 # V5.8 en Windows · recuperar el mismo encargo
 
-**VERIFICADO.** El intento observado consumió una reserva al iniciarse. Perder la conexión, recuperarla en la misma ventana y abrir otro encargo del historial añadieron **cero reservas y cero llamadas**. La reproducción inicial usó el ejecutable Tauri V5.7. La comprobación visual de V5.8 usó WebView2 con los archivos React de producción, el proceso Python y dos bases SQLite reales de ensayo. El empaquetado Tauri V5.8 queda pendiente. [Recibo de las mediciones](evidence/V5_8_RECONNECTION.json).
+**VERIFICADO.** El ejecutable Tauri V5.8.0 para Windows x64 recuperó el mismo encargo después de dos cortes consecutivos. La ventana siguió abierta. Iniciar el encargo consumió un intento y ambas reconexiones juntas añadieron **cero intentos y cero llamadas al proveedor de prueba**. [Ejecución nativa en GitHub Actions](https://github.com/ymkaddur/neural-office/actions/runs/44200455347/job/134452879727) · [Mediciones](evidence/V5_8_RECONNECTION.json).
 
 ## Incidente y secuencia observada
 
@@ -22,13 +22,14 @@
 
 ## Medición del cargo
 
-**VERIFICADO.** Cada ejecución del ensayo empieza en una oficina temporal. La reserva histórica falló antes de la primera llamada. El segundo encargo se mantuvo en una barrera después de la admisión de su llamada. Se cotejaron las filas de SQLite y un contador independiente a la entrada del proveedor de prueba. Las tres lecturas dieron estos valores. [Comprobaciones de identidad y coste](../tests/e2e_v58_reconnect.py).
+**VERIFICADO.** Cada ejecución empieza en una oficina temporal. El encargo anterior consumió un intento y falló antes de llamar al proveedor. El siguiente mantuvo su primera llamada en curso. Se interrumpió el proceso de comunicación de la ventana dos veces, mientras seguía vivo el proceso dueño del encargo. En cada corte apareció `HOST_DISCONNECTED`. «Reconectar» abrió un nuevo proceso de comunicación y mostró la misma identidad. Se compararon las reservas, sus claves y ordinales en SQLite, la secuencia de llamadas y el contador independiente del proveedor. [Prueba nativa](../tests/e2e_v58_reconnect.py#L170).
 
 | Momento | Reservas totales del proyecto | Llamadas registradas del encargo activo | Invocaciones observadas al proveedor de prueba |
 | --- | ---: | ---: | ---: |
-| Antes del corte | 2 | 1 | 1 |
-| Canal interrumpido | 2 | 1 | 1 |
-| Misma ventana reconectada | 2 | 1 | 1 |
+| Antes del primer corte | 2 | 1 | 1 |
+| Primer corte y primera reconexión | 2 | 1 | 1 |
+| Segundo corte y segunda reconexión | 2 | 1 | 1 |
+| Tras consultar el historial y detener el encargo activo | 2 | 1 | 1 |
 
 **VERIFICADO.** Las pruebas de acuse perdido cubrieron espera agotada y canal cerrado, cada uno con reserva presente y ausente. Se conservó la clave original y el contador de envíos fue uno en los cuatro casos. [Pruebas de acuse perdido](../desktop/src/connected/adversarial.test.ts).
 
@@ -36,10 +37,11 @@
 
 - **VERIFICADO.** Pasaron 210 pruebas Python, 54 pruebas de escritorio con Node y 2 pruebas Rust del ciclo de vida del puente. TypeScript y Vite compilaron la interfaz de producción. El ensayo de integración abrió una ventana Windows con el SDK WebView2 de Microsoft 1.0.4314.35, cortó su proceso de comunicación y ejercitó la ventana mediante UI Automation. El adaptador de ensayo conecta ese visor con el núcleo por entrada y salida estándar. [Dependencias de ensayo](../tests/requirements-native-ci.txt) · [adaptador](../tests/WebView2-V58TestHost.ps1).
 - **VERIFICADO.** En las cuatro geometrías de Edge, de 390 a 1440 píxeles de ancho, el contador quedó dentro de la ventana. A 768 × 540 el cuarto hallazgo requirió desplazamiento y fue alcanzable con el teclado. Se midió geometría con datos sintéticos. Estas pruebas tampoco miden RAM o latencia de un modelo real. [Resultados por tamaño](evidence/V5_8_RECONNECTION.json).
-- **PENDIENTE.** La compilación local del host Tauri se detuvo antes de compilar la aplicación. Windows App Control bloqueó el auxiliar de la dependencia `quote 1.0.47` con el error 4551, y Cargo terminó con 101. La prueba de la máquina de estados Rust se compiló y ejecutó de forma independiente. El paso de aceptación pendiente es repetir el mismo recorrido sobre el `.exe` Tauri V5.8 en un equipo de compilación Windows autorizado. [Recibo del alcance](evidence/V5_8_RECONNECTION.json).
+- **OBSERVADO.** En la estación de desarrollo, Windows App Control bloqueó el auxiliar de `quote 1.0.47` con el error 4551. Cargo terminó con 101 antes de compilar la aplicación. [Registro local](evidence/V5_8_RECONNECTION.json).
+- **VERIFICADO.** GitHub Actions compiló el código de producto `66fa7278cadc7ebb1329cce38059e4c4525e17c3` con los recursos de producción y ejecutó la prueba por UI Automation sobre ese binario. El historial conservó el diagnóstico `MODEL_METADATA_UNAVAILABLE` del encargo previo. Al volver al encargo en curso y detenerlo, sólo éste pasó a `CANCELLED`. La copia recuperada en local mide 4 636 672 bytes y coincide con el SHA-256 registrado por el runner, `89bbcb48778df2ab82ab81d392a6152558b9c5a2a1fdfee8c288bac3393aaee3`. El proveedor de prueba permite contar cada entrada. La prueba mide la cuota interna de Neural Office. [Trabajo de Windows](https://github.com/ymkaddur/neural-office/actions/runs/44200455347/job/134452879727) · [Lectura del historial y parada](../tests/e2e_v58_reconnect.py#L207).
 
 Para repetir el recorrido del ejecutable desde la raíz del proyecto, usa Python 3.12 con las dependencias de ensayo indicadas arriba. El destino de salida debe ser nuevo. El ensayo crea la oficina, la fuente HTML y el perfil WebView2 dentro de esa carpeta.
 
 ```powershell
-python -B tests/e2e_v58_reconnect.py --executable desktop/src-tauri/target/release/neural-office-desktop.exe --output "$env:TEMP/neural-office-v58-reconnect-01"
+python -B tests/e2e_v58_reconnect.py --executable desktop/src-tauri/target/release/neural-office-desktop.exe --output "$env:TEMP/neural-office-v58-reconnect-01" --cycles 2
 ```

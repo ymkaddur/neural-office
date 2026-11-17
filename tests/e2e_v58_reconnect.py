@@ -55,7 +55,7 @@ def wait_until(probe, description, seconds=20):
     raise AssertionError(description)
 
 
-def run(exe, dest, baseline, sdk=None):
+def run(exe, dest, baseline, sdk=None, cycles=1):
     import psutil
     from pywinauto import Desktop
 
@@ -159,36 +159,50 @@ def run(exe, dest, baseline, sdk=None):
         wait_until(lambda:live_id in names(win),'El intento inicial no coincide')
         window_handle=win.handle
         out['initial_history_enabled']=btn(win,'.*'+old_title+'.*').is_enabled()
-        child=wait_until(local_sidecar,'Sidecar de prueba no identificado')
-        # Close only this isolated host's verified Python peer. The fixture owner lives in this test.
-        created_at=child.create_time()
-        child.terminate()
-        child.wait(timeout=10)
-        broken=wait_until(lambda:(s if 'HOST_DISCONNECTED' in (s:=names(win)) else None),'Falta señal de pérdida del pipe',22)
-        out['online_during_outage']='Núcleo local conectado' in broken
-        out['after_disconnect']=counts()
-        if baseline:
-            assert out['online_during_outage'] and not out['initial_history_enabled']
-            btn(win,'^Actualizar$').invoke()
-            wait_until(lambda:'HOST_DISCONNECTED' in names(win),'Falta rechazo de Actualizar')
-            assert local_sidecar() is None
-            out['same_window_reconnected']=False
-            close_window(win)
-            win=open_window()
-            wait_until(lambda:'Núcleo local conectado' in names(win),'Reapertura sin conexión')
-            select_evidence(win)
-        else:
-            assert not out['online_during_outage'] and out['initial_history_enabled']
-            btn(win,'^(Reconectar|Actualizar)$').invoke()
-            wait_until(lambda:'Núcleo local conectado' in names(win) and 'HOST_DISCONNECTED' not in names(win),'La conexión no se concilió',30)
-            replacement = local_sidecar()
-            assert replacement is not None and replacement.create_time()>=created_at
-            assert win.handle==window_handle
-            out['same_window_reconnected']=True
-        wait_until(lambda:live_id in names(win),'Cambió el intento tras la reconexión')
-        out['after_reconnect']=counts()
-        assert before==out['after_disconnect']==out['after_reconnect']
-        out['reconnection_cost']=out['after_reconnect']['charged']-before['charged']
+        if not (baseline or sdk):
+            version=json.loads((ROOT/'desktop/src-tauri/tauri.conf.json').read_text(encoding='utf-8'))['version']
+            assert win.wrapper_object().window_text()==f'Neural Office · V{version}'
+            assert Path(psutil.Process(control.pid).exe()).samefile(exe)
+            record['window_title']=win.wrapper_object().window_text()
+        assert before['attempts']==[(old_id,1,'previous-key'),(live_id,2,'current-key')]
+        assert before['calls'][0][0]==live_id
+        out['cycles']=[]
+        for cycle in range(1,cycles+1):
+            child=wait_until(local_sidecar,'Sidecar de prueba no identificado')
+            # Close only this isolated host's verified Python peer. The fixture owner lives in this test.
+            old_peer=(child.pid, child.create_time())
+            child.terminate()
+            child.wait(timeout=10)
+            broken=wait_until(lambda:(s if 'HOST_DISCONNECTED' in (s:=names(win)) else None),'Falta señal de pérdida del pipe',22)
+            out['online_during_outage']='Núcleo local conectado' in broken
+            out['after_disconnect']=counts()
+            if baseline:
+                assert out['online_during_outage'] and not out['initial_history_enabled']
+                btn(win,'^Actualizar$').invoke()
+                wait_until(lambda:'HOST_DISCONNECTED' in names(win),'Falta rechazo de Actualizar')
+                assert local_sidecar() is None
+                out['same_window_reconnected']=False
+                close_window(win)
+                win=open_window()
+                wait_until(lambda:'Núcleo local conectado' in names(win),'Reapertura sin conexión')
+                select_evidence(win)
+            else:
+                assert not out['online_during_outage'] and out['initial_history_enabled']
+                btn(win,'^Reconectar$').invoke()
+                wait_until(lambda:'Núcleo local conectado' in names(win) and 'HOST_DISCONNECTED' not in names(win),'La conexión no se concilió',30)
+                replacement = local_sidecar()
+                assert replacement is not None and (replacement.pid,replacement.create_time())!=old_peer
+                assert control.poll() is None and win.wrapper_object().element_info.process_id==control.pid
+                assert win.handle==window_handle
+                out['same_window_reconnected']=True
+            wait_until(lambda:live_id in names(win),'Cambió el intento tras la reconexión')
+            out['after_reconnect']=counts()
+            assert before==out['after_disconnect']==out['after_reconnect']
+            out['reconnection_cost']=out['after_reconnect']['charged']-before['charged']
+            assert owner.attempt(live_id)['state']=='RUNNING'
+            out['cycles'].append({'cycle':cycle,'target_attempt':live_id,'same_window':out['same_window_reconnected'],
+                                  'replacement_peer_verified':not baseline,'disconnected_status_observed':not out['online_during_outage'],
+                                  'during':out['after_disconnect'],'after':out['after_reconnect']})
         if not baseline:
             btn(win,'.*'+old_title+'.*').invoke()
             wait_until(lambda:'MODEL_METADATA_UNAVAILABLE' in names(win),'Falta diagnóstico persistido en historial')
@@ -204,6 +218,9 @@ def run(exe, dest, baseline, sdk=None):
             wait_until(lambda:owner.attempt(live_id)['state']=='CANCELLED','La parada no llegó al intento activo')
             assert owner.attempt(old_id)['state']=='FAILED' and counts()==before
             out['confirmed_cancel_target']=live_id
+            out['final_active_state']=owner.attempt(live_id)['state']
+            out['final_history_state']=owner.attempt(old_id)['state']
+            out['after_cancel']=counts()
         record['status']='passed'
     except Exception:
         if win is not None and control is not None and control.poll() is None:
@@ -227,9 +244,12 @@ if __name__=='__main__':
     parser.add_argument('--output',required=True,type=Path)
     parser.add_argument('--expect-baseline',action='store_true')
     parser.add_argument('--webview-sdk',type=Path,help='Test the production renderer and stdio using the signed Microsoft WinForms SDK and Windows PowerShell as host')
+    parser.add_argument('--cycles',type=int,choices=(1,2),default=1,help='Reconnect this same attempt once or twice')
     args=parser.parse_args()
+    if args.expect_baseline and args.cycles!=1:
+        parser.error('the V5.7 baseline can only be recovered by reopening the window')
     if sys.platform!='win32' or not args.executable.is_file() or args.output.exists():
         parser.error('requires Windows, a local test host and a fresh output directory')
     if args.webview_sdk and (args.expect_baseline or not args.webview_sdk.is_dir()):
         parser.error('the development adapter requires a local SDK and a candidate run')
-    run(args.executable.resolve(),args.output.resolve(),args.expect_baseline,args.webview_sdk.resolve() if args.webview_sdk else None)
+    run(args.executable.resolve(),args.output.resolve(),args.expect_baseline,args.webview_sdk.resolve() if args.webview_sdk else None,args.cycles)

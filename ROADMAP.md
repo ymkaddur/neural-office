@@ -4,6 +4,8 @@
 
 El objetivo de una oficina local generalista permanece. Los hitos se aceptan por capacidades demostradas, no por una cantidad de pantallas, agentes o documentación. No hay fechas comprometidas ni una carrera por imitar un IDE.
 
+**V5.8 en Windows.** La recuperación del mismo intento tras dos cortes ya pasó en el ejecutable Tauri. La comparación de CPU, RAM y tiempo prevista en la tabla sigue pendiente. [Prueba de reconexión](docs/V5_8_REVIEW.md).
+
 | Hito | Qué gana la persona | Puerta de aceptación |
 |---|---|---|
 | **V5.6 · claridad y revisión útil** | Una entrada pública, borrador conservado al navegar, informe accionable y comprobación sin modelo. | Regresiones de navegación/arranque, corpus manual con omisiones explícitas, ejecutable probado y publicación revisada. [Entrega](docs/V5_6_REVIEW.md). |

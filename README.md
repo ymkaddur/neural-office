@@ -11,7 +11,7 @@ Un espacio de trabajo para encargar una revisión, seguir su ejecución y recupe
 
 ![La ventana de Neural Office muestra los cuatro hallazgos del ejemplo, con sus ubicaciones y cero intentos consumidos](docs/images/v5.7-static.png)
 
-La captura corresponde al ejecutable V5.7. En V5.8 puedes volver a consultar el mismo encargo tras una desconexión y abrir su historial durante el trabajo. [Pruebas locales de reconexión](docs/V5_8_REVIEW.md) · [Comparación de modelos en V5.7](docs/V5_7_REVIEW.md).
+La captura corresponde al ejecutable V5.7. En la prueba de V5.8 para Windows se recuperó el mismo encargo dos veces desde su ventana, con un solo intento consumido por ese encargo. [Verificación de la reconexión](docs/V5_8_REVIEW.md) · [Comparación de modelos en V5.7](docs/V5_7_REVIEW.md).
 
 ## Qué puedes hacer
 
