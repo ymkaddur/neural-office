@@ -18,6 +18,8 @@ jobs:
           python-version: '3.12'
       - name: Test without models, credentials or private state
         run: python -B -m unittest discover -s tests -v
+      - name: Verify the published V5.7 comparison without a model
+        run: python -B tools/verify_v57.py
       - name: Reproduce corrected forensic boundaries with synthetic state
         run: python -B tests/repro_v541_boundaries.py --repo . --expect fixed
   desktop-preview:

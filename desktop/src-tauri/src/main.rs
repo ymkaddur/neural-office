@@ -82,7 +82,7 @@ fn main() {
                 "main",
                 tauri::WebviewUrl::App("index.html".into()),
             )
-            .title("Neural Office · V5.6")
+            .title(concat!("Neural Office · V", env!("CARGO_PKG_VERSION")))
             .inner_size(1320.0, 860.0)
             .min_inner_size(760.0, 540.0)
             .on_navigation(|url| allowed_navigation(url, cfg!(debug_assertions)))

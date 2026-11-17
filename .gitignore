@@ -25,6 +25,7 @@
 !docs/V5_7_PROTOCOL.md
 !examples/v57-tasks.json
 !tools/compare_v57.py
+!tools/verify_v57.py
 !docs/V5_7_REVIEW.md
 !docs/evidence/V5_7_COMPARISON.json
 !docs/images/v5.7-static.png

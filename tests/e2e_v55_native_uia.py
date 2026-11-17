@@ -253,6 +253,10 @@ def main():
 
         stage = 'open_packaged_ui'
         app, host, screen = open_desktop()
+        release = json.loads((root / 'desktop/src-tauri/tauri.conf.json').read_bytes())['version']
+        evidence['window_title'] = screen.window.window_text()
+        assert evidence['window_title'] == f'Neural Office · V{release}', 'WINDOW_RELEASE_MISMATCH'
+        checks.append({'check': 'native-window-title-matches-release', 'verified': True})
         evidence['initial_geometry'] = screen.geometry()
         sampler = Samples(host)
         wait(lambda: 'Sin modelo · 0 intentos' in screen.names(), description='model-free entry visible')
