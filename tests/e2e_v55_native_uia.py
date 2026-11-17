@@ -304,9 +304,26 @@ def main():
         screen.button('Elegir archivo HTML')
         native_picker(host, source)
         wait(lambda: 'audit-sample.html' in screen.names(), description='captured source')
+        from pywinauto import Application, keyboard
+        import win32gui
         inspect = screen.control('Comprobar HTML')
-        inspect.set_focus()
-        inspect.type_keys('{SPACE}')
+        native_window = Application(backend='win32').connect(process=host.pid).window(handle=screen.window.handle)
+        native_window.set_focus()
+        focus_receipt = evidence['static_keyboard'] = {'readings': [], 'space_sends': 0}
+        focus_started = time.monotonic_ns()
+
+        def inspection_focused():
+            foreground = win32gui.GetForegroundWindow() == native_window.handle
+            if foreground and not inspect.has_keyboard_focus():
+                inspect.set_focus()
+            focused = inspect.has_keyboard_focus()
+            focus_receipt['readings'].append({'elapsed_ns': time.monotonic_ns() - focus_started,
+                'foreground': foreground, 'control_focused': focused, 'enabled': inspect.is_enabled()})
+            return foreground and focused and focus_receipt['readings'][-1]['enabled']
+
+        wait(inspection_focused, timeout=10, description='foreground and HTML check button has UIA keyboard focus')
+        keyboard.send_keys('{SPACE}', turn_off_numlock=False)
+        focus_receipt['space_sends'] += 1
         wait(lambda: '4 hallazgos para revisar' in screen.names(), description='keyboard static findings')
         region = screen.window.child_window(auto_id='static-workspace').rectangle()
         positions = [screen.control(label, 'Text').rectangle() for label in LABELS]
