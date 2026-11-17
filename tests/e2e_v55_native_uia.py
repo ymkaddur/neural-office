@@ -334,10 +334,12 @@ def main():
         stage = 'finding_guidance_disclosure'
         guidance = 'Añade un title descriptivo en head. Debe identificar el propósito de esta página.'
         assert guidance not in screen.names(), 'GUIDANCE_NOT_COLLAPSED'
-        screen.button('Qué revisar: Falta un título de documento no vacío')
+        # WebView2 exposes summary as a button without the Invoke pattern.
+        # Use actual pointer input, then require the observable disclosure state.
+        screen.control('Qué revisar: Falta un título de documento no vacío').click_input()
         wait(lambda: guidance in screen.names(), description='selected finding guidance visible')
         screen.screenshot(output / '04-finding-guidance.png')
-        screen.button('Qué revisar: Falta un título de documento no vacío')
+        screen.control('Qué revisar: Falta un título de documento no vacío').click_input()
         wait(lambda: guidance not in screen.names() and all(label in screen.names() for label in LABELS),
              description='collapsed guidance restores overview of all four findings')
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'GUIDANCE_REEXECUTED_WORK'
