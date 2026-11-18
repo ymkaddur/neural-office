@@ -35,8 +35,8 @@ El [corpus manual](../examples/html-review-corpus.json) contiene 18 casos de con
 py -3.12 -B tools/evaluate_v56_html.py
 ```
 
-El evaluador informa cada expectativa y observación. Salir con código 0 significa que pasan los 18 contratos; **las dos sondas semánticas siguen mostrando omisiones**: `aria-labelledby` sin destino y `label` asociado pero vacío. No se cuentan como aciertos ni se ocultan con `expectedFailure`.
+El evaluador publica cada expectativa y observación. Su código de salida refleja los 18 contratos históricos. V5.9 añade pruebas de regresión para las dos sondas que fallaban. Una referencia sin destino y una etiqueta vacía generan un candidato cuando el control carece de otra fuente de nombre reconocida. [Casos de prueba y contraste en Edge](V5_9_REVIEW.md).
 
-V5.6 corrige una exclusión indebida de `select`/`textarea` que tenían un atributo `type` propio de `input`. Los informes nuevos identifican el conjunto de reglas como `static-html-checks-v2`; el lector conserva compatibilidad con los informes v1 guardados. Se mantienen sus bytes y recibos históricos, sin recalificarlos ni devolver cuota.
+Los informes nuevos llevan `static-html-checks-v3`. El escritorio puede reabrir informes v1, v2 y v3 a partir de sus bytes y recibos guardados. La asociación de una etiqueta se comprueba sobre el HTML capturado. CSS, scripts, árboles de sombra y el cálculo completo del nombre accesible requieren revisión en navegador.
 
 No se calculan nombres accesibles completos, contraste, orden de foco, comportamiento JavaScript ni seguridad. Un resultado vacío significa que estas reglas no encontraron señales; no certifica que la página sea accesible. [Evaluación y cambios](V5_6_REVIEW.md).

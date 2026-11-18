@@ -540,6 +540,43 @@ service.start(preview['approval_token'], 'exit-after-commit', preview['expected_
         self.assertNotIn('snapshot', one['attempts'][0])
         self.assertNotIn('root', one['projects'][0])
 
+    def test_scoped_history_crosses_global_page_without_changing_authority(self):
+        self.ledger.initialize()
+        with self.ledger.transaction() as con:
+            for index in range(50):
+                project = 'sample-' + str(index)
+                con.execute('INSERT INTO projects(id,root) VALUES (?,?)', (project, project))
+                for ordinal in range(1, 4):
+                    key = f'a-{index}-{ordinal}'
+                    con.execute('INSERT INTO attempts(id,project,ordinal,request_key,request_digest,'
+                                'objective,profile,snapshot,snapshot_sha,state,created,last_seen) '
+                                "VALUES (?,?,?,?,?,?,?,?,?,'CANCELLED',0,0)",
+                                (key, project, ordinal, key, '0'*64, 'Public synthetic task',
+                                 canonical({**PROFILE, 'roles':1}), SOURCE, digest(SOURCE)))
+        before = self.service.snapshot()
+        self.assertTrue(before['has_more']['attempts'])
+        for i in (0, 33, 49):
+            project = 'sample-' + str(i)
+            page = self.command('project.history', {'project_id': project})
+            self.assertEqual([a['id'] for a in page['attempts']], [f'a-{i}-{j}' for j in (3,2,1)])
+            self.assertTrue(all(row['project_id'] == project for row in page['attempts']))
+            self.assertEqual((page['office_id'], page['revision']), (before['office_id'], before['revision']))
+        self.assertEqual(self.command('project.history', {'project_id':'empty'})['attempts'], [])
+        self.assertEqual(self.service.snapshot(), before)
+
+    def test_desktop_read_uses_one_continuity_check_and_verifies_captured_bytes(self):
+        from unittest.mock import patch
+        from neural_office import continuity
+        item = self.start(self.preview())
+        self.finish()
+        with patch.object(continuity, 'signature', wraps=continuity.signature) as counted:
+            read = self.service.attempt(item['id'])
+        self.assertEqual((read['report_available'], counted.call_count), (True, 1))
+        with self.ledger.transaction() as con:
+            con.execute('UPDATE outputs SET content=? WHERE attempt=?', ('Different fixture text', item['id']))
+        with self.assertRaisesRegex(Denied, 'OUTPUT_CHANGED'):
+            self.service.attempt(item['id'])
+
     def test_frontend_cannot_supply_native_capture_or_arbitrary_paths(self):
         for method, params in (('host.source.capture', {'project_id': 'x', 'path': str(self.file)}),
                                ('source.pick', {'project_id': 'x', 'path': str(self.file)})):

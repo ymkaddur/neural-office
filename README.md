@@ -4,14 +4,14 @@
 
 Un espacio de trabajo para encargar una revisión, seguir su ejecución y recuperar la entrega. Gratis y open source, con las mismas funciones para todo el mundo.
 
-**V5.8 · candidato local para Windows.** Abre un HTML y localiza qué revisar. La comprobación funciona sin modelo. Si quieres una segunda lectura, puedes pedir comentarios a tu modelo local y recuperar ese encargo desde el historial.
+**V5.9 · escritorio de revisión HTML para Windows.** Elige un archivo y encuentra las líneas que conviene revisar. La comprobación estática cuesta cero intentos. Si consultas a tu modelo local, puedes seguir sus llamadas, redactar la siguiente pregunta y recuperar la entrega por proyecto.
 
 [![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![La ventana de Neural Office muestra los cuatro hallazgos del ejemplo, con sus ubicaciones y cero intentos consumidos](docs/images/v5.7-static.png)
+![El escritorio V5.9 muestra audit-sample.html, sus cuatro hallazgos y el coste de cada opción](docs/images/v5.9-review.png)
 
-La captura corresponde al ejecutable V5.7. En la prueba de V5.8 para Windows se recuperó el mismo encargo dos veces desde su ventana, con un solo intento consumido por ese encargo. [Verificación de la reconexión](docs/V5_8_REVIEW.md) · [Comparación de modelos en V5.7](docs/V5_7_REVIEW.md).
+Captura del cliente V5.9 en Edge con el HTML público de ejemplo y una oficina de prueba. [Verificación de V5.9](docs/V5_9_REVIEW.md) · [Reconexión del ejecutable V5.8](docs/V5_8_REVIEW.md).
 
 ## Qué puedes hacer
 
@@ -40,9 +40,9 @@ Devuelve cuatro hallazgos en JSON y la huella del archivo. No inicia Ollama, cre
 
 La consulta asistida empieza con un rol en CPU. Cada proyecto dispone de tres intentos. Un fallo o una cancelación después de reservar también cuenta. [Uso, datos y recuperación](docs/README.md).
 
-## Hacia V6
+## Hacia V6.5
 
-Primero, utilidad demostrada y una experiencia consistente. Después, memoria inspeccionable, optimización con la misma calidad y distribución sencilla. [Hoja de ruta y criterios de aceptación](ROADMAP.md).
+La beta V6 exige instalación probada y un recorrido completo con personas nuevas. Hasta V6.5 se incorporan borradores recuperables, skills que el usuario puede inspeccionar y revocar, y revisiones con un presupuesto explícito. [Hoja de ruta y criterios de aceptación](ROADMAP.md).
 
 En seis tareas con un modelo local pequeño, el Director y la revisión de tres roles dieron las mismas ubicaciones que las reglas. Sus comentarios no añadieron acciones útiles según la rúbrica fijada. [Comparación y costes](docs/V5_7_REVIEW.md).
 

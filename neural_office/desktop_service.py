@@ -114,6 +114,12 @@ class DesktopService:
                     'has_more': {'projects': len(projects) > limit, 'attempts': len(attempts) > limit},
                     'lease': {'attempt_id': lease['attempt'], 'generation': lease['generation']}}
 
+    def project_history(self, project_id):
+        with self.ledger.connection() as con:
+            rows = con.execute(f'SELECT {ATTEMPT_COLUMNS} FROM attempts WHERE project=? ORDER BY ordinal DESC LIMIT 3',
+                               (project_id,))
+            return {**self._meta(con), 'project_id': project_id, 'attempts': [self._summary(row) for row in rows]}
+
     def _execution_busy(self):
         if self._worker is not None and self._worker.is_alive():
             return True
@@ -271,11 +277,10 @@ class DesktopService:
         with self.ledger.connection() as con:
             row = self.ledger._row(con, attempt_id)
             # Verify source/output identity with the same core read boundary.
-            self.ledger.attempt(attempt_id)
+            verified_outputs = self.ledger._verified_outputs(con, row)
             meta = self._meta(con)
             outputs = [{'role': item['role'], 'sha256': item['content_sha'],
-                        'bytes': len(item['content'].encode('utf-8'))} for item in con.execute(
-                            'SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid', (attempt_id,))]
+                        'bytes': len(item['content'].encode('utf-8'))} for item in verified_outputs]
             calls = [dict(item) for item in con.execute('SELECT seq,role,state FROM calls WHERE attempt=? ORDER BY seq', (attempt_id,))]
             reservation = con.execute("SELECT json_extract(payload,'$.source_name') FROM events "
                                       "WHERE kind='ATTEMPT_RESERVED' AND json_extract(payload,'$.attempt')=? "
@@ -397,6 +402,7 @@ class DesktopService:
                 models = self.models()
                 return {'models': models, 'cached': self._catalog_stale, 'session_id': self.session_id}
             if method == 'projects.list': return self.snapshot()
+            if method == 'project.history': return self.project_history(**params)
             if method == 'snapshot.get': return self.snapshot(**params)
             if method == 'source.pick': raise Denied('NATIVE_PICKER_REQUIRED')
             handlers = {'source.check': self.check_source, 'attempt.preview': self.preview, 'attempt.start': self.start,

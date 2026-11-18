@@ -62,3 +62,70 @@
   .static-source { margin-top: 16px; }
   .static-results { margin-top: 14px; }
 }
+
+.v541.connected {
+  --canvas:#f2f3ef; --paper:#fcfcf9; --surface:#f4f6f2; --ink:#202c2b;
+  --muted:#4a5d59; --line:#c9d3cc; --strong:#164d44; --accent:#075b50;
+  --wash:#e6ede7; --green:#216344; --error:#8e3237; --nav:#192825; --nav-muted:#c3d2ca;
+  font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;
+}
+.v541.connected.theme-dark {
+  --canvas:#131e1c; --paper:#192523; --surface:#202e2a; --ink:#eff4ed;
+  --muted:#b8c9c0; --line:#40544b; --strong:#a7dfc6; --accent:#a2e2c9;
+  --wash:#293d35; --green:#a4deae; --error:#ffaba9; --nav:#111c19; --nav-muted:#bbccc2;
+}
+.connected button,.connected input,.connected select,.connected textarea { font-family:inherit; }
+.connected .office-nav { border-color:#374b42; }
+.connected .new-task,.connected .connected-projects>button.selected,
+.connected .connected-history>button.selected { background:#2b4038; color:#f1f5ee; border-color:#657c6c; }
+.connected .new-task:hover,.connected .connected-projects>button:hover,.connected .connected-history>button:hover { background:#364c42; }
+.connected .version-tag { color:#d3ded7; border-color:#627a69; }
+.connected .office-nav .director-mark span { background:#a1d7bb; }
+.connected .connected-nav-heading,.connected .history-empty,.connected .local-engine small,
+.connected .nav-footer,.connected .connected-projects small,.connected .connected-history small { font-size:12px; color:var(--nav-muted); }
+.connected .connected-nav-heading { text-transform:none; letter-spacing:.01em; }
+.connected .connected-quota,.connected .call-order,.connected .finding-list small,.connected .static-pages span {
+  font-family:"Cascadia Mono",Consolas,ui-monospace,monospace; font-size:12px;
+}
+.connected .static-workspace { max-width:880px; padding:clamp(24px,4.5vh,48px) clamp(20px,4vw,50px) 28px; }
+.connected .static-heading h1 { font-size:clamp(30px,3.4vw,44px); line-height:1.13; letter-spacing:-.048em; font-weight:620; }
+.connected .static-heading p { max-width:57ch; }
+.source-desk {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px 20px;
+  margin:22px 0; padding:14px 0; border-block:1px solid var(--line);
+}
+.source-desk .static-source,.source-desk .static-actions { margin:0; padding:0; border:0; }
+.source-desk .static-source { min-width:0; gap:10px; flex:1 1 220px; flex-wrap:nowrap; }
+.source-identity { min-width:0; display:grid; gap:2px; justify-items:start; }
+.source-desk .source-picker { padding:3px 1px; max-width:100%; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;
+  color:var(--accent); font-size:15px; font-weight:600; border:0; background:transparent; text-decoration:underline; text-underline-offset:3px; }
+.document-glyph { flex:none; display:grid; place-items:center; width:38px; height:44px; border:1px solid var(--line);
+  border-radius:2px 9px 2px 2px; background:var(--wash); color:var(--accent); font:600 13px Consolas,monospace; }
+.source-desk .static-actions { flex-flow:column; align-items:flex-start; gap:4px; }
+.source-desk .solid-button,.connected .connected-composer .solid-button { background:var(--strong); color:var(--paper); }
+.connected .static-results h2,.call-receipts h2 { margin:0 0 5px; font-size:21px; line-height:1.3; font-weight:620; letter-spacing:-.025em; }
+.connected .static-results .finding-list { margin-top:12px; }
+.connected .static-results .finding-list li { padding-block:12px; }
+.connected .finding-list strong,.connected .connected-call-list strong { font-size:15px; }
+.connected .finding-action summary,.connected .connected-quota,.connected .connected-status { font-size:13px; }
+.connected .connected-footer,.connected .connected-call-list li>span:last-child,
+.connected .connected-event-details time,.connected .connected-send-row small,
+.connected .connected-approval .approval-expiry { font-size:12px !important; }
+.connected .static-results h2 { width:fit-content; max-width:100%; }
+.connected .quiet-button,.connected .connected-approval dt,.connected .connected-history strong { font-size:13px; }
+.call-receipts { border-block:1px solid var(--line); padding-block:14px; margin-block:12px; }
+.call-receipts p { margin:4px 0; font-size:13px; color:var(--muted); overflow-wrap:anywhere; }
+.call-receipts .connected-call-list { margin:8px 0 0; }
+.next-draft { margin:12px 0; border-block-start:1px solid var(--line); padding:12px 0; }
+.next-draft summary { cursor:pointer; color:var(--accent); font-size:14px; font-weight:600; }
+.next-draft label,.next-draft p { display:block; margin:10px 0 4px; color:var(--muted); font-size:13px; }
+.next-draft textarea { box-sizing:border-box; width:100%; min-height:72px; resize:vertical; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink); padding:8px 10px; font:inherit; }
+.connected :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.connected .office-nav :focus-visible { outline-color:#b1edd1; }
+@media(max-width:600px),(max-height:720px) {
+  .connected .static-workspace { padding:18px 18px 24px; }
+  .source-desk { margin:14px 0; }
+  .connected .static-results .finding-list li { padding-block:8px; }
+}

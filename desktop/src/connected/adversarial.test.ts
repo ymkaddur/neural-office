@@ -64,32 +64,68 @@ for(const delayed of [false,true])test(`terminal polling reconciles saved histor
   }finally{release?.();await app.close();}
 });
 
-test('paging attempts retains the bounded project page and its authoritative quota',async()=>{
-  const projects=Array.from({length:34},(_,i)=>project(`p${i}`,3));
-  const attempts=Array.from({length:102},(_,i)=>({...baseAttempt,id:`a${i}`,project_id:`p${Math.floor(i/3)}`,ordinal:i%3+1,state:'CANCELLED',request_key:`k${i}`}));
+test('selected project history includes all three attempts across the global page boundary',async()=>{
+  const projects=Array.from({length:50},(_,i)=>project(`p${i}`,3));
+  const attempts=Array.from({length:150},(_,i)=>({...baseAttempt,id:`a${i}`,project_id:`p${Math.floor(i/3)}`,ordinal:i%3+1,state:'CANCELLED',request_key:`k${i}`,objective:`Encargo ${i}`}));
   let pages=0;
+  let release:(()=>void)|undefined;
   const app=await mount(async(method,params)=>{
     if(method==='describe')return {session_id:'session',office_id:'office',inference:'injected-test-backend'};
     if(method==='snapshot.get'){
       pages++;
       const after=params.attempt_after as number;
       const result=snapshot(attempts.slice(after,after+100),(params.project_after as number)>0?[]:projects);
-      result.next={project_after:34,attempt_after:Math.min(after+100,102)};
+      result.next={project_after:50,attempt_after:Math.min(after+100,150)};
       result.has_more.attempts=after===0;return result;
+    }
+    if(method==='project.history'){
+      const id=params.project_id;
+      if(id==='p33')await new Promise<void>(resolve=>{release=resolve;});
+      return {office_id:'office',session_id:'session',revision:2,project_id:id,attempts:attempts.filter(a=>a.project_id===id).reverse()};
     }
     if(method==='models.list')return {models:[],session_id:'session'};
     throw Error('Unexpected synthetic RPC');
   });
   try{
-    await until(()=>app.document.querySelectorAll('.connected-projects button').length===34);
-    (Array.from(app.document.querySelectorAll('.connected-projects button')).find(button=>button.getAttribute('title')==='p33') as any).click();
-    await until(()=>app.document.querySelector('.connected-projects button.selected')?.getAttribute('title')==='p33');
-    const next=Array.from(app.document.querySelectorAll('button')).find(button=>/Siguiente.*(?:historial|encargos)/i.test(button.textContent));
-    assert.ok(next);next.click();
-    await until(()=>pages===2);await wait(30);
-    assert.equal(app.document.querySelectorAll('.connected-projects button').length,34);
+    await until(()=>app.document.querySelectorAll('.connected-projects button').length===50);
+    const select=(id:string)=>app.document.querySelector<HTMLButtonElement>(`.connected-projects button[title="${id}"]`)!.click();
+    select('p33');await until(()=>!!release);
+    assert.match(app.document.querySelector('.connected-history')!.textContent,/Leyendo historial/);
+    select('p49');await until(()=>app.document.querySelectorAll('.connected-history button').length===3);
+    release!();await wait(30);
+    assert.deepEqual(Array.from(app.document.querySelectorAll('.connected-history strong'),r=>r.textContent),['Encargo 149','Encargo 148','Encargo 147']);
+    assert.equal(pages,1);
+    assert.equal(app.document.querySelectorAll('.connected-projects button').length,50);
     assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/3 de 3/);
-    assert.equal(app.document.querySelectorAll('.connected-history button').length,2);
+  }finally{release?.();await app.close();}
+});
+
+test('drafting during live work preserves the next objective without submitting it',async()=>{
+  let finished=false;
+  const methods:string[]=[];
+  const row=()=>({...baseAttempt,state:finished?'CANCELLED':'RUNNING',revision:finished?3:1,calls:[{seq:27,role:'director',state:'DONE'}]});
+  const app=await mount(async method=>{
+    methods.push(method);
+    if(method==='describe')return {office_id:'office',session_id:'session'};
+    if(method==='snapshot.get')return snapshot([row()]);
+    if(method==='attempt.get')return row();
+    if(method==='events.read')return {session_id:'session',cursor:2,next_after:2,has_more:false,events:[]};
+    if(method==='models.list')return {session_id:'session',models:[]};
+    throw Error('Unexpected RPC');
+  });
+  try{
+    await until(()=>app.document.querySelector('.connected-call-list li')?.textContent.includes('Respuesta registrada')===true);
+    assert.equal(app.document.querySelector('.call-order')?.textContent,'1');
+    const field=app.document.querySelector('#next-objective') as any;
+    field.value='Revisar el segundo documento';
+    field.dispatchEvent(new app.window.Event('input',{bubbles:true}));
+    field.dispatchEvent(new app.window.KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}));
+    finished=true;
+    const reopen=()=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Volver al borrador');
+    await until(()=>!!reopen());reopen()!.click();
+    await until(()=>(app.document.querySelector('#connected-objective') as any)?.value===field.value);
+    assert.match(app.document.querySelector('.connected-quota')!.textContent,/1 de 3/);
+    assert.ok(!methods.some(m=>['attempt.preview','attempt.start','attempt.cancel','attempt.recover'].includes(m)));
   }finally{await app.close();}
 });
 
@@ -186,7 +222,7 @@ for(const outcome of ['deferred','failed'] as const)test(`accepted report ${outc
   }finally{release?.();await app.close();}
 });
 
-for(const scope of ['static-html-checks-v1','static-html-checks-v2'])test(`${scope} accepted report renders the verified bytes without another attempt`,async()=>{
+for(const scope of ['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3'])test(`${scope} accepted report renders the verified bytes without another attempt`,async()=>{
   const fixture=validReport(scope);
   const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>method==='report.get'?fixture.meta:fixture.chunk);
   const app=await mount(peer.send);

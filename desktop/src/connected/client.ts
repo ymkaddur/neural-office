@@ -38,7 +38,7 @@ export async function readReport(send:Requester,attemptId:string,current:()=>boo
   }
   if(await sha(bytes)!==meta.sha256) throw Error('REPORT_HASH_CHANGED');
   const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes),report=JSON.parse(text) as Report;
-  if(report.schema!==1||!['static-html-checks-v1','static-html-checks-v2'].includes(report.scope)||report.model_commentary_status!=='UNVERIFIED_ASSISTANCE'||!Array.isArray(report.findings)||report.findings.length>10000||!Array.isArray(report.role_outputs)||report.role_outputs.length>7) throw Error('REPORT_CONTENT_INVALID');
+  if(report.schema!==1||!['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3'].includes(report.scope)||report.model_commentary_status!=='UNVERIFIED_ASSISTANCE'||!Array.isArray(report.findings)||report.findings.length>10000||!Array.isArray(report.role_outputs)||report.role_outputs.length>7) throw Error('REPORT_CONTENT_INVALID');
   for(const f of report.findings) if(typeof f.code!=='string'||!Number.isSafeInteger(f.line)||!Number.isSafeInteger(f.column)||f.line<1||f.column<1) throw Error('REPORT_FINDING_INVALID');
   for(const r of report.role_outputs) if(typeof r.role!=='string'||typeof r.content!=='string') throw Error('REPORT_COMMENTARY_INVALID');
   return {meta,report,text};

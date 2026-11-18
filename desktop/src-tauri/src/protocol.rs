@@ -8,6 +8,7 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "describe",
     "models.list",
     "projects.list",
+    "project.history",
     "snapshot.get",
     "source.pick",
     "source.check",

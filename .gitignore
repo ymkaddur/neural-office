@@ -283,3 +283,12 @@
 !docs/evidence/V5_6_NATIVE.json
 !docs/images/v5.6-result.png
 !docs/images/v5.6-draft-return.png
+
+# V5.9 connected workspace and public synthetic verification.
+!desktop/src/connected/ProjectHistory.tsx
+!tests/test_v59_names.py
+!tools/measure_v59_read.py
+!tools/verify_v59_names.cjs
+!docs/V5_9_REVIEW.md
+!docs/evidence/V5_9_CHECKS.json
+!docs/images/v5.9-review.png

@@ -1,0 +1,376 @@
+{
+  "schema": 1,
+  "platform": "Windows x64",
+  "python": "3.12.10",
+  "edge": "157.0.4341.60",
+  "browser_fixture": "Compiled connected renderer. Synthetic RPC response carrying the static findings of examples/audit-sample.html.",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "rows": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "calls": [
+        "describe",
+        "snapshot.get",
+        "source.pick",
+        "snapshot.get",
+        "source.check"
+      ],
+      "quotaVisible": true,
+      "quotaInside": true,
+      "errors": []
+    },
+    {
+      "width": 1024,
+      "height": 697,
+      "overflow": false,
+      "rows": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "calls": [
+        "describe",
+        "snapshot.get",
+        "source.pick",
+        "snapshot.get",
+        "source.check"
+      ],
+      "quotaVisible": true,
+      "quotaInside": true,
+      "errors": []
+    },
+    {
+      "width": 390,
+      "height": 720,
+      "overflow": false,
+      "rows": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "calls": [
+        "describe",
+        "snapshot.get",
+        "source.pick",
+        "snapshot.get",
+        "source.check"
+      ],
+      "quotaVisible": true,
+      "quotaInside": true,
+      "errors": []
+    },
+    {
+      "width": 768,
+      "height": 540,
+      "overflow": false,
+      "rows": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "calls": [
+        "describe",
+        "snapshot.get",
+        "source.pick",
+        "snapshot.get",
+        "source.check"
+      ],
+      "quotaVisible": true,
+      "quotaInside": true,
+      "errors": []
+    }
+  ],
+  "sampled_text_contrast": {
+    "dark": [
+      {
+        "selector": ".static-heading h1",
+        "ratio": 15.31,
+        "px": "44px"
+      },
+      {
+        "selector": ".static-heading p",
+        "ratio": 9.88,
+        "px": "14px"
+      },
+      {
+        "selector": ".source-picker",
+        "ratio": 11.59,
+        "px": "15px"
+      },
+      {
+        "selector": ".static-source small",
+        "ratio": 9.88,
+        "px": "12px"
+      },
+      {
+        "selector": ".static-actions .solid-button",
+        "ratio": 10.53,
+        "px": "13px"
+      },
+      {
+        "selector": ".static-results .finding-list strong",
+        "ratio": 15.31,
+        "px": "15px"
+      },
+      {
+        "selector": ".static-results .finding-list small",
+        "ratio": 9.88,
+        "px": "12px"
+      },
+      {
+        "selector": ".finding-action summary",
+        "ratio": 11.59,
+        "px": "13px"
+      },
+      {
+        "selector": ".connected-quota",
+        "ratio": 8.18,
+        "px": "13px"
+      },
+      {
+        "selector": ".wordmark strong",
+        "ratio": 15.39,
+        "px": "15px"
+      }
+    ],
+    "light": [
+      {
+        "selector": ".static-heading h1",
+        "ratio": 12.94,
+        "px": "44px"
+      },
+      {
+        "selector": ".static-heading p",
+        "ratio": 6.28,
+        "px": "14px"
+      },
+      {
+        "selector": ".source-picker",
+        "ratio": 7.19,
+        "px": "15px"
+      },
+      {
+        "selector": ".static-source small",
+        "ratio": 6.28,
+        "px": "12px"
+      },
+      {
+        "selector": ".static-actions .solid-button",
+        "ratio": 9.38,
+        "px": "13px"
+      },
+      {
+        "selector": ".static-results .finding-list strong",
+        "ratio": 12.94,
+        "px": "15px"
+      },
+      {
+        "selector": ".static-results .finding-list small",
+        "ratio": 6.28,
+        "px": "12px"
+      },
+      {
+        "selector": ".finding-action summary",
+        "ratio": 7.19,
+        "px": "13px"
+      },
+      {
+        "selector": ".connected-quota",
+        "ratio": 6.43,
+        "px": "13px"
+      },
+      {
+        "selector": ".wordmark strong",
+        "ratio": 13.51,
+        "px": "15px"
+      }
+    ]
+  },
+  "accessible_name_browser_oracle": [
+    {
+      "id": "unresolved",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "id": "empty explicit",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "id": "forward",
+      "expected": "Correo",
+      "actual": "Correo"
+    },
+    {
+      "id": "partial list",
+      "expected": "Cuenta",
+      "actual": "Cuenta"
+    },
+    {
+      "id": "empty ref",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "id": "native fallback",
+      "expected": "Alias",
+      "actual": "Alias"
+    },
+    {
+      "id": "direct fallback",
+      "expected": "Aviso",
+      "actual": "Aviso"
+    },
+    {
+      "id": "empty target fallback",
+      "expected": "Aviso",
+      "actual": "Aviso"
+    },
+    {
+      "id": "implicit rich",
+      "expected": "Correo",
+      "actual": "Correo"
+    },
+    {
+      "id": "implicit empty",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "id": "explicit elsewhere",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "id": "duplicate first",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "id": "image label",
+      "expected": "Correo",
+      "actual": "Correo"
+    },
+    {
+      "id": "script alone",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "id": "two sources",
+      "expected": "Nombre legal",
+      "actual": "Nombre legal"
+    }
+  ],
+  "history_fixture": {
+    "projects": 50,
+    "attempts": 150,
+    "quota_each": 3
+  },
+  "benchmark": {
+    "baseline": "8b1219c1431669b3672746c13dc5add67a0b5b8f",
+    "candidate": "V5.9",
+    "setting": "Fresh Python process and temporary one-attempt office in each batch. After setup, three warmups then sixty verified reads. Peak working set includes setup. No model or WebView in this benchmark.",
+    "order_and_runs": [
+      {
+        "version": "old",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 2,
+          "median_ms": 4.162,
+          "p95_ms": 5.908,
+          "process_cpu_ms": 265.625,
+          "process_peak_working_set_bytes": 33021952
+        }
+      },
+      {
+        "version": "new",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 1,
+          "median_ms": 1.914,
+          "p95_ms": 2.516,
+          "process_cpu_ms": 109.375,
+          "process_peak_working_set_bytes": 32878592
+        }
+      },
+      {
+        "version": "new",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 1,
+          "median_ms": 2.041,
+          "p95_ms": 3.155,
+          "process_cpu_ms": 140.625,
+          "process_peak_working_set_bytes": 32903168
+        }
+      },
+      {
+        "version": "old",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 2,
+          "median_ms": 4.01,
+          "p95_ms": 5.68,
+          "process_cpu_ms": 265.625,
+          "process_peak_working_set_bytes": 33050624
+        }
+      },
+      {
+        "version": "new",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 1,
+          "median_ms": 3.616,
+          "p95_ms": 4.774,
+          "process_cpu_ms": 218.75,
+          "process_peak_working_set_bytes": 32923648
+        }
+      },
+      {
+        "version": "old",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 2,
+          "median_ms": 7.287,
+          "p95_ms": 8.473,
+          "process_cpu_ms": 437.5,
+          "process_peak_working_set_bytes": 32960512
+        }
+      },
+      {
+        "version": "old",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 2,
+          "median_ms": 4.348,
+          "p95_ms": 5.668,
+          "process_cpu_ms": 265.625,
+          "process_peak_working_set_bytes": 33095680
+        }
+      },
+      {
+        "version": "new",
+        "metrics": {
+          "reads": 60,
+          "continuity_checks": 1,
+          "median_ms": 2.16,
+          "p95_ms": 2.586,
+          "process_cpu_ms": 125.0,
+          "process_peak_working_set_bytes": 33034240
+        }
+      }
+    ]
+  }
+}

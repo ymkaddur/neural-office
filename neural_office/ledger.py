@@ -417,14 +417,19 @@ class Ledger:
             self._park_exhausted(con,row['project'])
             return state
 
+    def _verified_outputs(self, con, row):
+        rows = con.execute('SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid',
+                           (row['id'],)).fetchall()
+        if any(digest(item['content']) != item['content_sha'] for item in rows):
+            raise Denied('OUTPUT_CHANGED')
+        if digest(bytes(row['snapshot'])) != row['snapshot_sha']:
+            raise Denied('SNAPSHOT_CHANGED')
+        return rows
+
     def attempt(self, attempt):
         with self.connection() as con:
             row = dict(self._row(con,attempt))
-            rows = con.execute('SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid',(attempt,)).fetchall()
-            row['outputs'] = [dict(r) for r in rows]
-            if any(digest(r['content'])!=r['content_sha'] for r in row['outputs']):
-                raise Denied('OUTPUT_CHANGED')
-            if digest(bytes(row['snapshot']))!=row['snapshot_sha']: raise Denied('SNAPSHOT_CHANGED')
+            row['outputs'] = [dict(item) for item in self._verified_outputs(con, row)]
             row['profile'] = json.loads(row['profile'])
             return row
 

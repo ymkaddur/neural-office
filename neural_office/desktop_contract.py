@@ -12,6 +12,7 @@ MAX_MESSAGE_BYTES = 16_384
 MAX_SAFE_INTEGER = 2**53 - 1
 METHODS = {
     'describe': {}, 'models.list': {}, 'projects.list': {},
+    'project.history': {'project_id': 'project'},
     'snapshot.get': {'project_after': 'revision', 'attempt_after': 'revision', 'limit': 'limit'},
     'source.pick': {'project_id': 'project'},
     'source.check': {'project_id': 'project', 'entry_token': 'id', 'offset': 'revision'},
