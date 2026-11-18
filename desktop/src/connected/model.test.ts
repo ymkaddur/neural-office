@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {acceptAttempt,approvalMatches,mergeEvents,pendingKey,readPending,terminal,writePending} from './model.ts';
+import {acceptAttempt,approvalMatches,mergeEvents,pendingKey,readPending,recordedDuration,remainingLabel,terminal,writePending} from './model.ts';
 import type {Approval,Attempt,EventWindow,Pending,Source} from './model.ts';
 import {readReport} from './client.ts';
 import type {Requester} from './client.ts';
@@ -10,6 +10,22 @@ const source:Source={entry_token:'source',project_id:'project-a',filename:'sampl
 const approval:Approval={session_id:'session-a',approval_token:'approved',expected_revision:10,expires_in_seconds:120,project_id:'project-a',source_sha256:source.sha256,objective:'Review this HTML safely.',roles:1,model:'local',model_digest:'b'.repeat(64),mode:'ollama-owned',attempts_consumed:0,attempts_remaining:3};
 const attempt:Attempt={id:'attempt',project_id:'project-a',ordinal:1,state:'RUNNING',revision:3,source_sha256:source.sha256,model:'local',model_digest:approval.model_digest,roles:1,objective:approval.objective,mode:'ollama-owned',request_key:pending.idempotency_key};
 const matches=(a=approval,s=source,o=approval.objective,m=approval.model_digest,r=1,end=200,now=100)=>approvalMatches(a,'session-a',s,o,m,r,end,now);
+
+test('a call shows only the interval attested by its two endpoints',()=>{
+  const call={seq:1,role:'director',state:'STARTED',started_ms:1000};
+  assert.equal(recordedDuration(call,1500,true),'<1 s');
+  assert.equal(recordedDuration(call,62_999,true),'1 min 1 s');
+  assert.equal(recordedDuration(call,23_000,false),null);
+  assert.equal(recordedDuration({...call,state:'INTERRUPTED'},23_000,true),null);
+  assert.equal(recordedDuration({...call,state:'DONE',completed_ms:3000},50_000,false),'2 s');
+  assert.equal(recordedDuration({...call,state:'DONE'},50_000,false),null);
+  assert.equal(recordedDuration({...call,started_ms:undefined},50_000,true),null);
+  assert.equal(recordedDuration(call,999,true),null);
+});
+
+test('available attempts is the balance, including exhaustion and its singular form',()=>{
+  assert.deepEqual([0,1,2,3].map(remainingLabel),['3 intentos disponibles','2 intentos disponibles','1 intento disponible','0 intentos disponibles']);
+});
 
 test('a lost acknowledgement retains exactly the original durable key after remount',()=>{
   const disk=storage();writePending(disk,pending);

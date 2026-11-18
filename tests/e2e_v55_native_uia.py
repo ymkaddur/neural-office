@@ -214,9 +214,9 @@ class Screen:
         dwm.DwmGetWindowAttribute.restype = ctypes.c_long
         extended = wintypes.RECT()
         has_frame = dwm.DwmGetWindowAttribute(handle, 9, ctypes.byref(extended), ctypes.sizeof(extended)) == 0
-        send = self.window.child_window(title='Comprobar HTML', control_type='Button')
+        send = self.window.child_window(title_re='Revisar encargo.*', control_type='Button')
         if not send.exists(timeout=.1):
-            send = self.window.child_window(title_re='Revisar encargo.*', control_type='Button')
+            send = self.window.child_window(title='Comprobar HTML', control_type='Button')
         send_rect = send.rectangle() if send.exists(timeout=.1) else None
         return {'window_rectangle_px': [rectangle.left, rectangle.top, rectangle.right, rectangle.bottom],
                 'monitor_work_area_px': list(work_area),
@@ -306,7 +306,7 @@ def main():
         checks.append({'check': 'native-window-title-matches-release', 'verified': True})
         evidence['initial_geometry'] = screen.geometry()
         sampler = Samples(host)
-        wait(lambda: 'Sin modelo · 0 intentos' in screen.names(), description='model-free entry visible')
+        wait(lambda: '0 intentos · sin modelo' in screen.names(), description='model-free entry visible')
         screen.screenshot(output / '01-ready.png')
         sampler.phase = 'window_differential'
         before = evidence['initial_geometry']
@@ -348,6 +348,8 @@ def main():
         sampler.phase = 'idle_before'
         time.sleep(5)
         stage = 'native_static_review'; sampler.phase = 'prepare'
+        screen.objective(OBJECTIVE)
+        assert screen.control('Tu encargo al Director', 'Edit').get_value() == OBJECTIVE
         screen.button('Elegir archivo HTML')
         native_picker(host, source)
         wait(lambda: 'audit-sample.html' in screen.names(), description='captured source')
@@ -398,7 +400,7 @@ def main():
         assert 'audit-sample.html' in screen.names(), 'MODE_SWITCH_LOST_SOURCE'
         assisted_geometry = screen.geometry()
         assert viewport_checks(assisted_geometry)['review_button_within_work_area'], 'ASSISTED_ACTION_OFFSCREEN'
-        screen.objective(OBJECTIVE)
+        assert screen.control('Tu encargo al Director','Edit').get_value() == OBJECTIVE, 'STATIC_REVIEW_LOST_OBJECTIVE'
         screen.button('Revisar encargo.*', regex=True)
         wait(lambda: 'Consumirá 1 intento' in screen.names(), description='visible approval')
         assert readonly_counts(state)['attempts'] == 0, 'PREVIEW_CONSUMED_ATTEMPT'
@@ -457,7 +459,7 @@ def main():
         screen.button(re.escape(OBJECTIVE) + '.*', regex=True)
         wait(lambda: '4 hallazgos para revisar' in screen.names(), description='persisted report visible')
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'REOPEN_REEXECUTED_WORK'
-        assert '1 de 3 intentos' in screen.names(), 'REOPEN_LOST_BUDGET'
+        assert '2 intentos disponibles' in screen.names(), 'REOPEN_LOST_BUDGET'
         screen.screenshot(output / '05-reopened.png')
         checks.append({'check': 'normal-close-owned-core-exit-reopen-without-new-attempt-or-call', 'verified': True})
         stage = 'cancel_second_attempt'
@@ -484,7 +486,7 @@ def main():
         wait(lambda: 'Encargo detenido' in screen.names(), timeout=90, description='confirmed cancellation')
         counts = readonly_counts(state)
         assert counts['attempts'] == 2 and counts['calls'] in (1, 2) and counts['states'] == ['ACCEPTED', 'CANCELLED'], 'CANCEL_CONTRACT'
-        assert '2 de 3 intentos' in screen.names(), 'CANCEL_BUDGET_NOT_VISIBLE'
+        assert '1 intento disponible' in screen.names(), 'CANCEL_BUDGET_NOT_VISIBLE'
         assert 'Encargo detenido' in screen.control(re.escape(SECOND) + '.*', regex=True).window_text(), 'HISTORY_TERMINAL_STATE_STALE'
         def cancelled_delivery_header():
             delivery = screen.window.child_window(auto_id='connected-delivery').wrapper_object()

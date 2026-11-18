@@ -1,6 +1,7 @@
 export type AttemptState='QUEUED'|'RUNNING'|'VERIFYING'|'STOPPING'|'RECOVERY_REQUIRED'|'ACCEPTED'|'REJECTED'|'FAILED'|'CANCELLED';
 export type Project={id:string;active:boolean;approved:boolean;attempts_consumed:number;legacy_consumed:number;verified_versions:number;simulated_versions:number};
-export type Attempt={session_id?:string;cursor?:number;source_name?:string|null;id:string;project_id:string;ordinal:number;state:AttemptState;revision:number;source_sha256:string;model:string;model_digest:string;roles:number;objective:string;mode:string;request_key:string;calls?:{seq:number;role:string;state:string}[];report_available?:boolean;execution_error_code?:string|null};
+export type ModelCall={seq:number;role:string;state:string;started_ms?:number;completed_ms?:number};
+export type Attempt={session_id?:string;cursor?:number;observed_ms?:number;source_name?:string|null;id:string;project_id:string;ordinal:number;state:AttemptState;revision:number;source_sha256:string;model:string;model_digest:string;roles:number;objective:string;mode:string;request_key:string;calls?:ModelCall[];report_available?:boolean;execution_error_code?:string|null};
 export type Snapshot={current_attempt?:Attempt|null;session_id:string;office_id:string;revision:number;cursor:number;projects:Project[];attempts:Attempt[];next:{project_after:number;attempt_after:number};has_more:{projects:boolean;attempts:boolean};lease:{attempt_id:string|null;generation:number}};
 export type Model={model:string;model_digest:string;mode:string};
 export type Source={entry_token:string;project_id:string;filename:string;sha256:string;bytes:number;session_id:string;expires_in_seconds:number};
@@ -15,6 +16,18 @@ export function pendingKey(officeId:string){if(!id(officeId))throw Error('OFFICE
 const id=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value);
 const projectId=(value:unknown):value is string=>typeof value==='string'&&value.length>0&&[...value].length<=80&&!/[\uD800-\uDFFF]/u.test(value);
 const counter=(value:unknown):value is number=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0;
+export function remainingLabel(consumed:number) {
+  const left=Math.max(0,3-consumed);
+  return left===1?'1 intento disponible':`${left} intentos disponibles`;
+}
+export function recordedDuration(call:ModelCall,observed:number|undefined,active:boolean) {
+  const end=call.state==='DONE'?call.completed_ms:call.state==='STARTED'&&active?observed:undefined;
+  if(!counter(call.started_ms)||!counter(end)||end<call.started_ms)return null;
+  const seconds=Math.floor((end-call.started_ms)/1000);
+  if(seconds<1)return '<1 s';
+  if(seconds<60)return `${seconds} s`;
+  return `${Math.floor(seconds/60)} min ${seconds%60} s`;
+}
 const record=(value:unknown):value is Record<string,unknown>=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function readPending(storage:Pick<Storage,'getItem'>,officeId:string):Pending|null {
   const raw=storage.getItem(pendingKey(officeId));

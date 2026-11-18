@@ -1,17 +1,13 @@
 # Neural Office
 
-**Revisa en local. Decide con evidencia.**
+**V5.11 · escritorio Windows en pruebas.** Escribe qué necesitas revisar y adjunta el HTML. Puedes localizar un problema en una línea concreta con las reglas locales o pedir al Director que comente el documento con tu modelo de Ollama. Neural Office es gratis y de código abierto.
 
-Un espacio de trabajo para encargar una revisión, seguir su ejecución y recuperar la entrega. Gratis y open source, con las mismas funciones para todo el mundo.
-
-**V5.10 · escritorio Windows en pruebas.** Elige un HTML para localizar las líneas que conviene revisar. Comprobar el archivo cuesta cero intentos. Si encargas una revisión al Director, puedes abrir una entrega anterior y detener el trabajo que sigue en marcha.
-
-[![Tests Windows de esta rama](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.10-windows-review)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.10-windows-review)
+[![Pruebas de la rama V5.11 en Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.11-director)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.11-director)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![Variante grafito del escritorio Windows con los cuatro hallazgos del ejemplo público](docs/images/v5.10-graphite.png)
+![Encargo al Director antes de adjuntar el ejemplo, en la interfaz V5.11](docs/images/v5.11-encargo.png)
 
-Abre **Paleta · Grafito** en el pie de la navegación para alternar con el acabado mineral de V5.9. [Comparación visual, coste y pruebas de V5.10](docs/V5_10_REVIEW.md) · [Referencia V5.9](docs/V5_9_REVIEW.md).
+La comprobación local cuesta **0 intentos**. Una revisión con el modelo cuesta **1 intento al autorizarla**. Cada proyecto tiene tres. Puedes volver a una entrega guardada para leerla de nuevo. [Resultados y alcance de V5.11](docs/V5_11_REVIEW.md).
 
 ## Qué puedes hacer
 
@@ -24,7 +20,7 @@ Los hallazgos estáticos y los comentarios del modelo se presentan por separado.
 
 ## Probarlo
 
-Para comprobar un HTML sin modelo en Windows, descarga la rama de prueba, extrae la carpeta y ejecuta el siguiente comando con Python 3.12. [Código de V5.10](https://github.com/ymkaddur/neural-office/archive/refs/heads/feat/v5.10-windows-review.zip).
+Para probar el ejemplo desde la terminal en Windows, extrae la rama de pruebas y ejecuta este comando con Python 3.12. [Código de V5.11](https://github.com/ymkaddur/neural-office/archive/refs/heads/feat/v5.11-director.zip).
 
 ```powershell
 py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.html
@@ -34,9 +30,9 @@ Devuelve cuatro hallazgos en JSON y la huella del archivo. No inicia Ollama, cre
 
 **En el escritorio:** sigue la [guía de compilación y uso](desktop/README.md). Necesita Windows x64, Python 3.12 y WebView2. La consulta opcional al Director requiere Ollama y un modelo instalado. Compilar requiere Node, Rust y las herramientas de Windows. Todavía se distribuye como código para desarrollo, sin instalador firmado.
 
-1. Pulsa **Elegir archivo HTML** y **Comprobar HTML**. Puedes recorrer todas las ubicaciones sin gastar intentos.
-2. Abre **Qué revisar** junto a un hallazgo para decidir cómo comprobarlo en tu documento.
-3. **Consultar al Director** conserva la fuente. Revisa el número de llamadas y autoriza el encargo si te interesa guardarlo con comentarios.
+1. Escribe una pregunta, por ejemplo «¿Qué campo del formulario necesita una etiqueta?». Adjunta `examples/audit-sample.html`.
+2. Pulsa **Comprobar HTML**. Abre **Qué revisar** en la fila del control de la línea 7. La pregunta sigue en el borrador.
+3. Para pedir una segunda lectura, pulsa **Consultar al Director**. Elige el modelo y revisa el alcance. **Autorizar y ejecutar** reserva el intento. Durante la consulta puedes ver el rol y el tiempo registrado de su llamada.
 
 La consulta asistida empieza con un rol en CPU. Cada proyecto dispone de tres intentos. Un fallo o una cancelación después de reservar también cuenta. [Uso, datos y recuperación](docs/README.md).
 

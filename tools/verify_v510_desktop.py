@@ -74,7 +74,7 @@ def measure(job, action):
 
 
 def visual_pass(exe, core, folder, name, out, order):
-    version = '5.9.0' if name=='v59' else '5.10.0'
+    version = json.loads((core/'desktop/src-tauri/tauri.conf.json').read_bytes())['version']
     source = folder/'audit-sample.html'
     source.write_bytes((core/'examples/audit-sample.html').read_bytes())
     rows = []
@@ -147,7 +147,7 @@ def incident(exe,folder,fail_snapshot=False):
     before=saved(db)
     require(dict(before['states'])[ids[-1]]=='QUEUED','live identity not queued')
     core=timeout_core(folder) if fail_snapshot else ROOT
-    with window(exe,core,folder,'5.10.0') as (screen,host,_,_ready):
+    with window(exe,core,folder,json.loads((ROOT/'desktop/src-tauri/tauri.conf.json').read_bytes())['version']) as (screen,host,_,_ready):
         screen.button(ARCHIVE+'.*',regex=True)
         wait(lambda:'Consultando el historial' in screen.names(),description='viewing other attempt')
         if fail_snapshot:
@@ -164,7 +164,7 @@ def incident(exe,folder,fail_snapshot=False):
                        description='one failed read affects only quota after confirmed stop')
             require(ACTIVE in names and 'Encargo detenido' in names and 'Detener trabajo' not in names,'terminal status lost')
             screen.button('Reconectar')
-        wait(lambda:'3 de 3 intentos' in screen.names() and 'Sin informe validado' in screen.names(),
+        wait(lambda:'0 intentos disponibles' in screen.names() and 'Sin informe validado' in screen.names(),
              description='terminal current attempt and budget')
         screen.button('Nuevo encargo')
         choose_source(screen,host,source)
@@ -196,21 +196,21 @@ def main():
     exe,base,old=args.exe.resolve(strict=True),args.baseline_exe.resolve(strict=True),args.baseline_core.resolve(strict=True)
     out=args.output.resolve()
     out.mkdir(parents=True,exist_ok=False)
-    require(sys.platform=='win32' and (old/'neural_office/desktop_stdio.py').is_file(),'Windows and V5.9 core required')
+    require(sys.platform=='win32' and (old/'neural_office/desktop_stdio.py').is_file(),'Windows and reference core required')
     import psutil
     result={'platform':platform.platform(),'logical_cpus':psutil.cpu_count(),'ram_bytes':psutil.virtual_memory().total,
-            'exe_hashes':{k:hashlib.sha256(v.read_bytes()).hexdigest() for k,v in [('v59',base),('v510',exe)]},'rows':[]}
+            'exe_hashes':{k:hashlib.sha256(v.read_bytes()).hexdigest() for k,v in [('reference',base),('candidate',exe)]},'rows':[]}
     with tempfile.TemporaryDirectory(prefix='neural-office-510-') as tmp:
         folder=Path(tmp)
         cases=folder/'incident';cases.mkdir()
         result['incident']=incident(exe,cases)
         fault=folder/'fault';fault.mkdir()
         result['balance_fault']=incident(exe,fault,fail_snapshot=True)
-        for index,variants in enumerate((('v59','graphite','mineral'),('mineral','graphite','v59'))):
+        for index,variants in enumerate((('reference','graphite','mineral'),('mineral','graphite','reference'))):
             for name in variants:
                 case=folder/(name+str(index));case.mkdir()
                 print('Visual comparison',index+1,name,flush=True)
-                result['rows'].append(visual_pass(base if name=='v59' else exe,old if name=='v59' else ROOT,case,name,out,index))
+                result['rows'].append(visual_pass(base if name=='reference' else exe,old if name=='reference' else ROOT,case,name,out,index))
     require(len({(tuple(row['client_px']),row['dpi'],row['source_sha256']) for row in result['rows']})==1,
             'different viewport, DPI or source')
     (out/'metrics.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')

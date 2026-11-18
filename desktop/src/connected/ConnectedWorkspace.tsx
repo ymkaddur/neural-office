@@ -4,7 +4,7 @@ import {ProjectHistory} from './ProjectHistory.tsx';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
 import {hasNativeHost,readReport,request} from './client.ts';
 import type {Finding,FindingPage,Report} from './client.ts';
-import {acceptAttempt,approvalMatches,approvalScopeMatches,pendingKey,readPending,stateLabels,terminal,validateSnapshot,writePending} from './model.ts';
+import {acceptAttempt,approvalMatches,approvalScopeMatches,pendingKey,readPending,recordedDuration,remainingLabel,stateLabels,terminal,validateSnapshot,writePending} from './model.ts';
 import type {Approval,Attempt,Model,Pending,Project,Snapshot,Source} from './model.ts';
 import './connected.css';
 
@@ -91,6 +91,9 @@ export function ConnectedWorkspace() {
   const [pagedProject,setPagedProject]=useState<{session:string;office:string;revision:number;value:Project}|null>(null);
   const [models,setModels]=useState<Model[]>([]);
   const [modelDigest,setModelDigest]=useState('');
+  const [catalog,setCatalog]=useState<'idle'|'loading'|'ready'|'error'>('idle');
+  const [catalogEmpty,setCatalogEmpty]=useState(false);
+  const catalogRead=useRef(0);
   const [projectId,setProjectId]=useState(makeProject);
   const [source,setSource]=useState<Source|null>(null);
   const [objective,setObjective]=useState('');
@@ -122,7 +125,7 @@ export function ConnectedWorkspace() {
   const drafts=useRef(new Map<string,Draft>());
   const active=attempt!==null&&!terminal(attempt.state);
   const viewed=inspected??attempt;
-  const sourceLabel=viewed?(viewed.source_name||`HTML · ${viewed.source_sha256.slice(0,12)}`):(source?.filename||'Revisión HTML');
+  const sourceLabel=viewed?(viewed.source_name||`HTML · ${viewed.source_sha256.slice(0,12)}`):(source?.filename||'Nuevo encargo');
   const navProject=browsedProject??projectId;
   const selectedProject=viewed?.project_id??projectId;
   const project=snapshot?.projects.find(p=>p.id===selectedProject)??(pagedProject&&snapshot&&
@@ -134,6 +137,7 @@ export function ConnectedWorkspace() {
   const exhausted=!!project&&project.attempts_consumed>=3;
   const available=viewed?.state==='ACCEPTED'&&viewed.report_available;
   const staticPage=source&&inspection?.token===source.entry_token&&inspection.page.session_id===session?inspection.page:null;
+  const showingFindings=!!staticPage&&!assisted;
   const selectedModel=models.find(m=>m.model_digest===modelDigest);
   const status=viewed?stateLabels[viewed.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
   const epoch=()=>generation.current;
@@ -186,10 +190,22 @@ export function ConnectedWorkspace() {
     confirmConnection();
   }
   async function loadModels() {
-    const result=await request<{models:Model[];session_id:string}>('models.list');
-    if(!Array.isArray(result.models)||result.models.length>64||result.models.some(m=>typeof m.model!=='string'||!/^[a-f0-9]{64}$/.test(m.model_digest))) throw Error('MODEL_CONTRACT');
-    if(!mounted.current||result.session_id!==sessionRef.current) return;
-    setModels(result.models);setModelDigest(old=>result.models.some(m=>m.model_digest===old)?old:(result.models[0]?.model_digest||''));
+    const ticket=++catalogRead.current,peer=peerGeneration.current;
+    const current=()=>mounted.current&&ticket===catalogRead.current&&peer===peerGeneration.current;
+    setCatalog('loading');
+    try {
+      const result=await request<{models:Model[];session_id:string}>('models.list');
+      if(!current())return;
+      if(result.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
+      if(!Array.isArray(result.models)||result.models.length>64||result.models.some(m=>!m||typeof m.model!=='string'||!/^[a-f0-9]{64}$/.test(m.model_digest)))throw Error('MODEL_CONTRACT');
+      setModels(result.models);
+      setCatalogEmpty(result.models.length===0);
+      setModelDigest(old=>result.models.some(m=>m.model_digest===old)?old:(result.models[0]?.model_digest||''));
+      setCatalog('ready');
+    } catch(error) {
+      if(!current())return;
+      setModels([]);setModelDigest('');setCatalog('error');throw error;
+    }
   }
   async function act(label:string,work:()=>Promise<void>) {
     if(operation.current) return;
@@ -219,7 +235,7 @@ export function ConnectedWorkspace() {
       if(!live) return;
       if(description.session_id!==first.session_id||description.office_id!==first.office_id) throw Error('HOST_SESSION_CHANGED');
       if(previousSession&&(previousSession!==description.session_id||previousOffice!==description.office_id)){
-        invalidate();setModels([]);setModelDigest('');setSource(null);setInspection(null);setInspected(null);setBrowsedProject(null);
+        invalidate();setModels([]);setModelDigest('');setCatalog('idle');setCatalogEmpty(false);setSource(null);setInspection(null);setInspected(null);setBrowsedProject(null);
         for(const draft of drafts.current.values())draft.source=null;
         if(previousOffice!==description.office_id){drafts.current.clear();setObjective('');setProjectId(makeProject());setReport(null);setAttempt(null);currentAttempt.current=null;}
       }
@@ -262,11 +278,11 @@ export function ConnectedWorkspace() {
     return ()=>{live=false;mounted.current=false;generation.current++;};
   },[native,handshake]);
   useEffect(()=>{
-    if(!assisted||!session||attempt||exhausted)return;
+    if(!assisted||!session||attempt||exhausted||initializing||connectionError)return;
     let live=true;
     void loadModels().catch(error=>{if(live)noteError(error);});
-    return ()=>{live=false;};
-  },[assisted,session,!!attempt,exhausted]);
+    return ()=>{live=false;catalogRead.current++;};
+  },[assisted,session,!!attempt,exhausted,initializing,!!connectionError]);
   useEffect(()=>{if(staticPage&&!assisted)inspectionTitle.current?.focus();},[staticPage,assisted]);
   useEffect(()=>{try{localStorage.setItem('neural-office.v55.theme',dark?'dark':'light');}catch{}},[dark]);
   useEffect(()=>{try{localStorage.setItem('neural-office.v510.palette',graphite?'graphite':'mineral');}catch{}},[graphite]);
@@ -343,7 +359,7 @@ export function ConnectedWorkspace() {
     invalidate();setSource(picked);await refreshSnapshot();
   }
   async function inspectSource(offset=0) {
-    if(!source||busy)return;
+    if(!source||busy||catalogEmpty||catalog==='loading')return;
     const expected=epoch();
     const page=await request<FindingPage>('source.check',{project_id:projectId,entry_token:source.entry_token,offset});
     if(!mounted.current||expected!==epoch())return;
@@ -354,14 +370,18 @@ export function ConnectedWorkspace() {
          !f||!Object.hasOwn(findingLabels,f.code)||!Number.isSafeInteger(f.line)||f.line<1||
          !Number.isSafeInteger(f.column)||f.column<1))throw Error('SOURCE_CHECK_CONTRACT');
     setInspection({token:source.entry_token,page});
+    setAssisted(false);
   }
   function changeMode(value:boolean) {
-    invalidate();setAssisted(value);
+    invalidate();
+    catalogRead.current++;
+    if(catalog==='loading')setCatalog('idle');
+    setAssisted(value);
     requestAnimationFrame(()=>(value?document.getElementById('connected-objective'):
       document.getElementById('static-result-title')||document.getElementById('static-picker'))?.focus());
   }
   async function prepare() {
-    if(!source||!selectedModel||objective.trim().length<12||busy||exhausted||budgetPending)return;
+    if(!source||catalog!=='ready'||!selectedModel||objective.trim().length<12||busy||exhausted||budgetPending)return;
     const expected=epoch();
     const requestedAt=performance.now();
     const result=await request<Approval>('attempt.preview',{project_id:projectId,entry_token:source.entry_token,model_digest:modelDigest,roles:roleCount,objective:objective.trim()});
@@ -410,7 +430,7 @@ export function ConnectedWorkspace() {
     if(busy||operation.current||!retainDraft())return;
     const draft=drafts.current.get(id);
     invalidate();setInspected(null);setBrowsedProject(null);setProjectId(id);setSource(draft?.source?.session_id===session?draft.source:null);
-    setInspection(null);setAssisted(draft?.assisted??assisted);
+    setInspection(null);setAssisted(draft?.assisted??false);
     setObjective(draft?.objective||'');setRoleCount(draft?.roleCount||1);
     if(draft)setModelDigest(models.some(m=>m.model_digest===draft.modelDigest)?draft.modelDigest:'');
     setReport(null);setAttempt(null);currentAttempt.current=null;
@@ -471,19 +491,19 @@ export function ConnectedWorkspace() {
   }
 
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.10</span></div>
-    <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa un archivo.<br/>Conserva la evidencia.</h1><p>Abre el escritorio para comprobar un HTML. Puedes consultar después a tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.11</span></div>
+    <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Encarga una revisión al Director</h1><p>En el escritorio de Windows puedes escribir tu objetivo, adjuntar un HTML y seguir la revisión con tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
 
   return <div className={`v541 connected ${dark?'theme-dark':''} ${graphite?'palette-graphite':''}`}>
     <div ref={shell} className={`office-shell connected-shell ${navOpen?'nav-open':''}`}>
       <nav className="office-nav connected-nav" aria-label="Proyectos y encargos">
-        <div className="wordmark"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.10</span></div>
+        <div className="wordmark"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.11</span></div>
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo encargo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
-        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(active?p.attempts_consumed<=p.legacy_consumed:!!pending||storageBlocked)} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>{project?.id===projectId&&!budgetPending?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</small></div>}</div>
+        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(active?p.attempts_consumed<=p.legacy_consumed:!!pending||storageBlocked)} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>{project?.id===projectId&&!budgetPending?remainingLabel(project.attempts_consumed):'Cuota por confirmar'}</small></div>}</div>
         <div className="connected-nav-heading">Encargos guardados</div>
         <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} snapshot={snapshot} selected={viewed?.id}
           offline={!!connectionError||initializing} disabled={initializing||!!connectionError||!!doing||(!active&&!!pending)} onOpen={a=>void act('Abriendo encargo',()=>chooseAttempt(a))}
@@ -497,7 +517,7 @@ export function ConnectedWorkspace() {
       <main id="connected-main" className="office-workspace" tabIndex={-1} inert={navOpen||undefined}>
         <header className="workspace-header connected-header">
           <div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><span>Oficina</span><span aria-hidden="true">/</span><strong title={sourceLabel}>{sourceLabel}</strong></div>
-          <div className="header-actions"><span className="connected-quota" title={connectionError?'Presupuesto en la última lectura confirmada':'Intentos consumidos de este proyecto'}>{budgetPending?'Cuota pendiente de actualizar':project?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</span>
+          <div className="header-actions"><span className="connected-quota" title="Saldo del proyecto seleccionado">{budgetPending?'Cuota pendiente de actualizar':project?`${remainingLabel(project.attempts_consumed)}${connectionError?' · última lectura':''}`:'Cuota por confirmar'}</span>
             <button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError||!session?retryConnection():void act('Actualizando estado',refreshAll)}>{initializing?'Conectando…':connectionError||!session?'Reconectar':'Actualizar'}</button>
           </div>
         </header>
@@ -505,44 +525,94 @@ export function ConnectedWorkspace() {
         {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><div><strong>Trabajo en curso{inspected&&inspected.project_id!==attempt.project_id?` · ${attempt.project_id}`:''}</strong><span title={attempt.objective}>{attempt.objective}</span></div><button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada solicitada':requestingStop?'Solicitando parada':'Detener trabajo'}</button></div>}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>{try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);setNotice('Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}}}>Descartar petición sin reserva</button>}</div>}
         <section ref={surface} className={`connected-surface ${viewed?'with-delivery':''}`} aria-label="Encargo y entrega">
-          <section className="connected-director" aria-labelledby={viewed||assisted?'director-title':'static-title'}>
-            {(viewed||assisted)&&<div className="connected-director-heading"><div className="director-signature"><DirectorMark/><strong id="director-title">Director</strong></div><span className={`connected-status ${active&&!inspected&&!connectionError?'active':''}`} role="status">{connectionError&&viewed&&!terminal(viewed.state)?`Último estado · ${status}`:status}</span></div>}
-            {!viewed&&!assisted&&<div className="static-workspace" id="static-workspace" role="region" aria-labelledby="static-title">
-              <header className="static-heading"><h1 id="static-title">Revisión HTML</h1><p>Localiza qué corregir en tu archivo y abre cada hallazgo para ver por dónde empezar.</p></header>
-              <div className="source-desk">
-              <div className="static-source">
-                <span className="document-glyph" aria-hidden="true">&lt;/&gt;</span>
-                <div className="source-identity">
-                  <button type="button" id="static-picker" className="source-picker" disabled={busy||!!doing||!session} onClick={()=>void act('Eligiendo fuente',pickSource)}>{source?source.filename:'Elegir archivo HTML'}</button>
-                  <small>{source?formatBytes(source.bytes)+' · copia seleccionada':'HTML o HTM · hasta 256 KiB · UTF-8'}</small>
+          <section className="connected-director" aria-labelledby={viewed?'director-title':showingFindings?'static-result-title':'desk-title'}>
+            {viewed&&<div className="connected-director-heading"><div className="director-signature"><DirectorMark/><strong id="director-title">Director</strong></div><span className={`connected-status ${active&&!inspected&&!connectionError?'active':''}`} role="status">{connectionError&&viewed&&!terminal(viewed.state)?`Último estado · ${status}`:status}</span></div>}
+            {!viewed&&<div id="static-workspace" role="region" aria-labelledby={showingFindings?'static-result-title':'desk-title'} className={'brief-desk static-workspace'+(showingFindings?' has-findings':'')}>
+              <header className="brief-intro">
+                <div className="brief-byline"><DirectorMark/><span>{showingFindings?'Comprobación local':'Director'}</span></div>
+                {showingFindings&&staticPage?
+                  <h1 id="static-result-title" ref={inspectionTitle} tabIndex={-1}>{findingTitle(staticPage.total)}</h1>:
+                  <h1 id="desk-title">¿Qué necesitas revisar?</h1>}
+              </header>
+              <form className="brief-form" onSubmit={e=>{
+                e.preventDefault();
+                if(busy||doing||!session)return;
+                if(!assisted)changeMode(true);
+                else void act('Preparando revisión',prepare);
+              }}>
+                {!showingFindings&&<div className="brief-writing">
+                  <div className="brief-label"><label htmlFor="connected-objective">Tu encargo al Director</label>{objective.length>0&&<small>{objective.length}/2000</small>}</div>
+                  <textarea id="connected-objective" name="objective" rows={3} maxLength={2000} value={objective}
+                    disabled={busy||!session} placeholder="Por ejemplo, ¿qué campo de este formulario necesita una etiqueta y cómo lo compruebo?"
+                    onChange={e=>{invalidate();setObjective(e.target.value);}}
+                    onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229){
+                      e.preventDefault();if(!busy&&!doing&&session){if(assisted)void act('Preparando revisión',prepare);else changeMode(true);}
+                    }}}/>
+                </div>}
+                <div className="brief-source">
+                  <span className="brief-file-icon" aria-hidden="true">&lt;/&gt;</span>
+                  <div className="brief-file"><button id="static-picker" type="button" className="source-picker"
+                    disabled={busy||!!doing||!session} onClick={()=>void act('Eligiendo fuente',pickSource)}>{source?source.filename:'Elegir archivo HTML'}</button>
+                    <small>{source?formatBytes(source.bytes)+' · copia de solo lectura':'Archivo adjunto · HTML o HTM · hasta 256 KiB'}</small></div>
+                  {source&&<button type="button" className="quiet-button remove-source" aria-label="Quitar fuente del borrador"
+                    disabled={busy||!!doing} onClick={()=>{invalidate();setInspection(null);setSource(null);}}>Quitar</button>}
                 </div>
-                {source&&<button type="button" className="quiet-button" aria-label="Quitar fuente del borrador" disabled={busy||!!doing} onClick={()=>{invalidate();setInspection(null);setSource(null);}}>Quitar</button>}
-              </div>
-              <div className="static-actions">
-                <button className="solid-button" type="button" disabled={busy||!!doing||!source} onClick={()=>void act('Comprobando HTML',()=>inspectSource())}>Comprobar HTML</button>
-                <span>Sin modelo · 0 intentos</span>
-              </div>
-              </div>
-              {staticPage&&<section className="static-results" aria-labelledby="static-result-title">
-                <h2 id="static-result-title" ref={inspectionTitle} tabIndex={-1}>{findingTitle(staticPage.total)}</h2>
-                <p>{staticPage.total?'Ubicaciones en la copia seleccionada.':'Las reglas no detectaron incidencias. Comprueba en el navegador el nombre de los controles y la función de las imágenes.'}</p>
+                {assisted&&<div className="brief-settings">
+                  <div className="connected-model-row"><label htmlFor="connected-model">Modelo local</label>
+                    <select id="connected-model" value={modelDigest} disabled={busy||!!doing||catalog!=='ready'||!models.length}
+                      onChange={e=>{invalidate();setModelDigest(e.target.value);}}>
+                      <option value="" disabled>{catalog==='loading'?'Consultando modelos…':catalogEmpty?'Sin modelos instalados':'Selecciona un modelo'}</option>
+                      {models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
+                    <button type="button" aria-label="Actualizar modelos locales" title="Actualizar modelos locales"
+                      disabled={busy||!!doing||!session||catalog==='loading'||exhausted} onClick={()=>void act('Consultando modelos',loadModels)}>↻</button>
+                  </div>
+                  {!catalogEmpty&&<details className="connected-profile"><summary>Perfil acotado <span>{roleCount} {roleCount===1?'rol':'roles'} · CPU</span></summary>
+                    <label htmlFor="connected-roles">Roles secuenciales</label><select id="connected-roles" value={roleCount} disabled={busy||!!doing}
+                      onChange={e=>{invalidate();setRoleCount(Number(e.target.value));}}>
+                      <option value={1}>1 · Director</option><option value={3}>3 · Director, revisor e integrador</option><option value={7}>7 · Equipo completo</option>
+                    </select><p>Los roles usan el mismo modelo por turnos. Cada llamada admite hasta 128 tokens de salida.</p></details>}
+                </div>}
+                {catalogEmpty&&<section className="model-guide" aria-label="Configurar Ollama">
+                  <h2>Instala un modelo para continuar</h2><p>Abre Ollama y descarga un modelo de texto. Por ejemplo, en PowerShell puedes ejecutar <code>ollama pull qwen2.5:0.5b</code>. Después vuelve a consultar el catálogo. Tu borrador sigue aquí.</p>
+                  <button type="button" className="quiet-button" disabled={busy||!!doing} onClick={()=>void act('Actualizando catálogo',loadModels)}>Comprobar modelos instalados</button>
+                </section>}
+                {!showingFindings&&<div className="brief-actions">
+                  <div className="brief-primary">
+                    {assisted?<button type="submit" className="solid-button" disabled={busy||exhausted||budgetPending||!!doing||catalog!=='ready'||!source||!selectedModel||objective.trim().length<12}>Revisar encargo <span aria-hidden="true">→</span></button>:
+                      <button type="button" className="solid-button" disabled={busy||!!doing||!session||catalogEmpty} onClick={()=>changeMode(true)}>Consultar al Director</button>}
+                    <small>{exhausted?'3 intentos consumidos · cuota agotada':budgetPending?'Cuota pendiente de actualizar':assisted&&!catalogEmpty&&objective.trim().length>0&&objective.trim().length<12?'Escribe al menos 12 caracteres':'1 intento al autorizar'}</small>
+                  </div>
+                  <div className="brief-alternative">
+                    <button type="button" className="quiet-button" disabled={busy||!!doing||!source||catalogEmpty||catalog==='loading'}
+                      onClick={()=>void act('Comprobando HTML',()=>inspectSource())}>Comprobar HTML</button>
+                    <small>0 intentos · sin modelo</small>
+                  </div>
+                </div>}
+              </form>
+              {showingFindings&&staticPage&&<section className="static-results review-sheet" aria-labelledby="static-result-title">
+                <p>{staticPage.total?'Ubicaciones en la copia seleccionada.':'Las reglas aplicadas no detectaron incidencias. Verifica el comportamiento de la página en el navegador.'}</p>
                 <FindingList findings={staticPage.findings} offset={staticPage.offset}/>
                 {staticPage.total>24&&<div className="static-pages">
                   <button className="quiet-button" disabled={busy||!!doing||staticPage.offset===0} onClick={()=>void act('Leyendo ubicaciones',()=>inspectSource(staticPage.offset-24))}>Anteriores</button>
                   <span>{staticPage.offset+1}–{staticPage.offset+staticPage.findings.length} de {staticPage.total}</span>
                   <button className="quiet-button" disabled={busy||!!doing||staticPage.offset+24>=staticPage.total} onClick={()=>void act('Leyendo ubicaciones',()=>inspectSource(staticPage.offset+24))}>Siguientes</button>
                 </div>}
+                <div className="review-foot"><button className="quiet-button" disabled={busy||!!doing||catalogEmpty} onClick={()=>changeMode(true)}>Consultar al Director</button>
+                  <span>1 intento al autorizar</span><button className="text-repeat" disabled={busy||!!doing||catalogEmpty} onClick={()=>void act('Comprobando HTML',()=>inspectSource())}>Comprobar HTML</button></div>
               </section>}
-              <div className="static-assist"><button className="quiet-button" disabled={busy||!!doing||!session} onClick={()=>changeMode(true)}>Consultar al Director</button><span>1 intento al autorizar · modelo local</span></div>
             </div>}
             {inspected&&attempt&&<div className="history-context"><span>Consultando el historial</span><button className="quiet-button" onClick={()=>{invalidate();setInspected(null);setBrowsedProject(null);}}>{active?'Volver al trabajo en curso':'Volver al último encargo'}</button></div>}
-            {(viewed||assisted)&&<div className="connected-conversation">
-              {!viewed?<div className="connected-opening"><h1>Consulta al Director</h1><p>El modelo recibe tu pregunta y las ubicaciones detectadas. Sus comentarios acompañan al informe.</p><button className="quiet-button" disabled={busy||!!doing} onClick={()=>changeMode(false)}>Volver a la comprobación sin modelo</button></div>:<><div className="connected-user-request"><span>Tu encargo</span><p>{viewed.objective}</p></div><div className="connected-work-status"><strong>{stateLabels[viewed.state]}</strong><p>{connectionError&&!terminal(viewed.state)?'La pantalla conserva la última lectura. Reconecta para saber si el trabajo sigue en curso.':viewed.state==='STOPPING'?'La parada está solicitada. Esperamos a que el núcleo confirme que sus procesos han terminado.':viewed.state==='RECOVERY_REQUIRED'?'El cierre anterior no quedó confirmado. La recuperación comprobará el proceso y conservará el consumo; no volverá a ejecutar el modelo.':viewed.state==='QUEUED'?'La identidad y el consumo están guardados. Si se interrumpió el arranque, recupera este intento; no lo reenvíes.':viewed.state==='ACCEPTED'?'El informe coincide con las comprobaciones estáticas y sus recibos. Revisa por separado las sugerencias del modelo.':viewed.state==='FAILED'?failureAdvice(viewed.execution_error_code):viewed.state==='CANCELLED'?'El núcleo ha confirmado la parada. El intento consumido se conserva.':viewed.state==='VERIFYING'?'El núcleo está contrastando el informe con la fuente capturada y los recibos.':'La última lectura del registro indica trabajo en curso. Si el proceso se interrumpió, comprueba su recuperación.'}</p></div>
+            {viewed&&<div className="connected-conversation"><div className="connected-user-request"><span>Tu encargo</span><h1>{viewed.objective}</h1></div><div className="connected-work-status"><strong>{stateLabels[viewed.state]}</strong><p>{connectionError&&!terminal(viewed.state)?'La pantalla conserva la última lectura. Reconecta para saber si el trabajo sigue en curso.':viewed.state==='STOPPING'?'La parada está solicitada. Esperamos a que el núcleo confirme que sus procesos han terminado.':viewed.state==='RECOVERY_REQUIRED'?'El cierre anterior no quedó confirmado. La recuperación comprobará el proceso y conservará el consumo; no volverá a ejecutar el modelo.':viewed.state==='QUEUED'?'La identidad y el consumo están guardados. Si se interrumpió el arranque, recupera este intento; no lo reenvíes.':viewed.state==='ACCEPTED'?'El informe coincide con las comprobaciones estáticas y sus recibos. Revisa por separado las sugerencias del modelo.':viewed.state==='FAILED'?failureAdvice(viewed.execution_error_code):viewed.state==='CANCELLED'?'El núcleo ha confirmado la parada. El intento consumido se conserva.':viewed.state==='VERIFYING'?'El núcleo está contrastando el informe con la fuente capturada y los recibos.':'La última lectura del registro indica trabajo en curso. Si el proceso se interrumpió, comprueba su recuperación.'}</p></div>
                 {viewed.state==='FAILED'&&viewed.execution_error_code&&<p className="execution-code">Código de ejecución <code>{viewed.execution_error_code}</code></p>}
                 <section className="call-receipts" aria-labelledby="calls-title">
                   <h2 id="calls-title">Llamadas al modelo</h2>
                   <p>{viewed.model} · hasta {viewed.roles} {viewed.roles===1?'llamada autorizada':'llamadas secuenciales autorizadas'}</p>
-                  {viewed.calls?.length ? <ol className="connected-call-list" aria-label="Llamadas del modelo">{viewed.calls.map((call,index)=><li key={call.seq}><span className="call-order">{index+1}</span><strong>{roles[call.role]||call.role}</strong><span>{call.state==='DONE'?'Respuesta registrada':call.state==='STARTED'?(connectionError?'En curso en la última lectura':'En curso'):call.state==='INTERRUPTED'?'Interrumpida':call.state}</span></li>)}</ol>
+                  {viewed.calls?.length ? <ol className="connected-call-list" aria-label="Llamadas del modelo">{viewed.calls.map((call,index)=>{
+                    const duration=recordedDuration(call,viewed.observed_ms,!terminal(viewed.state));
+                    return <li key={call.seq}><span className="call-order">{index+1}</span><strong>{roles[call.role]||call.role}</strong>
+                      <span className="call-fact">{call.state==='DONE'?'Respuesta registrada':call.state==='STARTED'?(connectionError?'En curso en la última lectura':'En curso'):call.state==='INTERRUPTED'?'Interrumpida':call.state}
+                        {duration&&<small>{duration}{call.state==='STARTED'?' al último registro':''}</small>}</span></li>;
+                  })}</ol>
                     : <p>{viewed.calls?'La última lectura contiene cero llamadas.':'Pendiente de leer las llamadas del encargo.'}</p>}
                 </section>
                 {active&&!inspected&&<div className="connected-action-row"><button className="quiet-button" disabled={initializing||!!connectionError||!!doing} onClick={()=>void act('Comprobando recuperación',async()=>{putAttempt(await request<Attempt>('attempt.recover',{attempt_id:viewed.id,expected_revision:viewed.revision}));await refreshSnapshot();})}>Comprobar recuperación</button></div>}
@@ -556,21 +626,13 @@ export function ConnectedWorkspace() {
                     onInput={e=>noteNext(viewed,e.currentTarget.value)}/>
                   <p>{!drafts.current.has(viewed.project_id)&&drafts.current.size>=20?'Hay veinte borradores abiertos. Recupera uno al terminar.':'Podrás revisarlo y autorizarlo cuando termine el encargo actual.'}</p>
                 </details>}
-              </>}
             </div>}
-            {!viewed&&assisted&&<form className="connected-composer" onSubmit={e=>{e.preventDefault();void act('Preparando revisión',prepare);}}>
-              <label htmlFor="connected-objective">Tu encargo al Director</label><textarea id="connected-objective" placeholder="Ej.: revisa las barreras de accesibilidad de este HTML y prioriza qué debería corregir." value={objective} maxLength={2000} rows={4} disabled={busy||!session} onChange={e=>{invalidate();setObjective(e.target.value);}} onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229){e.preventDefault();if(!doing)void act('Preparando revisión',prepare);}}}/>
-              <div className="connected-source-row"><button type="button" className="source-picker" disabled={busy||!!doing||!session} onClick={()=>void act('Eligiendo fuente',pickSource)}><span aria-hidden="true">＋</span>{source?source.filename:'Elegir archivo HTML'}</button>{source&&<><span>{formatBytes(source.bytes)} · copia capturada</span><button type="button" aria-label="Quitar fuente del borrador" disabled={busy||!!doing} onClick={()=>{invalidate();setSource(null);}}>×</button></>}</div>
-              <div className="connected-model-row"><label htmlFor="connected-model">Modelo local</label><select id="connected-model" value={modelDigest} disabled={busy||!!doing} onChange={e=>{invalidate();setModelDigest(e.target.value);}}><option value="" disabled>{models.length?'Selecciona un modelo':'No hay modelos disponibles'}</option>{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select><button type="button" aria-label="Actualizar modelos locales" title="Actualizar modelos locales" disabled={busy||!!doing||!session} onClick={()=>void act('Consultando modelos',loadModels)}>↻</button></div>
-              <details className="connected-profile"><summary>Perfil acotado <span>{roleCount} {roleCount===1?'rol':'roles'} · CPU</span></summary><label htmlFor="connected-roles">Roles secuenciales</label><select id="connected-roles" value={roleCount} disabled={busy||!!doing} onChange={e=>{invalidate();setRoleCount(Number(e.target.value));}}><option value={1}>1 · Director</option><option value={3}>3 · Director, revisor e integrador</option><option value={7}>7 · Equipo completo</option></select><p>Más roles producen más llamadas. No implican mayor calidad. Un solo modelo, contexto 8K y hasta 128 tokens de salida por llamada.</p></details>
-              <div className="connected-send-row"><span>{exhausted?'3 intentos consumidos · comprobación sin modelo disponible':budgetPending?'Actualiza la cuota antes de autorizar':doing||'Ctrl + Enter para revisar'}<small>{objective.length}/2000</small></span><button className="solid-button" type="submit" disabled={busy||exhausted||budgetPending||!!doing||!source||!selectedModel||objective.trim().length<12}>Revisar encargo <span aria-hidden="true">→</span></button></div>
-            </form>}
           </section>
           {viewed&&<><PaneDivider kind="director" container={surface} controls="connected-delivery" label="Ancho del Director"/><section id="connected-delivery" className="connected-delivery" aria-label="Entrega"><header><div><span className="eyebrow">Entrega</span><h2>Revisión del documento</h2></div><span className="delivery-state">{report?'Informe recibido':available?'Informe por leer':terminal(viewed.state)?'Sin informe validado':'Esperando informe'}</span></header><div className="connected-tabs" role="tablist" aria-label="Vista de entrega" onKeyDown={tabKey}><button role="tab" tabIndex={resultTab==='report'?0:-1} id="tab-report" aria-controls="panel-report" aria-selected={resultTab==='report'} onClick={()=>setResultTab('report')}>Informe</button><button role="tab" tabIndex={resultTab==='evidence'?0:-1} id="tab-evidence" aria-controls="panel-evidence" aria-selected={resultTab==='evidence'} onClick={()=>setResultTab('evidence')}>Evidencia y alcance</button></div><div className="connected-delivery-body" role="tabpanel" id={resultTab==='report'?'panel-report':'panel-evidence'} aria-labelledby={resultTab==='report'?'tab-report':'tab-evidence'} tabIndex={0}>
             {resultTab==='report'?(report?<ReportView report={report.report}/>:<div className="delivery-empty"><span aria-hidden="true">↳</span><h3>{available?'Informe pendiente de lectura':terminal(viewed.state)?'No hay informe validado':'Aquí aparecerá la entrega'}</h3><p>{available?'La entrega está guardada en el núcleo. Su contenido aún no está disponible en esta vista. Si la lectura falla, pulsa Actualizar para volver a leerla sin ejecutar otro encargo.':terminal(viewed.state)?'Conservamos el intento y su estado. No se presenta una respuesta incompleta como resultado.':'El núcleo publicará el documento después de completar las llamadas y verificar sus recibos.'}</p></div>):<div className="connected-evidence"><h3>Qué puedes comprobar</h3><dl><dt>Documento</dt><dd>{sourceLabel}</dd><dt>Intento</dt><dd>{viewed.id}</dd><dt>Último estado registrado</dt><dd>{viewed.state}</dd><dt>Modelo aprobado</dt><dd>{viewed.model}</dd><dt>Huella del modelo</dt><dd>{viewed.model_digest}</dd><dt>Huella de la fuente</dt><dd>{viewed.source_sha256}</dd><dt>Huella del informe</dt><dd>{report?.meta.sha256||'Todavía no disponible'}</dd></dl>{report&&<p>La lectura comprobó los fragmentos y la huella completa del informe antes de mostrarlo.</p>}<p>La aceptación verifica consistencia estática y procedencia de contenido. No certifica accesibilidad, seguridad ni que las sugerencias del modelo sean correctas.</p>{viewed.execution_error_code&&<p>Código de ejecución: <code>{viewed.execution_error_code}</code></p>}{report&&<details><summary>Informe original de sólo lectura</summary><pre>{report.text}</pre></details>}</div>}
           </div></section></>}
         </section>
-        <footer className="connected-footer"><span>{viewed?.model||(assisted?(selectedModel?.model||'Selecciona tu modelo local'):'Análisis estático')}</span><span>{connectionError?'Último estado guardado':active?'Trabajo acotado en curso':viewed||assisted?'Modelo local · CPU':'Lectura local del archivo'}</span></footer>
+        <footer className="connected-footer"><span>{viewed?.model||(assisted?(selectedModel?.model||'Selecciona tu modelo local') :showingFindings?'Análisis estático':'Director')}</span><span>{connectionError?'Último estado guardado':active?'Trabajo acotado en curso':viewed||assisted?'Modelo local · CPU':'Lectura local del archivo'}</span></footer>
       </main>
     </div>
     <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Fuente capturada</dt><dd>{source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Quedan {approval.value.attempts_remaining} antes de empezar.</dd></dl><p>El archivo original no se modifica. Se generará un informe con comprobaciones estáticas y comentarios del modelo.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>

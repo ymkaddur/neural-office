@@ -282,9 +282,24 @@ class DesktopService:
             outputs = [{'role': item['role'], 'sha256': item['content_sha'],
                         'bytes': len(item['content'].encode('utf-8'))} for item in verified_outputs]
             calls = [dict(item) for item in con.execute('SELECT seq,role,state FROM calls WHERE attempt=? ORDER BY seq', (attempt_id,))]
-            reservation = con.execute("SELECT json_extract(payload,'$.source_name') FROM events "
+            reservation = con.execute("SELECT seq, json_extract(payload,'$.source_name') AS source_name FROM events "
                                       "WHERE kind='ATTEMPT_RESERVED' AND json_extract(payload,'$.attempt')=? "
                                       "ORDER BY seq LIMIT 1", (attempt_id,)).fetchone()
+            if calls and reservation:
+                # The ledger commits each call and its receipt together. Stop at
+                # the last expected receipt, including when reopening an old job.
+                by_seq = {call['seq']: call for call in calls}
+                receipt_count = len(calls) + sum(call['state'] == 'DONE' for call in calls)
+                receipts = con.execute(
+                    "SELECT kind, stamp_ns, json_extract(payload,'$.call') AS call_id FROM events "
+                    "WHERE seq>? AND kind IN ('MODEL_CALL_ADMITTED','MODEL_CALL_COMPLETED') "
+                    "AND json_extract(payload,'$.attempt')=? ORDER BY seq LIMIT ?",
+                    (reservation['seq'], attempt_id, receipt_count))
+                for receipt in receipts:
+                    call = by_seq.get(receipt['call_id'])
+                    if call is not None:
+                        field = 'started_ms' if receipt['kind'] == 'MODEL_CALL_ADMITTED' else 'completed_ms'
+                        call[field] = receipt['stamp_ns'] // 1_000_000
             code = self._errors.get(attempt_id)
             if row['state'] == 'FAILED':
                 terminal_receipt = con.execute(
@@ -294,7 +309,8 @@ class DesktopService:
             return {**self._summary(row), 'session_id': self.session_id, 'global_revision': meta['revision'],
                     'cursor': meta['cursor'], 'calls': calls, 'outputs': outputs,
                     'artifact_sha256': row['artifact_sha'], 'report_available': row['state'] == 'ACCEPTED' and row['artifact'] is not None,
-                    'execution_error_code': code, 'source_name': reservation[0] if reservation else None}
+                    'observed_ms': time.time_ns() // 1_000_000,
+                    'execution_error_code': code, 'source_name': reservation['source_name'] if reservation else None}
 
     def lookup(self, project_id, idempotency_key):
         with self.ledger.connection() as con:

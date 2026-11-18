@@ -1,6 +1,6 @@
-# Escritorio Neural Office · V5.10 en pruebas
+# Escritorio Neural Office · V5.11 en pruebas
 
-El host Tauri conecta React con el núcleo Python. Puedes preparar el siguiente encargo en esta ventana, abrir una entrega anterior y detener el encargo activo desde la franja que muestra su objetivo. El selector de paleta está al pie de la navegación. [Comparación en Windows](../docs/V5_10_REVIEW.md) · [Reconexión](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
+En la mesa del Director puedes escribir una pregunta antes de adjuntar el HTML. Al abrir el informe aparecen las ubicaciones, las llamadas registradas y las sugerencias del modelo. El selector grafito/mineral está al pie de la navegación. [Verificación de V5.11](../docs/V5_11_REVIEW.md) · [Reconexión](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
 
 ## Abrir el recorrido conectado
 
@@ -28,8 +28,8 @@ Windows puede bloquear el ejecutable no firmado: se ha observado con App Control
 
 ## Recorrido real
 
-1. Elige un HTML UTF-8 de hasta 256 KiB y pulsa **Comprobar HTML**. El selector captura los bytes una sola vez. Puedes abrir la orientación por hallazgo y avanzar por páginas de 24. Esta vista dura mientras trabajas con la captura. El selector registra el proyecto. Comprobar y paginar consumen cero intentos y cero llamadas.
-2. Si quieres una entrega guardada con comentarios, pulsa **Consultar al Director**, escribe tu pregunta y elige un modelo. El perfil inicial usa una llamada. Los perfiles de tres y siete roles hacen llamadas secuenciales. El modelo recibe el objetivo y las ubicaciones detectadas. La asistencia admite hasta 24 hallazgos.
+1. Escribe tu pregunta y adjunta un HTML UTF-8 de hasta 256 KiB. **Comprobar HTML** localiza los hallazgos por páginas de 24 y conserva la pregunta. Capturar el archivo registra el proyecto. Comprobar y paginar consumen cero intentos y cero llamadas.
+2. **Consultar al Director** abre el selector de modelos. Si el catálogo confirma que está vacío, la pantalla conserva el borrador y muestra cómo instalar un modelo y actualizar la lista para continuar. El perfil inicial usa una llamada. Los perfiles de tres y siete roles hacen llamadas secuenciales. El modelo recibe el objetivo y las ubicaciones detectadas. La asistencia admite hasta 24 hallazgos.
 3. Pulsa **Revisar encargo**, comprueba fuente/modelo/alcance/consumo y después **Autorizar y ejecutar**. Preparar no consume un intento; la reserva sí.
 4. Revisa hallazgos y sugerencias por separado. **Evidencia y alcance** permite inspeccionar identidades y el informe original; no ejecuta HTML generado.
 5. **Detener** solicita parada y mantiene el estado pendiente hasta confirmación. Error o cancelación conserva consumo. Reabre para consultar el mismo intento; una respuesta perdida se concilia por su identidad.
