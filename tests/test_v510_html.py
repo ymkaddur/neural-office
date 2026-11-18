@@ -14,6 +14,7 @@ class DocumentChecks(unittest.TestCase):
             ('<title> </title><title>Segundo</title>', True),
             ('<svg><title>Logo</title></svg><title>Cuenta</title>', False),
             ('<title>Cuenta</title><svg><title></title></svg>', False),
+            ('<title>Cuenta', False),
         ]:
             with self.subTest(html=html):
                 flags = [f['code'] for f in audit_html(html.encode())]
@@ -31,3 +32,7 @@ class DocumentChecks(unittest.TestCase):
             self.assertTrue(verify_report(data, artifact)['passed'])
             hashes.add(report['source_sha256'])
         self.assertEqual(len(hashes), 3)
+
+    def test_markup_inside_text_is_not_a_document_element(self):
+        html = b'<html lang="es"><title> &nbsp; </title><textarea aria-label="Ejemplo"><img></textarea></html>'
+        self.assertEqual([f['code'] for f in audit_html(html)], ['DOCUMENT_TITLE_MISSING'])

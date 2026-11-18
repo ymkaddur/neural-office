@@ -3,7 +3,7 @@
 Run with python -B -m tools.verify_v510_desktop. The old binary and core are a pair.
 """
 import argparse
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 import hashlib
 import json
 from pathlib import Path
@@ -105,7 +105,33 @@ def visual_pass(exe, core, folder, name, out, order):
                 'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest()}
 
 
-def incident(exe,folder):
+def timeout_core(folder):
+    """One failed quota read in a private test peer. The application has no fault switch."""
+    package=folder/'peer'/'neural_office'
+    package.mkdir(parents=True)
+    original=ROOT/'neural_office'
+    (package/'__init__.py').write_text('__path__.append('+repr(str(original))+')\n',encoding='utf-8')
+    script = """import runpy
+from pathlib import Path
+from .desktop_service import DesktopService
+from .ledger import Denied
+snapshot = DesktopService.snapshot
+marker = Path(__file__).parents[2] / 'once'
+def quota(self, *args, **kwargs):
+    if marker.is_file():
+        marker.unlink()
+        raise Denied('HOST_RESPONSE_TIMEOUT')
+    return snapshot(self, *args, **kwargs)
+DesktopService.snapshot = quota
+runpy.run_path(SOURCE, run_name='neural_office.native_test_entry')['main']()
+"""
+    code=script.replace('SOURCE',repr(str(original/'desktop_stdio.py')))
+    compile(code,'desktop_stdio.py','exec')
+    (package/'desktop_stdio.py').write_text(code,encoding='utf-8')
+    return package.parent
+
+
+def incident(exe,folder,fail_snapshot=False):
     db = folder/'office.sqlite3'
     ledger = Ledger(db)
     ledger.initialize()
@@ -120,12 +146,20 @@ def incident(exe,folder):
     source.write_bytes(EDGE_HTML)
     before=saved(db)
     require(dict(before['states'])[ids[-1]]=='QUEUED','live identity not queued')
-    with window(exe,ROOT,folder,'5.10.0') as (screen,host,_,_ready):
+    core=timeout_core(folder) if fail_snapshot else ROOT
+    with window(exe,core,folder,'5.10.0') as (screen,host,_,_ready):
         screen.button(ARCHIVE+'.*',regex=True)
         wait(lambda:'Consultando el historial' in screen.names(),description='viewing other attempt')
+        if fail_snapshot:
+            (folder/'once').touch(exist_ok=False)
         screen.button('.*Detener trabajo',regex=True)
         wait(lambda:dict(saved(db)['states'])[ids[-1]]=='CANCELLED',description='durable stop of active identity')
         screen.button('Volver al último encargo')
+        if fail_snapshot:
+            names=wait(lambda:(text if 'Cuota pendiente de actualizar' in (text:=screen.names()) and 'HOST_RESPONSE_TIMEOUT' in text else None),
+                       description='one failed read affects only quota after confirmed stop')
+            require(ACTIVE in names and 'Encargo detenido' in names and 'Detener trabajo' not in names,'terminal status lost')
+            screen.button('Reconectar')
         wait(lambda:'3 de 3 intentos' in screen.names() and 'Sin informe validado' in screen.names(),
              description='terminal current attempt and budget')
         screen.button('Nuevo encargo')
@@ -141,10 +175,10 @@ def incident(exe,folder):
         require(button.exists() and not button.is_enabled(),'exhausted approval enabled')
         require('APPROVAL_CHANGED' not in screen.names(),'quota shown as changed scope')
     after=saved(db)
-    with sqlite3.connect(db.as_uri()+'?mode=ro',uri=True) as con:
+    with closing(sqlite3.connect(db.as_uri()+'?mode=ro',uri=True)) as con:
         stops=con.execute("SELECT count(*) FROM events WHERE kind='CANCELLATION_REQUESTED' AND json_extract(payload,'$.attempt')=?", (ids[-1],)).fetchone()[0]
     require(stops==1 and after=={'states':[(i,'CANCELLED') for i in ids],'calls':0},'identity, calls or budget changed')
-    return {'seeded_attempts':3,'final_attempts':3,'target_stop_receipts':stops,'model_calls':0,
+    return {'seeded_attempts':3,'final_attempts':3,'target_stop_receipts':stops,'model_calls':0,'forced_balance_timeout':fail_snapshot,
             'native_static_findings':3,'image_line':4,'image_column':3}
 
 
@@ -166,6 +200,8 @@ def main():
         folder=Path(tmp)
         cases=folder/'incident';cases.mkdir()
         result['incident']=incident(exe,cases)
+        fault=folder/'fault';fault.mkdir()
+        result['balance_fault']=incident(exe,fault,fail_snapshot=True)
         for index,variants in enumerate((('v59','graphite','mineral'),('mineral','graphite','v59'))):
             for name in variants:
                 case=folder/(name+str(index));case.mkdir()

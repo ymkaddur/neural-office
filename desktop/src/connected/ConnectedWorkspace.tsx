@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {AttemptActivity} from './AttemptActivity.tsx';
 import {ProjectHistory} from './ProjectHistory.tsx';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
@@ -262,18 +262,24 @@ export function ConnectedWorkspace() {
     return ()=>{live=false;mounted.current=false;generation.current++;};
   },[native,handshake]);
   useEffect(()=>{
-    if(!assisted||!session||attempt)return;
+    if(!assisted||!session||attempt||exhausted)return;
     let live=true;
     void loadModels().catch(error=>{if(live)noteError(error);});
     return ()=>{live=false;};
-  },[assisted,session,!!attempt]);
+  },[assisted,session,!!attempt,exhausted]);
   useEffect(()=>{if(staticPage&&!assisted)inspectionTitle.current?.focus();},[staticPage,assisted]);
   useEffect(()=>{try{localStorage.setItem('neural-office.v55.theme',dark?'dark':'light');}catch{}},[dark]);
   useEffect(()=>{try{localStorage.setItem('neural-office.v510.palette',graphite?'graphite':'mineral');}catch{}},[graphite]);
-  useEffect(()=>{
+  useLayoutEffect(()=>{
     const dialog=approvalDialog.current;
     if(approval&&!dialog?.open){previousFocus.current=document.activeElement as HTMLElement;dialog?.showModal();}
     if(!approval&&dialog?.open){dialog.close();previousFocus.current?.focus();}
+    if(!approval)return;
+    const timer=setTimeout(()=>{
+      setApproval(null);
+      setProblem(errorInfo(Error('APPROVAL_INVALID_OR_EXPIRED')));
+    },Math.max(0,Math.ceil(approval.expiresAt-performance.now())));
+    return()=>clearTimeout(timer);
   },[approval]);
   useEffect(()=>{
     if(!attempt||!terminal(attempt.state)||!pending||attempt.request_key!==pending.idempotency_key||attempt.project_id!==pending.project_id)return;
@@ -357,9 +363,10 @@ export function ConnectedWorkspace() {
   async function prepare() {
     if(!source||!selectedModel||objective.trim().length<12||busy||exhausted||budgetPending)return;
     const expected=epoch();
+    const requestedAt=performance.now();
     const result=await request<Approval>('attempt.preview',{project_id:projectId,entry_token:source.entry_token,model_digest:modelDigest,roles:roleCount,objective:objective.trim()});
     if(!mounted.current||expected!==epoch())return;
-    const expiresAt=performance.now()+result.expires_in_seconds*1000;
+    const expiresAt=requestedAt+result.expires_in_seconds*1000;
     if(!approvalScopeMatches(result,session,source,objective,modelDigest,roleCount,expiresAt,performance.now()))throw Error('APPROVAL_CHANGED');
     if(result.attempts_remaining===0){
       setBudgetPending(true);
@@ -370,6 +377,7 @@ export function ConnectedWorkspace() {
   }
   async function start() {
     const reviewed=approval;
+    if(reviewed&&performance.now()>=reviewed.expiresAt){setApproval(null);throw Error('APPROVAL_INVALID_OR_EXPIRED');}
     if(!reviewed||!approvalMatches(reviewed.value,session,source,objective,modelDigest,roleCount,reviewed.expiresAt,performance.now())){setApproval(null);throw Error('APPROVAL_CHANGED');}
     const identity={office_id:officeId,project_id:projectId,idempotency_key:crypto.randomUUID()};
     try{writePending(localStorage,identity);}catch{setStorageBlocked(true);throw Error('PENDING_IDENTITY_NOT_SAVED');}
@@ -417,6 +425,7 @@ export function ConnectedWorkspace() {
   }
   async function chooseAttempt(item:Attempt) {
     if(!retainDraft())return;
+    setNavOpen(false);
     invalidate();const expected=epoch();
     const next=await request<Attempt>('attempt.get',{attempt_id:item.id});
     if(!mounted.current||expected!==epoch())return;
@@ -474,7 +483,7 @@ export function ConnectedWorkspace() {
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo encargo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
-        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(active?p.attempts_consumed<=p.legacy_consumed:!!pending||storageBlocked)} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>Presupuesto por confirmar</small></div>}</div>
+        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(active?p.attempts_consumed<=p.legacy_consumed:!!pending||storageBlocked)} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>{project?.id===projectId&&!budgetPending?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</small></div>}</div>
         <div className="connected-nav-heading">Encargos guardados</div>
         <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} snapshot={snapshot} selected={viewed?.id}
           offline={!!connectionError||initializing} disabled={initializing||!!connectionError||!!doing||(!active&&!!pending)} onOpen={a=>void act('Abriendo encargo',()=>chooseAttempt(a))}
@@ -493,7 +502,7 @@ export function ConnectedWorkspace() {
           </div>
         </header>
         {(alert||notice)&&<div className={`connected-notice ${alert?'problem':''}`} role={alert?'alert':'status'}><span>{alert?.message||notice}{alert&&<code>{alert.code}</code>}{connectionError&&lastConfirmed.current&&<small>Última confirmación a las {lastConfirmed.current.toLocaleTimeString('es-ES')}.</small>}</span>{!connectionError&&<button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button>}</div>}
-        {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><div><strong>Trabajo en curso</strong><span title={attempt.objective}>{attempt.objective}</span></div><button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada solicitada':requestingStop?'Solicitando parada':'Detener trabajo'}</button></div>}
+        {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><div><strong>Trabajo en curso{inspected&&inspected.project_id!==attempt.project_id?` · ${attempt.project_id}`:''}</strong><span title={attempt.objective}>{attempt.objective}</span></div><button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada solicitada':requestingStop?'Solicitando parada':'Detener trabajo'}</button></div>}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>{try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);setNotice('Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}}}>Descartar petición sin reserva</button>}</div>}
         <section ref={surface} className={`connected-surface ${viewed?'with-delivery':''}`} aria-label="Encargo y entrega">
           <section className="connected-director" aria-labelledby={viewed||assisted?'director-title':'static-title'}>
@@ -564,7 +573,7 @@ export function ConnectedWorkspace() {
         <footer className="connected-footer"><span>{viewed?.model||(assisted?(selectedModel?.model||'Selecciona tu modelo local'):'Análisis estático')}</span><span>{connectionError?'Último estado guardado':active?'Trabajo acotado en curso':viewed||assisted?'Modelo local · CPU':'Lectura local del archivo'}</span></footer>
       </main>
     </div>
-    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Fuente capturada</dt><dd>{source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Quedan {approval.value.attempts_remaining} antes de empezar.</dd></dl><p>El archivo original no se modifica. Se generará un informe con comprobaciones estáticas y comentarios del modelo.</p><p className="approval-expiry">Esta autorización caduca en dos minutos. Si algo cambia, tendrás que revisarla otra vez.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
+    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Fuente capturada</dt><dd>{source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Quedan {approval.value.attempts_remaining} antes de empezar.</dd></dl><p>El archivo original no se modifica. Se generará un informe con comprobaciones estáticas y comentarios del modelo.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
   </div>;
 }
 const findingLabels:Record<string,string>={HTML_LANGUAGE_MISSING:'El documento no declara su idioma',HTML_ELEMENT_MISSING:'No se encontró el elemento HTML',DOCUMENT_TITLE_MISSING:'Falta un título de documento no vacío',IMAGE_ALT_MISSING:'Una imagen no tiene atributo alt',CONTROL_LABEL_CANDIDATE:'Un control podría necesitar una etiqueta'};

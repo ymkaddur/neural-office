@@ -3,6 +3,7 @@
 Run as a module with the native UI-test dependencies installed. No provider is installed or downloaded.
 """
 import argparse
+from contextlib import closing
 import ctypes
 import os
 from pathlib import Path
@@ -64,7 +65,7 @@ def launch(executable, folder, job, *, core_root=ROOT):
 
 
 def saved(db):
-    with sqlite3.connect(db.as_uri()+'?mode=ro',uri=True) as con:
+    with closing(sqlite3.connect(db.as_uri()+'?mode=ro',uri=True)) as con:
         return {'states':list(con.execute('SELECT id,state FROM attempts ORDER BY ordinal')),
                 'calls':con.execute("SELECT count(*) FROM calls WHERE state='DONE'").fetchone()[0]}
 

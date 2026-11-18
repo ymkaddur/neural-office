@@ -81,6 +81,63 @@ test('a confirmed terminal state survives a failed balance refresh',async()=>{
   }finally{await app.close();}
 });
 
+test('Stop submits one active identity during an unfinished archive read',async()=>{
+  const archive={...baseAttempt,id:'archive',state:'FAILED',objective:'Consulta anterior'};
+  let open:(()=>void)|undefined,finish:(()=>void)|undefined;
+  const cancelled:unknown[]=[];
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return {...snapshot([archive]),current_attempt:baseAttempt};
+    if(method==='attempt.get'&&params.attempt_id==='archive'){
+      await new Promise<void>(r=>open=r);return archive;
+    }
+    if(method==='attempt.get')return baseAttempt;
+    if(method==='attempt.cancel'){
+      cancelled.push(params.attempt_id);await new Promise<void>(r=>finish=r);
+      return {...baseAttempt,state:'CANCELLED',revision:3,session_id:'session'};
+    }
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
+    app.document.querySelector<HTMLButtonElement>('.connected-history button')!.click();
+    await until(()=>!!open);
+    const stop=app.document.querySelector<HTMLButtonElement>('.active-work button')!;
+    assert.equal(stop.disabled,false);stop.click();stop.click();
+    await until(()=>!!finish);
+    assert.deepEqual(cancelled,['attempt']);finish!();open!();
+    await until(()=>app.document.querySelector('.active-work')===null);
+    assert.equal(cancelled.length,1);
+  }finally{finish?.();open?.();await app.close();}
+});
+
+for(const remaining of [0,1])test(`approval with ${remaining} remaining distinguishes exhaustion and expiry without starting`,async()=>{
+  let previews=0,starts=0;
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',previews?3-remaining:2)]);
+    if(method==='models.list')return {session_id:'session',models:[{model:'synthetic',model_digest:'b'.repeat(64),mode:'fixture'}]};
+    if(method==='source.pick')return {session_id:'session',project_id:'project',filename:'ejemplo.html',entry_token:'grant',bytes:60,sha256:'a'.repeat(64)};
+    if(method==='attempt.preview'){previews++;return {session_id:'session',approval_token:'ok',project_id:'project',objective:params.objective,roles:1,model_digest:'b'.repeat(64),source_sha256:'a'.repeat(64),attempts_consumed:3-remaining,attempts_remaining:remaining,expires_in_seconds:1};}
+    if(method==='attempt.start')starts++;
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('.connected-projects button:not(:disabled)'));
+    await enterDraft(app,'Revisar el documento seleccionado.');
+    app.document.querySelector<HTMLButtonElement>('.source-picker')!.click();
+    const submit=()=>app.document.querySelector<HTMLButtonElement>('button[type="submit"]');
+    await until(()=>submit()?.disabled===false);submit()!.click();
+    if(remaining)await until(()=>!!app.document.querySelector('dialog[open]'));
+    await until(()=>app.document.body.textContent.includes(remaining?'APPROVAL_INVALID_OR_EXPIRED':'ATTEMPT_BUDGET_EXHAUSTED'));
+    assert.equal(app.document.querySelector('.connected-quota')!.textContent,`${3-remaining} de 3 intentos`);
+    assert.equal(submit()!.disabled,remaining===0);
+    assert.ok(!app.document.body.textContent.includes('APPROVAL_CHANGED'));
+    assert.ok(!app.document.querySelector('dialog[open]'));
+    assert.deepEqual([previews,starts],[1,0]);
+  }finally{await app.close();}
+});
+
 test('selected project history includes all three attempts across the global page boundary',async()=>{
   const projects=Array.from({length:50},(_,i)=>project(`p${i}`,3));
   const attempts=Array.from({length:150},(_,i)=>({...baseAttempt,id:`a${i}`,project_id:`p${Math.floor(i/3)}`,ordinal:i%3+1,state:'CANCELLED',request_key:`k${i}`,objective:`Encargo ${i}`}));

@@ -1,7 +1,7 @@
 """Deterministic checks over captured HTML bytes; never executes HTML or scripts."""
+from html import unescape
 from html.parser import HTMLParser
 import json
-import re
 from .ledger import canonical, digest
 
 SCOPE = 'static-html-checks-v4'
@@ -10,14 +10,29 @@ VOID = frozenset('area base br col embed hr img input link meta param source tra
 LABELABLE = frozenset(('button', 'input', 'meter', 'output', 'progress', 'select', 'textarea'))
 
 
+def inline_hidden(style):
+    declarations = {}
+    for declaration in style.lower().split(';'):
+        key, _, value = declaration.partition(':')
+        key = key.strip()
+        if key not in ('display', 'visibility'):
+            continue
+        value, mark, suffix = value.partition('!')
+        important = bool(mark and suffix.strip() == 'important')
+        if key not in declarations or important or not declarations[key][1]:
+            declarations[key] = (value.strip(), important)
+    return (declarations.get('display', ('',))[0] == 'none' or
+            declarations.get('visibility', ('',))[0] in ('hidden', 'collapse'))
+
+
 class NameSource:
     def __init__(self, tag, attrs, parent_label, parent):
         self.tag = tag
         self.inert = tag == 'template' or bool(parent and parent.inert)
         self.foreign = tag in ('svg', 'math') or bool(parent and parent.foreign and parent.tag != 'foreignobject')
-        self.hidden = ('hidden' in attrs or (attrs.get('aria-hidden') or '').strip().lower() == 'true'
-                       or bool(re.search(r'(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse))\s*(?:!\s*important\s*)?(?:;|$)', attrs.get('style') or '', re.I))
-                       or bool(parent and parent.hidden))
+        style = attrs.get('style')
+        self.hidden = bool((parent and parent.hidden) or 'hidden' in attrs or
+                           (attrs.get('aria-hidden') or '').strip().lower() == 'true' or (style and inline_hidden(style)))
         self.named = bool((attrs.get('aria-label') or '').strip())
         if tag == 'img':
             self.named |= bool((attrs.get('alt') or '').strip())
@@ -47,7 +62,9 @@ class Scan(HTMLParser):
         self.findings.append({'code':code,'line':position[0],'column':position[1]+1})
 
     def handle_starttag(self, tag, attrs):
-        values=dict(reversed(attrs))  # HTML keeps the first duplicate attribute.
+        values=dict(attrs)
+        if len(values) != len(attrs):
+            values = dict(reversed(attrs))  # HTML keeps the first duplicate attribute.
         node = NameSource(tag, values, self.label, self.stack[-1] if self.stack else None)
         document_html = not node.inert and not node.foreign
         if tag=='html' and document_html:
@@ -56,6 +73,8 @@ class Scan(HTMLParser):
         if tag=='title' and document_html and not self.title_seen:
             self.document_title=node
             self.title_seen=True
+        if document_html and tag in ('title', 'textarea'):
+            self.set_cdata_mode(tag)
         if tag=='img' and document_html and 'alt' not in values: self.issue('IMAGE_ALT_MISSING',self.getpos())
         if not node.inert and values.get('id'):
             self.ids.setdefault(values['id'], node)
@@ -97,10 +116,18 @@ class Scan(HTMLParser):
             self.close_node()
 
     def handle_data(self, data):
+        if self.cdata_elem in ('title', 'textarea'):
+            data = unescape(data)
         if self.document_title is not None: self.title.append(data)
         if self.stack and data.strip():
             self.stack[-1].named = True
             self.stack[-1].all_named = True
+
+    def close(self):
+        super().close()
+        if self.cdata_elem in ('title', 'textarea') and self.rawdata:
+            self.handle_data(self.rawdata)
+            self.rawdata = ''
 
     def missing_names(self):
         while self.stack:

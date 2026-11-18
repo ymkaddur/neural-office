@@ -30,6 +30,9 @@ CASES = [
     ('visible reference with hidden child', '<span id="n"><b hidden>Correo</b></span><input aria-labelledby="n">', ''),
     ('template id', '<template><b id="n">Correo</b></template><input aria-labelledby="n">', ''),
     ('hidden native label', '<label hidden for="x"><b>Correo</b></label><input id="x">', ''),
+    ('visible last declaration', '<label><b style="display:none;display:inline">Correo</b><input></label>', 'Correo'),
+    ('hidden important declaration', '<label><b style="display:none !important;display:inline">Correo</b><input></label>', ''),
+    ('hidden label directly referenced', '<label hidden id="n" for="x">Correo</label><input id="x" aria-labelledby="n">', 'Correo'),
 ]
 
 

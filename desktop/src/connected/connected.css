@@ -151,6 +151,7 @@
 .palette-graphite .static-heading h1 { font-size:clamp(28px,2.8vw,35px); font-weight:600; line-height:1.18; letter-spacing:-.025em; }
 .palette-graphite .static-heading p,.palette-graphite .connected-work-status p { font-size:15px; line-height:1.5; max-width:64ch; }
 .palette-graphite .finding-list strong { font-weight:600; line-height:1.45; }
+.palette-graphite .static-workspace { max-width:960px; }
 .palette-graphite .finding-list small { font:13px/1.45 "Segoe UI Variable Text","Segoe UI",sans-serif; font-variant-numeric:tabular-nums; }
 .palette-graphite .connected-report h3,.palette-graphite .static-results h2 { font-size:20px; font-weight:600; letter-spacing:-.015em; }
 @media(max-width:600px),(max-height:720px) {
