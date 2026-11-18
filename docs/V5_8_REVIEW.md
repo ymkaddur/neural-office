@@ -1,5 +1,7 @@
 # V5.8 en Windows · recuperar el mismo encargo
 
+La [medición de CPU, RAM y tiempo](V5_8_RESOURCES.md) usa un proveedor Ollama real y seis documentos anotados. La prueba de reconexión que sigue usa un proveedor de ensayo cuyo contador permite detectar un reenvío.
+
 **VERIFICADO.** El ejecutable Tauri V5.8.0 para Windows x64 recuperó el mismo encargo después de dos cortes consecutivos. La ventana siguió abierta. Iniciar el encargo consumió un intento y ambas reconexiones juntas añadieron **cero intentos y cero llamadas al proveedor de prueba**. [Ejecución nativa en GitHub Actions](https://github.com/ymkaddur/neural-office/actions/runs/44200455347/job/134452879727) · [Mediciones](evidence/V5_8_RECONNECTION.json).
 
 ## Incidente y secuencia observada

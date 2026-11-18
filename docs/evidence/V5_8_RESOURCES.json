@@ -1,0 +1,3866 @@
+{
+  "schema": 1,
+  "environment": {
+    "python": "3.12.10",
+    "windows_build": 26200,
+    "logical_processors": 20,
+    "epoch_utc": "2026-11-18T00:01:59.819522+00:00",
+    "corpus_sha256": "0e90b5804ec2845a5daccb1a8a6dc559fdace760c1b5778f6d88f1c87adaf0db",
+    "product_commit": "e69885c424d80d2658b44039e915702eb10fcec3",
+    "smoke": false,
+    "instrument_sha256": "d9f866b3e0d248ac375511362d024a780475b5b1112d4aae6411aaa1a9d5493c",
+    "ollama": "0.40.16",
+    "profile": {
+      "mode": "ollama-owned",
+      "model": "qwen2.5:0.5b",
+      "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "num_ctx": 8192,
+      "num_predict": 128,
+      "num_gpu": 0,
+      "timeout_seconds": 300
+    }
+  },
+  "trials": [
+    {
+      "task": "idioma",
+      "arm": 0,
+      "phase": "cold",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 0,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0175881,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 25.390625,
+        "peak_private_mib": 15.80859375,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0175881
+      },
+      "startup_to_capture_s": 0.1115374,
+      "launch_to_delivery_s": 0.1291255,
+      "provider_calls": [],
+      "quality_key": "33188f8f1227b7e566805411fc45c1cdc49518167b28f6fcc85b1ddf0baa438d",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "idioma",
+      "arm": 0,
+      "phase": "repeat",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 0,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0126577,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 25.53515625,
+        "peak_private_mib": 15.96484375,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0126577
+      },
+      "provider_calls": [],
+      "quality_key": "33188f8f1227b7e566805411fc45c1cdc49518167b28f6fcc85b1ddf0baa438d",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "idioma",
+      "arm": 1,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 1,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 36.5787846,
+        "cpu_s": 19.140625,
+        "peak_ws_mib": 655.5625,
+        "peak_private_mib": 1043.40625,
+        "samples": 365,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1017108
+      },
+      "startup_to_capture_s": 0.1141145,
+      "launch_to_delivery_s": 36.6928991,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "396df921f031f38445216b231a7e9cef137d7df82efe956c620975d66a437658",
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 1048064000,
+          "total_duration": 1841424300,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.2193366,
+        "cpu_s": 11.390625,
+        "peak_ws_mib": 655.5625,
+        "peak_private_mib": 761.50390625,
+        "samples": 44,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1017108
+      },
+      "backend_cpu_s": 16.21875,
+      "backend_peak_commit_mib": 1064.69921875,
+      "backend_closed": true,
+      "quality_key": "00138d9270d7dc15c2ab408b6bbd8ea8a02e8fe8bd829d163d187e0984d72ccc",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "idioma",
+      "arm": 1,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 1,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 10.125974,
+        "cpu_s": 17.546875,
+        "peak_ws_mib": 702.31640625,
+        "peak_private_mib": 1147.32421875,
+        "samples": 103,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1012745
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "396df921f031f38445216b231a7e9cef137d7df82efe956c620975d66a437658",
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 811658400,
+          "total_duration": 1586577400,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.0680882,
+        "cpu_s": 12.40625,
+        "peak_ws_mib": 655.16015625,
+        "peak_private_mib": 761.19140625,
+        "samples": 42,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011165
+      },
+      "backend_cpu_s": 15.59375,
+      "backend_peak_commit_mib": 1135.34765625,
+      "backend_closed": true,
+      "quality_key": "00138d9270d7dc15c2ab408b6bbd8ea8a02e8fe8bd829d163d187e0984d72ccc",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "idioma",
+      "arm": 1,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 1,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 12.4438507,
+        "cpu_s": 18.375,
+        "peak_ws_mib": 781.2578125,
+        "peak_private_mib": 1016.8671875,
+        "samples": 126,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014728
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "396df921f031f38445216b231a7e9cef137d7df82efe956c620975d66a437658",
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 4127500,
+          "total_duration": 841804000,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 3.0404938,
+        "cpu_s": 9.78125,
+        "peak_ws_mib": 781.2578125,
+        "peak_private_mib": 872.6796875,
+        "samples": 32,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014728
+      },
+      "backend_cpu_s": 15.5625,
+      "backend_peak_commit_mib": 1137.01171875,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 0.7938973,
+        "cpu_s": 2.1875,
+        "peak_ws_mib": 638.6171875,
+        "peak_private_mib": 758.19921875,
+        "samples": 10,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1008465
+      },
+      "quality_key": "00138d9270d7dc15c2ab408b6bbd8ea8a02e8fe8bd829d163d187e0984d72ccc",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "idioma",
+      "arm": 3,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 3,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 17.799039,
+        "cpu_s": 46.796875,
+        "peak_ws_mib": 802.8359375,
+        "peak_private_mib": 1038.109375,
+        "samples": 178,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011643
+      },
+      "startup_to_capture_s": 0.1161755,
+      "launch_to_delivery_s": 17.9152145,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "396df921f031f38445216b231a7e9cef137d7df82efe956c620975d66a437658",
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 1047783200,
+          "total_duration": 1810648600,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "731073a7c3a21d38cc0f2c8dafe92aef1b17d9483001a4eefa8e92a1793adb93",
+          "prompt_eval_count": 252,
+          "eval_count": 56,
+          "load_duration": 4336000,
+          "total_duration": 1146975200,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "81e554f608d1e567d6f8628d9a46ee7ae2c04e8202e39e6d81bbaf092601e54e",
+          "prompt_eval_count": 376,
+          "eval_count": 56,
+          "load_duration": 4385000,
+          "total_duration": 1360424300,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 11.9870063,
+        "cpu_s": 41.828125,
+        "peak_ws_mib": 802.8359375,
+        "peak_private_mib": 879.14453125,
+        "samples": 121,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011643
+      },
+      "backend_cpu_s": 42.75,
+      "backend_peak_commit_mib": 1122.1875,
+      "backend_closed": true,
+      "quality_key": "f2b28adb074c3d192e7d9d0012f5eef764f59566ba0905023195baee87d3ecf8",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "idioma",
+      "arm": 3,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 3,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 18.3710662,
+        "cpu_s": 45.0,
+        "peak_ws_mib": 802.171875,
+        "peak_private_mib": 1098.2890625,
+        "samples": 185,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015114
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "396df921f031f38445216b231a7e9cef137d7df82efe956c620975d66a437658",
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 810019100,
+          "total_duration": 1639629500,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "731073a7c3a21d38cc0f2c8dafe92aef1b17d9483001a4eefa8e92a1793adb93",
+          "prompt_eval_count": 252,
+          "eval_count": 56,
+          "load_duration": 3207000,
+          "total_duration": 1091960600,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "81e554f608d1e567d6f8628d9a46ee7ae2c04e8202e39e6d81bbaf092601e54e",
+          "prompt_eval_count": 376,
+          "eval_count": 56,
+          "load_duration": 3084800,
+          "total_duration": 1237815400,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 10.9639369,
+        "cpu_s": 40.1875,
+        "peak_ws_mib": 802.171875,
+        "peak_private_mib": 878.16015625,
+        "samples": 111,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015114
+      },
+      "backend_cpu_s": 40.734375,
+      "backend_peak_commit_mib": 1083.39453125,
+      "backend_closed": true,
+      "quality_key": "f2b28adb074c3d192e7d9d0012f5eef764f59566ba0905023195baee87d3ecf8",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "idioma",
+      "arm": 3,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "c411988f81984ae51da9108e6ab3763fe3e350c38f88c7ea7ab7196102943161",
+      "calls": 3,
+      "observed": [
+        [
+          "HTML_LANGUAGE_MISSING",
+          1,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 25.5116327,
+        "cpu_s": 48.875,
+        "peak_ws_mib": 803.23046875,
+        "peak_private_mib": 1038.24609375,
+        "samples": 256,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1016395
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "396df921f031f38445216b231a7e9cef137d7df82efe956c620975d66a437658",
+          "prompt_eval_count": 143,
+          "eval_count": 44,
+          "load_duration": 3748700,
+          "total_duration": 863543600,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "731073a7c3a21d38cc0f2c8dafe92aef1b17d9483001a4eefa8e92a1793adb93",
+          "prompt_eval_count": 252,
+          "eval_count": 56,
+          "load_duration": 4652600,
+          "total_duration": 1136918100,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "81e554f608d1e567d6f8628d9a46ee7ae2c04e8202e39e6d81bbaf092601e54e",
+          "prompt_eval_count": 376,
+          "eval_count": 56,
+          "load_duration": 3090000,
+          "total_duration": 1375054500,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 11.4022099,
+        "cpu_s": 40.25,
+        "peak_ws_mib": 803.23046875,
+        "peak_private_mib": 880.125,
+        "samples": 115,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1016395
+      },
+      "backend_cpu_s": 43.921875,
+      "backend_peak_commit_mib": 1061.171875,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 1.0714373,
+        "cpu_s": 2.203125,
+        "peak_ws_mib": 638.3359375,
+        "peak_private_mib": 756.96484375,
+        "samples": 13,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1009334
+      },
+      "quality_key": "f2b28adb074c3d192e7d9d0012f5eef764f59566ba0905023195baee87d3ecf8",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La orientación relaciona lang con el idioma real. Falta una prueba posterior."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 0,
+      "phase": "cold",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 0,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.018102,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 25.19921875,
+        "peak_private_mib": 15.57421875,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.018102
+      },
+      "startup_to_capture_s": 0.1150277,
+      "launch_to_delivery_s": 0.1331297,
+      "provider_calls": [],
+      "quality_key": "a85dc58421175def7a3195c774663f1a9a8af79af94f91ca3263414881ac6fd9",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 0,
+      "phase": "repeat",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 0,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0116122,
+        "cpu_s": 0.0,
+        "peak_ws_mib": 25.296875,
+        "peak_private_mib": 15.671875,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0116122
+      },
+      "provider_calls": [],
+      "quality_key": "a85dc58421175def7a3195c774663f1a9a8af79af94f91ca3263414881ac6fd9",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 3,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 3,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 16.0574004,
+        "cpu_s": 40.78125,
+        "peak_ws_mib": 803.734375,
+        "peak_private_mib": 1005.9375,
+        "samples": 161,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013139
+      },
+      "startup_to_capture_s": 0.1070907,
+      "launch_to_delivery_s": 16.1644911,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "4bc76e50070ddc8c41c5bc8612fb8e74634c32d056ade3a5ad326efc189472dd",
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 794143300,
+          "total_duration": 1612089000,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "18df2e51cc24d1aac23dfe9cccd007c77a1191d327d06a4d9cd9bcf4a36f7074",
+          "prompt_eval_count": 263,
+          "eval_count": 41,
+          "load_duration": 3350700,
+          "total_duration": 928030200,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "e0f39b0dec1fc190748f9b0e4e0a43e5038a7db5f18460d58ff940883a9e55aa",
+          "prompt_eval_count": 371,
+          "eval_count": 35,
+          "load_duration": 3751000,
+          "total_duration": 1062818600,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 10.5018903,
+        "cpu_s": 35.96875,
+        "peak_ws_mib": 803.734375,
+        "peak_private_mib": 879.51953125,
+        "samples": 106,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013139
+      },
+      "backend_cpu_s": 37.296875,
+      "backend_peak_commit_mib": 1115.59765625,
+      "backend_closed": true,
+      "quality_key": "f6ea870574b7f6d327c885b8851519c531e9ac9d24ac0aeaf38380fb4e9a74d1",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 3,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 3,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 18.8301387,
+        "cpu_s": 41.78125,
+        "peak_ws_mib": 802.4296875,
+        "peak_private_mib": 920.0234375,
+        "samples": 189,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1021636
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "4bc76e50070ddc8c41c5bc8612fb8e74634c32d056ade3a5ad326efc189472dd",
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 1300343700,
+          "total_duration": 2126433900,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "18df2e51cc24d1aac23dfe9cccd007c77a1191d327d06a4d9cd9bcf4a36f7074",
+          "prompt_eval_count": 263,
+          "eval_count": 41,
+          "load_duration": 3563600,
+          "total_duration": 947274200,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "e0f39b0dec1fc190748f9b0e4e0a43e5038a7db5f18460d58ff940883a9e55aa",
+          "prompt_eval_count": 371,
+          "eval_count": 35,
+          "load_duration": 3285100,
+          "total_duration": 1085183800,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 12.5932922,
+        "cpu_s": 37.125,
+        "peak_ws_mib": 802.4296875,
+        "peak_private_mib": 878.73828125,
+        "samples": 127,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1021636
+      },
+      "backend_cpu_s": 37.953125,
+      "backend_peak_commit_mib": 1063.48046875,
+      "backend_closed": true,
+      "quality_key": "f6ea870574b7f6d327c885b8851519c531e9ac9d24ac0aeaf38380fb4e9a74d1",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 3,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 3,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 20.8064155,
+        "cpu_s": 44.71875,
+        "peak_ws_mib": 803.77734375,
+        "peak_private_mib": 879.83203125,
+        "samples": 209,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1020605
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "4bc76e50070ddc8c41c5bc8612fb8e74634c32d056ade3a5ad326efc189472dd",
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 3104800,
+          "total_duration": 829261900,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "18df2e51cc24d1aac23dfe9cccd007c77a1191d327d06a4d9cd9bcf4a36f7074",
+          "prompt_eval_count": 263,
+          "eval_count": 41,
+          "load_duration": 3886300,
+          "total_duration": 980204100,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "e0f39b0dec1fc190748f9b0e4e0a43e5038a7db5f18460d58ff940883a9e55aa",
+          "prompt_eval_count": 371,
+          "eval_count": 35,
+          "load_duration": 3264700,
+          "total_duration": 1104474800,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 11.0753626,
+        "cpu_s": 36.34375,
+        "peak_ws_mib": 803.77734375,
+        "peak_private_mib": 879.83203125,
+        "samples": 112,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011516
+      },
+      "backend_cpu_s": 40.125,
+      "backend_peak_commit_mib": 1096.34765625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 1.0408887,
+        "cpu_s": 2.734375,
+        "peak_ws_mib": 640.2578125,
+        "peak_private_mib": 759.28125,
+        "samples": 13,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011968
+      },
+      "quality_key": "f6ea870574b7f6d327c885b8851519c531e9ac9d24ac0aeaf38380fb4e9a74d1",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 1,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 1,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 13.5767298,
+        "cpu_s": 17.359375,
+        "peak_ws_mib": 700.28515625,
+        "peak_private_mib": 1144.98046875,
+        "samples": 137,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1012871
+      },
+      "startup_to_capture_s": 0.1202773,
+      "launch_to_delivery_s": 13.6970071,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "4bc76e50070ddc8c41c5bc8612fb8e74634c32d056ade3a5ad326efc189472dd",
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 2804562500,
+          "total_duration": 3631941200,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 6.1603454,
+        "cpu_s": 12.34375,
+        "peak_ws_mib": 655.5390625,
+        "peak_private_mib": 760.76953125,
+        "samples": 63,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1012577
+      },
+      "backend_cpu_s": 15.34375,
+      "backend_peak_commit_mib": 1136.75,
+      "backend_closed": true,
+      "quality_key": "52e9d18f08d8e7b7e58e838236faf31628e9a6aabb6300edd2600cc7fc55b4f5",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 1,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 1,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 10.2725288,
+        "cpu_s": 16.234375,
+        "peak_ws_mib": 674.75390625,
+        "peak_private_mib": 1134.83984375,
+        "samples": 104,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1016825
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "4bc76e50070ddc8c41c5bc8612fb8e74634c32d056ade3a5ad326efc189472dd",
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 797927600,
+          "total_duration": 1566800800,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.3683064,
+        "cpu_s": 11.1875,
+        "peak_ws_mib": 655.203125,
+        "peak_private_mib": 759.9921875,
+        "samples": 45,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1012823
+      },
+      "backend_cpu_s": 14.203125,
+      "backend_peak_commit_mib": 1137.57421875,
+      "backend_closed": true,
+      "quality_key": "52e9d18f08d8e7b7e58e838236faf31628e9a6aabb6300edd2600cc7fc55b4f5",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "titulo-imagen",
+      "arm": 1,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3161de0823f767f65bd8b4bb464ff787824eaa4da7722ab53a29200375378c4a",
+      "calls": 1,
+      "observed": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          4,
+          1
+        ]
+      ],
+      "tp": 2,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 17.6429187,
+        "cpu_s": 18.5,
+        "peak_ws_mib": 780.12109375,
+        "peak_private_mib": 983.390625,
+        "samples": 177,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014096
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "4bc76e50070ddc8c41c5bc8612fb8e74634c32d056ade3a5ad326efc189472dd",
+          "prompt_eval_count": 157,
+          "eval_count": 35,
+          "load_duration": 3835000,
+          "total_duration": 797551000,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 3.771048,
+        "cpu_s": 10.25,
+        "peak_ws_mib": 780.12109375,
+        "peak_private_mib": 872.1015625,
+        "samples": 40,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011276
+      },
+      "backend_cpu_s": 14.96875,
+      "backend_peak_commit_mib": 1107.234375,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 5.8258809,
+        "cpu_s": 2.265625,
+        "peak_ws_mib": 637.8359375,
+        "peak_private_mib": 757.03515625,
+        "samples": 59,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014096
+      },
+      "quality_key": "52e9d18f08d8e7b7e58e838236faf31628e9a6aabb6300edd2600cc7fc55b4f5",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Incluye título descriptivo y decisión sobre alt. Falta un procedimiento de verificación adicional."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 1,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 1,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 12.9765747,
+        "cpu_s": 17.578125,
+        "peak_ws_mib": 654.5546875,
+        "peak_private_mib": 846.7109375,
+        "samples": 131,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013688
+      },
+      "startup_to_capture_s": 0.1130611,
+      "launch_to_delivery_s": 13.0896358,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "ab7be3e932da668cdc22941593eb22a394225d19f17be5de9b1c44a74f6e2f11",
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 3310946400,
+          "total_duration": 4087221600,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 6.8420656,
+        "cpu_s": 12.421875,
+        "peak_ws_mib": 654.609375,
+        "peak_private_mib": 760.44921875,
+        "samples": 70,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013688
+      },
+      "backend_cpu_s": 15.0625,
+      "backend_peak_commit_mib": 1137.66015625,
+      "backend_closed": true,
+      "quality_key": "68e18ce546448204356d432a8bb9e88d0c44b50d9cd26d2c3ffd598d54cbd9d1",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 1,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 1,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 12.3636558,
+        "cpu_s": 16.71875,
+        "peak_ws_mib": 654.54296875,
+        "peak_private_mib": 917.9921875,
+        "samples": 125,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.101109
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "ab7be3e932da668cdc22941593eb22a394225d19f17be5de9b1c44a74f6e2f11",
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 2803126000,
+          "total_duration": 3551594600,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 6.3771561,
+        "cpu_s": 11.96875,
+        "peak_ws_mib": 654.54296875,
+        "peak_private_mib": 760.578125,
+        "samples": 66,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.101109
+      },
+      "backend_cpu_s": 15.0,
+      "backend_peak_commit_mib": 1113.8515625,
+      "backend_closed": true,
+      "quality_key": "68e18ce546448204356d432a8bb9e88d0c44b50d9cd26d2c3ffd598d54cbd9d1",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 1,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 1,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 13.0597948,
+        "cpu_s": 17.703125,
+        "peak_ws_mib": 779.859375,
+        "peak_private_mib": 914.86328125,
+        "samples": 131,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013411
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "ab7be3e932da668cdc22941593eb22a394225d19f17be5de9b1c44a74f6e2f11",
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 4103600,
+          "total_duration": 768514100,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 3.4972615,
+        "cpu_s": 9.296875,
+        "peak_ws_mib": 779.859375,
+        "peak_private_mib": 873.34375,
+        "samples": 37,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013411
+      },
+      "backend_cpu_s": 15.1875,
+      "backend_peak_commit_mib": 1033.2265625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 0.8088639,
+        "cpu_s": 2.828125,
+        "peak_ws_mib": 638.94921875,
+        "peak_private_mib": 758.578125,
+        "samples": 10,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1010674
+      },
+      "quality_key": "68e18ce546448204356d432a8bb9e88d0c44b50d9cd26d2c3ffd598d54cbd9d1",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 0,
+      "phase": "cold",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 0,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0177527,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 25.234375,
+        "peak_private_mib": 15.70703125,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0177527
+      },
+      "startup_to_capture_s": 0.1174264,
+      "launch_to_delivery_s": 0.1351791,
+      "provider_calls": [],
+      "quality_key": "8019942d87f962365d8f3063bf3190500b7bcc09649247f652dcf515c81c4e83",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 0,
+      "phase": "repeat",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 0,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0120275,
+        "cpu_s": 0.0,
+        "peak_ws_mib": 25.38671875,
+        "peak_private_mib": 15.71484375,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0120275
+      },
+      "provider_calls": [],
+      "quality_key": "8019942d87f962365d8f3063bf3190500b7bcc09649247f652dcf515c81c4e83",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 3,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 3,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 17.7189786,
+        "cpu_s": 43.53125,
+        "peak_ws_mib": 801.875,
+        "peak_private_mib": 877.69140625,
+        "samples": 178,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1022099
+      },
+      "startup_to_capture_s": 0.1201071,
+      "launch_to_delivery_s": 17.8390857,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "ab7be3e932da668cdc22941593eb22a394225d19f17be5de9b1c44a74f6e2f11",
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 794257300,
+          "total_duration": 1589462700,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "4d7756699e5aec7e20e626fa39e6cde72e6ec9e41e02c3fff65be767433064c5",
+          "prompt_eval_count": 255,
+          "eval_count": 41,
+          "load_duration": 4616700,
+          "total_duration": 946217700,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "8a2c90b2509f6d6a45437f2d11ae623cd6c8bca554144bc29a03491c848473a1",
+          "prompt_eval_count": 365,
+          "eval_count": 41,
+          "load_duration": 3196500,
+          "total_duration": 1107702300,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 11.6499695,
+        "cpu_s": 38.6875,
+        "peak_ws_mib": 801.875,
+        "peak_private_mib": 877.69140625,
+        "samples": 118,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1012041
+      },
+      "backend_cpu_s": 39.84375,
+      "backend_peak_commit_mib": 1137.50390625,
+      "backend_closed": true,
+      "quality_key": "74edceae7aeecf2c407949cff96af51357bec4184394c965a8c8568a14b3bad7",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 3,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 3,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 18.3339215,
+        "cpu_s": 47.140625,
+        "peak_ws_mib": 796.75,
+        "peak_private_mib": 1074.73828125,
+        "samples": 184,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014688
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "ab7be3e932da668cdc22941593eb22a394225d19f17be5de9b1c44a74f6e2f11",
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 1110342300,
+          "total_duration": 1931825400,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "4d7756699e5aec7e20e626fa39e6cde72e6ec9e41e02c3fff65be767433064c5",
+          "prompt_eval_count": 255,
+          "eval_count": 41,
+          "load_duration": 8470500,
+          "total_duration": 1068474100,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "8a2c90b2509f6d6a45437f2d11ae623cd6c8bca554144bc29a03491c848473a1",
+          "prompt_eval_count": 365,
+          "eval_count": 41,
+          "load_duration": 9952200,
+          "total_duration": 1275618600,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 12.9974992,
+        "cpu_s": 42.03125,
+        "peak_ws_mib": 796.75,
+        "peak_private_mib": 872.62890625,
+        "samples": 131,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014688
+      },
+      "backend_cpu_s": 41.84375,
+      "backend_peak_commit_mib": 1059.65625,
+      "backend_closed": true,
+      "quality_key": "74edceae7aeecf2c407949cff96af51357bec4184394c965a8c8568a14b3bad7",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "control",
+      "arm": 3,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "3c707f163c40dc8097912b2d62f1aec276d2f41bed199a34f921e4e00e23d384",
+      "calls": 3,
+      "observed": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          4,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 26.0323033,
+        "cpu_s": 43.484375,
+        "peak_ws_mib": 803.0546875,
+        "peak_private_mib": 1095.796875,
+        "samples": 260,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015628
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "ab7be3e932da668cdc22941593eb22a394225d19f17be5de9b1c44a74f6e2f11",
+          "prompt_eval_count": 146,
+          "eval_count": 36,
+          "load_duration": 3737100,
+          "total_duration": 777239300,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "4d7756699e5aec7e20e626fa39e6cde72e6ec9e41e02c3fff65be767433064c5",
+          "prompt_eval_count": 255,
+          "eval_count": 41,
+          "load_duration": 4806200,
+          "total_duration": 964375000,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "8a2c90b2509f6d6a45437f2d11ae623cd6c8bca554144bc29a03491c848473a1",
+          "prompt_eval_count": 365,
+          "eval_count": 41,
+          "load_duration": 3307400,
+          "total_duration": 1085019400,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 9.2111991,
+        "cpu_s": 34.46875,
+        "peak_ws_mib": 803.0546875,
+        "peak_private_mib": 877.96875,
+        "samples": 94,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011198
+      },
+      "backend_cpu_s": 38.421875,
+      "backend_peak_commit_mib": 1082.0390625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 9.0801604,
+        "cpu_s": 3.09375,
+        "peak_ws_mib": 639.0078125,
+        "peak_private_mib": 757.62890625,
+        "samples": 92,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011307
+      },
+      "quality_key": "74edceae7aeecf2c407949cff96af51357bec4184394c965a8c8568a14b3bad7",
+      "quality": {
+        "points": 1,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La guía fija indica inspeccionar el nombre y asociar la etiqueta. El texto añadido, cuando existe, no concreta otro procedimiento."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 1,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 1,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 11.1199486,
+        "cpu_s": 20.15625,
+        "peak_ws_mib": 653.9921875,
+        "peak_private_mib": 897.953125,
+        "samples": 112,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014756
+      },
+      "startup_to_capture_s": 0.1158981,
+      "launch_to_delivery_s": 11.2358467,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 833736000,
+          "total_duration": 1908218900,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.7902847,
+        "cpu_s": 14.6875,
+        "peak_ws_mib": 653.9921875,
+        "peak_private_mib": 760.77734375,
+        "samples": 49,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013773
+      },
+      "backend_cpu_s": 17.75,
+      "backend_peak_commit_mib": 1098.765625,
+      "backend_closed": true,
+      "quality_key": "5d476ac703a980ca976d86f510d2f0f70409faa0528d7735f881204cb5aad470",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 1,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 1,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 11.7059784,
+        "cpu_s": 21.5,
+        "peak_ws_mib": 669.015625,
+        "peak_private_mib": 1023.8671875,
+        "samples": 118,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.101364
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 799492300,
+          "total_duration": 1993004300,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.6827083,
+        "cpu_s": 15.515625,
+        "peak_ws_mib": 654.23828125,
+        "peak_private_mib": 760.65625,
+        "samples": 49,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.101364
+      },
+      "backend_cpu_s": 19.34375,
+      "backend_peak_commit_mib": 1061.19921875,
+      "backend_closed": true,
+      "quality_key": "5d476ac703a980ca976d86f510d2f0f70409faa0528d7735f881204cb5aad470",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 1,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 1,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 13.2967538,
+        "cpu_s": 20.875,
+        "peak_ws_mib": 779.18359375,
+        "peak_private_mib": 876.328125,
+        "samples": 134,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1029719
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 5822600,
+          "total_duration": 993329500,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 3.7428548,
+        "cpu_s": 12.0625,
+        "peak_ws_mib": 779.18359375,
+        "peak_private_mib": 872.3984375,
+        "samples": 39,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1029719
+      },
+      "backend_cpu_s": 17.75,
+      "backend_peak_commit_mib": 1119.47265625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 0.8468715,
+        "cpu_s": 2.1875,
+        "peak_ws_mib": 637.9921875,
+        "peak_private_mib": 757.9296875,
+        "samples": 10,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1009729
+      },
+      "quality_key": "5d476ac703a980ca976d86f510d2f0f70409faa0528d7735f881204cb5aad470",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 3,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 3,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 19.1051964,
+        "cpu_s": 52.3125,
+        "peak_ws_mib": 804.1484375,
+        "peak_private_mib": 1120.33984375,
+        "samples": 192,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1018736
+      },
+      "startup_to_capture_s": 0.1751239,
+      "launch_to_delivery_s": 19.2803203,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 815357300,
+          "total_duration": 1839715600,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "bd8781dbf0380b248e808a20e0f1cb3b745b7a4abf3e731eb5374cd29593d203",
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 3649900,
+          "total_duration": 1205176900,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "708c046bbb96ade0f8b3e319630b10d7d50e8e74fbfa42920fa338f8494d14fa",
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 8650800,
+          "total_duration": 1452218800,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 12.471945,
+        "cpu_s": 46.53125,
+        "peak_ws_mib": 804.1484375,
+        "peak_private_mib": 878.5390625,
+        "samples": 126,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1018736
+      },
+      "backend_cpu_s": 47.71875,
+      "backend_peak_commit_mib": 1135.33203125,
+      "backend_closed": true,
+      "quality_key": "f61af7524e2942770331141da63534bbd28dab7c6237bed07f44a8f0bff00e84",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 3,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 3,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 19.0876256,
+        "cpu_s": 53.078125,
+        "peak_ws_mib": 804.04296875,
+        "peak_private_mib": 878.71484375,
+        "samples": 191,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014405
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 795797000,
+          "total_duration": 1813646300,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "bd8781dbf0380b248e808a20e0f1cb3b745b7a4abf3e731eb5374cd29593d203",
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 6121800,
+          "total_duration": 1258078800,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "708c046bbb96ade0f8b3e319630b10d7d50e8e74fbfa42920fa338f8494d14fa",
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 6869700,
+          "total_duration": 1526219000,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 12.4408642,
+        "cpu_s": 47.0625,
+        "peak_ws_mib": 804.04296875,
+        "peak_private_mib": 878.71484375,
+        "samples": 126,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014405
+      },
+      "backend_cpu_s": 48.78125,
+      "backend_peak_commit_mib": 1063.96484375,
+      "backend_closed": true,
+      "quality_key": "f61af7524e2942770331141da63534bbd28dab7c6237bed07f44a8f0bff00e84",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 3,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 3,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 23.6332805,
+        "cpu_s": 55.875,
+        "peak_ws_mib": 804.578125,
+        "peak_private_mib": 966.84375,
+        "samples": 237,
+        "incomplete_samples": 1,
+        "max_gap_s": 0.1019713
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 5347600,
+          "total_duration": 1017764400,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "bd8781dbf0380b248e808a20e0f1cb3b745b7a4abf3e731eb5374cd29593d203",
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 4501000,
+          "total_duration": 1237108100,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "708c046bbb96ade0f8b3e319630b10d7d50e8e74fbfa42920fa338f8494d14fa",
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 3423200,
+          "total_duration": 1443954000,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 11.9602214,
+        "cpu_s": 44.765625,
+        "peak_ws_mib": 804.578125,
+        "peak_private_mib": 879.0859375,
+        "samples": 120,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1019713
+      },
+      "backend_cpu_s": 49.171875,
+      "backend_peak_commit_mib": 1060.75390625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 1.0879825,
+        "cpu_s": 3.234375,
+        "peak_ws_mib": 638.83203125,
+        "peak_private_mib": 758.29296875,
+        "samples": 13,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.101261
+      },
+      "quality_key": "f61af7524e2942770331141da63534bbd28dab7c6237bed07f44a8f0bff00e84",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 0,
+      "phase": "cold",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 0,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0196949,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 25.484375,
+        "peak_private_mib": 15.55859375,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0196949
+      },
+      "startup_to_capture_s": 0.1208907,
+      "launch_to_delivery_s": 0.1405856,
+      "provider_calls": [],
+      "quality_key": "23e897338b64f76c515c8eed9da1f6c29dee4ef496453ce3a33c8c79f85929c7",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "decoracion",
+      "arm": 0,
+      "phase": "repeat",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "0f009f5167b9c4473a4e3e67acbc95283ede7369e0ada6b15ba5b0d88b640fb2",
+      "calls": 0,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0155577,
+        "cpu_s": 0.0,
+        "peak_ws_mib": 25.16015625,
+        "peak_private_mib": 15.66015625,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0155577
+      },
+      "provider_calls": [],
+      "quality_key": "23e897338b64f76c515c8eed9da1f6c29dee4ef496453ce3a33c8c79f85929c7",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "La entrega no explica cuándo mantener la alternativa vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 3,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 3,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 20.096596,
+        "cpu_s": 53.375,
+        "peak_ws_mib": 803.55078125,
+        "peak_private_mib": 918.09765625,
+        "samples": 202,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1017796
+      },
+      "startup_to_capture_s": 0.1732219,
+      "launch_to_delivery_s": 20.2698179,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 1071575100,
+          "total_duration": 2058361400,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "bd8781dbf0380b248e808a20e0f1cb3b745b7a4abf3e731eb5374cd29593d203",
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 5746400,
+          "total_duration": 1226555500,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "708c046bbb96ade0f8b3e319630b10d7d50e8e74fbfa42920fa338f8494d14fa",
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 4450500,
+          "total_duration": 1492982100,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 13.0892215,
+        "cpu_s": 47.703125,
+        "peak_ws_mib": 803.55078125,
+        "peak_private_mib": 878.21875,
+        "samples": 132,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1017796
+      },
+      "backend_cpu_s": 48.46875,
+      "backend_peak_commit_mib": 957.78515625,
+      "backend_closed": true,
+      "quality_key": "9bb3f89c6b05a2e8f2294730922397367a01c9fae64e8faf4d4644b68f6073b9",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 3,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 3,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 19.5691205,
+        "cpu_s": 51.953125,
+        "peak_ws_mib": 804.984375,
+        "peak_private_mib": 1152.6796875,
+        "samples": 196,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1016996
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 821969100,
+          "total_duration": 1806726600,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "bd8781dbf0380b248e808a20e0f1cb3b745b7a4abf3e731eb5374cd29593d203",
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 7037900,
+          "total_duration": 1232821000,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "708c046bbb96ade0f8b3e319630b10d7d50e8e74fbfa42920fa338f8494d14fa",
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 6152800,
+          "total_duration": 1464931900,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 13.3356778,
+        "cpu_s": 46.84375,
+        "peak_ws_mib": 804.984375,
+        "peak_private_mib": 878.5859375,
+        "samples": 134,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1016996
+      },
+      "backend_cpu_s": 46.90625,
+      "backend_peak_commit_mib": 1135.87890625,
+      "backend_closed": true,
+      "quality_key": "9bb3f89c6b05a2e8f2294730922397367a01c9fae64e8faf4d4644b68f6073b9",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 3,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 3,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 23.8735379,
+        "cpu_s": 55.390625,
+        "peak_ws_mib": 804.828125,
+        "peak_private_mib": 883.765625,
+        "samples": 239,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015456
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 5962000,
+          "total_duration": 1015140000,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "bd8781dbf0380b248e808a20e0f1cb3b745b7a4abf3e731eb5374cd29593d203",
+          "prompt_eval_count": 256,
+          "eval_count": 54,
+          "load_duration": 3839600,
+          "total_duration": 1230172800,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "708c046bbb96ade0f8b3e319630b10d7d50e8e74fbfa42920fa338f8494d14fa",
+          "prompt_eval_count": 380,
+          "eval_count": 54,
+          "load_duration": 3147700,
+          "total_duration": 1435687000,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 12.6895016,
+        "cpu_s": 44.8125,
+        "peak_ws_mib": 804.828125,
+        "peak_private_mib": 879.8828125,
+        "samples": 128,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015456
+      },
+      "backend_cpu_s": 48.1875,
+      "backend_peak_commit_mib": 1116.890625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 1.0872032,
+        "cpu_s": 3.296875,
+        "peak_ws_mib": 638.55078125,
+        "peak_private_mib": 757.5703125,
+        "samples": 12,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1010586
+      },
+      "quality_key": "9bb3f89c6b05a2e8f2294730922397367a01c9fae64e8faf4d4644b68f6073b9",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 0,
+      "phase": "cold",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 0,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 0.0225962,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 25.2734375,
+        "peak_private_mib": 15.5625,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0225962
+      },
+      "startup_to_capture_s": 0.1426504,
+      "launch_to_delivery_s": 0.1652466,
+      "provider_calls": [],
+      "quality_key": "8680bf21878039f460e2ba010f5fd58e88ff29047222a555bf92f46d47799767",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 0,
+      "phase": "repeat",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 0,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 0.0169425,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 24.81640625,
+        "peak_private_mib": 15.0234375,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0169425
+      },
+      "provider_calls": [],
+      "quality_key": "8680bf21878039f460e2ba010f5fd58e88ff29047222a555bf92f46d47799767",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 1,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 1,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 11.3727121,
+        "cpu_s": 19.875,
+        "peak_ws_mib": 654.16015625,
+        "peak_private_mib": 1016.57421875,
+        "samples": 115,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1017247
+      },
+      "startup_to_capture_s": 0.1860276,
+      "launch_to_delivery_s": 11.5587397,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 825103900,
+          "total_duration": 1782056700,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.7362068,
+        "cpu_s": 14.078125,
+        "peak_ws_mib": 654.16015625,
+        "peak_private_mib": 760.4140625,
+        "samples": 49,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1012044
+      },
+      "backend_cpu_s": 17.203125,
+      "backend_peak_commit_mib": 1082.81640625,
+      "backend_closed": true,
+      "quality_key": "2b2aecd5a91034c9f2464e5247ba73b7da46c447bd0d81e7ac6863f42b24c832",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 1,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 1,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 10.7717329,
+        "cpu_s": 19.59375,
+        "peak_ws_mib": 654.24609375,
+        "peak_private_mib": 870.265625,
+        "samples": 109,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014739
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 814910800,
+          "total_duration": 1803086900,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.3701247,
+        "cpu_s": 14.15625,
+        "peak_ws_mib": 654.5546875,
+        "peak_private_mib": 761.265625,
+        "samples": 45,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014739
+      },
+      "backend_cpu_s": 17.296875,
+      "backend_peak_commit_mib": 1105.56640625,
+      "backend_closed": true,
+      "quality_key": "2b2aecd5a91034c9f2464e5247ba73b7da46c447bd0d81e7ac6863f42b24c832",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "referencia",
+      "arm": 1,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "4dc568cb862973c5580802250412118e94bd51fea0756fef09462ed145b36452",
+      "calls": 1,
+      "observed": [],
+      "tp": 0,
+      "fp": 0,
+      "fn": 1,
+      "work": {
+        "wall_s": 14.7368721,
+        "cpu_s": 21.78125,
+        "peak_ws_mib": 779.640625,
+        "peak_private_mib": 1151.8125,
+        "samples": 149,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.103356
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "7ef8a9a801e4890e01072f793ecc0dcc47bdec86ea85727a0d3c986e50480f2b",
+          "prompt_eval_count": 129,
+          "eval_count": 54,
+          "load_duration": 5510700,
+          "total_duration": 986508600,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 3.8630614,
+        "cpu_s": 11.5625,
+        "peak_ws_mib": 779.640625,
+        "peak_private_mib": 872.46875,
+        "samples": 40,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1016995
+      },
+      "backend_cpu_s": 17.640625,
+      "backend_peak_commit_mib": 1137.15625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 0.8470775,
+        "cpu_s": 2.0625,
+        "peak_ws_mib": 638.7890625,
+        "peak_private_mib": 758.4296875,
+        "samples": 10,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1009974
+      },
+      "quality_key": "2b2aecd5a91034c9f2464e5247ba73b7da46c447bd0d81e7ac6863f42b24c832",
+      "quality": {
+        "points": 0,
+        "extra": 0,
+        "unsupported": true,
+        "reason": "No identifica el destino ausente ni permite decidir cómo resolverlo. Afirma que se identificaron áreas de mejora aunque la salida de las reglas estaba vacía."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 3,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 3,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 17.0431398,
+        "cpu_s": 42.953125,
+        "peak_ws_mib": 802.5859375,
+        "peak_private_mib": 1096.61328125,
+        "samples": 171,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013588
+      },
+      "startup_to_capture_s": 0.129671,
+      "launch_to_delivery_s": 17.1728108,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "42275f12372bcb41d0ad15fe09eb21b32046611dc7d22bc32de89aeb17ecd034",
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 814801700,
+          "total_duration": 1599269700,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "1fba50e5366f6bc9bc1e909b20b164552355735705a85b6e6a6aed4ca1c48bdd",
+          "prompt_eval_count": 249,
+          "eval_count": 35,
+          "load_duration": 3776300,
+          "total_duration": 870788500,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "b9fa39ba958211153fca2d16edd60da07393cb3ff47341293361ca07e97db855",
+          "prompt_eval_count": 352,
+          "eval_count": 35,
+          "load_duration": 8464900,
+          "total_duration": 1111708200,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 11.5877999,
+        "cpu_s": 37.703125,
+        "peak_ws_mib": 802.5859375,
+        "peak_private_mib": 878.38671875,
+        "samples": 117,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013588
+      },
+      "backend_cpu_s": 38.453125,
+      "backend_peak_commit_mib": 1137.3359375,
+      "backend_closed": true,
+      "quality_key": "a28ad3c1a316141b535f45b1f09d7bde11edeb2e3d250546c7937430ef99c6d5",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 3,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 3,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 22.1494368,
+        "cpu_s": 44.125,
+        "peak_ws_mib": 802.80859375,
+        "peak_private_mib": 1152.40625,
+        "samples": 222,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015322
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "42275f12372bcb41d0ad15fe09eb21b32046611dc7d22bc32de89aeb17ecd034",
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 1071784900,
+          "total_duration": 1818200600,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "1fba50e5366f6bc9bc1e909b20b164552355735705a85b6e6a6aed4ca1c48bdd",
+          "prompt_eval_count": 249,
+          "eval_count": 35,
+          "load_duration": 8645300,
+          "total_duration": 932531400,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "b9fa39ba958211153fca2d16edd60da07393cb3ff47341293361ca07e97db855",
+          "prompt_eval_count": 352,
+          "eval_count": 35,
+          "load_duration": 5404800,
+          "total_duration": 1142109900,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 11.4748678,
+        "cpu_s": 38.234375,
+        "peak_ws_mib": 802.80859375,
+        "peak_private_mib": 878.75390625,
+        "samples": 116,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015007
+      },
+      "backend_cpu_s": 38.9375,
+      "backend_peak_commit_mib": 1135.51953125,
+      "backend_closed": true,
+      "quality_key": "a28ad3c1a316141b535f45b1f09d7bde11edeb2e3d250546c7937430ef99c6d5",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 3,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 3,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 25.1830464,
+        "cpu_s": 45.609375,
+        "peak_ws_mib": 795.1796875,
+        "peak_private_mib": 1153.70703125,
+        "samples": 252,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1016142
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "42275f12372bcb41d0ad15fe09eb21b32046611dc7d22bc32de89aeb17ecd034",
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 6486200,
+          "total_duration": 770097000,
+          "done_reason": "stop"
+        },
+        {
+          "role": "skeptic",
+          "resident_before": true,
+          "request_sha256": "1fba50e5366f6bc9bc1e909b20b164552355735705a85b6e6a6aed4ca1c48bdd",
+          "prompt_eval_count": 249,
+          "eval_count": 35,
+          "load_duration": 7933500,
+          "total_duration": 919312900,
+          "done_reason": "stop"
+        },
+        {
+          "role": "integrator",
+          "resident_before": true,
+          "request_sha256": "b9fa39ba958211153fca2d16edd60da07393cb3ff47341293361ca07e97db855",
+          "prompt_eval_count": 352,
+          "eval_count": 35,
+          "load_duration": 5761500,
+          "total_duration": 1100853500,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 10.3210004,
+        "cpu_s": 34.96875,
+        "peak_ws_mib": 795.1796875,
+        "peak_private_mib": 871.5390625,
+        "samples": 104,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014052
+      },
+      "backend_cpu_s": 39.703125,
+      "backend_peak_commit_mib": 1136.50390625,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 0.8093609,
+        "cpu_s": 2.65625,
+        "peak_ws_mib": 638.56640625,
+        "peak_private_mib": 758.7578125,
+        "samples": 10,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011204
+      },
+      "quality_key": "a28ad3c1a316141b535f45b1f09d7bde11edeb2e3d250546c7937430ef99c6d5",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 1,
+      "phase": "cold",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 1,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 16.8327162,
+        "cpu_s": 17.890625,
+        "peak_ws_mib": 709.515625,
+        "peak_private_mib": 1154.421875,
+        "samples": 169,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1014986
+      },
+      "startup_to_capture_s": 0.1217199,
+      "launch_to_delivery_s": 16.9544361,
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "42275f12372bcb41d0ad15fe09eb21b32046611dc7d22bc32de89aeb17ecd034",
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 814089400,
+          "total_duration": 1575961000,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.4831097,
+        "cpu_s": 11.484375,
+        "peak_ws_mib": 654.64453125,
+        "peak_private_mib": 760.71875,
+        "samples": 46,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1011333
+      },
+      "backend_cpu_s": 14.71875,
+      "backend_peak_commit_mib": 1136.82421875,
+      "backend_closed": true,
+      "quality_key": "77761e795901e4a8a5f25199439d72666b3bc125d1c5dcd9e6c358aa86d214d3",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 1,
+      "phase": "repeat",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 1,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 15.945491,
+        "cpu_s": 17.9375,
+        "peak_ws_mib": 704.8125,
+        "peak_private_mib": 1155.0234375,
+        "samples": 160,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013826
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": false,
+          "request_sha256": "42275f12372bcb41d0ad15fe09eb21b32046611dc7d22bc32de89aeb17ecd034",
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 816055300,
+          "total_duration": 1548358700,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 4.7504674,
+        "cpu_s": 11.5625,
+        "peak_ws_mib": 654.08984375,
+        "peak_private_mib": 760.51171875,
+        "samples": 50,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1013826
+      },
+      "backend_cpu_s": 14.90625,
+      "backend_peak_commit_mib": 1137.30859375,
+      "backend_closed": true,
+      "quality_key": "77761e795901e4a8a5f25199439d72666b3bc125d1c5dcd9e6c358aa86d214d3",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 1,
+      "phase": "preloaded",
+      "state": "ACCEPTED",
+      "attempts": 1,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 1,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 18.1913914,
+        "cpu_s": 20.671875,
+        "peak_ws_mib": 780.3984375,
+        "peak_private_mib": 1153.046875,
+        "samples": 183,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1023624
+      },
+      "provider_calls": [
+        {
+          "role": "director",
+          "resident_before": true,
+          "request_sha256": "42275f12372bcb41d0ad15fe09eb21b32046611dc7d22bc32de89aeb17ecd034",
+          "prompt_eval_count": 143,
+          "eval_count": 35,
+          "load_duration": 4148200,
+          "total_duration": 739186200,
+          "done_reason": "stop"
+        }
+      ],
+      "model_phase": {
+        "wall_s": 3.4602316,
+        "cpu_s": 9.890625,
+        "peak_ws_mib": 780.3984375,
+        "peak_private_mib": 873.9140625,
+        "samples": 36,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1010625
+      },
+      "backend_cpu_s": 16.09375,
+      "backend_peak_commit_mib": 1135.5703125,
+      "backend_closed": true,
+      "preload": {
+        "wall_s": 0.8344881,
+        "cpu_s": 2.0,
+        "peak_ws_mib": 638.84765625,
+        "peak_private_mib": 758.48046875,
+        "samples": 10,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1015709
+      },
+      "quality_key": "77761e795901e4a8a5f25199439d72666b3bc125d1c5dcd9e6c358aa86d214d3",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 0,
+      "phase": "cold",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 0,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.029098,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 25.03125,
+        "peak_private_mib": 15.3359375,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.029098
+      },
+      "startup_to_capture_s": 0.1205811,
+      "launch_to_delivery_s": 0.1496791,
+      "provider_calls": [],
+      "quality_key": "7de501619d8df617fe1eda240f740f85b4ecc541a555a3bf4713bf371c4d9608",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    },
+    {
+      "task": "etiqueta",
+      "arm": 0,
+      "phase": "repeat",
+      "state": "STATIC",
+      "attempts": 0,
+      "source_sha256": "bd0ad54f52ccadb4746883d7f5090c25b1fd803257feb4046af664950a4a18b0",
+      "calls": 0,
+      "observed": [
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          1
+        ]
+      ],
+      "tp": 1,
+      "fp": 0,
+      "fn": 0,
+      "work": {
+        "wall_s": 0.0125072,
+        "cpu_s": 0.015625,
+        "peak_ws_mib": 24.99609375,
+        "peak_private_mib": 15.3359375,
+        "samples": 2,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.0125072
+      },
+      "provider_calls": [],
+      "quality_key": "7de501619d8df617fe1eda240f740f85b4ecc541a555a3bf4713bf371c4d9608",
+      "quality": {
+        "points": 0.5,
+        "extra": 0,
+        "unsupported": false,
+        "reason": "Orienta sobre la imagen. No explica si la asociación de la etiqueta del control se conserva."
+      },
+      "quality_basis": "identical findings, fixed guidance and paragraphs for this case"
+    }
+  ],
+  "summaries": [
+    {
+      "arm": 0,
+      "phase": "cold",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 0.01889845,
+          "min": 0.0175881,
+          "max": 0.029098
+        },
+        "cpu_s": {
+          "median": 0.015625,
+          "min": 0.015625,
+          "max": 0.015625
+        },
+        "peak_ws_mib": {
+          "median": 25.25390625,
+          "min": 25.03125,
+          "max": 25.484375
+        },
+        "peak_private_mib": {
+          "median": 15.568359375,
+          "min": 15.3359375,
+          "max": 15.80859375
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 4.141292212643104,
+        "min": 2.6848924324695855,
+        "max": 4.441923800751645
+      },
+      "attempts": 0,
+      "calls": 0,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "truncated_calls": 0,
+      "incomplete_samples": 0,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 0,
+      "launch_to_delivery_s": {
+        "median": 0.13788235,
+        "min": 0.1291255,
+        "max": 0.1652466
+      }
+    },
+    {
+      "arm": 0,
+      "phase": "repeat",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 0.012582449999999998,
+          "min": 0.0116122,
+          "max": 0.0169425
+        },
+        "cpu_s": {
+          "median": 0.0078125,
+          "min": 0.0,
+          "max": 0.015625
+        },
+        "peak_ws_mib": {
+          "median": 25.228515625,
+          "min": 24.81640625,
+          "max": 25.53515625
+        },
+        "peak_private_mib": {
+          "median": 15.666015625,
+          "min": 15.0234375,
+          "max": 15.96484375
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 2.305592445034676,
+        "min": 0.0,
+        "max": 6.246402072406295
+      },
+      "attempts": 0,
+      "calls": 0,
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "truncated_calls": 0,
+      "incomplete_samples": 0,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 0
+    },
+    {
+      "arm": 1,
+      "phase": "cold",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 13.276652250000001,
+          "min": 11.1199486,
+          "max": 36.5787846
+        },
+        "cpu_s": {
+          "median": 18.515625,
+          "min": 17.359375,
+          "max": 20.15625
+        },
+        "peak_ws_mib": {
+          "median": 655.05859375,
+          "min": 653.9921875,
+          "max": 709.515625
+        },
+        "peak_private_mib": {
+          "median": 1029.990234375,
+          "min": 846.7109375,
+          "max": 1154.421875
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 6.583041950676696,
+        "min": 2.6163560666802472,
+        "max": 9.063103942764627
+      },
+      "attempts": 6,
+      "calls": 6,
+      "tokens_in": 847,
+      "tokens_out": 258,
+      "truncated_calls": 0,
+      "incomplete_samples": 0,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 2,
+      "model_phase": {
+        "wall_s": {
+          "median": 4.763245749999999,
+          "min": 4.2193366,
+          "max": 6.8420656
+        },
+        "cpu_s": {
+          "median": 12.3828125,
+          "min": 11.390625,
+          "max": 14.6875
+        },
+        "peak_ws_mib": {
+          "median": 654.626953125,
+          "min": 653.9921875,
+          "max": 655.5625
+        },
+        "peak_private_mib": {
+          "median": 760.744140625,
+          "min": 760.4140625,
+          "max": 761.50390625
+        }
+      },
+      "first_load_s": {
+        "median": 0.9409000000000001,
+        "min": 0.8140894,
+        "max": 3.3109464
+      },
+      "launch_to_delivery_s": {
+        "median": 13.39332145,
+        "min": 11.2358467,
+        "max": 36.6928991
+      }
+    },
+    {
+      "arm": 1,
+      "phase": "repeat",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 11.23885565,
+          "min": 10.125974,
+          "max": 15.945491
+        },
+        "cpu_s": {
+          "median": 17.7421875,
+          "min": 16.234375,
+          "max": 21.5
+        },
+        "peak_ws_mib": {
+          "median": 671.884765625,
+          "min": 654.24609375,
+          "max": 704.8125
+        },
+        "peak_private_mib": {
+          "median": 1079.353515625,
+          "min": 870.265625,
+          "max": 1155.0234375
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 8.283064793364538,
+        "min": 5.624630812560114,
+        "max": 9.183341735877455
+      },
+      "attempts": 6,
+      "calls": 6,
+      "tokens_in": 847,
+      "tokens_out": 258,
+      "truncated_calls": 0,
+      "incomplete_samples": 0,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 2,
+      "model_phase": {
+        "wall_s": {
+          "median": 4.5264165,
+          "min": 4.0680882,
+          "max": 6.3771561
+        },
+        "cpu_s": {
+          "median": 12.1875,
+          "min": 11.1875,
+          "max": 15.515625
+        },
+        "peak_ws_mib": {
+          "median": 654.548828125,
+          "min": 654.08984375,
+          "max": 655.203125
+        },
+        "peak_private_mib": {
+          "median": 760.6171875,
+          "min": 759.9921875,
+          "max": 761.265625
+        }
+      },
+      "first_load_s": {
+        "median": 0.8132846,
+        "min": 0.7979276,
+        "max": 2.803126
+      }
+    },
+    {
+      "arm": 1,
+      "phase": "preloaded",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 14.016812949999998,
+          "min": 12.4438507,
+          "max": 18.1913914
+        },
+        "cpu_s": {
+          "median": 19.5859375,
+          "min": 17.703125,
+          "max": 21.78125
+        },
+        "peak_ws_mib": {
+          "median": 779.990234375,
+          "min": 779.18359375,
+          "max": 781.2578125
+        },
+        "peak_private_mib": {
+          "median": 1000.12890625,
+          "min": 876.328125,
+          "max": 1153.046875
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 7.080442097562139,
+        "min": 5.242896686929698,
+        "max": 7.849660268207719
+      },
+      "attempts": 6,
+      "calls": 6,
+      "tokens_in": 847,
+      "tokens_out": 258,
+      "truncated_calls": 0,
+      "incomplete_samples": 0,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 2,
+      "model_phase": {
+        "wall_s": {
+          "median": 3.62005815,
+          "min": 3.0404938,
+          "max": 3.8630614
+        },
+        "cpu_s": {
+          "median": 10.0703125,
+          "min": 9.296875,
+          "max": 12.0625
+        },
+        "peak_ws_mib": {
+          "median": 779.990234375,
+          "min": 779.18359375,
+          "max": 781.2578125
+        },
+        "peak_private_mib": {
+          "median": 872.57421875,
+          "min": 872.1015625,
+          "max": 873.9140625
+        }
+      },
+      "first_load_s": {
+        "median": 0.00413785,
+        "min": 0.003835,
+        "max": 0.0058226
+      },
+      "preload": {
+        "wall_s": {
+          "median": 0.8406798,
+          "min": 0.7938973,
+          "max": 5.8258809
+        },
+        "cpu_s": {
+          "median": 2.1875,
+          "min": 2.0,
+          "max": 2.828125
+        },
+        "peak_ws_mib": {
+          "median": 638.703125,
+          "min": 637.8359375,
+          "max": 638.94921875
+        },
+        "peak_private_mib": {
+          "median": 758.314453125,
+          "min": 757.03515625,
+          "max": 758.578125
+        }
+      }
+    },
+    {
+      "arm": 3,
+      "phase": "cold",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 17.7590088,
+          "min": 16.0574004,
+          "max": 20.096596
+        },
+        "cpu_s": {
+          "median": 45.1640625,
+          "min": 40.78125,
+          "max": 53.375
+        },
+        "peak_ws_mib": {
+          "median": 803.193359375,
+          "min": 801.875,
+          "max": 804.1484375
+        },
+        "peak_private_mib": {
+          "median": 1022.0234375,
+          "min": 877.69140625,
+          "max": 1120.33984375
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 12.922241737271591,
+        "min": 12.283792136867302,
+        "max": 13.69064701161617
+      },
+      "attempts": 6,
+      "calls": 18,
+      "tokens_in": 4602,
+      "tokens_out": 814,
+      "truncated_calls": 0,
+      "incomplete_samples": 0,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 2,
+      "model_phase": {
+        "wall_s": {
+          "median": 11.8184879,
+          "min": 10.5018903,
+          "max": 13.0892215
+        },
+        "cpu_s": {
+          "median": 40.2578125,
+          "min": 35.96875,
+          "max": 47.703125
+        },
+        "peak_ws_mib": {
+          "median": 803.193359375,
+          "min": 801.875,
+          "max": 804.1484375
+        },
+        "peak_private_mib": {
+          "median": 878.462890625,
+          "min": 877.69140625,
+          "max": 879.51953125
+        }
+      },
+      "first_load_s": {
+        "median": 0.8150795,
+        "min": 0.7941433,
+        "max": 1.0715751
+      },
+      "launch_to_delivery_s": {
+        "median": 17.8771501,
+        "min": 16.1644911,
+        "max": 20.2698179
+      }
+    },
+    {
+      "arm": 3,
+      "phase": "repeat",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 18.95888215,
+          "min": 18.3339215,
+          "max": 22.1494368
+        },
+        "cpu_s": {
+          "median": 46.0703125,
+          "min": 41.78125,
+          "max": 53.078125
+        },
+        "peak_ws_mib": {
+          "median": 802.619140625,
+          "min": 796.75,
+          "max": 804.984375
+        },
+        "peak_private_mib": {
+          "median": 1086.513671875,
+          "min": 878.71484375,
+          "max": 1152.6796875
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 12.551820802365796,
+        "min": 9.960749882362697,
+        "max": 13.903805039009148
+      },
+      "attempts": 6,
+      "calls": 18,
+      "tokens_in": 4602,
+      "tokens_out": 814,
+      "truncated_calls": 0,
+      "incomplete_samples": 0,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 2,
+      "model_phase": {
+        "wall_s": {
+          "median": 12.5170782,
+          "min": 10.9639369,
+          "max": 13.3356778
+        },
+        "cpu_s": {
+          "median": 41.109375,
+          "min": 37.125,
+          "max": 47.0625
+        },
+        "peak_ws_mib": {
+          "median": 802.619140625,
+          "min": 796.75,
+          "max": 804.984375
+        },
+        "peak_private_mib": {
+          "median": 878.650390625,
+          "min": 872.62890625,
+          "max": 878.75390625
+        }
+      },
+      "first_load_s": {
+        "median": 0.946877,
+        "min": 0.795797,
+        "max": 1.3003437
+      }
+    },
+    {
+      "arm": 3,
+      "phase": "preloaded",
+      "n": 6,
+      "work": {
+        "wall_s": {
+          "median": 24.52829215,
+          "min": 20.8064155,
+          "max": 26.0323033
+        },
+        "cpu_s": {
+          "median": 47.2421875,
+          "min": 43.484375,
+          "max": 55.875
+        },
+        "peak_ws_mib": {
+          "median": 803.50390625,
+          "min": 795.1796875,
+          "max": 804.828125
+        },
+        "peak_private_mib": {
+          "median": 1002.544921875,
+          "min": 879.83203125,
+          "max": 1153.70703125
+        }
+      },
+      "machine_cpu_pct": {
+        "median": 10.16267424577195,
+        "min": 8.352002990069648,
+        "max": 11.821253507315669
+      },
+      "attempts": 6,
+      "calls": 18,
+      "tokens_in": 4602,
+      "tokens_out": 814,
+      "truncated_calls": 0,
+      "incomplete_samples": 1,
+      "tp": 5,
+      "fn": 1,
+      "fp": 0,
+      "exact_cases": 5,
+      "decision_points": 3.5,
+      "additional_actions": 0,
+      "unsupported_cases": 2,
+      "model_phase": {
+        "wall_s": {
+          "median": 11.23878625,
+          "min": 9.2111991,
+          "max": 12.6895016
+        },
+        "cpu_s": {
+          "median": 38.296875,
+          "min": 34.46875,
+          "max": 44.8125
+        },
+        "peak_ws_mib": {
+          "median": 803.50390625,
+          "min": 795.1796875,
+          "max": 804.828125
+        },
+        "peak_private_mib": {
+          "median": 879.458984375,
+          "min": 871.5390625,
+          "max": 880.125
+        }
+      },
+      "first_load_s": {
+        "median": 0.00454815,
+        "min": 0.0031048,
+        "max": 0.0064862
+      },
+      "preload": {
+        "wall_s": {
+          "median": 1.0793202499999999,
+          "min": 0.8093609,
+          "max": 9.0801604
+        },
+        "cpu_s": {
+          "median": 2.9140625,
+          "min": 2.203125,
+          "max": 3.296875
+        },
+        "peak_ws_mib": {
+          "median": 638.69921875,
+          "min": 638.3359375,
+          "max": 640.2578125
+        },
+        "peak_private_mib": {
+          "median": 757.9609375,
+          "min": 756.96484375,
+          "max": 759.28125
+        }
+      }
+    }
+  ],
+  "paired": [
+    {
+      "arm": 1,
+      "n": 6,
+      "definition": "weights preloaded minus normal repeat, within each task",
+      "wall_difference_s": {
+        "median": 2.2818885500000006,
+        "min": 0.6961390000000005,
+        "max": 7.370389899999999
+      },
+      "generation_window_difference_s": {
+        "median": -0.9837239499999999,
+        "min": -2.8798945999999996,
+        "max": -0.5070633
+      },
+      "work_cpu_difference_s": {
+        "median": 1.5859375,
+        "min": -0.625,
+        "max": 2.734375
+      }
+    },
+    {
+      "arm": 3,
+      "n": 6,
+      "definition": "weights preloaded minus normal repeat, within each task",
+      "wall_difference_s": {
+        "median": 4.42503615,
+        "min": 1.9762768000000008,
+        "max": 7.6983818
+      },
+      "generation_window_difference_s": {
+        "median": -0.9000217999999993,
+        "min": -3.7863001,
+        "max": 0.4382730000000006
+      },
+      "work_cpu_difference_s": {
+        "median": 2.8671875,
+        "min": -3.65625,
+        "max": 3.875
+      }
+    }
+  ],
+  "variants": {},
+  "hardware": {
+    "cpu": "Intel(R) Core(TM) Ultra 7 255HX",
+    "physical_cores": 20,
+    "logical_processors": 20,
+    "installed_ram_bytes": 34359738368,
+    "visible_ram_bytes": 33752997888,
+    "windows": "Microsoft Windows 11 Home",
+    "build": "26200",
+    "power_scheme_guid": "381b4222-f694-41f0-9685-ff5bb260df2e",
+    "battery_status_before": 2,
+    "charge_percent_before": 96,
+    "available_kib_before": 6834528,
+    "video_adapters": [
+      "Intel(R) Graphics",
+      "NVIDIA GeForce RTX 5070 Laptop GPU"
+    ],
+    "protocol_frozen_at_utc": "2026-11-18T00:00:13.9701698Z",
+    "protocol_file_sha256": "c2b9ff9cc2406e6ebc52c4d137da4c578bd9750d1fd734a137ea23c7001de19d",
+    "observation": "Local machine. Background tasks, CPU clocks and Windows file cache uncontrolled."
+  },
+  "native": [
+    {
+      "arm": 0,
+      "exe_sha256": "89bbcb48778df2ab82ab81d392a6152558b9c5a2a1fdfee8c288bac3393aaee3",
+      "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+      "launch_to_ready_s": 1.6650622,
+      "idle": {
+        "wall_s": 3.0012979,
+        "cpu_s": 0.15625,
+        "peak_ws_mib": 455.75,
+        "peak_private_mib": 216.70703125,
+        "samples": 29,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1317833
+      },
+      "before_first_action_webview_ws_mib_median": 400.96484375,
+      "job_empty": true,
+      "rows": [
+        {
+          "phase": "cold",
+          "work": {
+            "wall_s": 2.2032331,
+            "cpu_s": 0.234375,
+            "peak_ws_mib": 536.45703125,
+            "peak_private_mib": 261.296875,
+            "samples": 22,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.143104
+          },
+          "calls": 0,
+          "attempts": 0
+        },
+        {
+          "phase": "repeat",
+          "work": {
+            "wall_s": 2.1508485,
+            "cpu_s": 0.15625,
+            "peak_ws_mib": 546.08984375,
+            "peak_private_mib": 270.62890625,
+            "samples": 22,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.1120951
+          },
+          "calls": 0,
+          "attempts": 0
+        }
+      ]
+    },
+    {
+      "arm": 1,
+      "exe_sha256": "89bbcb48778df2ab82ab81d392a6152558b9c5a2a1fdfee8c288bac3393aaee3",
+      "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+      "launch_to_ready_s": 1.6545143,
+      "idle": {
+        "wall_s": 3.0006092,
+        "cpu_s": 0.125,
+        "peak_ws_mib": 459.28515625,
+        "peak_private_mib": 219.12109375,
+        "samples": 29,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1284362
+      },
+      "before_first_action_webview_ws_mib_median": 413.390625,
+      "job_empty": true,
+      "rows": [
+        {
+          "phase": "cold",
+          "work": {
+            "wall_s": 15.2537512,
+            "cpu_s": 22.15625,
+            "peak_ws_mib": 1244.6640625,
+            "peak_private_mib": 1427.75,
+            "samples": 141,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.137908
+          },
+          "calls": 1,
+          "attempts": 1
+        },
+        {
+          "phase": "repeat",
+          "work": {
+            "wall_s": 11.1519889,
+            "cpu_s": 19.5,
+            "peak_ws_mib": 1267.6796875,
+            "peak_private_mib": 1273.55078125,
+            "samples": 103,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.1323585
+          },
+          "calls": 1,
+          "attempts": 1
+        }
+      ]
+    },
+    {
+      "arm": 3,
+      "exe_sha256": "89bbcb48778df2ab82ab81d392a6152558b9c5a2a1fdfee8c288bac3393aaee3",
+      "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+      "launch_to_ready_s": 1.670062,
+      "idle": {
+        "wall_s": 3.0008784,
+        "cpu_s": 0.109375,
+        "peak_ws_mib": 460.09375,
+        "peak_private_mib": 218.7265625,
+        "samples": 29,
+        "incomplete_samples": 0,
+        "max_gap_s": 0.1342985
+      },
+      "before_first_action_webview_ws_mib_median": 420.41015625,
+      "job_empty": true,
+      "rows": [
+        {
+          "phase": "cold",
+          "work": {
+            "wall_s": 19.617155,
+            "cpu_s": 47.28125,
+            "peak_ws_mib": 1361.390625,
+            "peak_private_mib": 1305.1796875,
+            "samples": 182,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.1394257
+          },
+          "calls": 3,
+          "attempts": 1
+        },
+        {
+          "phase": "repeat",
+          "work": {
+            "wall_s": 19.0260316,
+            "cpu_s": 47.15625,
+            "peak_ws_mib": 1372.0390625,
+            "peak_private_mib": 1383.984375,
+            "samples": 175,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.1401214
+          },
+          "calls": 3,
+          "attempts": 1
+        }
+      ]
+    }
+  ]
+}

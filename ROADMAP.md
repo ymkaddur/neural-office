@@ -4,13 +4,13 @@
 
 El objetivo de una oficina local generalista permanece. Los hitos se aceptan por capacidades demostradas, no por una cantidad de pantallas, agentes o documentación. No hay fechas comprometidas ni una carrera por imitar un IDE.
 
-**V5.8 en Windows.** La recuperación del mismo intento tras dos cortes ya pasó en el ejecutable Tauri. La comparación de CPU, RAM y tiempo prevista en la tabla sigue pendiente. [Prueba de reconexión](docs/V5_8_REVIEW.md).
+**V5.8 en Windows.** El ejecutable recuperó el mismo intento tras dos cortes. La comparación de CPU, RAM y tiempo en seis documentos respalda la comprobación estática por defecto. Los comentarios del modelo siguen disponibles bajo autorización. [Reconexión](docs/V5_8_REVIEW.md) · [Coste y utilidad](docs/V5_8_RESOURCES.md).
 
 | Hito | Qué gana la persona | Puerta de aceptación |
 |---|---|---|
 | **V5.6 · claridad y revisión útil** | Una entrada pública, borrador conservado al navegar, informe accionable y comprobación sin modelo. | Regresiones de navegación/arranque, corpus manual con omisiones explícitas, ejecutable probado y publicación revisada. [Entrega](docs/V5_6_REVIEW.md). |
 | **V5.7 · utilidad medida** | Comprobar el archivo en el escritorio antes de decidir si consultar al Director. | 18 entregas en seis tareas. Un rol y tres roles no añadieron acciones según la rúbrica. Vista estática por defecto. [Método, costes y límites](docs/V5_7_REVIEW.md). |
-| **V5.8 · contexto y recursos bajo control** | Evitar repetir instrucciones útiles y trabajar dentro de los recursos del equipo. | Sólo una skill declarativa de lectura y memoria mínima si V5.7 demuestra necesidad; procedencia, inspección y revocación. Comparación CPU/RAM/tiempo con igual calidad; GPU como perfil separado. |
+| **V5.8 · contexto y recursos bajo control** | Conocer el coste de comprobar un archivo y de pedir una segunda lectura. | Comparación en Windows completada con Ollama en CPU. Un perfil GPU requiere su propio ensayo. La incorporación de memoria y de una skill declarativa de lectura depende de demostrar su utilidad, procedencia, inspección y revocación. |
 | **V5.9 · experiencia y distribución** | Completar el trabajo sin conocer el entorno de desarrollo. | Sesiones con personas, teclado/lector de pantalla, recuperación tras fallos y sesiones largas. Instalación firmada en equipo limpio, requisitos medidos y diagnóstico del arranque intermitente. |
 | **V6 · beta coherente** | Un recorrido local útil de principio a fin. | Fuente → alcance → autorización → trabajo → entrega → reapertura. Sin duplicar efectos, con parada comprobada, evidencia comprensible y aceptación humana. El segundo flujo sólo entra si supera su propia prueba de utilidad y límites. |
 
@@ -26,7 +26,7 @@ El objetivo de una oficina local generalista permanece. Los hitos se aceptan por
 
 Entregar a cinco personas un archivo sintético. Observar si seleccionan la fuente, explican qué cuesta un intento, distinguen un hallazgo de una sugerencia, detienen un encargo y recuperan el resultado correcto. Registrar la primera equivocación, el tiempo y la ayuda. El umbral formativo es cuatro de cinco completando el recorrido sin ayuda. La validación con personas está pendiente.
 
-V5.8 medirá CPU, RAM y tiempo a calidad comparable, desde inicio frío y tras varias revisiones. Antes de añadir memoria, se debe identificar una decisión concreta que la persona necesite repetir. Un nuevo perfil o modelo deberá superar la prueba en casos reservados y en español. Los tres intentos de proyecto son un presupuesto de ejecución independiente del número de roles.
+V5.8 midió CPU, RAM y tiempo en la primera revisión, al repetirla y con los pesos precargados para el ensayo. Antes de añadir memoria, se debe identificar una decisión concreta que la persona necesite repetir. Un nuevo perfil o modelo deberá superar la prueba en casos reservados y en español. Los tres intentos de proyecto son un presupuesto de ejecución independiente del número de roles.
 
 ## Abierto antes de V6
 

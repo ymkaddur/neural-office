@@ -1,0 +1,23 @@
+# Medición de recursos de V5.8 en Windows
+
+Protocolo previo a las inferencias. Código del producto en `e69885c424d80d2658b44039e915702eb10fcec3`. Se conservan los seis HTML, sus posiciones esperadas, el objetivo en español y las seis permutaciones de perfiles de [la comparación anterior](../examples/v57-tasks.json). El corpus normalizado tiene SHA-256 `0e90b5804ec2845a5daccb1a8a6dc559fdace760c1b5778f6d88f1c87adaf0db`.
+
+## Condiciones
+
+Se mide cada perfil sobre los seis documentos. El perfil estático usa la comprobación del escritorio. Un rol usa el Director. Tres roles ejecutan Director, revisor e integrador en serie. Cada bloque documento/perfil tiene su propio proceso Python, oficina SQLite y testigo. Las consultas asistidas de un bloque consumen hasta los tres intentos autorizados de esa oficina. Cada petición tiene clave nueva. Los tres perfiles reciben los mismos bytes. Se conserva el digest local de Qwen2.5 0.5B, `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`. El perfil fija CPU, contexto 8192, hasta 128 tokens por respuesta y temperatura cero.
+
+1. **Frío de aplicación.** Primera revisión en un proceso recién abierto. El cronómetro principal va desde la captura del archivo hasta la lectura de la entrega. Se registra aparte la apertura del intérprete y la oficina. En los perfiles asistidos el servidor privado debe acreditar que su lista de modelos residentes está vacía antes de la primera llamada.
+2. **Repetición normal.** Segunda revisión de los mismos bytes en la misma sesión del escritorio lógico, con captura y aprobación nuevas. El núcleo crea su servidor privado por intento. Se comprueba su estado inicial y se confirma su cierre tras la tarea.
+3. **Pesos calientes.** Control exclusivo del banco de pruebas para los dos perfiles asistidos. Después de admitir el encargo, el servidor propio recibe una petición vacía de precarga. Antes de la primera generación debe exponer exactamente el digest esperado, con contexto 8192 y cero bytes de modelo en VRAM. Se cuenta la precarga aparte, se mide lo que cuesta y se incluye en el total de extremo a extremo. También se mide la fase común desde la primera solicitud de generación hasta la última respuesta. En las seis tareas se alterna cuál de las dos observaciones posteriores al frío se ejecuta primero en los perfiles asistidos.
+
+En total se planifican 36 entregas del recorrido ordinario y 12 controles con precarga, 72 generaciones y 12 precargas sin conversación. Se espera que el estático consuma cero intentos y cada encargo asistido uno. Una avería queda registrada con su fase y conteo. No entra como una medición satisfactoria ni se repite de manera silenciosa.
+
+## Qué se medirá
+
+- Pared monotónica, tiempo acumulado de CPU de usuario y kernel, pico muestreado de suma de working sets y de memoria privada comprometida. Un Job de Windows engloba el núcleo Python, sus verificaciones de propiedad y los procesos de Ollama de esa prueba. Un observador externo toma muestras cada 100 ms y el proceso toma lecturas en los límites de cada fase. Se registran huecos y muestras incompletas. La suma de working sets puede contar páginas compartidas. Para tareas muy cortas se conserva la resolución de los contadores. Se registran las muestras por celda, medianas y rangos sobre las seis tareas, y máximos de memoria por perfil.
+- Llamadas, tokens y motivo de cierre proceden de Ollama y se cotejan con las filas de SQLite. El estado de residencia se lee en el puerto propio. La caché de archivos de Windows y la frecuencia del procesador siguen bajo el control del sistema. Una ejecución fría de aplicación puede encontrar los archivos en caché.
+- El coste del escritorio Tauri/WebView2 tiene una sonda nativa separada sobre un HTML sintético. Se identifica el binario por su SHA-256. Los tiempos de esa sonda incluyen la observación de la ventana. No se suman picos de experimentos distintos.
+
+## Regla de decisión
+
+Se comparan los hallazgos con las posiciones anotadas a mano, incluyendo el control negativo y la referencia rota. Los párrafos se cotejan por contenido con las entregas calificadas en V5.7 para la misma tarea. Sólo se reutiliza una calificación si coincide la entrega semántica completa, incluida la orientación estática. Toda variante se examina con la [misma rúbrica](V5_7_PROTOCOL.md). Para promover un perfil más caro hace falta una acción fundada adicional en al menos dos tareas, conservar la calidad y superar los demás umbrales ya fijados. Para plantear mantener pesos se comparará la ventaja de la generación con el coste de precarga, de mantenerlos residentes y de cerrarlos. La medición por sí sola no habilita compartir un servidor entre encargos.

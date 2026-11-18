@@ -28,7 +28,13 @@
 !tools/verify_v57.py
 !docs/V5_7_REVIEW.md
 !docs/V5_8_REVIEW.md
+!docs/V5_8_RESOURCE_PROTOCOL.md
+!docs/V5_8_RESOURCES.md
 !docs/evidence/V5_8_RECONNECTION.json
+!docs/evidence/V5_8_RESOURCES.json
+!tools/measure_v58.py
+!tools/measure_v58_desktop.py
+!tools/summarize_v58.py
 !tests/e2e_v58_reconnect.py
 !tests/WebView2-V58TestHost.ps1
 !desktop/src/connected/AttemptActivity.tsx
