@@ -1970,7 +1970,7 @@ dependencies = [
 
 [[package]]
 name = "neural-office-desktop"
-version = "5.9.0"
+version = "5.10.0"
 dependencies = [
  "rfd",
  "serde_json",

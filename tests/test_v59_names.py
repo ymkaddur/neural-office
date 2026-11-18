@@ -22,6 +22,14 @@ CASES = [
     ('image label', '<label><img alt="Correo"><input></label>', 'Correo'),
     ('script alone', '<label for="x"><script>0</script></label><input id="x">', ''),
     ('two sources', '<i id="a">Nombre</i><i id="b">legal</i><input aria-labelledby="a b">', 'Nombre legal'),
+    ('hidden label child', '<label for="x"><span hidden>Correo</span></label><input id="x">', ''),
+    ('aria-hidden label child', '<label for="x"><b aria-hidden="true">Correo</b></label><input id="x">', ''),
+    ('css hidden nested image', '<label for="x"><img style="display: none" alt="Correo"></label><input id="x">', ''),
+    ('visible label sibling', '<label for="x"><b hidden>Cuenta</b>Correo</label><input id="x">', 'Correo'),
+    ('direct hidden reference', '<span hidden id="n"><b>Correo</b></span><input aria-labelledby="n">', 'Correo'),
+    ('visible reference with hidden child', '<span id="n"><b hidden>Correo</b></span><input aria-labelledby="n">', ''),
+    ('template id', '<template><b id="n">Correo</b></template><input aria-labelledby="n">', ''),
+    ('hidden native label', '<label hidden for="x"><b>Correo</b></label><input id="x">', ''),
 ]
 
 

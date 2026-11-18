@@ -36,19 +36,19 @@ class NativeWindow(Screen):
         self.edit_receipts=[]
 
 
-def launch(executable, folder, job):
+def launch(executable, folder, job, *, core_root=ROOT):
     import psutil
     import win32api
     import win32con
     import win32process
-    env={**os.environ,'NEURAL_OFFICE_PYTHON':sys._base_executable,'NEURAL_OFFICE_ROOT':str(ROOT),
+    env={**os.environ,'NEURAL_OFFICE_PYTHON':sys._base_executable,'NEURAL_OFFICE_ROOT':str(core_root),
          'NEURAL_OFFICE_STATE':str(folder/'office.sqlite3'),'WEBVIEW2_USER_DATA_FOLDER':str(folder/'webview')}
     startup=win32process.STARTUPINFO()
     startup.dwFlags=win32con.STARTF_USESHOWWINDOW
     startup.wShowWindow=win32con.SW_SHOWNOACTIVATE
     process,thread,pid,_=win32process.CreateProcess(str(executable),subprocess.list2cmdline([str(executable)]),
         None,None,False,win32con.CREATE_SUSPENDED | win32con.CREATE_UNICODE_ENVIRONMENT,
-        env,str(ROOT),startup)
+        env,str(core_root),startup)
     try:
         if not job.dll.AssignProcessToJobObject(job.handle,int(process)):
             error=ctypes.get_last_error()

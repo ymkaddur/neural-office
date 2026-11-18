@@ -4,8 +4,8 @@ import {ProjectHistory} from './ProjectHistory.tsx';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
 import {hasNativeHost,readReport,request} from './client.ts';
 import type {Finding,FindingPage,Report} from './client.ts';
-import {acceptAttempt,approvalMatches,pendingKey,readPending,stateLabels,terminal,validateSnapshot,writePending} from './model.ts';
-import type {Approval,Attempt,Model,Pending,Snapshot,Source} from './model.ts';
+import {acceptAttempt,approvalMatches,approvalScopeMatches,pendingKey,readPending,stateLabels,terminal,validateSnapshot,writePending} from './model.ts';
+import type {Approval,Attempt,Model,Pending,Project,Snapshot,Source} from './model.ts';
 import './connected.css';
 
 type LoadedReport=Awaited<ReturnType<typeof readReport>>;
@@ -46,6 +46,7 @@ const errors:Record<string,string>={
   SOURCE_GRANT_INVALID_OR_EXPIRED:'La selección temporal ha caducado. Vuelve a elegir el archivo para revisar sus bytes actuales.',
   APPROVAL_INVALID_OR_EXPIRED:'La aprobación ha caducado. Revisa de nuevo el encargo antes de ejecutarlo.',
   APPROVAL_CHANGED:'El encargo cambió o la aprobación caducó. Revisa otra vez su alcance.',
+  ATTEMPT_BUDGET_EXHAUSTED:'Este proyecto ha consumido sus 3 intentos. Puedes seguir comprobando HTML sin modelo y consultar sus entregas.',
   DESKTOP_REVISION_CHANGED:'El estado del núcleo cambió. Actualiza y vuelve a revisar el encargo.',
   GLOBAL_INFERENCE_BUSY:'Ya hay un trabajo en curso. Espera a que termine o solicita su parada.',
   OFFICE_RUNNER_STILL_ACTIVE:'El controlador sigue activo. Solicita la parada y espera su confirmación antes de recuperar.',
@@ -87,6 +88,7 @@ export function ConnectedWorkspace() {
   const [session,setSession]=useState('');
   const [officeId,setOfficeId]=useState('');
   const [snapshot,setSnapshot]=useState<Snapshot|null>(null);
+  const [pagedProject,setPagedProject]=useState<{session:string;office:string;revision:number;value:Project}|null>(null);
   const [models,setModels]=useState<Model[]>([]);
   const [modelDigest,setModelDigest]=useState('');
   const [projectId,setProjectId]=useState(makeProject);
@@ -104,9 +106,13 @@ export function ConnectedWorkspace() {
   const [loadedReport,setReport]=useState<LoadedReport|null>(null);
   const [reportReadRevision,setReportReadRevision]=useState(0);
   const [doing,setDoing]=useState('');
+  const stopFlight=useRef<symbol|null>(null);
+  const [requestingStop,setRequestingStop]=useState(false);
+  const [budgetPending,setBudgetPending]=useState(false);
   const [problem,setProblem]=useState<ReturnType<typeof errorInfo>|null>(null);
   const [notice,setNotice]=useState('');
   const [dark,setDark]=useState(()=>{try{return localStorage.getItem('neural-office.v55.theme')!=='light';}catch{return true;}});
+  const [graphite,setGraphite]=useState(()=>{try{return localStorage.getItem('neural-office.v510.palette')!=='mineral';}catch{return true;}});
   const [navOpen,setNavOpen]=useState(false);
   const [resultTab,setResultTab]=useState<'report'|'evidence'>('report');
   const shell=useRef<HTMLDivElement>(null),surface=useRef<HTMLElement>(null),approvalDialog=useRef<HTMLDialogElement>(null);
@@ -118,10 +124,14 @@ export function ConnectedWorkspace() {
   const viewed=inspected??attempt;
   const sourceLabel=viewed?(viewed.source_name||`HTML · ${viewed.source_sha256.slice(0,12)}`):(source?.filename||'Revisión HTML');
   const navProject=browsedProject??projectId;
-  const project=snapshot?.projects.find(p=>p.id===(viewed?.project_id??projectId));
+  const selectedProject=viewed?.project_id??projectId;
+  const project=snapshot?.projects.find(p=>p.id===selectedProject)??(pagedProject&&snapshot&&
+    pagedProject.value.id===selectedProject&&pagedProject.session===snapshot.session_id&&pagedProject.office===snapshot.office_id&&
+    pagedProject.revision===snapshot.revision?pagedProject.value:null);
   const report=loadedReport&&loadedReport.meta.attempt_id===viewed?.id&&loadedReport.report.source_sha256===viewed?.source_sha256?loadedReport:null;
   const alert=connectionError??problem;
   const busy=initializing||active||!!pending||storageBlocked||!!connectionError;
+  const exhausted=!!project&&project.attempts_consumed>=3;
   const available=viewed?.state==='ACCEPTED'&&viewed.report_available;
   const staticPage=source&&inspection?.token===source.entry_token&&inspection.page.session_id===session?inspection.page:null;
   const selectedModel=models.find(m=>m.model_digest===modelDigest);
@@ -140,13 +150,20 @@ export function ConnectedWorkspace() {
   }
   function retryConnection(){
     peerGeneration.current++;
+    stopFlight.current=null;setRequestingStop(false);
     setInitializing(true);setApproval(null);setHandshake(old=>old+1);
   }
   function invalidate(){generation.current++;setApproval(null);setProblem(null);setNotice('');}
   function putAttempt(next:Attempt) {
-    const accepted=acceptAttempt(currentAttempt.current,next);
+    const previous=currentAttempt.current;
+    const accepted=acceptAttempt(previous,next);
     if(currentAttempt.current?.id!==accepted.id&&!inspected)setReport(null);
     currentAttempt.current=accepted;setAttempt(accepted);
+    if(previous?.id===accepted.id&&!terminal(previous.state)&&terminal(accepted.state)){
+      const peer=peerGeneration.current;
+      setBudgetPending(true);
+      void refreshSnapshot().catch(error=>{if(mounted.current&&peer===peerGeneration.current)noteError(error);});
+    }
   }
   async function refreshSnapshot() {
     const generation=peerGeneration.current;
@@ -154,6 +171,7 @@ export function ConnectedWorkspace() {
     if(!mounted.current||generation!==peerGeneration.current)throw Error('READ_SUPERSEDED');
     if(next.session_id!==sessionRef.current||next.office_id!==officeRef.current)throw Error('HOST_SESSION_CHANGED');
     setSnapshot(current=>current&&current.revision>next.revision?current:next);
+    setBudgetPending(false);
     confirmConnection();
     return next;
   }
@@ -178,6 +196,20 @@ export function ConnectedWorkspace() {
     operation.current=true;setDoing(label);setProblem(null);
     try {await work();}catch(error){noteError(error);}finally{operation.current=false;if(mounted.current)setDoing('');}
   }
+  async function stopActive() {
+    const target=currentAttempt.current;
+    if(stopFlight.current||!target||terminal(target.state)||target.state==='STOPPING'||initializing||connectionError)return;
+    const flight=Symbol(),peer=peerGeneration.current;
+    stopFlight.current=flight;setRequestingStop(true);
+    try{
+      const reply=await request<Attempt>('attempt.cancel',{attempt_id:target.id});
+      if(!mounted.current||peer!==peerGeneration.current||currentAttempt.current?.id!==target.id)return;
+      if(reply.id!==target.id||reply.project_id!==target.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
+      if(reply.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
+      putAttempt(reply);
+    }catch(error){if(mounted.current&&peer===peerGeneration.current)noteError(error);}
+    finally{if(mounted.current&&stopFlight.current===flight){stopFlight.current=null;setRequestingStop(false);}}
+  }
   useEffect(()=>{
     mounted.current=true;
     if(!native) return ()=>{mounted.current=false;};
@@ -193,7 +225,7 @@ export function ConnectedWorkspace() {
       }
       setProblem(null);setPendingMissing(false);
       sessionRef.current=description.session_id;officeRef.current=description.office_id;setSession(description.session_id);setOfficeId(description.office_id);setSnapshot(first);
-      confirmConnection();
+      setBudgetPending(false);confirmConnection();
       let saved:Pending|null=null;
       try{saved=readPending(localStorage,description.office_id);setPending(saved);setStorageBlocked(false);}catch(error){setStorageBlocked(true);throw error;}
       const activeRow=first.current_attempt??first.attempts.find(a=>!terminal(a.state));
@@ -237,6 +269,7 @@ export function ConnectedWorkspace() {
   },[assisted,session,!!attempt]);
   useEffect(()=>{if(staticPage&&!assisted)inspectionTitle.current?.focus();},[staticPage,assisted]);
   useEffect(()=>{try{localStorage.setItem('neural-office.v55.theme',dark?'dark':'light');}catch{}},[dark]);
+  useEffect(()=>{try{localStorage.setItem('neural-office.v510.palette',graphite?'graphite':'mineral');}catch{}},[graphite]);
   useEffect(()=>{
     const dialog=approvalDialog.current;
     if(approval&&!dialog?.open){previousFocus.current=document.activeElement as HTMLElement;dialog?.showModal();}
@@ -255,15 +288,9 @@ export function ConnectedWorkspace() {
         if(cancelled||!mounted.current||peer!==peerGeneration.current||currentAttempt.current?.id!==id)return;
         if(next.id!==id||next.project_id!==currentAttempt.current.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
         if(next.session_id&&next.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
-        // Publishing a terminal attempt tears down this polling effect. Reconcile
-        // history and counters before that transition, not after another await.
-        if(terminal(next.state)){
-          await refreshSnapshot();
-          if(!cancelled&&mounted.current&&currentAttempt.current?.id===id)putAttempt(next);
-          return;
-        }
         putAttempt(next);
         confirmConnection();failures=0;
+        if(terminal(next.state))return;
       }catch(error){
         if(!cancelled&&peer===peerGeneration.current){
           failures++;noteError(error);
@@ -279,7 +306,7 @@ export function ConnectedWorkspace() {
     setReport(null);
     if(!viewed||!available)return;
     let live=true;const id=viewed.id;
-    void readReport(request,id,()=>live).then(result=>{if(live){if(result.report.source_sha256!==viewed.source_sha256)throw Error('REPORT_SOURCE_CHANGED');setReport(result);setResultTab('report');}}).catch(error=>{if(live)noteError(error);});
+    void readReport(request,id,()=>live).then(result=>{if(live){if(result.report.source_sha256!==viewed.source_sha256)throw Error('REPORT_SOURCE_CHANGED');setReport(result);}}).catch(error=>{if(live)noteError(error);});
     return()=>{live=false;};
   },[viewed?.id,available,reportReadRevision,session]);
   useEffect(()=>{
@@ -328,12 +355,17 @@ export function ConnectedWorkspace() {
       document.getElementById('static-result-title')||document.getElementById('static-picker'))?.focus());
   }
   async function prepare() {
-    if(!source||!selectedModel||objective.trim().length<12||busy)return;
+    if(!source||!selectedModel||objective.trim().length<12||busy||exhausted||budgetPending)return;
     const expected=epoch();
     const result=await request<Approval>('attempt.preview',{project_id:projectId,entry_token:source.entry_token,model_digest:modelDigest,roles:roleCount,objective:objective.trim()});
     if(!mounted.current||expected!==epoch())return;
     const expiresAt=performance.now()+result.expires_in_seconds*1000;
-    if(!approvalMatches(result,session,source,objective,modelDigest,roleCount,expiresAt,performance.now()))throw Error('APPROVAL_CHANGED');
+    if(!approvalScopeMatches(result,session,source,objective,modelDigest,roleCount,expiresAt,performance.now()))throw Error('APPROVAL_CHANGED');
+    if(result.attempts_remaining===0){
+      setBudgetPending(true);
+      void refreshSnapshot().catch(noteError);
+      throw Error('ATTEMPT_BUDGET_EXHAUSTED');
+    }
     setApproval({value:result,expiresAt});
   }
   async function start() {
@@ -391,7 +423,7 @@ export function ConnectedWorkspace() {
     if(next.id!==item.id||next.project_id!==item.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
     if(next.session_id&&next.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
     confirmConnection();setNavOpen(false);
-    if(currentAttempt.current&&!terminal(currentAttempt.current.state)){
+    if(currentAttempt.current&&currentAttempt.current.id!==item.id&&(active||!terminal(currentAttempt.current.state))){
       setInspected(next.id===currentAttempt.current.id?null:next);
     }else{
       setInspected(null);setBrowsedProject(null);setSource(null);setProjectId(next.project_id);putAttempt(next);
@@ -424,20 +456,21 @@ export function ConnectedWorkspace() {
     const next=validateSnapshot(await request<Snapshot>('snapshot.get',{
       project_after:snapshot.next.project_after,attempt_after:0,limit:100}));
     if(next.revision!==snapshot.revision||next.session_id!==snapshot.session_id||next.office_id!==snapshot.office_id){await refreshSnapshot();setNotice('El historial cambió. Se ha actualizado la primera página.');return;}
+    if(project)setPagedProject({session:snapshot.session_id,office:snapshot.office_id,revision:snapshot.revision,value:project});
     setSnapshot(next);
     setNotice('Página siguiente de proyectos.');
   }
 
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.9</span></div>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.10</span></div>
     <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa un archivo.<br/>Conserva la evidencia.</h1><p>Abre el escritorio para comprobar un HTML. Puedes consultar después a tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
 
-  return <div className={`v541 connected ${dark?'theme-dark':''}`}>
+  return <div className={`v541 connected ${dark?'theme-dark':''} ${graphite?'palette-graphite':''}`}>
     <div ref={shell} className={`office-shell connected-shell ${navOpen?'nav-open':''}`}>
       <nav className="office-nav connected-nav" aria-label="Proyectos y encargos">
-        <div className="wordmark"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.9</span></div>
+        <div className="wordmark"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.10</span></div>
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo encargo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
@@ -448,22 +481,23 @@ export function ConnectedWorkspace() {
           onRefresh={()=>act('Actualizando historial',refreshAll)}/>
         {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',nextProjects)}>Siguientes proyectos →</button>}
         {snapshot&&snapshot.next.project_after>100&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',refreshAll)}>Primeros proyectos</button>}
-        <div className="nav-bottom"><div className="local-engine"><span className={`connected-indicator ${session&&!connectionError&&!initializing?'online':''}`}/><div><strong>{initializing?'Conectando con el núcleo':connectionError?'Conexión por confirmar':session?(active?'Núcleo local conectado':'Última conexión confirmada'):'Conexión pendiente'}</strong><small>{lastConfirmed.current?`Última lectura · ${lastConfirmed.current.toLocaleTimeString('es-ES')}`:'Esperando al núcleo'}</small></div></div><div className="nav-footer"><span>Registro local del encargo</span><button aria-label={dark?'Activar tema claro':'Activar tema oscuro'} onClick={()=>setDark(!dark)}>{dark?'☼':'◐'}</button></div></div>
+        <div className="nav-bottom"><div className="local-engine"><span className={`connected-indicator ${session&&!connectionError&&!initializing?'online':''}`}/><div><strong>{initializing?'Conectando con el núcleo':connectionError?'Conexión por confirmar':session?(active?'Núcleo local conectado':'Última conexión confirmada'):'Conexión pendiente'}</strong><small>{lastConfirmed.current?`Última lectura · ${lastConfirmed.current.toLocaleTimeString('es-ES')}`:'Esperando al núcleo'}</small></div></div><div className="nav-footer"><button className="palette-switch" aria-label={graphite?'Comparar con paleta mineral V5.9':'Activar variante grafito'} title={graphite?'Comparar con V5.9':'Comparar con grafito'} onClick={()=>setGraphite(!graphite)}>{graphite?'Paleta · Grafito':'Paleta · Mineral'}</button><button aria-label={dark?'Activar tema claro':'Activar tema oscuro'} onClick={()=>setDark(!dark)}>{dark?'☼':'◐'}</button></div></div>
       </nav>
       <PaneDivider kind="navigation" container={shell} controls="connected-main" label="Ancho de navegación"/>
       {navOpen&&<button className="connected-nav-backdrop" aria-label="Cerrar navegación" onClick={()=>setNavOpen(false)}/>}
       <main id="connected-main" className="office-workspace" tabIndex={-1} inert={navOpen||undefined}>
         <header className="workspace-header connected-header">
           <div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><span>Oficina</span><span aria-hidden="true">/</span><strong title={sourceLabel}>{sourceLabel}</strong></div>
-          <div className="header-actions"><span className="connected-quota" title={connectionError?'Presupuesto en la última lectura confirmada':'Intentos consumidos de este proyecto'}>{project?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</span>
+          <div className="header-actions"><span className="connected-quota" title={connectionError?'Presupuesto en la última lectura confirmada':'Intentos consumidos de este proyecto'}>{budgetPending?'Cuota pendiente de actualizar':project?`${project.attempts_consumed} de 3 intentos`:'Presupuesto por confirmar'}</span>
             <button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError||!session?retryConnection():void act('Actualizando estado',refreshAll)}>{initializing?'Conectando…':connectionError||!session?'Reconectar':'Actualizar'}</button>
           </div>
         </header>
         {(alert||notice)&&<div className={`connected-notice ${alert?'problem':''}`} role={alert?'alert':'status'}><span>{alert?.message||notice}{alert&&<code>{alert.code}</code>}{connectionError&&lastConfirmed.current&&<small>Última confirmación a las {lastConfirmed.current.toLocaleTimeString('es-ES')}.</small>}</span>{!connectionError&&<button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button>}</div>}
+        {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><div><strong>Trabajo en curso</strong><span title={attempt.objective}>{attempt.objective}</span></div><button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada solicitada':requestingStop?'Solicitando parada':'Detener trabajo'}</button></div>}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>{try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);setNotice('Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}}}>Descartar petición sin reserva</button>}</div>}
         <section ref={surface} className={`connected-surface ${viewed?'with-delivery':''}`} aria-label="Encargo y entrega">
           <section className="connected-director" aria-labelledby={viewed||assisted?'director-title':'static-title'}>
-            {(viewed||assisted)&&<div className="connected-director-heading"><div className="director-signature"><DirectorMark/><strong id="director-title">Director</strong></div><span className={`connected-status ${active&&!inspected&&!connectionError?'active':''}`} role="status">{connectionError?`Último estado · ${status}`:status}</span></div>}
+            {(viewed||assisted)&&<div className="connected-director-heading"><div className="director-signature"><DirectorMark/><strong id="director-title">Director</strong></div><span className={`connected-status ${active&&!inspected&&!connectionError?'active':''}`} role="status">{connectionError&&viewed&&!terminal(viewed.state)?`Último estado · ${status}`:status}</span></div>}
             {!viewed&&!assisted&&<div className="static-workspace" id="static-workspace" role="region" aria-labelledby="static-title">
               <header className="static-heading"><h1 id="static-title">Revisión HTML</h1><p>Localiza qué corregir en tu archivo y abre cada hallazgo para ver por dónde empezar.</p></header>
               <div className="source-desk">
@@ -502,10 +536,10 @@ export function ConnectedWorkspace() {
                   {viewed.calls?.length ? <ol className="connected-call-list" aria-label="Llamadas del modelo">{viewed.calls.map((call,index)=><li key={call.seq}><span className="call-order">{index+1}</span><strong>{roles[call.role]||call.role}</strong><span>{call.state==='DONE'?'Respuesta registrada':call.state==='STARTED'?(connectionError?'En curso en la última lectura':'En curso'):call.state==='INTERRUPTED'?'Interrumpida':call.state}</span></li>)}</ol>
                     : <p>{viewed.calls?'La última lectura contiene cero llamadas.':'Pendiente de leer las llamadas del encargo.'}</p>}
                 </section>
-                {active&&!inspected&&<div className="connected-action-row"><button className="stop-button" disabled={initializing||!!connectionError||!!doing||viewed.state==='STOPPING'} onClick={()=>void act('Solicitando parada',async()=>{putAttempt(await request<Attempt>('attempt.cancel',{attempt_id:viewed.id}));})}>■ {viewed.state==='STOPPING'?'Parada solicitada':'Detener trabajo'}</button><button className="quiet-button" disabled={initializing||!!connectionError||!!doing} onClick={()=>void act('Comprobando recuperación',async()=>{putAttempt(await request<Attempt>('attempt.recover',{attempt_id:viewed.id,expected_revision:viewed.revision}));await refreshSnapshot();})}>Comprobar recuperación</button></div>}
+                {active&&!inspected&&<div className="connected-action-row"><button className="quiet-button" disabled={initializing||!!connectionError||!!doing} onClick={()=>void act('Comprobando recuperación',async()=>{putAttempt(await request<Attempt>('attempt.recover',{attempt_id:viewed.id,expected_revision:viewed.revision}));await refreshSnapshot();})}>Comprobar recuperación</button></div>}
                 {!active&&!connectionError&&terminal(viewed.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>newTask()}>{drafts.current.has(projectId)?'Volver al borrador':'Preparar otro encargo →'}</button>}
                 <AttemptActivity key={session+'·'+viewed.id} office={officeId} session={session} attempt={viewed.id} revision={viewed.cursor??viewed.revision}/>
-                {active&&!inspected&&<details key={officeId+':'+viewed.id} className="next-draft">
+                {!inspected&&(active||drafts.current.get(viewed.project_id)?.afterAttempt===viewed.id)&&<details key={officeId+':'+viewed.id} className="next-draft">
                   <summary>Preparar el siguiente encargo</summary>
                   <label htmlFor="next-objective">Borrador en esta ventana</label>
                   <textarea id="next-objective" maxLength={2000} rows={3} defaultValue={drafts.current.get(viewed.project_id)?.objective||''}
@@ -520,7 +554,7 @@ export function ConnectedWorkspace() {
               <div className="connected-source-row"><button type="button" className="source-picker" disabled={busy||!!doing||!session} onClick={()=>void act('Eligiendo fuente',pickSource)}><span aria-hidden="true">＋</span>{source?source.filename:'Elegir archivo HTML'}</button>{source&&<><span>{formatBytes(source.bytes)} · copia capturada</span><button type="button" aria-label="Quitar fuente del borrador" disabled={busy||!!doing} onClick={()=>{invalidate();setSource(null);}}>×</button></>}</div>
               <div className="connected-model-row"><label htmlFor="connected-model">Modelo local</label><select id="connected-model" value={modelDigest} disabled={busy||!!doing} onChange={e=>{invalidate();setModelDigest(e.target.value);}}><option value="" disabled>{models.length?'Selecciona un modelo':'No hay modelos disponibles'}</option>{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select><button type="button" aria-label="Actualizar modelos locales" title="Actualizar modelos locales" disabled={busy||!!doing||!session} onClick={()=>void act('Consultando modelos',loadModels)}>↻</button></div>
               <details className="connected-profile"><summary>Perfil acotado <span>{roleCount} {roleCount===1?'rol':'roles'} · CPU</span></summary><label htmlFor="connected-roles">Roles secuenciales</label><select id="connected-roles" value={roleCount} disabled={busy||!!doing} onChange={e=>{invalidate();setRoleCount(Number(e.target.value));}}><option value={1}>1 · Director</option><option value={3}>3 · Director, revisor e integrador</option><option value={7}>7 · Equipo completo</option></select><p>Más roles producen más llamadas. No implican mayor calidad. Un solo modelo, contexto 8K y hasta 128 tokens de salida por llamada.</p></details>
-              <div className="connected-send-row"><span>{doing||'Ctrl + Enter para revisar'}<small>{objective.length}/2000</small></span><button className="solid-button" type="submit" disabled={busy||!!doing||!source||!selectedModel||objective.trim().length<12}>Revisar encargo <span aria-hidden="true">→</span></button></div>
+              <div className="connected-send-row"><span>{exhausted?'3 intentos consumidos · comprobación sin modelo disponible':budgetPending?'Actualiza la cuota antes de autorizar':doing||'Ctrl + Enter para revisar'}<small>{objective.length}/2000</small></span><button className="solid-button" type="submit" disabled={busy||exhausted||budgetPending||!!doing||!source||!selectedModel||objective.trim().length<12}>Revisar encargo <span aria-hidden="true">→</span></button></div>
             </form>}
           </section>
           {viewed&&<><PaneDivider kind="director" container={surface} controls="connected-delivery" label="Ancho del Director"/><section id="connected-delivery" className="connected-delivery" aria-label="Entrega"><header><div><span className="eyebrow">Entrega</span><h2>Revisión del documento</h2></div><span className="delivery-state">{report?'Informe recibido':available?'Informe por leer':terminal(viewed.state)?'Sin informe validado':'Esperando informe'}</span></header><div className="connected-tabs" role="tablist" aria-label="Vista de entrega" onKeyDown={tabKey}><button role="tab" tabIndex={resultTab==='report'?0:-1} id="tab-report" aria-controls="panel-report" aria-selected={resultTab==='report'} onClick={()=>setResultTab('report')}>Informe</button><button role="tab" tabIndex={resultTab==='evidence'?0:-1} id="tab-evidence" aria-controls="panel-evidence" aria-selected={resultTab==='evidence'} onClick={()=>setResultTab('evidence')}>Evidencia y alcance</button></div><div className="connected-delivery-body" role="tabpanel" id={resultTab==='report'?'panel-report':'panel-evidence'} aria-labelledby={resultTab==='report'?'tab-report':'tab-evidence'} tabIndex={0}>

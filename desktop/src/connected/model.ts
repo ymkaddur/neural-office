@@ -51,7 +51,10 @@ export function acceptAttempt(current:Attempt|null,next:Attempt):Attempt {
   return next;
 }
 export function approvalMatches(approval:Approval,session:string,source:Source|null,objective:string,modelDigest:string,roles:number,expiresAt:number,now:number) {
-  return !!source&&approval.session_id===session&&source.session_id===session&&approval.project_id===source.project_id&&approval.source_sha256===source.sha256&&approval.objective===objective.trim()&&approval.model_digest===modelDigest&&approval.roles===roles&&now<expiresAt&&approval.attempts_remaining>0;
+  return approvalScopeMatches(approval,session,source,objective,modelDigest,roles,expiresAt,now)&&approval.attempts_remaining>0;
+}
+export function approvalScopeMatches(approval:Approval,session:string,source:Source|null,objective:string,modelDigest:string,roles:number,expiresAt:number,now:number) {
+  return !!source&&approval.session_id===session&&source.session_id===session&&approval.project_id===source.project_id&&approval.source_sha256===source.sha256&&approval.objective===objective.trim()&&approval.model_digest===modelDigest&&approval.roles===roles&&Number.isFinite(expiresAt)&&now<expiresAt&&counter(approval.attempts_consumed)&&counter(approval.attempts_remaining)&&approval.attempts_remaining===Math.max(0,3-approval.attempts_consumed);
 }
 export function validateSnapshot(value:Snapshot) {
   if(!id(value.session_id)||!id(value.office_id)||!counter(value.cursor)||!counter(value.revision)||!Array.isArray(value.projects)||!Array.isArray(value.attempts)||value.projects.length>200||value.attempts.length>200) throw Error('SNAPSHOT_CONTRACT');

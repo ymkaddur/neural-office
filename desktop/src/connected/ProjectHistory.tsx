@@ -22,7 +22,7 @@ export function ProjectHistory({project, snapshot, selected, disabled, offline, 
     request<Page>('project.history', {project_id: project}).then(reply => {
       if (!current) return;
       if (reply.project_id !== project || reply.office_id !== office || reply.session_id !== session ||
-          !Number.isSafeInteger(reply.revision) || reply.revision !== revision ||
+          !Number.isSafeInteger(reply.revision) || revision === undefined || reply.revision < revision ||
           !Array.isArray(reply.attempts) || reply.attempts.length > 3) throw Error('HISTORY_CONTRACT');
       let previous = 4;
       const ids = new Set<string>();
@@ -37,7 +37,8 @@ export function ProjectHistory({project, snapshot, selected, disabled, offline, 
     }).catch(() => { if (current) setFailed(true); });
     return () => { current = false; };
   }, [project, office, session, scoped, offline, retry, revision]);
-  const rows = scoped ? (page?.revision === revision ? page?.attempts : undefined)
+  const rows = scoped ? (page && page.project_id === project && page.office_id === office && page.session_id === session &&
+    revision !== undefined && page.revision >= revision ? page.attempts : undefined)
     : snapshot?.attempts.filter(a => a.project_id === project).sort((a,b) => b.ordinal-a.ordinal);
   return <div className="connected-history">
     {failed && <p role="status">No se pudo confirmar el historial. <button className="nav-secondary" disabled={offline||disabled} onClick={() => void onRefresh().then(() => setRetry(n => n+1))}>Reintentar lectura</button></p>}

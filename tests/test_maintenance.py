@@ -201,5 +201,5 @@ class Launcher(unittest.TestCase):
             for args,expected in [('--version',0),('--invalid-option',2)]:
                 result=subprocess.run(['cmd.exe','/d','/c',str(folder/'run.bat'),args],cwd=tmp,capture_output=True,text=True,timeout=15)
                 self.assertEqual(result.returncode,expected,result.stdout+result.stderr)
-                if expected==0:self.assertEqual(result.stdout.strip(),'5.9.0')
+                if expected==0:self.assertEqual(result.stdout.strip(),'5.10.0')
             self.assertFalse(list(folder.glob('*.sqlite3')))

@@ -293,3 +293,10 @@
 !docs/V5_9_REVIEW.md
 !docs/evidence/V5_9_CHECKS.json
 !docs/images/v5.9-review.png
+
+!tests/test_v510_html.py
+!tools/verify_v510_desktop.py
+!docs/V5_10_REVIEW.md
+!docs/evidence/V5_10_WINDOWS.json
+!docs/images/v5.10-graphite.png
+!docs/images/v5.10-mineral.png

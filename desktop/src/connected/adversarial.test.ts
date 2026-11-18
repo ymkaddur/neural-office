@@ -64,6 +64,23 @@ for(const delayed of [false,true])test(`terminal polling reconciles saved histor
   }finally{release?.();await app.close();}
 });
 
+test('a confirmed terminal state survives a failed balance refresh',async()=>{
+  let snapshots=0,reads=0;
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get'){if(++snapshots>1)throw 'HOST_RESPONSE_TIMEOUT';return snapshot();}
+    if(method==='attempt.get')return {...baseAttempt,state:++reads>1?'CANCELLED':'RUNNING',revision:reads};
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>app.document.body.textContent.includes('HOST_RESPONSE_TIMEOUT'));
+    assert.match(app.document.querySelector('.connected-work-status strong')!.textContent,/Encargo detenido/);
+    assert.match(app.document.querySelector('.connected-quota')!.textContent,/Cuota pendiente/);
+    assert.equal(app.document.querySelector('.active-work'),null);
+    assert.equal(snapshots,2);
+  }finally{await app.close();}
+});
+
 test('selected project history includes all three attempts across the global page boundary',async()=>{
   const projects=Array.from({length:50},(_,i)=>project(`p${i}`,3));
   const attempts=Array.from({length:150},(_,i)=>({...baseAttempt,id:`a${i}`,project_id:`p${Math.floor(i/3)}`,ordinal:i%3+1,state:'CANCELLED',request_key:`k${i}`,objective:`Encargo ${i}`}));
@@ -81,7 +98,7 @@ test('selected project history includes all three attempts across the global pag
     if(method==='project.history'){
       const id=params.project_id;
       if(id==='p33')await new Promise<void>(resolve=>{release=resolve;});
-      return {office_id:'office',session_id:'session',revision:2,project_id:id,attempts:attempts.filter(a=>a.project_id===id).reverse()};
+      return {office_id:'office',session_id:'session',revision:3,project_id:id,attempts:attempts.filter(a=>a.project_id===id).reverse()};
     }
     if(method==='models.list')return {models:[],session_id:'session'};
     throw Error('Unexpected synthetic RPC');
@@ -222,7 +239,7 @@ for(const outcome of ['deferred','failed'] as const)test(`accepted report ${outc
   }finally{release?.();await app.close();}
 });
 
-for(const scope of ['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3'])test(`${scope} accepted report renders the verified bytes without another attempt`,async()=>{
+for(const scope of ['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3','static-html-checks-v4'])test(`${scope} accepted report renders the verified bytes without another attempt`,async()=>{
   const fixture=validReport(scope);
   const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>method==='report.get'?fixture.meta:fixture.chunk);
   const app=await mount(peer.send);
@@ -444,7 +461,7 @@ test('reconnect restores identity on a changed session and an archive read canno
     if(method==='describe')return {session_id:session,office_id:'office'};
     if(method==='snapshot.get')return {...snapshot([history],[project('project',2)]),current_attempt:{...live,state:stopped?'CANCELLED':'RUNNING'},session_id:session};
     if(method==='attempt.get')return {...(params.attempt_id==='archive'?history:live),session_id:session};
-    if(method==='attempt.cancel'){assert.equal(params.attempt_id,live.id);stopped=true;return {...live,state:'CANCELLED',revision:2};}
+    if(method==='attempt.cancel'){assert.equal(params.attempt_id,live.id);stopped=true;return {...live,session_id:session,state:'CANCELLED',revision:2};}
     throw Error('unexpected operation');
   });
   const button=(label:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes(label));
@@ -461,10 +478,8 @@ test('reconnect restores identity on a changed session and an archive read canno
     button('Informe anterior')!.click();
     await until(()=>app.document.querySelector('.execution-code')?.textContent.includes('MODEL_METADATA_UNAVAILABLE')===true);
     assert.equal(app.document.querySelector('.breadcrumbs strong')?.textContent,'anterior.html');
-    assert.equal(button('Detener trabajo'),undefined);
-    button('Volver al trabajo en curso')!.click();
-    await until(()=>!!button('Detener trabajo')&&!button('Detener trabajo')!.disabled);
-    assert.equal(app.document.querySelector('.breadcrumbs strong')?.textContent,'actual.html');
+    assert.equal(button('Detener trabajo')?.disabled,false);
+    assert.match(app.document.querySelector('.active-work')?.textContent||'',/Synthetic controlled task/);
     button('Detener trabajo')!.click();
     await until(()=>stopped);
     assert.equal(calls.filter(c=>c.method==='attempt.cancel').length,1);

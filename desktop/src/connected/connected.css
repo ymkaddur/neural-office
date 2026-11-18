@@ -124,6 +124,35 @@
   background:var(--surface); color:var(--ink); padding:8px 10px; font:inherit; }
 .connected :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .connected .office-nav :focus-visible { outline-color:#b1edd1; }
+.connected .nav-footer .palette-switch { min-height:28px; padding:0 2px; font-size:13px; color:var(--nav-muted); }
+.active-work { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:7px 23px; background:var(--surface); border-bottom:1px solid var(--line); }
+.active-work>div { min-width:0; display:grid; gap:2px; }
+.active-work strong { font-size:13px; }
+.active-work span { text-overflow:ellipsis; white-space:nowrap; overflow:hidden; font-size:13px; color:var(--muted); }
+.active-work button { flex:none; }
+.v541.connected.palette-graphite {
+  --canvas:#ececee; --paper:#fafafa; --surface:#f0f1f3; --ink:#212328; --muted:#51565e;
+  --line:#c7c9ce; --strong:#344d6b; --accent:#344f73; --wash:#e6e9ee;
+  --green:#32674f; --error:#933e42; --nav:#202226; --nav-muted:#c4c7ce;
+}
+.v541.connected.palette-graphite.theme-dark {
+  --canvas:#191a1d; --paper:#202125; --surface:#24262b; --ink:#efeeec; --muted:#bdc0c6;
+  --line:#484b52; --strong:#cfdded; --accent:#b8d4f3; --wash:#30343b;
+  --green:#9ed4b5; --error:#ffb5af; --nav:#18191c; --nav-muted:#bfc2c9;
+}
+.palette-graphite .office-nav { border-color:#494c52; }
+.palette-graphite .new-task,.palette-graphite .connected-projects>button.selected,
+.palette-graphite .connected-history>button.selected { background:#34373d; border-color:#60646d; color:#f2f1ef; }
+.palette-graphite .new-task:hover,.palette-graphite .connected-projects>button:hover,
+.palette-graphite .connected-history>button:hover { background:#424751; }
+.palette-graphite .version-tag { color:#d6d8dd; border-color:#60646d; }
+.palette-graphite .office-nav .director-mark span { background:#b8d4f3; }
+.palette-graphite .office-nav :focus-visible { outline-color:#b8d4f3; }
+.palette-graphite .static-heading h1 { font-size:clamp(28px,2.8vw,35px); font-weight:600; line-height:1.18; letter-spacing:-.025em; }
+.palette-graphite .static-heading p,.palette-graphite .connected-work-status p { font-size:15px; line-height:1.5; max-width:64ch; }
+.palette-graphite .finding-list strong { font-weight:600; line-height:1.45; }
+.palette-graphite .finding-list small { font:13px/1.45 "Segoe UI Variable Text","Segoe UI",sans-serif; font-variant-numeric:tabular-nums; }
+.palette-graphite .connected-report h3,.palette-graphite .static-results h2 { font-size:20px; font-weight:600; letter-spacing:-.015em; }
 @media(max-width:600px),(max-height:720px) {
   .connected .static-workspace { padding:18px 18px 24px; }
   .source-desk { margin:14px 0; }
