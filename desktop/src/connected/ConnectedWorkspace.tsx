@@ -55,6 +55,21 @@ const errors:Record<string,string>={
   PENDING_IDENTITY_NOT_SAVED:'No se pudo conservar la identidad del encargo. No se ha enviado.',
   PENDING_IDENTITY_INVALID:'La identidad pendiente guardada no es válida. No se enviará otro encargo automáticamente.',
 };
+function workNote(item:Attempt,offline:boolean) {
+  if(offline&&!terminal(item.state))return 'La pantalla conserva la última lectura. Reconecta para conocer el estado del encargo.';
+  switch(item.state){
+    case 'RUNNING':return item.calls?.length?null:'Esperando el primer registro de llamada del modelo local.';
+    case 'STOPPING':return 'La parada está solicitada. Esperamos a que el núcleo confirme que sus procesos han terminado.';
+    case 'RECOVERY_REQUIRED':return 'El cierre anterior quedó pendiente. La recuperación comprueba el proceso y conserva el consumo.';
+    case 'QUEUED':return 'La identidad y el consumo están guardados. Si se interrumpió el arranque, puedes recuperar este intento.';
+    case 'ACCEPTED':return 'El informe coincide con las comprobaciones estáticas y sus recibos. Revisa por separado las sugerencias del modelo.';
+    case 'FAILED':return failureAdvice(item.execution_error_code);
+    case 'CANCELLED':return 'El núcleo ha confirmado la parada. El intento consumido se conserva.';
+    case 'REJECTED':return 'El informe no superó la verificación. Puedes consultar el registro de este intento.';
+    case 'VERIFYING':return 'El núcleo está contrastando el informe con la fuente capturada y los recibos.';
+  }
+}
+
 function errorInfo(error:unknown) {
   const raw=error instanceof Error?error.message:'DESKTOP_OPERATION_FAILED';
   const code=/^[A-Z][A-Z0-9_]{0,95}$/.test(raw)?raw:'DESKTOP_OPERATION_FAILED';
@@ -138,6 +153,7 @@ export function ConnectedWorkspace() {
   const available=viewed?.state==='ACCEPTED'&&viewed.report_available;
   const staticPage=source&&inspection?.token===source.entry_token&&inspection.page.session_id===session?inspection.page:null;
   const showingFindings=!!staticPage&&!assisted;
+  const note=viewed?workNote(viewed,!!connectionError):null;
   const selectedModel=models.find(m=>m.model_digest===modelDigest);
   const status=viewed?stateLabels[viewed.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
   const epoch=()=>generation.current;
@@ -194,9 +210,10 @@ export function ConnectedWorkspace() {
     const current=()=>mounted.current&&ticket===catalogRead.current&&peer===peerGeneration.current;
     setCatalog('loading');
     try {
-      const result=await request<{models:Model[];session_id:string}>('models.list');
+      const result=await request<{models:Model[];session_id:string;cached?:boolean}>('models.list');
       if(!current())return;
       if(result.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
+      if(result.cached===true)throw Error('MODEL_CATALOG_BUSY');
       if(!Array.isArray(result.models)||result.models.length>64||result.models.some(m=>!m||typeof m.model!=='string'||!/^[a-f0-9]{64}$/.test(m.model_digest)))throw Error('MODEL_CONTRACT');
       setModels(result.models);
       setCatalogEmpty(result.models.length===0);
@@ -505,7 +522,7 @@ export function ConnectedWorkspace() {
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
         <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(active?p.attempts_consumed<=p.legacy_consumed:!!pending||storageBlocked)} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>{project?.id===projectId&&!budgetPending?remainingLabel(project.attempts_consumed):'Cuota por confirmar'}</small></div>}</div>
         <div className="connected-nav-heading">Encargos guardados</div>
-        <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} snapshot={snapshot} selected={viewed?.id}
+        <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} snapshot={snapshot} current={attempt} selected={viewed?.id}
           offline={!!connectionError||initializing} disabled={initializing||!!connectionError||!!doing||(!active&&!!pending)} onOpen={a=>void act('Abriendo encargo',()=>chooseAttempt(a))}
           onRefresh={()=>act('Actualizando historial',refreshAll)}/>
         {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',nextProjects)}>Siguientes proyectos →</button>}
@@ -561,7 +578,7 @@ export function ConnectedWorkspace() {
                   <div className="connected-model-row"><label htmlFor="connected-model">Modelo local</label>
                     <select id="connected-model" value={modelDigest} disabled={busy||!!doing||catalog!=='ready'||!models.length}
                       onChange={e=>{invalidate();setModelDigest(e.target.value);}}>
-                      <option value="" disabled>{catalog==='loading'?'Consultando modelos…':catalogEmpty?'Sin modelos instalados':'Selecciona un modelo'}</option>
+                      <option value="" disabled>{catalog==='loading'?'Consultando modelos…':catalogEmpty?'Sin modelos compatibles':'Selecciona un modelo'}</option>
                       {models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
                     <button type="button" aria-label="Actualizar modelos locales" title="Actualizar modelos locales"
                       disabled={busy||!!doing||!session||catalog==='loading'||exhausted} onClick={()=>void act('Consultando modelos',loadModels)}>↻</button>
@@ -573,7 +590,7 @@ export function ConnectedWorkspace() {
                     </select><p>Los roles usan el mismo modelo por turnos. Cada llamada admite hasta 128 tokens de salida.</p></details>}
                 </div>}
                 {catalogEmpty&&<section className="model-guide" aria-label="Configurar Ollama">
-                  <h2>Instala un modelo para continuar</h2><p>Abre Ollama y descarga un modelo de texto. Por ejemplo, en PowerShell puedes ejecutar <code>ollama pull qwen2.5:0.5b</code>. Después vuelve a consultar el catálogo. Tu borrador sigue aquí.</p>
+                  <h2>Instala un modelo para continuar</h2><p>La última consulta a Ollama no encontró un modelo compatible. En PowerShell puedes descargar uno con <code>ollama pull qwen2.5:0.5b</code> y actualizar la lista. Tu borrador sigue aquí.</p>
                   <button type="button" className="quiet-button" disabled={busy||!!doing} onClick={()=>void act('Actualizando catálogo',loadModels)}>Comprobar modelos instalados</button>
                 </section>}
                 {!showingFindings&&<div className="brief-actions">
@@ -602,7 +619,8 @@ export function ConnectedWorkspace() {
               </section>}
             </div>}
             {inspected&&attempt&&<div className="history-context"><span>Consultando el historial</span><button className="quiet-button" onClick={()=>{invalidate();setInspected(null);setBrowsedProject(null);}}>{active?'Volver al trabajo en curso':'Volver al último encargo'}</button></div>}
-            {viewed&&<div className="connected-conversation"><div className="connected-user-request"><span>Tu encargo</span><h1>{viewed.objective}</h1></div><div className="connected-work-status"><strong>{stateLabels[viewed.state]}</strong><p>{connectionError&&!terminal(viewed.state)?'La pantalla conserva la última lectura. Reconecta para saber si el trabajo sigue en curso.':viewed.state==='STOPPING'?'La parada está solicitada. Esperamos a que el núcleo confirme que sus procesos han terminado.':viewed.state==='RECOVERY_REQUIRED'?'El cierre anterior no quedó confirmado. La recuperación comprobará el proceso y conservará el consumo; no volverá a ejecutar el modelo.':viewed.state==='QUEUED'?'La identidad y el consumo están guardados. Si se interrumpió el arranque, recupera este intento; no lo reenvíes.':viewed.state==='ACCEPTED'?'El informe coincide con las comprobaciones estáticas y sus recibos. Revisa por separado las sugerencias del modelo.':viewed.state==='FAILED'?failureAdvice(viewed.execution_error_code):viewed.state==='CANCELLED'?'El núcleo ha confirmado la parada. El intento consumido se conserva.':viewed.state==='VERIFYING'?'El núcleo está contrastando el informe con la fuente capturada y los recibos.':'La última lectura del registro indica trabajo en curso. Si el proceso se interrumpió, comprueba su recuperación.'}</p></div>
+            {viewed&&<div className="connected-conversation"><div className="connected-user-request"><span>Tu encargo</span><h1>{viewed.objective}</h1></div>
+                {note&&<div className="connected-work-status"><p>{note}</p></div>}
                 {viewed.state==='FAILED'&&viewed.execution_error_code&&<p className="execution-code">Código de ejecución <code>{viewed.execution_error_code}</code></p>}
                 <section className="call-receipts" aria-labelledby="calls-title">
                   <h2 id="calls-title">Llamadas al modelo</h2>

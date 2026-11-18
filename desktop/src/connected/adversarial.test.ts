@@ -42,6 +42,22 @@ async function mount(send:(method:string,params:Record<string,unknown>)=>Promise
   return {window,document:window.document,pollCleaned:()=>pollCleaned,close:async()=>{(window as any).disposeWorkspace();await window.happyDOM.close();}};
 }
 
+test('while a call runs, only its own history row adopts the newer receipt',async()=>{
+  const queued={...baseAttempt,state:'QUEUED',revision:1,ordinal:2};
+  const archived={...baseAttempt,id:'old',state:'CANCELLED',ordinal:1,objective:'Anterior'};
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return {...snapshot([queued,archived],[project('project',2)]),current_attempt:queued};
+    if(method==='attempt.get')return {...baseAttempt,session_id:'session',ordinal:2,revision:2,calls:[{seq:5,state:'STARTED',role:'director'}]};
+    throw Error('Unexpected operation');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('.connected-call-list li'));
+    const names=Array.from(app.document.querySelectorAll('.connected-history small'),el=>el.textContent);
+    assert.deepEqual(names,['Trabajando · intento 2','Encargo detenido · intento 1']);
+  }finally{await app.close();}
+});
+
 for(const delayed of [false,true])test(`terminal polling reconciles saved history even when event delivery is ${delayed?'delayed':'immediate'}`,async()=>{
   let gets=0,snapshots=0,release:(()=>void)|undefined;
   const app=await mount(async method=>{
@@ -74,7 +90,7 @@ test('a confirmed terminal state survives a failed balance refresh',async()=>{
   });
   try{
     await until(()=>app.document.body.textContent.includes('HOST_RESPONSE_TIMEOUT'));
-    assert.match(app.document.querySelector('.connected-work-status strong')!.textContent,/Encargo detenido/);
+    assert.match(app.document.querySelector('.connected-director-heading [role="status"]')!.textContent,/Encargo detenido/);
     assert.match(app.document.querySelector('.connected-quota')!.textContent,/Cuota pendiente/);
     assert.equal(app.document.querySelector('.active-work'),null);
     assert.equal(snapshots,2);
@@ -377,6 +393,17 @@ test('Actualizar retries a transient report read for the unchanged accepted atte
   }finally{await app.close();}
 });
 
+test('an unverified terminal delivery is never described as waiting for its first call',async()=>{
+  const peer=savedAttemptPeer({...baseAttempt,state:'REJECTED',report_available:false});
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);
+    const note=app.document.querySelector('.connected-work-status')!.textContent;
+    assert.match(note,/no superó la verificación/);
+    assert.doesNotMatch(note,/Esperando/);
+  }finally{await app.close();}
+});
+
 async function enterDraft(app:Awaited<ReturnType<typeof mount>>,text:string){
   if(!app.document.querySelector('#connected-model')){
     const action=Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Consultar al Director');
@@ -557,6 +584,23 @@ test('a draft precedes its attachment and survives a confirmed empty catalog and
     assert.ok(!app.document.querySelector('.model-guide')&&!button('Comprobar HTML').disabled);
     assert.equal(field.value,objective);
     assert.ok(!methods.some(m=>m.startsWith('attempt.')));
+  }finally{await app.close();}
+});
+
+test('a cached empty catalog from a busy core cannot certify that installation is needed',async()=>{
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='models.list')return {models:[],cached:true,session_id:'session'};
+    throw Error('Unexpected operation');
+  });
+  try{
+    const consult=()=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Consultar al Director');
+    await until(()=>consult()?.disabled===false);
+    consult()!.click();
+    await until(()=>!!app.document.querySelector('[role="alert"],.model-guide'));
+    assert.ok(!app.document.querySelector('.model-guide'),'An old catalog cannot instruct the user to install software');
+    assert.match(app.document.querySelector('[role="alert"]')?.textContent||'',/ocupado/i);
   }finally{await app.close();}
 });
 
