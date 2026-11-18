@@ -131,7 +131,29 @@ runpy.run_path(SOURCE, run_name='neural_office.native_test_entry')['main']()
     return package.parent
 
 
-def incident(exe,folder,fail_snapshot=False):
+def visible_edge_findings(screen):
+    expected = ('3 hallazgos para revisar', 'Falta un título de documento no vacío',
+                'Una imagen no tiene atributo alt', 'Un control podría necesitar una etiqueta',
+                'Línea 1 · columna 1', 'Línea 4 · columna 3', 'Línea 5 · columna 50')
+    frames = []
+    start = time.monotonic()
+
+    def complete():
+        names = screen.names()
+        missing = [i for i, label in enumerate(expected) if label not in names]
+        if not frames or frames[-1]['missing'] != missing:
+            frames.append({'ms': round((time.monotonic()-start)*1000), 'missing': missing})
+        return not missing
+
+    try:
+        wait(complete, description='all three native findings and all source positions visible')
+    except AssertionError:
+        print('Native findings visibility:', frames, flush=True)
+        raise
+    return frames
+
+
+def incident(exe,folder,fail_snapshot=False,evidence_dir=None):
     db = folder/'office.sqlite3'
     ledger = Ledger(db)
     ledger.initialize()
@@ -169,10 +191,12 @@ def incident(exe,folder,fail_snapshot=False):
         screen.button('Nuevo encargo')
         choose_source(screen,host,source)
         screen.button('Comprobar HTML')
-        names=wait(lambda:(n if '3 hallazgos para revisar' in (n:=screen.names()) else None),
-                   description='title, hidden label and CR source positions')
-        require(all(text in names for text in ('Falta un título','Una imagen no tiene','Un control podría',
-                                               'Línea 4 · columna 3')),'wrong HTML findings in native result')
+        try:
+            frames = visible_edge_findings(screen)
+        except AssertionError:
+            if evidence_dir is not None:
+                screen.screenshot(evidence_dir/('findings-balance-fault.png' if fail_snapshot else 'findings-stop.png'))
+            raise
         screen.button('Consultar al Director')
         wait(lambda:'3 intentos consumidos' in screen.names(),description='explicit exhausted budget')
         button=screen.window.child_window(title_re='Revisar encargo.*',control_type='Button')
@@ -183,7 +207,7 @@ def incident(exe,folder,fail_snapshot=False):
         stops=con.execute("SELECT count(*) FROM events WHERE kind='CANCELLATION_REQUESTED' AND json_extract(payload,'$.attempt')=?", (ids[-1],)).fetchone()[0]
     require(stops==1 and after=={'states':[(i,'CANCELLED') for i in ids],'calls':0},'identity, calls or budget changed')
     return {'seeded_attempts':3,'final_attempts':3,'target_stop_receipts':stops,'model_calls':0,'forced_balance_timeout':fail_snapshot,
-            'native_static_findings':3,'image_line':4,'image_column':3}
+            'native_static_findings':3,'image_line':4,'image_column':3,'finding_visibility_frames':frames}
 
 
 def main():
@@ -203,9 +227,9 @@ def main():
     with tempfile.TemporaryDirectory(prefix='neural-office-510-') as tmp:
         folder=Path(tmp)
         cases=folder/'incident';cases.mkdir()
-        result['incident']=incident(exe,cases)
+        result['incident']=incident(exe,cases,evidence_dir=out)
         fault=folder/'fault';fault.mkdir()
-        result['balance_fault']=incident(exe,fault,fail_snapshot=True)
+        result['balance_fault']=incident(exe,fault,fail_snapshot=True,evidence_dir=out)
         for index,variants in enumerate((('reference','graphite','mineral'),('mineral','graphite','reference'))):
             for name in variants:
                 case=folder/(name+str(index));case.mkdir()

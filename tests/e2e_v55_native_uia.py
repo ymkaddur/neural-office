@@ -241,6 +241,7 @@ def main():
     import psutil
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--profile-work', action='store_true', help='Measure first and repeated static and one-role work in separate windows')
     args = parser.parse_args()
     output = args.output.resolve(); output.mkdir(parents=True, exist_ok=False)
     root = Path(__file__).resolve().parents[1]
@@ -499,6 +500,26 @@ def main():
         screen.screenshot(output / '06-cancelled.png')
         evidence['final_counts'] = counts
         checks.append({'check': 'native-cancellation-history-quota-and-owned-backend-quiescence', 'verified': True})
+        if args.profile_work:
+            stage = 'measure_packaged_work'
+            screen.close()
+            screen = None
+            evidence['work_profiles'] = []
+            for arm in (0, 1):
+                subprocess.run([sys.executable, '-B', '-m', 'tools.measure_v58_desktop',
+                                '--executable', str(executable), '--expected-sha256', evidence['executable_sha256'],
+                                '--version', release, '--arm', str(arm), '--output', str(work/'profiles')],
+                               cwd=root, env=env, check=True, timeout=360)
+                profile = json.loads((work/'profiles'/f'native-{arm}'/'result.json').read_bytes())
+                assert profile['job_empty'] and profile['close']['exited'] and profile['exe_sha256'] == evidence['executable_sha256']
+                for row in profile['rows']:
+                    before, after = row['counts_before'], row['counts_after']
+                    calls = after['calls'] - before['calls']
+                    attempts = len(after['states']) - len(before['states'])
+                    assert calls == attempts == arm
+                    evidence['work_profiles'].append({'roles':arm, 'phase':row['phase'], 'attempts':attempts,
+                                                      'calls':calls, **row['work']})
+            checks.append({'check':'static-and-one-role-first-and-repeat-job-counters','verified':True})
         evidence['status'] = 'passed'
     except Exception as error:
         evidence['status'] = 'failed'

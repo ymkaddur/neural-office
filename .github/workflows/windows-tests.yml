@@ -69,7 +69,7 @@ jobs:
         run: ./tests/Prepare-V55NativeCI.ps1 -UIAutomationOnly
       - name: Exercise packaged UI, native picker, real model and restart
         timeout-minutes: 15
-        run: python -B tests/e2e_v55_native_uia.py --output native-e2e-evidence
+        run: python -B tests/e2e_v55_native_uia.py --output native-e2e-evidence --profile-work
       - name: Check out the exact V5.10 source for the comparison
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
