@@ -1,6 +1,6 @@
-# Escritorio Neural Office · V5.9 local
+# Escritorio Neural Office · V5.10 en pruebas
 
-Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el núcleo Python. Esta edición para desarrollo en Windows permite preparar el siguiente encargo en esta ventana y abrir el historial del proyecto seleccionado. [Pruebas de la mesa de revisión](../docs/V5_9_REVIEW.md) · [Reconexión en Windows](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
+El host Tauri conecta React con el núcleo Python. Puedes preparar el siguiente encargo en esta ventana, abrir una entrega anterior y detener el encargo activo desde la franja que muestra su objetivo. El selector de paleta está al pie de la navegación. [Comparación en Windows](../docs/V5_10_REVIEW.md) · [Reconexión](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
 
 ## Abrir el recorrido conectado
 

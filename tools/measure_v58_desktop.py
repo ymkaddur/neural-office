@@ -1,4 +1,4 @@
-"""Observe a real V5.8 test host using Windows UI Automation and an isolated ledger.
+"""Measure a known Windows test host using UI Automation and an isolated ledger.
 
 Run as a module with the native UI-test dependencies installed. No provider is installed or downloaded.
 """
@@ -172,7 +172,7 @@ def setup_form(screen, host, source, arm, spec):
     return screen.control('Comprobar HTML')
 
 
-def measure(exe, parent, arm, spec):
+def measure(exe, parent, arm, spec, *, version='5.8.0'):
     from pywinauto import Desktop
     import win32con
     import win32gui
@@ -200,12 +200,13 @@ def measure(exe, parent, arm, spec):
         watcher.start()
         start=time.perf_counter_ns()
         host=launch(exe,folder,job)
+        title='Neural Office · V'+version
         hwnd=wait(lambda:next((w.handle for w in Desktop(backend='win32').windows(process=host.pid)
-                               if w.window_text()=='Neural Office · V5.8.0'),None),timeout=35,description='native window')
+                               if w.window_text()==title),None),timeout=35,description='native window')
         screen=NativeWindow(host,hwnd)
         wait(lambda:'Última conexión confirmada' in screen.names() and
              screen.window.child_window(auto_id='static-picker').is_enabled(),description='idle session ready')
-        require(screen.window.window_text()=='Neural Office · V5.8.0','window title')
+        require(screen.window.window_text()==title,'window title')
         result['launch_to_ready_s']=(time.perf_counter_ns()-start)/1e9
         print('native',arm,'ready',flush=True)
         groups=Samples(host)
@@ -265,12 +266,14 @@ if __name__=='__main__':
     p.add_argument('--executable',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--arm',type=int,choices=(0,1,3),required=True)
+    p.add_argument('--version',default='5.8.0',help='Version expected in the native window title')
+    p.add_argument('--expected-sha256',default=EXPECTED_EXE,help='Verified SHA-256 of the intended executable')
     a=p.parse_args()
     exe=a.executable.resolve(strict=True)
-    require(sys.platform=='win32' and digest(exe.read_bytes())==EXPECTED_EXE,'wrong platform or executable')
+    require(sys.platform=='win32' and digest(exe.read_bytes())==a.expected_sha256.lower(),'wrong platform or executable')
     spec=specification()
     if a.arm:
         require(select_model(spec['model'],local_metadata()['models'])['model_digest']==spec['digest'],'unexpected weights')
     output=a.output.resolve()
     output.mkdir(parents=True,exist_ok=True)
-    measure(exe,output,a.arm,spec)
+    measure(exe,output,a.arm,spec,version=a.version)

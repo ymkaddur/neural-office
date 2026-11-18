@@ -174,6 +174,28 @@ test('selected project history includes all three attempts across the global pag
   }finally{release?.();await app.close();}
 });
 
+test('browsing a second project page retains the selected balance only within its revision',async()=>{
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get'){
+      const after=Number(params.project_after);
+      const result=snapshot([],[project(after?'other':'project',after?0:2)]);
+      result.next.project_after=after?101:100;result.has_more.projects=after===0;
+      return result;
+    }
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>app.document.querySelector('.connected-quota')?.textContent==='2 de 3 intentos');
+    Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes('Siguientes proyectos'))!.click();
+    await until(()=>!!app.document.querySelector('.connected-projects [title="other"]'));
+    assert.equal(app.document.querySelector('.connected-quota')!.textContent,'2 de 3 intentos');
+    assert.match(app.document.querySelector('.connected-new-project')!.textContent,/2 de 3/);
+    app.document.querySelector<HTMLButtonElement>('.connected-projects [title="other"]')!.click();
+    await until(()=>app.document.querySelector('.connected-quota')?.textContent==='0 de 3 intentos');
+  }finally{await app.close();}
+});
+
 test('drafting during live work preserves the next objective without submitting it',async()=>{
   let finished=false;
   const methods:string[]=[];
@@ -191,12 +213,15 @@ test('drafting during live work preserves the next objective without submitting 
     await until(()=>app.document.querySelector('.connected-call-list li')?.textContent.includes('Respuesta registrada')===true);
     assert.equal(app.document.querySelector('.call-order')?.textContent,'1');
     const field=app.document.querySelector('#next-objective') as any;
+    field.closest('details').open=true;field.focus();
     field.value='Revisar el segundo documento';
     field.dispatchEvent(new app.window.Event('input',{bubbles:true}));
     field.dispatchEvent(new app.window.KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}));
     finished=true;
     const reopen=()=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Volver al borrador');
-    await until(()=>!!reopen());reopen()!.click();
+    await until(()=>!!reopen());
+    assert.equal(app.document.activeElement,field);
+    reopen()!.click();
     await until(()=>(app.document.querySelector('#connected-objective') as any)?.value===field.value);
     assert.match(app.document.querySelector('.connected-quota')!.textContent,/1 de 3/);
     assert.ok(!methods.some(m=>['attempt.preview','attempt.start','attempt.cancel','attempt.recover'].includes(m)));
@@ -307,6 +332,23 @@ for(const scope of ['static-html-checks-v1','static-html-checks-v2','static-html
     assert.equal(app.document.querySelector('.delivery-state')?.textContent,'Informe recibido');
     assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
   }finally{await app.close();}
+});
+
+test('a delayed verified report preserves the selected evidence tab and its focus',async()=>{
+  const fixture=validReport('static-html-checks-v4');let release:(()=>void)|undefined;
+  const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>{
+    if(method==='report.get')return fixture.meta;
+    await new Promise<void>(r=>release=r);return fixture.chunk;
+  });
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);await until(()=>!!release);
+    const tab=app.document.querySelector<HTMLButtonElement>('#tab-evidence')!;
+    tab.focus();tab.click();await until(()=>tab.getAttribute('aria-selected')==='true');
+    release!();await until(()=>app.document.querySelector('.delivery-state')?.textContent==='Informe recibido');
+    assert.equal(tab.getAttribute('aria-selected'),'true');assert.equal(app.document.activeElement,tab);
+    assert.match(app.document.querySelector('#panel-evidence')!.textContent,new RegExp(fixture.meta.sha256));
+  }finally{release?.();await app.close();}
 });
 
 test('Actualizar retries a transient report read for the unchanged accepted attempt without starting work',async()=>{

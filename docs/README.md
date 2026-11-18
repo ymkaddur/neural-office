@@ -17,6 +17,7 @@ El escritorio utiliza el mismo estado del piloto. No borres el ledger para actua
 ## Desarrollar y comprobar
 
 - [V5.9. Historial por proyecto, heurística de etiquetas, interfaz y coste de lectura](V5_9_REVIEW.md).
+- [V5.10. Parada desde el historial, cuota, comparación grafito y consumo en Windows](V5_10_REVIEW.md).
 
 - [Contribuciones](../CONTRIBUTING.md), [skills de desarrollo](../skills/README.md).
 - [Verificación de V5.7](V5_7_REVIEW.md), [base V5.6](V5_6_REVIEW.md), [integración original de V5.5](V5_5_VERIFICATION.md), [dependencias](V5_5_DEPENDENCIES.md).

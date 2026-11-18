@@ -105,11 +105,11 @@ def visual_pass(exe, core, folder, name, out, order):
                 'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest()}
 
 
-def timeout_core(folder):
+def timeout_core(folder, original_root=ROOT):
     """One failed quota read in a private test peer. The application has no fault switch."""
     package=folder/'peer'/'neural_office'
     package.mkdir(parents=True)
-    original=ROOT/'neural_office'
+    original=original_root/'neural_office'
     (package/'__init__.py').write_text('__path__.append('+repr(str(original))+')\n',encoding='utf-8')
     script = """import runpy
 from pathlib import Path
@@ -152,7 +152,11 @@ def incident(exe,folder,fail_snapshot=False):
         wait(lambda:'Consultando el historial' in screen.names(),description='viewing other attempt')
         if fail_snapshot:
             (folder/'once').touch(exist_ok=False)
-        screen.button('.*Detener trabajo',regex=True)
+            # A second authorized client stops this synthetic queued attempt. The renderer
+            # can learn its terminal state only from polling, before its failed balance read.
+            require(ledger.cancel(ids[-1])=='CANCELLED','external terminal control')
+        else:
+            screen.button('.*Detener trabajo',regex=True)
         wait(lambda:dict(saved(db)['states'])[ids[-1]]=='CANCELLED',description='durable stop of active identity')
         screen.button('Volver al último encargo')
         if fail_snapshot:

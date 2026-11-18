@@ -296,7 +296,9 @@
 
 !tests/test_v510_html.py
 !tools/verify_v510_desktop.py
+!tools/measure_v510_history.py
 !docs/V5_10_REVIEW.md
 !docs/evidence/V5_10_WINDOWS.json
 !docs/images/v5.10-graphite.png
 !docs/images/v5.10-mineral.png
+!docs/images/v5.9-native-reference.png

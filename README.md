@@ -4,14 +4,14 @@
 
 Un espacio de trabajo para encargar una revisión, seguir su ejecución y recuperar la entrega. Gratis y open source, con las mismas funciones para todo el mundo.
 
-**V5.9 · escritorio de revisión HTML para Windows.** Elige un archivo y encuentra las líneas que conviene revisar. La comprobación estática cuesta cero intentos. Si consultas a tu modelo local, puedes seguir sus llamadas, redactar la siguiente pregunta y recuperar la entrega por proyecto.
+**V5.10 · escritorio Windows en pruebas.** Elige un HTML para localizar las líneas que conviene revisar. Comprobar el archivo cuesta cero intentos. Si encargas una revisión al Director, puedes abrir una entrega anterior y detener el trabajo que sigue en marcha.
 
-[![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
+[![Tests Windows de esta rama](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.10-windows-review)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.10-windows-review)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![El escritorio V5.9 muestra audit-sample.html, sus cuatro hallazgos y el coste de cada opción](docs/images/v5.9-review.png)
+![Variante grafito del escritorio Windows con los cuatro hallazgos del ejemplo público](docs/images/v5.10-graphite.png)
 
-Captura del cliente V5.9 en Edge con el HTML público de ejemplo y una oficina de prueba. [Verificación de V5.9](docs/V5_9_REVIEW.md) · [Reconexión del ejecutable V5.8](docs/V5_8_REVIEW.md).
+Abre **Paleta · Grafito** en el pie de la navegación para alternar con el acabado mineral de V5.9. [Comparación visual, coste y pruebas de V5.10](docs/V5_10_REVIEW.md) · [Referencia V5.9](docs/V5_9_REVIEW.md).
 
 ## Qué puedes hacer
 
@@ -24,7 +24,7 @@ Los hallazgos estáticos y los comentarios del modelo se presentan por separado.
 
 ## Probarlo
 
-**Sin modelo:** con Windows y Python 3.12, [descarga el código](https://github.com/ymkaddur/neural-office/archive/refs/heads/main.zip), extrae la carpeta y ejecuta desde ella:
+Para comprobar un HTML sin modelo en Windows, descarga la rama de prueba, extrae la carpeta y ejecuta el siguiente comando con Python 3.12. [Código de V5.10](https://github.com/ymkaddur/neural-office/archive/refs/heads/feat/v5.10-windows-review.zip).
 
 ```powershell
 py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.html
