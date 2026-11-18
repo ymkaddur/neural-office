@@ -150,11 +150,18 @@ def setup_form(screen, host, source, arm, spec):
         combo=screen.control('Modelo local','ComboBox')
         choose_option(screen,combo,spec['model'],{m['name'] for m in local_metadata()['models']})
         if arm==3:
-            selector=screen.window.child_window(title='Roles secuenciales',control_type='ComboBox')
-            if not selector.exists(timeout=.2) or not selector.is_visible():
-                summary=screen.control('Perfil acotado.*',regex=True)
-                import win32con
-                webview_key(focused_widget(screen,summary),win32con.VK_RETURN)
+            from pywinauto.uia_defines import NoPatternInterfaceError
+            summary=screen.control('Perfil acotado.*',regex=True)
+            try:
+                disclosure=summary.iface_expand_collapse
+            except NoPatternInterfaceError:
+                selector=screen.window.child_window(title='Roles secuenciales',control_type='ComboBox')
+                if not selector.exists(timeout=.2) or not selector.is_visible():
+                    import win32con
+                    webview_key(focused_widget(screen,summary),win32con.VK_RETURN)
+            else:
+                if disclosure.CurrentExpandCollapseState==0:  # UIA ExpandCollapseState_Collapsed
+                    disclosure.Expand()
             roles=screen.control('Roles secuenciales','ComboBox')
             choose_option(screen,roles,'3 · Director, revisor e integrador',
                           {'1 · Director','3 · Director, revisor e integrador','7 · Equipo completo'})

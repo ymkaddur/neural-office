@@ -1029,5 +1029,106 @@
     "v5.9-native-reference.png": "6f8d7b57d2cdb527ba7c12f6ea225a768a265ff993c9583236793ee921664f3b",
     "v5.10-mineral.png": "f9223b5580f709cf50fc4919ec986751461b62aae8a9b5b4c114f42b139e2c30",
     "v5.10-graphite.png": "dd58257267807b1269fea53728bafdeb13fc698d56a40655120824b126f304a5"
+  },
+  "exact_windows_build": {
+    "commit": "2b6107b37307dcca690afaf1d68d77d5b4b6f21b",
+    "github_actions_run": 44394495574,
+    "sha256_exe": "0b72bc029ca7449a9714f60e8745be0a7f6725aa0af2c14cf22f4552e3c1c169",
+    "model": "qwen2.5:0.5b",
+    "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "units": "wall and process-tree CPU in seconds; sampled peak working set in MiB; first and repeat in the same window",
+    "models_local": [
+      {
+        "roles": 0,
+        "rows": [
+          {
+            "phase": "cold",
+            "wall_s": 0.1615255,
+            "cpu_s": 0.21875,
+            "peak_ws_mib": 552.59765625,
+            "attempts": 0,
+            "calls": 0
+          },
+          {
+            "phase": "repeat",
+            "wall_s": 0.1368079,
+            "cpu_s": 0.046875,
+            "peak_ws_mib": 561.2578125,
+            "attempts": 0,
+            "calls": 0
+          }
+        ]
+      },
+      {
+        "roles": 1,
+        "rows": [
+          {
+            "phase": "cold",
+            "wall_s": 13.0388609,
+            "cpu_s": 20.765625,
+            "peak_ws_mib": 1245.2109375,
+            "attempts": 1,
+            "calls": 1
+          },
+          {
+            "phase": "repeat",
+            "wall_s": 13.3408769,
+            "cpu_s": 20.96875,
+            "peak_ws_mib": 1278.265625,
+            "attempts": 1,
+            "calls": 1
+          }
+        ]
+      },
+      {
+        "roles": 3,
+        "rows": [
+          {
+            "phase": "cold",
+            "wall_s": 18.9377504,
+            "cpu_s": 47.515625,
+            "peak_ws_mib": 1394.48828125,
+            "attempts": 1,
+            "calls": 3
+          },
+          {
+            "phase": "repeat",
+            "wall_s": 19.6172602,
+            "cpu_s": 47.328125,
+            "peak_ws_mib": 1437.140625,
+            "attempts": 1,
+            "calls": 3
+          }
+        ]
+      }
+    ],
+    "ui_ci_repeat": {
+      "v59": {
+        "windows": 2,
+        "wall_median_s": 0.11784985,
+        "cpu_median_s": 0.1328125,
+        "max_working_set_mib": 407.921875
+      },
+      "mineral": {
+        "windows": 2,
+        "wall_median_s": 0.11501465,
+        "cpu_median_s": 0.125,
+        "max_working_set_mib": 408.34375
+      },
+      "graphite": {
+        "windows": 2,
+        "wall_median_s": 0.11050965,
+        "cpu_median_s": 0.109375,
+        "max_working_set_mib": 410.83203125
+      }
+    },
+    "excluded_measurement": {
+      "roles": 3,
+      "completed_windows": 0,
+      "completed_first_pass": 1,
+      "failure": "UI Automation could not select the role count before a second approval",
+      "charged_attempts": 1,
+      "completed_calls": 3
+    }
   }
 }

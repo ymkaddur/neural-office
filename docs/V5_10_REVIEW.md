@@ -38,20 +38,24 @@ La comparación de interfaz usa dos ventanas nuevas por variante. El orden de la
 
 La repetición dio tiempos de pared próximos en las tres variantes. Grafito usó algo más de CPU que V5.9 en ese intervalo. El orden de apertura, las cachés del sistema y la cadencia de UI Automation pueden influir en las diferencias de la primera comprobación. [Seis ventanas y métricas por recorrido](evidence/V5_10_WINDOWS.json) · [Ejecución de Windows y binarios de prueba](https://github.com/ymkaddur/neural-office/actions/runs/44382596583).
 
+En un segundo runner, el pico de RAM al repetir fue 407,9 MiB para V5.9, 408,3 MiB para mineral y 410,8 MiB para grafito. El orden de las paletas cambió entre las dos mediciones. La estética puede compararse con las capturas, pero estas muestras dejan abierta cualquier ventaja de consumo atribuible al color. [Segunda comparación nativa](https://github.com/ymkaddur/neural-office/actions/runs/44394495574).
+
 **Coste de Ollama en Windows local.** El mismo ejecutable de V5.10 se probó con `qwen2.5:0.5b` instalado y una oficina de prueba independiente por perfil. La primera y la segunda pasada usaron el mismo ejemplo en la misma ventana. El medidor arranca al comprobar el HTML o confirmar la autorización y termina al poder leer los cuatro hallazgos y, en las consultas, la entrega. Cada consulta inicia su proceso de inferencia administrado. La repetición conserva la ventana y puede aprovechar cachés del sistema. Las cifras de CPU suman el trabajo en varios núcleos.
 
 | Perfil | Llamadas / intentos por pasada | Tiempo primera / repetida | CPU primera / repetida | Pico RAM primera / repetida |
 |---|---:|---:|---:|---:|
-| Comprobación estática | 0 / 0 | 0,154 / 0,138 s | 0,219 / 0,141 s | 553,0 / 555,8 MiB |
-| Director | 1 / 1 | 13,002 / 13,110 s | 21,078 / 19,375 s | 1252,9 / 1272,5 MiB |
-| Director, revisor e integrador | 3 / 1 | 19,225 / 19,008 s | 47,266 / 46,688 s | 1404,0 / 1417,5 MiB |
+| Comprobación estática | 0 / 0 | 0,162 / 0,137 s | 0,219 / 0,047 s | 552,6 / 561,3 MiB |
+| Director | 1 / 1 | 13,039 / 13,341 s | 20,766 / 20,969 s | 1245,2 / 1278,3 MiB |
+| Director, revisor e integrador | 3 / 1 | 18,938 / 19,617 s | 47,516 / 47,328 s | 1394,5 / 1437,1 MiB |
 
-Las lecturas del registro confirmaron las llamadas y los cargos. Al cerrar cada ventana quedó vacío su árbol de procesos. La tabla recoge las seis pasadas posteriores a la corrección del arranque, con el mismo ejecutable y sin introducir fallos en el ensayo. En la serie anterior la primera consulta de un rol tardó 37,525 s y en esta tardó 13,002 s. Las dos series permiten apreciar la variación. Su tamaño y el estado de las cachés impiden atribuir esa diferencia al cambio. Los tres roles consumieron más CPU en ambas series. La evaluación de utilidad de V5.7 responde a una pregunta distinta. [Datos, intervalo de cada pasada y huellas](evidence/V5_10_WINDOWS.json) · [Evaluación de utilidad](V5_7_REVIEW.md).
+Las lecturas del registro confirmaron las llamadas y los cargos. Al cerrar cada ventana quedó vacío su árbol de procesos. La tabla recoge seis pasadas del ejecutable compilado en `2b6107b`, sin introducir fallos en el ensayo. Las series anteriores también están disponibles. La primera consulta de un rol tardó 37,525 s en una serie y unos 13 s en las dos siguientes. Su tamaño y el estado de las cachés impiden atribuir esa diferencia a la corrección del arranque. Los tres roles consumieron más CPU en cada serie. [Datos, intervalo de cada pasada y huellas](evidence/V5_10_WINDOWS.json) · [Evaluación separada de utilidad](V5_7_REVIEW.md).
 
-Para repetir el ensayo local, usar Python con las dependencias de las pruebas nativas, un directorio nuevo de salida y el SHA-256 contrastado del ejecutable. Desde la raíz del repositorio, ejecutar el comando una vez con cada valor de `--arm` (0, 1 y 3). La versión probada está en el artefacto del flujo enlazado arriba. El modelo y su huella se comprueban antes de un perfil asistido. [Medidor de escritorio](../tools/measure_v58_desktop.py).
+Se excluyó un recorrido incompleto de tres roles. UI Automation perdió el selector del perfil antes de la segunda autorización. Quedaron un intento aceptado y sus tres llamadas. El medidor ahora consulta el estado de expansión que expone WebView2 y abre el control al encontrarlo cerrado. Se completaron de nuevo las dos pasadas en una oficina nueva y se verificó el alcance en el diálogo antes de cada medición.
+
+Para repetir el ensayo local, usar Python con las dependencias de las pruebas nativas, un directorio nuevo de salida y el SHA-256 contrastado del ejecutable. Desde la raíz del repositorio, ejecutar el comando una vez con cada valor de `--arm` (0, 1 y 3). El modelo y su huella se comprueban antes de un perfil asistido. [Ejecutable de pruebas utilizado](https://github.com/ymkaddur/neural-office/actions/runs/44394495574/artifacts/14471255777) · [Medidor de escritorio](../tools/measure_v58_desktop.py).
 
 ```powershell
-python -B -m tools.measure_v58_desktop --executable $exe --expected-sha256 a4e9aa99fb0de656010d29ab980bb542d58057656add979582360a7235ac7c24 --version 5.10.0 --output $directorioNuevo --arm 0
+python -B -m tools.measure_v58_desktop --executable $exe --expected-sha256 0b72bc029ca7449a9714f60e8745be0a7f6725aa0af2c14cf22f4552e3c1c169 --version 5.10.0 --output $directorioNuevo --arm 0
 ```
 
 Dentro de cada entorno las variantes usan los mismos bytes. El checkout de Actions obtuvo el ejemplo con finales CRLF (192 bytes) y el local con LF (183 bytes). Ambos produjeron cuatro hallazgos. La huella distingue esas fuentes.
