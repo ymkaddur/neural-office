@@ -153,6 +153,44 @@ class StartupEvidence(unittest.TestCase):
             self.assertNotIn('OWNED_BACKEND_READY',[r['stage'] for r in rows])
 
 
+class NativeDeliveryDiagnostics(unittest.TestCase):
+    def test_terminal_attempt_ends_the_probe_before_another_poll(self):
+        from e2e_v55_native_uia import TerminalDelivery, delivery_rendered, wait
+        def names():
+            return ['4 hallazgos para revisar']
+        self.assertFalse(delivery_rendered({'states':['RUNNING']},names))
+        self.assertTrue(delivery_rendered({'states':['ACCEPTED']},names))
+        self.assertFalse(delivery_rendered({'states':['ACCEPTED']},lambda:[]))
+        for state in ('FAILED','CANCELLED','REJECTED','RECOVERY_REQUIRED'):
+            with self.subTest(state=state), patch('e2e_v55_native_uia.time.sleep') as sleep:
+                with self.assertRaisesRegex(TerminalDelivery,'FIRST_DELIVERY_UNAVAILABLE:'+state):
+                    wait(lambda:delivery_rendered({'states':[state]},names),timeout=5)
+                sleep.assert_not_called()
+
+    def test_failure_trace_exports_only_bounded_known_fields_and_preserves_error(self):
+        from e2e_v55_native_uia import startup_tail
+        with tempfile.TemporaryDirectory() as tmp, patch('neural_office.ollama.Job') as jobs, \
+                patch('neural_office.ollama.shutil.which',return_value='ollama'), \
+                patch('neural_office.ollama.local_metadata'), \
+                patch.object(OwnedOllama,'_assert_owned_listener',side_effect=subprocess.TimeoutExpired('private fixture command',15)):
+            jobs.return_value.start.return_value.poll.return_value=None
+            jobs.return_value.start.return_value.pid=123
+            path=Path(tmp)/'startup.log'
+            backend=OwnedOllama('synthetic',PROFILE,path)
+            try:
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    backend.start()
+            finally:
+                backend.log.close()
+            with path.open('ab') as stream:
+                stream.write(b'private fixture line\n{"stage":"STARTUP_PHASE","phase":"private fixture","args":"private fixture"}\n')
+            rows=startup_tail(path)
+            self.assertEqual(rows[-2],{'stage':'STARTUP_SUBPROCESS_FAILED','probe':1,'phase':'listener_owner','error_type':'TimeoutExpired'})
+            self.assertEqual(rows[-1],{'stage':'STARTUP_PHASE'})
+            self.assertNotIn('private fixture',json.dumps(rows))
+            self.assertNotIn('pid',json.dumps(rows))
+
+
 class Launcher(unittest.TestCase):
     def test_spaces_unicode_and_different_working_directory(self):
         source=Path(__file__).resolve().parents[1]

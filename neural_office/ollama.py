@@ -107,6 +107,10 @@ class OwnedOllama:
                 last_error=type(exc).__name__
                 self._startup_event('STARTUP_RETRY',probe=probe,phase=phase,error_type=last_error)
                 time.sleep(.1)
+            except (subprocess.CalledProcessError,subprocess.TimeoutExpired) as exc:
+                self._startup_event('STARTUP_SUBPROCESS_FAILED',probe=probe,phase=phase,
+                                    error_type=type(exc).__name__,returncode=getattr(exc,'returncode',None))
+                raise
         self._startup_event('START_TIMEOUT',active_processes=self.job.active(),last_error=last_error,phase=phase,probe=probe)
         raise Denied('OWNED_BACKEND_START_TIMEOUT')
 

@@ -32,6 +32,51 @@ LABELS = ['Falta un título de documento no vacío', 'El documento no declara su
           'Una imagen no tiene atributo alt', 'Un control podría necesitar una etiqueta']
 
 
+class TerminalDelivery(AssertionError):
+    """The first authorized CI attempt has reached a state that cannot produce a report."""
+
+
+def delivery_rendered(counts, names):
+    if any(state in ('FAILED','REJECTED','CANCELLED','RECOVERY_REQUIRED') for state in counts['states']):
+        raise TerminalDelivery('FIRST_DELIVERY_UNAVAILABLE:'+','.join(counts['states']))
+    return counts['states'] == ['ACCEPTED'] and '4 hallazgos para revisar' in names()
+
+
+def startup_tail(log):
+    """Keep only known stage names, phases, counts and error categories from the synthetic run."""
+    if not log.is_file():
+        return []
+    stages = {'BOOTSTRAP_SPAWN_BEGIN','BOOTSTRAP_LAUNCHED','BOOTSTRAP_EXITED','STARTUP_PROBE_BEGIN',
+              'STARTUP_PHASE','STARTUP_RETRY','START_TIMEOUT','OWNED_BACKEND_READY','STARTUP_SUBPROCESS_FAILED'}
+    categories = {'ConnectionRefusedError','TimeoutError','RemoteDisconnected','ConnectionResetError',
+                  'TimeoutExpired','CalledProcessError'}
+    with log.open('rb') as stream:
+        stream.seek(0,2)
+        stream.seek(max(0,stream.tell()-131072))
+        lines = stream.read(131072).splitlines()
+    rows = []
+    for line in lines:
+        if len(line)>2048 or not line.startswith(b'{'):
+            continue
+        try:
+            entry = json.loads(line)
+        except (UnicodeError, ValueError):
+            continue
+        if not isinstance(entry,dict) or not isinstance(entry.get('stage'),str) or entry['stage'] not in stages:
+            continue
+        row = {'stage':entry['stage']}
+        if entry.get('phase') in ('metadata','listener_owner','model_identity'):
+            row['phase'] = entry['phase']
+        for field in ('probe','active_processes','returncode'):
+            if type(entry.get(field)) is int:
+                row[field] = entry[field]
+        for field in ('error_type','last_error'):
+            if isinstance(entry.get(field),str) and entry[field] in categories:
+                row[field] = entry[field]
+        rows.append(row)
+    return rows[-12:]
+
+
 def wait(test, timeout=45, description='condition'):
     deadline = time.monotonic() + timeout
     last = None
@@ -40,6 +85,8 @@ def wait(test, timeout=45, description='condition'):
             value = test()
             if value:
                 return value
+        except TerminalDelivery:
+            raise
         except Exception as error:
             # Preserve the last UIA error category without converting it to a pass.
             last = f'{type(error).__name__}: {error}'[:1000]
@@ -366,7 +413,7 @@ def main():
         screen.screenshot(output / '03-after-start.png')
         evidence['after_start_capture'] = {'counts_before': before_capture, 'counts_after': readonly_counts(state),
                                            'meaning': 'after authorization; not an atomic RUNNING snapshot'}
-        wait(lambda: '4 hallazgos para revisar' in screen.names(), timeout=360, description='real report rendered')
+        wait(lambda: delivery_rendered(readonly_counts(state),screen.names), timeout=360, description='real report rendered')
         evidence['first_delivery_seconds'] = round(time.monotonic() - began, 3)
         sampler.phase = 'idle_after'
         content = screen.names()
@@ -454,6 +501,15 @@ def main():
     except Exception as error:
         evidence['status'] = 'failed'
         evidence['failure'] = {'stage': stage, 'type': type(error).__name__, 'message': sanitized(str(error))[:8000]}
+        if stage == 'real_inference' and state.is_file():
+            try:
+                evidence['failure']['durable_counts'] = readonly_counts(state)
+                with closing(sqlite3.connect(state.as_uri()+'?mode=ro',uri=True)) as con:
+                    first = con.execute('SELECT id FROM attempts ORDER BY rowid LIMIT 1').fetchone()
+                if first and re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',first[0]):
+                    evidence['failure']['startup_stages'] = startup_tail(work/'logs'/(first[0]+'.log'))
+            except (OSError,sqlite3.Error) as diagnostic_error:
+                evidence['failure']['diagnostic_error'] = type(diagnostic_error).__name__
         if screen:
             try:
                 evidence['failure']['controls'] = json.loads(sanitized(screen.inventory()))
