@@ -845,7 +845,175 @@
           }
         ]
       }
-    ]
+    ],
+    "verified_owner_read_correction": {
+      "python_core_git_blob": "e1e68fdf6d222d60581bb4c7b1577807ccc54e70",
+      "original_failure_workflow": 44389683965,
+      "original_failure_counts": {
+        "attempts": 1,
+        "calls": 0,
+        "states": [
+          "FAILED"
+        ]
+      },
+      "original_startup_stage": {
+        "stage": "STARTUP_SUBPROCESS_FAILED",
+        "phase": "listener_owner",
+        "probe": 1,
+        "error_type": "TimeoutExpired"
+      },
+      "native_windows_controlled_outcomes": [
+        {
+          "actual_states": [
+            "ACCEPTED"
+          ],
+          "calls": 1,
+          "bootstraps": 1,
+          "induced_owner_timeouts": 1,
+          "recovered": true
+        },
+        {
+          "actual_states": [
+            "FAILED"
+          ],
+          "calls": 0,
+          "bootstraps": 1,
+          "induced_owner_timeouts": 2,
+          "recovered": false
+        }
+      ],
+      "unperturbed_model_comparison": [
+        {
+          "roles": 0,
+          "idle": {
+            "wall_s": 3.0005948,
+            "cpu_s": 0.09375,
+            "peak_ws_mib": 462.87109375,
+            "peak_private_mib": 220.56640625,
+            "samples": 29,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.1314197
+          },
+          "ready_s": 1.6683384,
+          "runs": [
+            {
+              "phase": "cold",
+              "attempts": 0,
+              "completed_calls": 0,
+              "work": {
+                "wall_s": 0.1540277,
+                "cpu_s": 0.21875,
+                "peak_ws_mib": 552.9765625,
+                "peak_private_mib": 272.45703125,
+                "samples": 3,
+                "incomplete_samples": 0,
+                "max_gap_s": 0.0906369
+              }
+            },
+            {
+              "phase": "repeat",
+              "attempts": 0,
+              "completed_calls": 0,
+              "work": {
+                "wall_s": 0.1377302,
+                "cpu_s": 0.140625,
+                "peak_ws_mib": 555.8125,
+                "peak_private_mib": 277.21875,
+                "samples": 3,
+                "incomplete_samples": 0,
+                "max_gap_s": 0.0998516
+              }
+            }
+          ]
+        },
+        {
+          "roles": 1,
+          "idle": {
+            "wall_s": 3.0007078,
+            "cpu_s": 0.125,
+            "peak_ws_mib": 462.98046875,
+            "peak_private_mib": 220.0703125,
+            "samples": 29,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.1299697
+          },
+          "ready_s": 1.6644149,
+          "runs": [
+            {
+              "phase": "cold",
+              "attempts": 1,
+              "completed_calls": 1,
+              "work": {
+                "wall_s": 13.0021608,
+                "cpu_s": 21.078125,
+                "peak_ws_mib": 1252.9296875,
+                "peak_private_mib": 1356.87890625,
+                "samples": 120,
+                "incomplete_samples": 0,
+                "max_gap_s": 0.1606396
+              }
+            },
+            {
+              "phase": "repeat",
+              "attempts": 1,
+              "completed_calls": 1,
+              "work": {
+                "wall_s": 13.1096162,
+                "cpu_s": 19.375,
+                "peak_ws_mib": 1272.4765625,
+                "peak_private_mib": 1156.08984375,
+                "samples": 122,
+                "incomplete_samples": 0,
+                "max_gap_s": 0.1432181
+              }
+            }
+          ]
+        },
+        {
+          "roles": 3,
+          "idle": {
+            "wall_s": 3.0010954,
+            "cpu_s": 0.0625,
+            "peak_ws_mib": 461.77734375,
+            "peak_private_mib": 219.83203125,
+            "samples": 29,
+            "incomplete_samples": 0,
+            "max_gap_s": 0.1283843
+          },
+          "ready_s": 1.6590824,
+          "runs": [
+            {
+              "phase": "cold",
+              "attempts": 1,
+              "completed_calls": 3,
+              "work": {
+                "wall_s": 19.224594,
+                "cpu_s": 47.265625,
+                "peak_ws_mib": 1403.96875,
+                "peak_private_mib": 1479.87890625,
+                "samples": 177,
+                "incomplete_samples": 0,
+                "max_gap_s": 0.1356549
+              }
+            },
+            {
+              "phase": "repeat",
+              "attempts": 1,
+              "completed_calls": 3,
+              "work": {
+                "wall_s": 19.0080798,
+                "cpu_s": 46.6875,
+                "peak_ws_mib": 1417.53515625,
+                "peak_private_mib": 1392.24609375,
+                "samples": 175,
+                "incomplete_samples": 0,
+                "max_gap_s": 0.1464851
+              }
+            }
+          ]
+        }
+      ]
+    }
   },
   "native_probes_local": {
     "seeded_attempts": 3,

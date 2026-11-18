@@ -178,14 +178,15 @@ class NativeDeliveryDiagnostics(unittest.TestCase):
             path=Path(tmp)/'startup.log'
             backend=OwnedOllama('synthetic',PROFILE,path)
             try:
-                with self.assertRaises(subprocess.TimeoutExpired):
+                with self.assertRaisesRegex(Denied,'OWNED_BACKEND_START_TIMEOUT') as caught:
                     backend.start()
+                self.assertIsInstance(caught.exception.__cause__,subprocess.TimeoutExpired)
             finally:
                 backend.log.close()
             with path.open('ab') as stream:
                 stream.write(b'private fixture line\n{"stage":"STARTUP_PHASE","phase":"private fixture","args":"private fixture"}\n')
             rows=startup_tail(path)
-            self.assertEqual(rows[-2],{'stage':'STARTUP_SUBPROCESS_FAILED','probe':1,'phase':'listener_owner','error_type':'TimeoutExpired'})
+            self.assertEqual(rows[-2],{'stage':'STARTUP_SUBPROCESS_FAILED','probe':2,'phase':'listener_owner','error_type':'TimeoutExpired'})
             self.assertEqual(rows[-1],{'stage':'STARTUP_PHASE'})
             self.assertNotIn('private fixture',json.dumps(rows))
             self.assertNotIn('pid',json.dumps(rows))

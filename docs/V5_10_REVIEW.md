@@ -42,11 +42,11 @@ La repetición dio tiempos de pared próximos en las tres variantes. Grafito us�
 
 | Perfil | Llamadas / intentos por pasada | Tiempo primera / repetida | CPU primera / repetida | Pico RAM primera / repetida |
 |---|---:|---:|---:|---:|
-| Comprobación estática | 0 / 0 | 0,149 / 0,143 s | 0,172 / 0,094 s | 553,7 / 561,2 MiB |
-| Director | 1 / 1 | 37,525 / 13,102 s | 29,219 / 20,531 s | 1195,2 / 1255,1 MiB |
-| Director, revisor e integrador | 3 / 1 | 21,180 / 18,905 s | 44,125 / 45,750 s | 1377,7 / 975,3 MiB |
+| Comprobación estática | 0 / 0 | 0,154 / 0,138 s | 0,219 / 0,141 s | 553,0 / 555,8 MiB |
+| Director | 1 / 1 | 13,002 / 13,110 s | 21,078 / 19,375 s | 1252,9 / 1272,5 MiB |
+| Director, revisor e integrador | 3 / 1 | 19,225 / 19,008 s | 47,266 / 46,688 s | 1404,0 / 1417,5 MiB |
 
-Las lecturas del registro confirmaron el número de llamadas y cargos después de cada entrega. Al cerrar cada ventana quedó vacío su árbol de procesos. Los tres roles consumieron más CPU en ambas pasadas. La primera consulta de un rol tardó más que la de tres. Estas dos observaciones por perfil dejan abierta la variabilidad del arranque. Este recorrido mide coste y conserva la evaluación de utilidad de V5.7 como experimento separado. [Datos y huellas de los dos entornos](evidence/V5_10_WINDOWS.json) · [Evaluación de utilidad](V5_7_REVIEW.md).
+Las lecturas del registro confirmaron las llamadas y los cargos. Al cerrar cada ventana quedó vacío su árbol de procesos. La tabla recoge las seis pasadas posteriores a la corrección del arranque, con el mismo ejecutable y sin introducir fallos en el ensayo. En la serie anterior la primera consulta de un rol tardó 37,525 s y en esta tardó 13,002 s. Las dos series permiten apreciar la variación. Su tamaño y el estado de las cachés impiden atribuir esa diferencia al cambio. Los tres roles consumieron más CPU en ambas series. La evaluación de utilidad de V5.7 responde a una pregunta distinta. [Datos, intervalo de cada pasada y huellas](evidence/V5_10_WINDOWS.json) · [Evaluación de utilidad](V5_7_REVIEW.md).
 
 Para repetir el ensayo local, usar Python con las dependencias de las pruebas nativas, un directorio nuevo de salida y el SHA-256 contrastado del ejecutable. Desde la raíz del repositorio, ejecutar el comando una vez con cada valor de `--arm` (0, 1 y 3). La versión probada está en el artefacto del flujo enlazado arriba. El modelo y su huella se comprueban antes de un perfil asistido. [Medidor de escritorio](../tools/measure_v58_desktop.py).
 
@@ -61,6 +61,14 @@ Dentro de cada entorno las variantes usan los mismos bytes. El checkout de Actio
 Con el ejecutable V5.9 se abrió un encargo guardado mientras otro seguía activo. La acción de parada desapareció al cambiar de vista. En otro recorrido, tras confirmar la cancelación desde un segundo cliente y provocar un fallo de lectura del saldo, el registro ya contenía `CANCELLED` mientras la ventana seguía mostrando «Encargo registrado».
 
 En V5.10 se comprobaron dos recorridos con tres intentos ya reservados. En el primero se pulsó **Detener** desde la vista del encargo guardado. En el segundo se canceló desde otro cliente y se interrumpió una lectura de saldo durante la consulta periódica. En ambos quedó una única confirmación de parada en el encargo activo y el total siguió en tres. Se comprobó la identidad del encargo consultado, la recuperación del saldo y la posibilidad de revisar otro HTML con la cuota agotada. Las lecturas se interrumpieron en un auxiliar temporal del ensayo. [Pruebas nativas](../tools/verify_v510_desktop.py) · [Recibos agregados de Windows](evidence/V5_10_WINDOWS.json).
+
+## Un fallo de Ollama observado durante la verificación
+
+En otra ejecución de Actions, el servidor local arrancó y contestó a la consulta de versión. En la primera comprobación del proceso propietario del puerto, Windows superó el plazo de 15 segundos. El intento pasó a `FAILED` con una reserva y cero llamadas. La traza identifica esa operación. Sigue abierto por qué Windows tardó tanto en ese runner. [Ejecución que capturó el fallo](https://github.com/ymkaddur/neural-office/actions/runs/44389683965).
+
+El núcleo admite una segunda comprobación de propiedad dentro de la ventana de arranque del mismo proceso. Vuelve a comprobar que sigue vivo, que es propietario del puerto y que el modelo coincide. Si el propietario resulta ajeno, termina de inmediato. Si la segunda consulta también agota su plazo, el intento termina con el diagnóstico de arranque. El reintento se limita a observar el proceso antes de la primera inferencia. [Cambio del núcleo](../neural_office/ollama.py) · [Pruebas de plazo, agotamiento y pérdida de propiedad](../tests/test_v53_startup_scenarios.py).
+
+En el escritorio Tauri local se indujo un fallo de lectura y después se dejó actuar a Windows y a Ollama reales. El resultado fue un único proceso de arranque, un intento aceptado y una llamada completada. Al inducir dos fallos, la UI presentó el diagnóstico terminal y el saldo de un intento consumido. El registro confirmó cero llamadas y un único arranque. [Resultados de ambos recorridos](evidence/V5_10_WINDOWS.json).
 
 ## Historiales grandes
 
