@@ -28,6 +28,8 @@ Una lectura del escritorio abría dos veces la misma frontera de continuidad y v
 
 Cuatro procesos independientes por versión, en orden alternado y contrabalanceado, con una oficina temporal de un intento terminado. Cada proceso hizo tres lecturas de calentamiento y sesenta medidas. La dispersión figura en los datos brutos. La memoria es prácticamente igual en esta muestra. El resultado de lectura no estima el rendimiento de Ollama, el consumo de WebView2 ni el coste de una oficina grande. El cálculo de la firma todavía recorre las tablas. [Instrumento](../tools/measure_v59_read.py#L32) · [Resultados por lote](evidence/V5_9_CHECKS.json).
 
+Resolver las referencias de etiquetas también tiene un coste. En 40 lecturas por versión del mismo HTML, alternando el orden dentro del mismo proceso, la mediana del ejemplo pasó de 0,030 a 0,036 ms. Un formulario de 40 campos pasó de 0,367 a 0,425 ms. Con 800 campos y 50 131 bytes pasó de 6,676 a 8,289 ms. Las tres entradas compartidas dieron los mismos hallazgos en ambas versiones. Esta medición cubre el analizador, desde bytes en memoria hasta la lista de hallazgos. [Comparador reproducible](../tools/compare_v59_html.py) · [Medianas, p95 y huellas](evidence/V5_9_CHECKS.json).
+
 Para repetir el ensayo desde la raíz de V5.9 con Python 3.12, el parámetro `--checkout` permite seleccionar una copia de V5.8 o de V5.9. El instrumento crea su propia oficina temporal. El corpus de HTML y las pruebas del cliente se ejecutan por separado.
 
 ```powershell

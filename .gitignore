@@ -288,6 +288,7 @@
 !desktop/src/connected/ProjectHistory.tsx
 !tests/test_v59_names.py
 !tools/measure_v59_read.py
+!tools/compare_v59_html.py
 !tools/verify_v59_names.cjs
 !docs/V5_9_REVIEW.md
 !docs/evidence/V5_9_CHECKS.json

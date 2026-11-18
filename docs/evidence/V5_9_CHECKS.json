@@ -273,6 +273,53 @@
       "actual": "Nombre legal"
     }
   ],
+  "static_parser_cost": [
+    {
+      "fixture": "public-example",
+      "bytes": 183,
+      "sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+      "reads_each": 40,
+      "findings": 4,
+      "baseline": {
+        "median_ms": 0.03,
+        "p95_ms": 0.045
+      },
+      "candidate": {
+        "median_ms": 0.036,
+        "p95_ms": 0.047
+      }
+    },
+    {
+      "fixture": "form-40",
+      "bytes": 2431,
+      "sha256": "97e6f158a7a2d560ea9a3ca1f66a40baf85d92c7dc04ac1640097723168c7ec1",
+      "reads_each": 40,
+      "findings": 0,
+      "baseline": {
+        "median_ms": 0.367,
+        "p95_ms": 0.412
+      },
+      "candidate": {
+        "median_ms": 0.425,
+        "p95_ms": 0.462
+      }
+    },
+    {
+      "fixture": "form-800",
+      "bytes": 50131,
+      "sha256": "9db7a64be4fa0c5076da720821fd789543c7ed67ad5f952ad2658bc09884743f",
+      "reads_each": 40,
+      "findings": 0,
+      "baseline": {
+        "median_ms": 6.676,
+        "p95_ms": 7.324
+      },
+      "candidate": {
+        "median_ms": 8.289,
+        "p95_ms": 9.238
+      }
+    }
+  ],
   "history_fixture": {
     "projects": 50,
     "attempts": 150,
