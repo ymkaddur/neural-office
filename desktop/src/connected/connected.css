@@ -218,6 +218,11 @@
 .activity-read { margin:5px 0 0; font-variant-numeric:tabular-nums; }
 .connected-evidence dd,.connected-event-details,.connected-event-details li,.connected-event-details p,
 .report-read-error code { font-size:13px; line-height:1.5; }
+.connected-evidence { container-type:inline-size; }
+@container (min-width:20rem) {
+  .connected-evidence dl { display:grid; grid-template-columns:minmax(7rem,32%) minmax(0,1fr); gap:10px 14px; align-items:baseline; }
+  .connected-evidence dt,.connected-evidence dd { margin:0; }
+}
 .activity-panel .call-receipts { margin:18px 0 0; padding:16px 0; border-bottom:0; }
 .activity-panel .connected-event-details { margin-top:4px; }
 .connected-event-details summary { padding-block:5px; font-weight:600; color:var(--ink); }
