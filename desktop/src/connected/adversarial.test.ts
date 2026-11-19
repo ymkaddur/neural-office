@@ -51,6 +51,14 @@ async function mount(send:(method:string,params:Record<string,unknown>)=>Promise
     }else result=await send(method,params);
     return {version:1,id:message.id,ok:true,result,error:null};
   }
+  // Happy DOM has no Web Locks. Serialize this window's operations under the same
+  // lock contract exercised by the real-browser, two-window recovery test.
+  const locks=new Map<string,Promise<unknown>>();
+  Object.defineProperty(window.navigator,'locks',{value:{request:(name:string,_options:unknown,fn?:()=>unknown)=>{
+    const work=fn??(_options as ()=>unknown);
+    const task=(locks.get(name)??Promise.resolve()).then(work);
+    locks.set(name,task.catch(()=>{}));return task;
+  }}});
   Object.assign(window,{isTauri:true,__TAURI_INTERNALS__:{invoke}});
   window.eval(await bundle);
   return {window,document:window.document,pollCleaned:()=>pollCleaned,close:async()=>{(window as any).disposeWorkspace();await window.happyDOM.close();}};
@@ -275,6 +283,7 @@ test('legacy project identifiers roundtrip without weakening opaque request iden
   const disk=new Map<string,string>();
   const storage={getItem:(key:string)=>disk.get(key)??null,setItem:(key:string,value:string)=>{disk.set(key,value);}};
   for(const projectId of ['Área de revisión','x'.repeat(65),'x'.repeat(80),'🙂'.repeat(80),' ','nul\0project']){
+    disk.clear(); // Independent saved identity for each supported legacy project name.
     const pending={office_id:'office',project_id:projectId,idempotency_key:'command'};
     writePending(storage,pending);assert.deepEqual(readPending(storage,'office'),pending);
     const row={...baseAttempt,project_id:projectId};

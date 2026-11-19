@@ -1,6 +1,6 @@
-# Escritorio Neural Office · V5.12 en pruebas
+# Escritorio Neural Office · V5.13-Polished en pruebas
 
-En la mesa del Director puedes escribir una pregunta antes de adjuntar el HTML. Al abrir el informe aparecen las ubicaciones, las llamadas registradas y las sugerencias del modelo. El selector grafito/mineral está al pie de la navegación. [Actividad y controles de V5.12](../docs/V5_12_REVIEW.md) · [Verificación de V5.11](../docs/V5_11_REVIEW.md) · [Reconexión](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
+El escritorio reúne el objetivo, los adjuntos, los pasos registrados y las entregas de cada hilo. Abre una cita para leer su fuente en el inspector. Apariencia ofrece Arena y Azul noche. El ejemplo del portal permite recorrer el flujo con cinco archivos y sin un modelo instalado. [Ejemplo y verificaciones de V5.13](../docs/V5_13_POLISHED.md) · [Historial de V5.12](../docs/V5_12_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
 
 ## Abrir el recorrido conectado
 
@@ -29,7 +29,9 @@ Si utilizas otro estado, pasa `-State` con esa misma base y conserva su testigo.
 
 Windows puede bloquear el ejecutable no firmado: se ha observado con App Control en el equipo de desarrollo. No desactives esa protección para probarlo. Firma, distribución e instalación en equipos limpios son una puerta pendiente. Los artefactos de CI incluyen avisos; acompañan al exe y deben conservarse al redistribuirlo. [Licencias](THIRD_PARTY_NOTICES.md).
 
-## Recorrido real
+## Revisión de HTML con roles
+
+Desde el inspector, elige **Abrir revisión de HTML con roles**.
 
 1. Escribe tu pregunta y adjunta un HTML UTF-8 de hasta 256 KiB. **Comprobar HTML** localiza los hallazgos por páginas de 24 y conserva la pregunta. Capturar el archivo registra el proyecto. Comprobar y paginar consumen cero intentos y cero llamadas.
 2. **Consultar al Director** abre el selector de modelos. Si el catálogo confirma que está vacío, la pantalla conserva el borrador y muestra cómo instalar un modelo y actualizar la lista para continuar. El perfil inicial usa una llamada. Los perfiles de tres y siete roles hacen llamadas secuenciales. El modelo recibe el objetivo y las ubicaciones detectadas. La asistencia admite hasta 24 hallazgos.

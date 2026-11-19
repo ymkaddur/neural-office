@@ -55,29 +55,32 @@ def run(exe, out):
                 editor.set_edit_text(OBJECTIVE)
                 wait(lambda: editor.get_value() == OBJECTIVE, description='objective read back via UI Automation')
                 choose_files(screen, host, inputs, title='Adjuntar archivos al hilo', button='Adjuntar archivos')
-                wait(lambda: all('Incluir '+file in screen.names() for file in before),
+                expected_names = {'Incluir '+file for file in before}
+                wait(lambda: expected_names.issubset(screen.names().splitlines()),
                      description='five selected native files visible')
                 screen.screenshot(out/'01-adjuntos.png')
                 screen.button('Inspeccionar · 0 intentos')
                 wait(lambda: 'Hay un plazo que no coincide' in screen.names(), description='local finding')
-                screen.button(r'.*especificacion\.pdf.*Pág\. 2.*', regex=True)
+                screen.reveal_button(r'(?s).*especificacion\.pdf.*Pág\. 2.*', regex=True).invoke()
                 wait(lambda: 'Página 2 de especificacion.pdf' in screen.names(), description='rendered PDF page 2')
                 screen.screenshot(out/'02-evidencia-pdf.png')
-                screen.button(r'.*manifiesto\.json.*Línea 4.*', regex=True)
+                screen.reveal_button(r'(?s).*manifiesto\.json.*Línea 4.*', regex=True).invoke()
                 wait(lambda: 'Campos del JSON' in screen.names() and 'response_sla_hours' in screen.names(),
                      description='JSON source line inspected')
                 screen.screenshot(out/'03-evidencia-json.png')
-                details = screen.control(r'Actividad de la inspección.*', regex=True)
-                details.click_input()
-                wait(lambda: 'Comparar el plazo de primera respuesta' in screen.names(), description='actual inspection steps')
+                screen.disclosure('Actividad de la inspección', expanded=True)
+                # The comparison is the sixth receipt and can start below the
+                # thread viewport. Its text enters the UIA tree on expansion.
+                wait(lambda: 'Comparar el plazo de primera respuesta' in screen.names(visible_only=False),
+                     description='final comparison receipt exposed to accessibility')
                 screen.screenshot(out/'04-actividad.png')
                 screen.button('Ver adjuntos')
-                screen.button(r'entrega\.zip.*Inventario del paquete.*', regex=True)
-                screen.button(r'.*visual/\s*movil\.jpg.*', regex=True)
-                wait(lambda: '360 × 720' in screen.names() and 'Inventario del paquete' in screen.names(),
+                screen.reveal_button(r'(?s)entrega\.zip.*Inventario del paquete.*', regex=True).invoke()
+                screen.reveal_button(r'(?s).*visual/\s*movil\.jpg.*', regex=True).invoke()
+                wait(lambda: re.search(r'\b360\s*×\s*720\b', screen.names()) and 'Inventario del paquete' in screen.names(),
                      description='real image decoded inside the ZIP')
                 screen.button('Ampliar zoom')
-                wait(lambda: '125 %' in screen.names(), description='image zoom applied')
+                wait(lambda: re.search(r'\b125\s*%', screen.names()), description='image zoom applied')
                 screen.screenshot(out/'05-paquete.png')
             except BaseException:
                 screen.screenshot(out/'fallo.png')

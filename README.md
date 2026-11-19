@@ -1,40 +1,31 @@
 # Neural Office
 
-**V5.12-POLISHED · escritorio Windows en pruebas.** Escribe qué necesitas revisar y adjunta el HTML. Puedes localizar un problema en una línea concreta con las reglas locales o pedir al Director que comente el documento con tu modelo de Ollama. Neural Office es gratis y de código abierto.
+**V5.13-Polished · escritorio de revisión multiformato para Windows, en rama de pruebas.** Adjunta la entrega de un proyecto y escribe qué quieres comprobar. El hilo conserva los resultados de la inspección local y enlaza cada hallazgo con su fuente. Puedes pedir al Director que comente los extractos autorizados con un modelo de Ollama.
 
-[![Pruebas de la rama V5.12-POLISHED en Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.12-polished)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.12-polished)
+[![Pruebas de V5.13-Polished en Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.13-polished)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.13-polished)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-El panel de actividad identifica el HTML del encargo y el rol de cada llamada registrada. Despliega «Actividad del encargo» para consultar los eventos con su hora. En un hallazgo, «Qué revisar» muestra la orientación y la regla local junto a la ubicación. Las pruebas de Windows de esta rama guardan las capturas del ejecutable en el artefacto de evidencia.
+## Probar una entrega
 
-La comprobación local cuesta **0 intentos**. Una revisión con el modelo cuesta **1 intento al autorizarla**. Cada proyecto tiene tres. Puedes volver a una entrega guardada para leerla de nuevo. [Actividad, saldo y parada en V5.12](docs/V5_12_REVIEW.md) · [Comparar grafito y mineral en V5.11](docs/V5_11_REVIEW.md#grafito-y-mineral-en-el-ejecutable-de-windows) · [Mediciones y pruebas de V5.11](docs/V5_11_REVIEW.md#pruebas-y-consumo-en-windows).
+El ejemplo contiene la especificación PDF de un portal, su manifiesto JSON, dos imágenes y un ZIP. Pulsa **Adjuntar archivos**, selecciona los cinco y elige **Inspeccionar · 0 intentos**. Abre el hallazgo para comparar la página del PDF que exige una respuesta en 24 horas con la línea del manifiesto que declara 48. Los archivos, el informe y los recibos se pueden volver a abrir por proyecto e hilo. [Ejemplo, puesta en marcha y verificación](docs/V5_13_POLISHED.md)
 
-## Qué puedes hacer
+La consulta al modelo consume **un intento al autorizar la reserva**. Cada proyecto dispone de tres. El permiso identifica los fragmentos, el modelo y el saldo. Un fallo después de la reserva y una cancelación también consumen ese intento. Abre **Actividad del encargo** para seguir los hechos registrados.
 
-- **Revisar un HTML:** idioma, título, alternativas de imágenes y posibles controles sin etiqueta, con ubicación y una acción sugerida.
-- **Pedir comentarios al Director:** elige tu modelo instalado en Ollama y autoriza el alcance antes de empezar.
-- **Controlar el trabajo:** consulta llamadas, detén la ejecución y vuelve a abrir el informe sin repetirla.
-- **Conservar contexto:** consulta el historial y vuelve al borrador durante la misma apertura. La fuente original permanece intacta.
+En **Apariencia** puedes cambiar entre Arena, Azul noche y el tema del sistema. Los ajustes de densidad, tamaño de texto y contraste se aplican al hilo y al inspector.
 
-Los hallazgos estáticos y los comentarios del modelo se presentan por separado. El producto lee archivos; no edita repositorios ni ejecuta herramientas propuestas por un modelo.
+![Hilo del portal con la discrepancia entre su manifiesto y la página citada del PDF, capturado en Edge con el núcleo local](docs/images/v5.13-evidencia.png)
 
-## Probarlo
+[Vista del paquete en Azul noche](docs/images/v5.13-paquete.png) · [Mediciones de tipografía, contraste y recursos](docs/evidence/V5_13_RENDERER.json)
 
-Para probar el ejemplo desde la terminal en Windows, extrae la rama de pruebas y ejecuta este comando con Python 3.12. [Código de V5.12-POLISHED](https://github.com/ymkaddur/neural-office/archive/refs/heads/feat/v5.12-polished.zip).
+## Revisión de HTML
+
+Desde el inspector, **Abrir revisión de HTML con roles** conserva el flujo de revisión estática y la consulta opcional con 1, 3 o 7 roles secuenciales. También puedes comprobar la muestra desde Python 3.12. [Alcance de las reglas](docs/HTML_REVIEW.md)
 
 ```powershell
 py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.html
 ```
 
-Devuelve cuatro hallazgos en JSON y la huella del archivo. No inicia Ollama, crea estado ni consume intentos. [Ejemplos y alcance](docs/HTML_REVIEW.md).
-
-Para abrir el escritorio necesitas Windows x64, Python 3.12 y WebView2. La consulta opcional al Director requiere Ollama y un modelo instalado. Puedes usar el ejecutable de pruebas de GitHub Actions junto con el código de su commit, o compilarlo con Node, Rust y las herramientas de Windows. [Probar el ejecutable de esta rama](docs/V5_12_REVIEW.md) · [Guía de compilación](desktop/README.md).
-
-1. Escribe una pregunta, por ejemplo «¿Qué campo del formulario necesita una etiqueta?». Adjunta `examples/audit-sample.html`.
-2. Pulsa **Comprobar HTML**. Abre **Qué revisar** en la fila del control de la línea 7. La pregunta sigue en el borrador.
-3. Para pedir una segunda lectura, pulsa **Consultar al Director**. Elige el modelo y revisa el alcance. **Autorizar y ejecutar** reserva el intento. Durante la consulta puedes ver el rol y el tiempo registrado de su llamada.
-
-La consulta asistida empieza con un rol en CPU. Cada proyecto dispone de tres intentos. Un fallo o una cancelación después de reservar también cuenta. [Uso, datos y recuperación](docs/README.md).
+Para ejecutar la aplicación necesitas Windows x64, WebView2, Python 3.12 y el código del mismo commit que el ejecutable de prueba. El lanzador prepara los lectores PDF e imagen. Ollama se utiliza al pedir comentarios del modelo. [Instalación y compilación](desktop/README.md) · [Coste, datos y recuperación](docs/README.md)
 
 ## Hacia V6.5
 

@@ -116,9 +116,9 @@ class Screen:
         self.window.wait('visible', timeout=30)
         self.edit_receipts = []
 
-    def names(self):
+    def names(self, *, visible_only=True):
         return '\n'.join(control.element_info.name for control in self.window.descendants()
-                         if control.is_visible() and control.element_info.name)
+                         if control.element_info.name and (not visible_only or control.is_visible()))
 
     def approval_shows_balance(self, remaining):
         dialog = self.window.child_window(title='Este es el encargo.', control_type='Window')
@@ -134,12 +134,33 @@ class Screen:
         control.wait('visible enabled', timeout=15)
         return control.wrapper_object()
 
+    def reveal_button(self, name, regex=False):
+        selector = {'title_re' if regex else 'title': name, 'control_type': 'Button', 'visible_only': False}
+        target = self.window.child_window(**selector)
+        target.wait('exists enabled', timeout=15)
+        button = target.wrapper_object()
+        button.set_focus()
+        wait(button.is_visible, timeout=5, description='button scrolled into its viewport')
+        return button
+
     def button(self, name, regex=False):
         self.control(name, regex=regex).invoke()
 
+    def disclosure(self, title, expanded):
+        # Edge keeps the summary in the UIA tree even below the scrollport.
+        # Focus scrolls the actual thread, then the native pattern expands it.
+        summary = self.reveal_button(r'(?s)^(?:[›⌄]\s*)?'+re.escape(title)+r'.*', regex=True)
+        pattern = summary.iface_expand_collapse
+        if expanded:
+            pattern.Expand()
+        else:
+            pattern.Collapse()
+        wait(lambda: pattern.CurrentExpandCollapseState == int(expanded), timeout=5,
+             description='native disclosure state for '+title)
+
     def core_ready(self):
-        return any(name in self.names().splitlines() for name in (
-            'Núcleo local', 'Última conexión confirmada', 'Núcleo local conectado'))
+        names = set(self.names().splitlines())
+        return bool(names.intersection({'Núcleo local', 'Última conexión confirmada', 'Núcleo local conectado'}))
 
     def open_html(self):
         # Older clients opened directly on HTML. V5.13 keeps it in the
@@ -336,7 +357,9 @@ def main():
         stage = 'open_packaged_ui'
         app, host, screen = open_desktop()
         release = json.loads((root / 'desktop/src-tauri/tauri.conf.json').read_bytes())['version']
-        evidence['window_title'] = screen.window.window_text()
+        import win32gui
+        evidence['window_title'] = win32gui.GetWindowText(screen.window.handle)
+        evidence['accessible_window_title'] = screen.window.window_text()
         assert evidence['window_title'] == f'Neural Office · V{release}', 'WINDOW_RELEASE_MISMATCH'
         checks.append({'check': 'native-window-title-matches-release', 'verified': True})
         evidence['initial_geometry'] = screen.geometry()

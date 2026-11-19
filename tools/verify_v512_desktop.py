@@ -175,12 +175,11 @@ def two_projects(exe, folder, version, out):
         wait(lambda: 'En curso' in screen.names() and 'documento-a.html' in screen.names(),
              description='active role, source and running call in the default activity view')
         screen.screenshot(out/'actividad.png')
-        activity = screen.control('Actividad del encargo.*', regex=True)
-        activity.click_input()
-        wait(lambda: all(text in screen.names() for text in ('Intento reservado', 'Llamada autorizada')),
+        screen.disclosure('Actividad del encargo', expanded=True)
+        wait(lambda: all(text in screen.names(visible_only=False) for text in ('Intento reservado', 'Llamada autorizada')),
              description='recorded reservation and admitted model call on the active project')
         screen.screenshot(out/'actividad-detalle.png')
-        screen.control('Actividad del encargo.*', regex=True).click_input()
+        screen.disclosure('Actividad del encargo', expanded=False)
         wait(lambda: 'Llamada autorizada' not in screen.names(), description='activity details collapsed')
         before, calls, old_stops = stored(folder)
         active, = [row[1] for row in before if row[0] == A and row[2] == 'RUNNING']

@@ -4,7 +4,7 @@ import {ProjectHistory} from './ProjectHistory.tsx';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
 import {hasNativeHost,readReport,request} from './client.ts';
 import type {Finding,FindingPage,Report} from './client.ts';
-import {acceptAttempt,approvalMatches,approvalScopeMatches,pendingKey,readPending,recordedDuration,remainingLabel,stateLabels,terminal,validateSnapshot,writePending} from './model.ts';
+import {acceptAttempt,approvalMatches,approvalScopeMatches,claimPending,releasePending,readPending,recordedDuration,remainingLabel,stateLabels,terminal,validateSnapshot} from './model.ts';
 import type {Approval,Attempt,Model,Pending,Project,Snapshot,Source} from './model.ts';
 import {ReviewDesk} from './ReviewDesk.tsx';
 import type {Inspection} from './ReviewDesk.tsx';
@@ -311,8 +311,9 @@ export function ConnectedWorkspace() {
         if(found){
           discardSubmittedDraft(found);
           if(activeRow&&activeRow.id!==found.id&&terminal(found.state)){
-            if(readPending(localStorage,saved.office_id)?.idempotency_key===saved.idempotency_key)localStorage.removeItem(pendingKey(saved.office_id));
-            setPending(null);restoreActive=true;
+            const other=await releasePending(localStorage,saved);
+            if(!live)return;
+            setPending(other);restoreActive=true;
           }else {putAttempt(found);setDeskPage('attempt');}
           setNotice('Encargo recuperado por su identidad original. No se ha vuelto a ejecutar.');
         }
@@ -369,7 +370,9 @@ export function ConnectedWorkspace() {
   },[approval]);
   useEffect(()=>{
     if(!attempt||!terminal(attempt.state)||!pending||attempt.request_key!==pending.idempotency_key||attempt.project_id!==pending.project_id)return;
-    try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);}catch{setStorageBlocked(true);}
+    let current=true;
+    void releasePending(localStorage,pending).then(other=>{if(current){setPending(other);setPendingMissing(false);}}).catch(()=>{if(current)setStorageBlocked(true);});
+    return ()=>{current=false;};
   },[attempt,pending]);
   useEffect(()=>{
     if(initializing||!active||!attempt)return;
@@ -483,7 +486,10 @@ export function ConnectedWorkspace() {
     const fragmentValid=!!bound&&bound===reviewed?.value&&bound.project_id===navProject&&bound.session_id===session&&bound.thread_id===threadId&&bound.model_digest===modelDigest;
     if(!reviewed||(bound?!fragmentValid:!approvalMatches(reviewed.value,session,source,objective,modelDigest,roleCount,reviewed.expiresAt,performance.now()))){setApproval(null);throw Error('APPROVAL_CHANGED');}
     const identity={office_id:officeId,project_id:reviewed.value.project_id,idempotency_key:crypto.randomUUID()};
-    try{writePending(localStorage,identity);}catch{setStorageBlocked(true);throw Error('PENDING_IDENTITY_NOT_SAVED');}
+    try{
+      const other=await claimPending(localStorage,identity);
+      if(other){setPending(other);setPendingMissing(false);setApproval(null);setNotice('Hay otra petición registrada en esta oficina. Comprueba su identidad antes de autorizar otra consulta.');return;}
+    }catch{setStorageBlocked(true);throw Error('PENDING_IDENTITY_NOT_SAVED');}
     setPending(identity);setPendingMissing(false);setBudgetPending(true);setApproval(null);
     // Identity is durable before send. Any ambiguous failure remains reconcilable.
     const next=await request<Attempt>('attempt.start',{approval_token:reviewed.value.approval_token,idempotency_key:identity.idempotency_key,expected_revision:reviewed.value.expected_revision});
@@ -651,7 +657,7 @@ export function ConnectedWorkspace() {
         {(alert||notice)&&<div className={`connected-notice ${alert?'problem':''}`} role={alert?'alert':'status'}><span>{alert?.message||notice}{alert&&<code>{alert.code}</code>}{connectionError&&lastConfirmed.current&&<small>Última confirmación a las {lastConfirmed.current.toLocaleTimeString('es-ES')}.</small>}</span>{!connectionError&&<button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button>}</div>}
         {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><button className="inline-link" onClick={()=>{setInspected(null);setBrowsedProject(null);setDeskPage('attempt');}}><Icon name="activity"/><span>{attempt.project_id} · {stateLabels[attempt.state]}</span><small>{attempt.objective}</small></button>{stopControl}</div>}
         {localStops}
-        {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>{try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);setNotice('Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}}}>Descartar petición sin reserva</button>}</div>}
+        {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>void act('Revisando la petición pendiente',async()=>{try{const other=await releasePending(localStorage,pending);setPending(other);setPendingMissing(false);setNotice(other?'Hay otra petición pendiente en esta oficina.':'Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}})}>Descartar petición sin reserva</button>}</div>}
         {deskPage==='thread'?<ReviewDesk key={JSON.stringify([officeId,session,navProject,threadId])} office={officeId} session={session} project={navProject} thread={threadId} online={!!session&&!initializing&&!connectionError}
           job={inspectionJobs.jobs.find(j=>j.project===navProject&&j.thread===threadId)} inspectFiles={inspectionJobs.inspect} onDraft={value=>{
             const key=JSON.stringify([officeId,navProject,threadId]);setDraftThreads(old=>{

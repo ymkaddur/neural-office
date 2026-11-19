@@ -55,7 +55,10 @@ async fn desktop_request(
             if multiple {
                 dialog
                     .set_title("Adjuntar archivos al hilo")
-                    .add_filter("Documentos e imágenes", &["pdf", "zip", "json", "png", "jpg", "jpeg", "htm", "html"])
+                    .add_filter(
+                        "Documentos e imágenes",
+                        &["pdf", "zip", "json", "png", "jpg", "jpeg", "htm", "html"],
+                    )
                     .pick_files()
             } else {
                 dialog

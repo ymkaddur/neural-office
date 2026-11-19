@@ -53,7 +53,7 @@ def _build_files(directory):
         draw.rectangle((0, 0, size[0], 55), fill='#203a32')
         draw.text((20, 20), 'Portal de soporte', fill='white', font_size=18)
         draw.text((20, 94), 'Centro de ayuda', fill='#203a32', font_size=27)
-        draw.text((20, 143), '¿En qué podemos ayudarte?', fill='#203a32', font_size=17)
+        draw.text((20, 143), 'Encuentra ayuda para tu equipo.', fill='#203a32', font_size=17)
         for idx, label in enumerate(['Abrir una solicitud', 'Consultar mi estado', 'Acceso a la cuenta']):
             y = 208 + idx * 76
             draw.rounded_rectangle((20, y, size[0] - 20, y + 57), 6, fill='white', outline='#aebeb2')

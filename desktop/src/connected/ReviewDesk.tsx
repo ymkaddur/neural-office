@@ -11,6 +11,23 @@ export type Inspection=Awaited<ReturnType<Files['report']>>;
 type FileItem=Awaited<ReturnType<Files['list']>>[number];
 type Page=Awaited<ReturnType<Files['view']>>;
 type Citation=Inspection['findings'][number]['sources'][number];
+type Member=NonNullable<Page['entries']>[number];
+function PackageTree({entries,selected,onOpen}:{entries:Member[];selected?:string;onOpen:(path:string)=>void}){
+  function branch(rows:Member[],prefix:string){
+    const directories=new Map<string,Member[]>();
+    const leaves:Member[]=[];
+    for(const item of rows){
+      const relative=item.path.slice(prefix.length);
+      const split=relative.indexOf('/');
+      if(split<0||split===relative.length-1){leaves.push(item);continue;}
+      const folder=relative.slice(0,split+1);
+      const children=directories.get(folder)??[];children.push(item);directories.set(folder,children);
+    }
+    return <ul className="package-list">{[...directories].map(([folder,children])=><li key={'dir:'+folder}><details open><summary><Icon name="folder"/>{folder.slice(0,-1)}</summary>{branch(children,prefix+folder)}</details></li>)}
+      {leaves.map((entry,i)=><li key={entry.path+i}><button disabled={!entry.readable} title={entry.detail} aria-label={entry.path} aria-current={selected===entry.path?'true':undefined} onClick={()=>onOpen(entry.path)}><Icon name={kindIcon(entry.kind)}/><strong>{entry.path.slice(prefix.length)}</strong><small>{size(entry.bytes)}</small></button>{!entry.readable&&<small>{entry.detail}</small>}</li>)}</ul>;
+  }
+  return branch(entries,'');
+}
 type Target={id:string;page?:number;member?:string;citation?:Citation};
 type ThreadView={excluded?:string[];draft:string;expanded:boolean;scroll:number;target?:Target;reportId?:string};
 const views=new Map<string,ThreadView>();
@@ -34,8 +51,19 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
   const [excluded,setExcluded]=useState<string[]>(memo.excluded??[]);
   const inspecting=job?.state==='reading'||job?.state==='stopping';
   const [items,setItems]=useState<FileItem[]>([]);
+  const knownIds=useRef<string[]>([]);
+  function adoptItems(rows:FileItem[]){
+    const ordered=[...new Set([...knownIds.current,...rows.map(f=>f.id)])].filter(id=>rows.some(f=>f.id===id));
+    knownIds.current=ordered;
+    setExcluded(old=>{
+      const retained=ordered.filter(id=>!old.includes(id)).slice(0,8);
+      return ordered.filter(id=>!retained.includes(id));
+    });
+    setItems(rows);
+  }
   const [selection,setSelection]=useState<Target|null>(memo.target??null);
   const [preview,setPreview]=useState<Page|null>(null);
+  const [inventory,setInventory]=useState<{id:string;entries:Member[]}|null>(null);
   const [history,setHistory]=useState<Awaited<ReturnType<typeof files.history>>>([]);
   const [report,setReport]=useState<Inspection|null>(null);
   const [working,setWorking]=useState('');
@@ -57,7 +85,7 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
       if(!current||read.current!==version)return;
       const past=await files.history(project,thread);
       if(!current||read.current!==version)return;
-      setItems(rows);setHistory(past);
+      adoptItems(rows);setHistory(past);
       const last=past.find(p=>p.id===(job?.reportId??memo.reportId))??past[0];
       if(last){const result=await files.report(project,thread,last.id);if(current&&read.current===version)setReport(result);}
     }).catch(e=>{if(current&&version===read.current)setProblem(fault(e));});
@@ -72,7 +100,7 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
     if(!selection||!online||!inspector)return;
     let current=true;
     void files.view(project,thread,selection.id,{page:selection.page??1,...(selection.member?{member:selection.member}:{})})
-      .then(value=>{if(current)setPreview(value);}).catch(e=>{if(current)setViewProblem(fault(e));});
+      .then(value=>{if(current){setPreview(value);if(!selection.member&&value.entries)setInventory({id:selection.id,entries:value.entries});}}).catch(e=>{if(current)setViewProblem(fault(e));});
     return ()=>{current=false;};
   },[selection,online,inspector,session,project,thread,revision]);
   async function perform(label:string,work:()=>Promise<void>){
@@ -88,7 +116,7 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
     const all=await files.list(project,thread);
     const past=await files.history(project,thread);
     if(!alive.current)return;
-    setItems(all);setHistory(past);if(picked.length){setSelection(null);showInspector();}
+    adoptItems(all);setHistory(past);if(picked.length){setSelection(null);showInspector();}
   });}
   const included=items.filter(item=>!excluded.includes(item.id));
   function inspect(){void perform('Inspeccionando los archivos',async()=>{
@@ -106,7 +134,8 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
   const unavailable=report?.attachments.filter(a=>a.status&&a.status!=='ok')??[];
   const partial=unavailable.length>0;
   const mayInspect=online&&!working&&!inspecting&&included.length>0&&included.length<=8;
-  const canConsult=selectionMatches&&!inspecting&&!!report?.findings.some(f=>f.sources.some(s=>!!s.quote))&&!modelBlocked&&online&&!working;
+  const citedCount=report?.findings.reduce((total,f)=>total+f.sources.filter(s=>s.quote).length,0)??0;
+  const canConsult=selectionMatches&&!inspecting&&citedCount>0&&citedCount<=8&&!modelBlocked&&online&&!working;
   return <section ref={desk} className={'review-desk'+(inspector?' has-inspector':'')} aria-label="Hilo de revisión">
     <div className="desk-thread">
       <div className="thread-scroll" ref={scroll} onScroll={e=>{snapshot.current.scroll=e.currentTarget.scrollTop;}}>
@@ -133,7 +162,7 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
       <div className="composer-wrap">
         {problem&&<div className="desk-fault" role="alert">{problem} <button className="inline-link" disabled={!online||!!working} onClick={()=>{setProblem('');setRevision(v=>v+1);}}>Actualizar lectura</button></div>}
         {working&&!inspecting&&<div className="desk-progress" role="status"><Icon name="clock"/>{working}</div>}
-        {included.length>8?<p className="selection-note" role="status">Elige hasta ocho archivos para esta inspección. Hay {included.length} seleccionados.</p>:report&&!selectionMatches?<p className="selection-note" role="status">La selección difiere de la entrega abierta. Vuelve a inspeccionar para consultar esos archivos.</p>:null}
+        {citedCount>8&&selectionMatches?<p className="selection-note" role="status">Esta entrega tiene {citedCount} citas. Una consulta admite hasta ocho. Puedes abrir la revisión HTML con roles desde el inspector.</p>:report&&!selectionMatches?<p className="selection-note" role="status">La selección difiere de la entrega abierta. Vuelve a inspeccionar para consultar esos archivos.</p>:null}
         {job?.state==='error'&&!problem&&<p className="desk-fault" role="status">{job.error==='ATTACHMENT_READ_CANCELLED'?'Lectura detenida por el núcleo.':fault(Error(job.error))}</p>}
         <div className="desk-composer"><textarea aria-label="Instrucción para el Director" value={draft} maxLength={2000} rows={2}
           placeholder={report?'Añade una instrucción para el Director…':'¿Qué quieres revisar en los archivos?'} onChange={e=>{setDraft(e.target.value);onDraft(e.target.value);}}
@@ -149,23 +178,27 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
       <header><Icon name={selection?kindIcon(selected?.kind??'pdf'):'attach'}/><h2>{selection?(selected?.name??'Evidencia'):'Adjuntos'}</h2>
         {selection?<button className="inline-link" onClick={()=>setSelection(null)}>Ver adjuntos</button>:<small>{items.length} archivos</small>}</header>
       <div className="inspector-scroll">{!selection?<>
-        {items.length?<ul className="file-list">{items.map(item=><li key={item.id}><input type="checkbox" aria-label={'Incluir '+item.name} checked={!excluded.includes(item.id)} disabled={!!working} onChange={e=>setExcluded(old=>e.target.checked?old.filter(id=>id!==item.id):[...old,item.id])}/><button onClick={()=>open({id:item.id})}><span className={'file-glyph '+item.kind}><Icon name={kindIcon(item.kind)}/></span><span><strong>{item.name}</strong><small>{fileCapability(item.kind)}</small></span><code>{size(item.bytes)}</code></button></li>)}</ul>:<div className="empty-files"><Icon name="folder"/><strong>Todavía no hay adjuntos</strong><p>PDF, ZIP, JSON, imágenes y HTML</p></div>}
+        {items.length>8&&<p className="viewer-note" role="status">{included.length} archivos seleccionados de un máximo de 8. Desmarca uno para sustituirlo.</p>}
+        {items.length?<ul className="file-list">{items.map(item=><li key={item.id}><input type="checkbox" aria-label={'Incluir '+item.name} checked={!excluded.includes(item.id)} disabled={!!working||(excluded.includes(item.id)&&included.length>=8)} onChange={e=>setExcluded(old=>e.target.checked?old.filter(id=>id!==item.id):[...old,item.id])}/><button onClick={()=>open({id:item.id})}><span className={'file-glyph '+item.kind}><Icon name={kindIcon(item.kind)}/></span><span><strong>{item.name}</strong><small>{fileCapability(item.kind)}</small></span><code>{size(item.bytes)}</code></button></li>)}</ul>:<div className="empty-files"><Icon name="folder"/><strong>Todavía no hay adjuntos</strong><p>PDF, ZIP, JSON, imágenes y HTML</p></div>}
         <button className="legacy-link" onClick={onLegacy}><Icon name="json"/>Abrir revisión de HTML con roles <Icon name="arrow"/></button>
       </>:<>
-        {selection.member&&<button className="package-back" onClick={()=>open({id:selection.id})}>← Inventario del paquete</button>}
+        <div className={selection.member&&inventory?.id===selection.id?'package-context has-member':'package-context'}>
+        {selection.member&&inventory?.id===selection.id&&<nav aria-label="Árbol del paquete"><PackageTree entries={inventory.entries} selected={selection.member} onOpen={member=>open({id:selection.id,member})}/></nav>}
+        <div className="package-page">{selection.member&&<button className="package-back" onClick={()=>open({id:selection.id})}>← Inventario del paquete</button>}
         {viewProblem?<div className="desk-fault" role="alert">{viewProblem} <button onClick={()=>setRevision(v=>v+1)}>Reintentar</button></div>:!preview?<p className="viewer-note" role="status">{online?'Leyendo la captura…':'Reconecta para abrir la fuente.'}</p>:<>
           <div className="viewer-toolbar"><strong>{selection.member??preview.kind.toUpperCase()}</strong>{preview.pages&&<div><button aria-label="Página anterior" disabled={(preview.page??1)<=1} onClick={()=>open({...selection,citation:undefined,page:(preview.page??1)-1})}>‹</button>
           <span>{preview.page} / {preview.pages}</span><button aria-label="Página siguiente" disabled={(preview.page??1)>=preview.pages} onClick={()=>open({...selection,citation:undefined,page:(preview.page??1)+1})}>›</button></div>}</div>
           {preview.image&&<><div className="image-tools"><button aria-label="Reducir zoom" disabled={zoom<=0.75} onClick={()=>setZoom(z=>z-.25)}>−</button><span>{zoom*100} %</span><button aria-label="Ampliar zoom" disabled={zoom>=3} onClick={()=>setZoom(z=>z+.25)}>＋</button>{preview.width&&<small>{preview.width} × {preview.height}</small>}</div>
             <div className="image-stage"><div style={{width:(zoom*100)+'%'}}><img alt={preview.kind==='pdf'?'Página '+preview.page+' de '+preview.name:preview.name} src={preview.image}/>{selection.citation?.region?.length===4&&selection.citation.page===preview.page&&<mark className="pdf-hit" aria-label="Posición de la cita" style={{left:selection.citation.region[0]*100+'%',top:selection.citation.region[1]*100+'%',width:selection.citation.region[2]*100+'%',height:selection.citation.region[3]*100+'%'}}/>}</div></div></>}
-          {preview.entries&&<ul className="package-list">{preview.entries.map((entry,i)=><li key={entry.path+i}><button disabled={!entry.readable} title={entry.detail} onClick={()=>open({id:selection.id,member:entry.path})}><Icon name={kindIcon(entry.kind)}/><strong>{entry.path.split('/').map((segment,i,parts)=><span className={i===parts.length-1?'':'member-directory'} key={i}>{segment}{i<parts.length-1?'/':''}</span>)}</strong><small>{size(entry.bytes)}</small></button>{!entry.readable&&<small>{entry.detail}</small>}</li>)}</ul>}
-          {preview.text&&<div className="source-text">{preview.text.split(/\r\n|\r|\n/).map((line,i)=><div className={selection.citation?.line===(preview.text_start_line??1)+i?'line-target':''} key={i}>{preview.kind==='json'&&<span>{(preview.text_start_line??1)+i}</span>}<code>{line||' '}</code></div>)}</div>}
+          {preview.entries&&<PackageTree entries={preview.entries} onOpen={member=>open({id:selection.id,member})}/>}
+          {preview.text&&preview.kind!=='pdf'&&<div className="source-text">{preview.text.split(/\r\n|\r|\n/).map((line,i)=><div className={selection.citation?.line===(preview.text_start_line??1)+i?'line-target':''} key={i}>{preview.kind==='json'&&<span>{(preview.text_start_line??1)+i}</span>}<code>{line||' '}</code></div>)}</div>}
           {selection.citation&&<blockquote><strong>{coordinate(selection.citation)}</strong><p>{selection.citation.quote}</p></blockquote>}
+          {preview.kind==='pdf'&&preview.text&&<details className="viewer-details"><summary>Texto de la página</summary><div className="source-text">{preview.text}</div></details>}
           <p className="viewer-note">{preview.detail}</p>
           {(preview.text_truncated||preview.fields_truncated)&&<p className="viewer-note">La vista muestra un extracto acotado.</p>}
           {preview.fields&&preview.fields.length>0&&<details className="viewer-details"><summary>Campos del JSON</summary>{preview.fields.map((f,i)=><p key={i}><code>{f.pointer}</code> · línea {f.line}</p>)}</details>}
           <details className="viewer-details"><summary>Identidad de la captura</summary><code>{preview.sha256}</code></details>
-        </>}
+        </>}</div></div>
       </>}</div><footer><Icon name="shield"/>Capturas de sólo lectura</footer>
     </aside>}
   </section>;

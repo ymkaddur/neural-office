@@ -29,6 +29,9 @@ export function recordedDuration(call:ModelCall,observed:number|undefined,active
   return `${Math.floor(seconds/60)} min ${seconds%60} s`;
 }
 const record=(value:unknown):value is Record<string,unknown>=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+function samePending(a:Pending|null,b:Pending) {
+  return a!==null&&a.office_id===b.office_id&&a.project_id===b.project_id&&a.idempotency_key===b.idempotency_key;
+}
 export function readPending(storage:Pick<Storage,'getItem'>,officeId:string):Pending|null {
   const raw=storage.getItem(pendingKey(officeId));
   if(raw===null) return null;
@@ -37,9 +40,74 @@ export function readPending(storage:Pick<Storage,'getItem'>,officeId:string):Pen
   return {office_id:officeId,project_id:value.project_id,idempotency_key:value.idempotency_key};
 }
 export function writePending(storage:Pick<Storage,'setItem'|'getItem'>,pending:Pending) {
+  if(!projectId(pending.project_id)||!id(pending.idempotency_key))throw Error('PENDING_IDENTITY_INVALID');
+  const existing=readPending(storage,pending.office_id);
+  if(existing&&!samePending(existing,pending))throw Error('PENDING_IDENTITY_CONFLICT');
+  if(existing)return;
   storage.setItem(pendingKey(pending.office_id),JSON.stringify(pending));
   const readback=readPending(storage,pending.office_id);
-  if(readback?.office_id!==pending.office_id||readback?.project_id!==pending.project_id||readback?.idempotency_key!==pending.idempotency_key) throw Error('PENDING_IDENTITY_NOT_SAVED');
+  if(!samePending(readback,pending))throw Error('PENDING_IDENTITY_NOT_SAVED');
+}
+
+// The v5.5 key and JSON shape stay readable after an update or a lost host
+// response. Only V5.13 writers participate in the cross-window arbitration.
+async function pendingLock<T>(officeId:string,mutate:()=>T):Promise<T> {
+  const key=pendingKey(officeId);
+  if(globalThis.navigator?.locks){
+    const outcome=await navigator.locks.request(key,()=>{
+      try{return {ok:true,value:mutate()} as const;}
+      catch(error){return {ok:false,error} as const;}
+    });
+    if(!outcome.ok)throw outcome.error;
+    return outcome.value;
+  }
+  if(!globalThis.indexedDB)throw Error('PENDING_COORDINATION_UNAVAILABLE');
+  // A readwrite transaction grants exclusive access to the object store across
+  // same-origin tabs. The short synchronous callback only touches localStorage.
+  return new Promise<T>((resolve,reject)=>{
+    const opening=indexedDB.open('neural-office.pending-coordination',1);
+    let blocked=false;
+    opening.onupgradeneeded=()=>opening.result.createObjectStore('offices');
+    opening.onerror=()=>reject(Error('PENDING_COORDINATION_UNAVAILABLE'));
+    opening.onblocked=()=>{blocked=true;reject(Error('PENDING_COORDINATION_UNAVAILABLE'));};
+    opening.onsuccess=()=>{
+      const db=opening.result;
+      if(blocked){db.close();return;}
+      db.onversionchange=()=>db.close();
+      try{
+        const transaction=db.transaction('offices','readwrite');
+        let value:T;
+        let failure:unknown;
+        transaction.onabort=()=>{db.close();reject(failure??Error('PENDING_COORDINATION_UNAVAILABLE'));};
+        transaction.oncomplete=()=>{db.close();resolve(value);};
+        transaction.objectStore('offices').get(key).onsuccess=()=>{
+          try{value=mutate();}catch(error){failure=error;transaction.abort();}
+        };
+      }catch(error){db.close();reject(error);}
+    };
+  });
+}
+
+/** Null grants the sender this slot. An existing identity must be reconciled. */
+export function claimPending(storage:Pick<Storage,'setItem'|'getItem'>,pending:Pending):Promise<Pending|null> {
+  return pendingLock(pending.office_id,()=>{
+    const existing=readPending(storage,pending.office_id);
+    if(existing)return existing;
+    writePending(storage,pending);
+    return null;
+  });
+}
+
+/** A late terminal receipt must preserve a different window's pending command. */
+export function releasePending(storage:Pick<Storage,'getItem'|'removeItem'>,pending:Pending):Promise<Pending|null> {
+  return pendingLock(pending.office_id,()=>{
+    const current=readPending(storage,pending.office_id);
+    if(!samePending(current,pending))return current;
+    storage.removeItem(pendingKey(pending.office_id));
+    const remaining=readPending(storage,pending.office_id);
+    if(samePending(remaining,pending))throw Error('PENDING_IDENTITY_NOT_CLEARED');
+    return remaining;
+  });
 }
 export function mergeEvents(current:EventWindow,batch:EventBatch):{window:EventWindow;resync:boolean} {
   if(!id(batch.session_id)||!counter(batch.cursor)||!counter(batch.next_after)||!Array.isArray(batch.events)||batch.events.length>200) throw Error('EVENT_CONTRACT');
