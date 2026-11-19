@@ -165,7 +165,9 @@ def two_projects(exe, folder, version, out):
         require(len(before) == 3 and calls == 2, 'three seeded charges and two real call receipts expected')
         screen.button(B+'.*', regex=True)
         wait(lambda: selected_balance(screen,B,'1 intento disponible'), description='history project balance')
-        require('Trabajo en curso · '+A in screen.names(), 'Stop lost its active project label')
+        controls = screen.window.child_window(title='Control del trabajo en curso').wrapper_object()
+        active_text = [item.element_info.name.strip() for item in controls.descendants(control_type='Text') if item.is_visible()]
+        require('Trabajo en curso · '+A in ' '.join(active_text), 'Stop lost its active project label')
         screen.button(ARCHIVED+'.*', regex=True)
         try:
             wait(lambda: 'HOST_RESPONSE_TIMEOUT' in screen.names() and (folder/'poll-held').is_file(),
@@ -176,7 +178,8 @@ def two_projects(exe, folder, version, out):
         finally:
             (folder/'release-read').touch()
         wait(lambda: any(row == (A,active,'CANCELLED') for row in stored(folder)[0]), description='durable stop on A')
-        wait(lambda: 'Preparar otro encargo → · '+B in screen.names(), description='new draft bound to archived project')
+        draft = screen.control('Preparar otro encargo.*', regex=True)
+        require(draft.window_text().endswith(B), 'new draft not bound to archived project')
         screen.button('Reintentar lectura del informe')
         wait(lambda: '4 hallazgos para revisar' in screen.names(), description='retry retrieved the same accepted report')
         screen.button('Preparar otro encargo.*', regex=True)
