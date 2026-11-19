@@ -52,7 +52,10 @@ export function AttemptActivity({office,session,attempt,revision}:{office:string
     <summary>Actividad del encargo{open&&page&&<span>{page.events.length} en esta página</span>}</summary>
     {open&&(failed?<p role="status">No se pudo leer la actividad. <button type="button" className="quiet-button" onClick={()=>setRetry(value=>value+1)}>Reintentar lectura</button></p>
       :page?<>{page.events.length===0?<p>Sin eventos registrados para este encargo.</p>:<ol>{page.events.map(event=><li key={event.seq}>
-        <code>#{event.seq}</code> {labels[event.kind]||event.kind.toLowerCase().replaceAll('_',' ')}{typeof event.payload.role==='string'&&<span> · {event.payload.role}</span>} <time>{timeOf(event.stamp_ns)}</time>
+        <code>#{event.seq}</code>
+        <div className="event-fact"><strong>{Object.hasOwn(labels,event.kind)?labels[event.kind]:event.kind.toLowerCase().replaceAll('_',' ')}</strong>
+          {typeof event.payload.role==='string'&&<span>{event.payload.role}</span>}</div>
+        <time>{timeOf(event.stamp_ns)}</time>
       </li>)}</ol>}
       {page.has_more&&<button type="button" className="quiet-button" onClick={()=>navigate(page.next_before)}>Ver eventos anteriores</button>}
       {before>0&&<button type="button" className="quiet-button" onClick={()=>navigate(0)}>Volver a los más recientes</button>}</>:<p role="status">Leyendo actividad…</p>)}

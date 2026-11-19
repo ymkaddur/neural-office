@@ -136,9 +136,9 @@
   --green:#32674f; --error:#933e42; --nav:#202226; --nav-muted:#c4c7ce;
 }
 .v541.connected.palette-graphite.theme-dark {
-  --canvas:#191a1d; --paper:#202125; --surface:#24262b; --ink:#efeeec; --muted:#bdc0c6;
-  --line:#484b52; --strong:#cfdded; --accent:#b8d4f3; --wash:#30343b;
-  --green:#9ed4b5; --error:#ffb5af; --nav:#18191c; --nav-muted:#bfc2c9;
+  --canvas:#141517; --paper:#191a1d; --surface:#222428; --ink:#f3f2ee; --muted:#bfc2c8;
+  --line:#45484e; --strong:#dee8fa; --accent:#9fc3ff; --wash:#2b3039;
+  --green:#a5d8b9; --error:#ffb5af; --nav:#101113; --nav-muted:#bec1c9;
 }
 .palette-graphite .office-nav { border-color:#494c52; }
 .palette-graphite .new-task,.palette-graphite .connected-projects>button.selected,
@@ -165,9 +165,16 @@
   padding: clamp(32px, 9vh, 92px) clamp(20px, 5vw, 66px) 30px;
 }
 .brief-byline { display:flex; gap:10px; align-items:center; color:var(--muted); font-size:14px; font-weight:600; }
-.brief-intro h1 { margin:14px 0 24px; color:var(--ink); font-size:clamp(27px,3.1vw,40px); line-height:1.14; letter-spacing:-.04em; font-weight:600; }
+.brief-intro h1 { margin:12px 0 22px; color:var(--ink); font-family:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif; font-size:clamp(28px,3.3vw,42px); line-height:1.16; letter-spacing:-.028em; font-weight:600; }
 .brief-form { margin:0; }
-.brief-writing { padding:14px 18px 9px; border-left:3px solid var(--accent); background:var(--paper); }
+.brief-desk:not(.has-findings) .brief-form {
+  border:1px solid var(--line); border-radius:6px; background:var(--surface);
+}
+.brief-writing { padding:14px 18px 4px; border-inline-start:3px solid transparent; }
+.brief-writing:focus-within { border-inline-start-color:var(--accent); }
+.brief-desk:not(.has-findings) .brief-source { padding:9px 18px 12px; border-bottom:0; }
+.brief-desk:not(.has-findings) .brief-actions { padding:12px 18px; border-top:1px solid var(--line); background:var(--paper); border-radius:0 0 6px 6px; }
+.brief-form .brief-settings,.brief-form .model-guide { margin-inline:18px; }
 .brief-writing label,.brief-source small,.brief-actions small,.review-foot span { font-size:13px; color:var(--muted); line-height:1.45; }
 .brief-writing label { display:block; font-weight:600; }
 .brief-label { display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
@@ -178,6 +185,7 @@
 .brief-source { display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line); }
 .brief-file-icon { color:var(--accent); font:600 14px/1 Consolas,monospace; }
 .brief-file { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 13px; min-width:0; }
+.brief-source .brief-file:has(+.remove-source) .source-picker { font:600 14px/1.5 "Cascadia Mono",Consolas,ui-monospace,monospace; }
 .brief-source .source-picker { display:block; max-width:100%; padding:3px 0; white-space:normal; overflow-wrap:anywhere; font-size:15px; font-weight:600; }
 .brief-source .remove-source { margin-left:auto; flex:none; }
 .brief-settings { padding:6px 0 13px; border-bottom:1px solid var(--line); }
@@ -210,12 +218,17 @@
 .connected-history-heading { display:grid; gap:3px; }
 .connected-history-heading span { letter-spacing:normal; text-transform:none; color:var(--nav-muted); }
 .activity-panel { max-width:64ch; }
-.activity-source { display:grid; gap:4px; }
-.activity-source span,.activity-read,.connected-user-request>span,.delivery-state,
+.delivery-document { min-width:0; }
+.delivery-document>span,.activity-read,.connected-user-request>span,.delivery-state,
 .connected-evidence dt,.connected-event-details code { font-size:12px; line-height:1.5; }
-.activity-source span,.activity-read { color:var(--muted); }
-.activity-source strong { font-size:17px; overflow-wrap:anywhere; }
-.activity-read { margin:5px 0 0; font-variant-numeric:tabular-nums; }
+.delivery-document>span,.activity-read { color:var(--muted); }
+.connected-delivery .delivery-document h2 { margin:3px 0 0; font:600 clamp(16px,1.55vw,22px)/1.35 "Segoe UI Variable Text","Segoe UI",sans-serif; letter-spacing:-.02em; overflow-wrap:anywhere; }
+.activity-read { margin:6px 0 12px; font-variant-numeric:tabular-nums; }
+.connected .connected-user-request { margin:4px 0 20px; border-inline-start:3px solid var(--accent); padding:12px 16px; background:var(--surface); }
+.connected .finding-rule,.activity-panel .connected-event-details time { color:var(--muted); }
+.connected .finding-rule code,.event-fact span,.activity-panel time {
+  font:12px/1.5 "Cascadia Mono",Consolas,ui-monospace,monospace; overflow-wrap:anywhere;
+}
 .connected-evidence dd,.connected-event-details,.connected-event-details li,.connected-event-details p,
 .report-read-error code { font-size:13px; line-height:1.5; }
 .connected-evidence { container-type:inline-size; }
@@ -223,9 +236,16 @@
   .connected-evidence dl { display:grid; grid-template-columns:minmax(7rem,32%) minmax(0,1fr); gap:10px 14px; align-items:baseline; }
   .connected-evidence dt,.connected-evidence dd { margin:0; }
 }
-.activity-panel .call-receipts { margin:18px 0 0; padding:16px 0; border-bottom:0; }
+.activity-panel .call-receipts { margin:0; padding:0 0 8px; border:0; }
+.activity-panel .connected-call-list li { border-inline-start:3px solid var(--line); padding-inline:9px; }
+.activity-panel .connected-call-list .call-started { border-inline-start-color:var(--accent); background:var(--wash); }
 .activity-panel .connected-event-details { margin-top:4px; }
 .connected-event-details summary { padding-block:5px; font-weight:600; color:var(--ink); }
+.activity-panel .connected-event-details li { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:baseline; gap:4px 10px; border-top:1px solid var(--line); padding:7px 0; }
+.activity-panel .connected-event-details li code { font-variant-numeric:tabular-nums; }
+.event-fact { display:grid; min-width:0; }
+.event-fact strong { font-size:14px; font-weight:600; line-height:1.45; }
+.event-fact span { color:var(--muted); }
 .report-read-error h3 { font-size:18px; margin:0 0 8px; }
 .report-read-error p { font-size:14px; line-height:1.5; max-width:58ch; overflow-wrap:anywhere; }
 .report-read-error code { display:block; color:var(--muted); margin-bottom:12px; }

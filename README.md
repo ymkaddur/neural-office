@@ -1,11 +1,11 @@
 # Neural Office
 
-**V5.12 · escritorio Windows en pruebas.** Escribe qué necesitas revisar y adjunta el HTML. Puedes localizar un problema en una línea concreta con las reglas locales o pedir al Director que comente el documento con tu modelo de Ollama. Neural Office es gratis y de código abierto.
+**V5.12-POLISHED · escritorio Windows en pruebas.** Escribe qué necesitas revisar y adjunta el HTML. Puedes localizar un problema en una línea concreta con las reglas locales o pedir al Director que comente el documento con tu modelo de Ollama. Neural Office es gratis y de código abierto.
 
-[![Pruebas de la rama V5.12 en Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.12-control)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.12-control)
+[![Pruebas de la rama V5.12-POLISHED en Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.12-polished)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.12-polished)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![Actividad de un encargo de ejemplo en V5.12. Se ven el archivo, la llamada en curso, el saldo del proyecto y la acción para detenerlo.](docs/images/v5.12-actividad.png)
+El panel de actividad identifica el HTML del encargo y el rol de cada llamada registrada. Despliega «Actividad del encargo» para consultar los eventos con su hora. En un hallazgo, «Qué revisar» muestra la orientación y la regla local junto a la ubicación. Las pruebas de Windows de esta rama guardan las capturas del ejecutable en el artefacto de evidencia.
 
 La comprobación local cuesta **0 intentos**. Una revisión con el modelo cuesta **1 intento al autorizarla**. Cada proyecto tiene tres. Puedes volver a una entrega guardada para leerla de nuevo. [Actividad, saldo y parada en V5.12](docs/V5_12_REVIEW.md) · [Comparar grafito y mineral en V5.11](docs/V5_11_REVIEW.md#grafito-y-mineral-en-el-ejecutable-de-windows) · [Mediciones y pruebas de V5.11](docs/V5_11_REVIEW.md#pruebas-y-consumo-en-windows).
 
@@ -20,7 +20,7 @@ Los hallazgos estáticos y los comentarios del modelo se presentan por separado.
 
 ## Probarlo
 
-Para probar el ejemplo desde la terminal en Windows, extrae la rama de pruebas y ejecuta este comando con Python 3.12. [Código de V5.12](https://github.com/ymkaddur/neural-office/archive/refs/heads/feat/v5.12-control.zip).
+Para probar el ejemplo desde la terminal en Windows, extrae la rama de pruebas y ejecuta este comando con Python 3.12. [Código de V5.12-POLISHED](https://github.com/ymkaddur/neural-office/archive/refs/heads/feat/v5.12-polished.zip).
 
 ```powershell
 py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.html

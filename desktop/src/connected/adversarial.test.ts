@@ -144,7 +144,10 @@ for(const remaining of [0,1])test(`approval with ${remaining} remaining distingu
     app.document.querySelector<HTMLButtonElement>('.source-picker')!.click();
     const submit=()=>app.document.querySelector<HTMLButtonElement>('button[type="submit"]');
     await until(()=>submit()?.disabled===false);submit()!.click();
-    if(remaining)await until(()=>!!app.document.querySelector('dialog[open]'));
+    if(remaining){
+      await until(()=>!!app.document.querySelector('dialog[open]'));
+      assert.match(app.document.querySelector('dialog')!.textContent,/el saldo pasará a 0 de 3/);
+    }
     await until(()=>app.document.body.textContent.includes(remaining?'APPROVAL_INVALID_OR_EXPIRED':'ATTEMPT_BUDGET_EXHAUSTED'));
     assert.equal(app.document.querySelector('.connected-quota span:last-child')!.textContent,(remaining===1?'1 intento disponible':'0 intentos disponibles'));
     assert.equal(submit()!.disabled,remaining===0);
@@ -779,6 +782,9 @@ test('activity counts only validated rows of the viewed attempt and opens withou
     await until(()=>disclosure.querySelectorAll('li').length===1);
     assert.match(disclosure.querySelector('summary')!.textContent,/1 en esta página/);
     assert.match(disclosure.querySelector('li')!.textContent,/Intento reservado/);
+    assert.equal(disclosure.querySelector('li code')!.textContent,'#1');
+    assert.equal(disclosure.querySelector('.event-fact strong')!.textContent,'Intento reservado');
+    assert.equal(disclosure.querySelector('.event-fact span'),null);
   }finally{await app.close();}
 });
 

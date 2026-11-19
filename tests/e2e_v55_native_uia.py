@@ -403,7 +403,8 @@ def main():
         assert viewport_checks(assisted_geometry)['review_button_within_work_area'], 'ASSISTED_ACTION_OFFSCREEN'
         assert screen.control('Tu encargo al Director','Edit').get_value() == OBJECTIVE, 'STATIC_REVIEW_LOST_OBJECTIVE'
         screen.button('Revisar encargo.*', regex=True)
-        wait(lambda: 'Consumirá 1 intento' in screen.names(), description='visible approval')
+        wait(lambda: 'el saldo pasará a 2 de 3' in screen.names() and 'Consumirá 1 intento' in screen.names(),
+             description='visible approval with the projected balance')
         assert readonly_counts(state)['attempts'] == 0, 'PREVIEW_CONSUMED_ATTEMPT'
         screen.screenshot(output / '02-approval.png')
         checks.append({'check': 'native-file-picker-visible-approval-no-early-consumption', 'verified': True})
@@ -425,14 +426,15 @@ def main():
         screen.screenshot(output / '04-result.png')
         stage = 'finding_guidance_disclosure'
         guidance = 'Añade un title descriptivo en head. Debe identificar el propósito de esta página.'
-        assert guidance not in screen.names(), 'GUIDANCE_NOT_COLLAPSED'
+        rule = 'DOCUMENT_TITLE_MISSING'
+        assert guidance not in screen.names() and rule not in screen.names(), 'GUIDANCE_NOT_COLLAPSED'
         # WebView2 exposes summary as a button without the Invoke pattern.
         # Use actual pointer input, then require the observable disclosure state.
         screen.control('Qué revisar: Falta un título de documento no vacío').click_input()
-        wait(lambda: guidance in screen.names(), description='selected finding guidance visible')
+        wait(lambda: guidance in screen.names() and rule in screen.names(), description='selected guidance and rule visible')
         screen.screenshot(output / '04-finding-guidance.png')
         screen.control('Qué revisar: Falta un título de documento no vacío').click_input()
-        wait(lambda: guidance not in screen.names() and all(label in screen.names() for label in LABELS),
+        wait(lambda: guidance not in screen.names() and rule not in screen.names() and all(label in screen.names() for label in LABELS),
              description='collapsed guidance restores overview of all four findings')
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'GUIDANCE_REEXECUTED_WORK'
         checks.append({'check': 'four-visible-findings-expand-collapse-real-guidance-without-new-work', 'verified': True})
@@ -481,7 +483,7 @@ def main():
         screen.screenshot(output / '05-draft-return.png')
         stage = 'cancel_second_attempt'
         screen.button('Revisar encargo.*', regex=True)
-        wait(lambda: 'Consumirá 1 intento' in screen.names(), description='second visible approval')
+        wait(lambda: 'el saldo pasará a 1 de 3' in screen.names(), description='second visible approval with one left after reservation')
         screen.button('Autorizar y ejecutar.*', regex=True)
         screen.button('.*Detener trabajo', regex=True)
         wait(lambda: 'Encargo detenido' in screen.names(), timeout=90, description='confirmed cancellation')

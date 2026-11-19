@@ -160,6 +160,13 @@ def two_projects(exe, folder, version, out):
         wait(lambda: 'En curso' in screen.names() and 'documento-a.html' in screen.names(),
              description='active role, source and running call in the default activity view')
         screen.screenshot(out/'actividad.png')
+        activity = screen.control('Actividad del encargo.*', regex=True)
+        activity.click_input()
+        wait(lambda: all(text in screen.names() for text in ('Intento reservado', 'Llamada autorizada')),
+             description='recorded reservation and admitted model call on the active project')
+        screen.screenshot(out/'actividad-detalle.png')
+        screen.control('Actividad del encargo.*', regex=True).click_input()
+        wait(lambda: 'Llamada autorizada' not in screen.names(), description='activity details collapsed')
         before, calls, old_stops = stored(folder)
         active, = [row[1] for row in before if row[0] == A and row[2] == 'RUNNING']
         require(len(before) == 3 and calls == 2, 'three seeded charges and two real call receipts expected')
@@ -191,7 +198,8 @@ def two_projects(exe, folder, version, out):
         require(calls == final_calls and stops == old_stops + [active], 'duplicate work or wrong cancellation')
     return {'A_remaining': 2, 'B_remaining': 1, 'attempts_before': len(before), 'attempts_after': len(after),
             'admitted_calls_before': calls, 'admitted_calls_after': final_calls, 'new_stop_receipts_for_A': 1,
-            'archived_report_retrieved': True, 'draft_reopened_in_B': True, 'stop_enabled_before_next_active_read': True}
+            'archived_report_retrieved': True, 'draft_reopened_in_B': True, 'stop_enabled_before_next_active_read': True,
+            'admitted_call_and_reservation_disclosed': True}
 
 
 def main():

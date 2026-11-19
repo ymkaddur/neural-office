@@ -536,7 +536,7 @@ export function ConnectedWorkspace() {
   }
 
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.12</span></div>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.12-POLISHED</span></div>
     <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Encarga una revisión al Director</h1><p>En el escritorio de Windows puedes escribir tu objetivo, adjuntar un HTML y seguir la revisión con tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
@@ -544,7 +544,7 @@ export function ConnectedWorkspace() {
   return <div className={`v541 connected ${dark?'theme-dark':''} ${graphite?'palette-graphite':''}`}>
     <div ref={shell} className={`office-shell connected-shell ${navOpen?'nav-open':''}`}>
       <nav className="office-nav connected-nav" aria-label="Proyectos y encargos">
-        <div className="wordmark"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.12</span></div>
+        <div className="wordmark" title="V5.12-POLISHED"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.12.1</span></div>
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo encargo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
@@ -574,7 +574,7 @@ export function ConnectedWorkspace() {
             {viewed&&<div className="connected-director-heading"><div className="director-signature"><DirectorMark/><strong id="director-title">Director</strong></div><span className={`connected-status ${active&&!inspected&&!connectionError?'active':''}`} role="status">{connectionError&&viewed&&!terminal(viewed.state)?`Último estado · ${status}`:status}</span></div>}
             {!viewed&&<div id="static-workspace" role="region" aria-labelledby={showingFindings?'static-result-title':'desk-title'} className={'brief-desk static-workspace'+(showingFindings?' has-findings':'')}>
               <header className="brief-intro">
-                <div className="brief-byline"><DirectorMark/><span>{showingFindings?'Comprobación local':'Director'}</span></div>
+                <div className="brief-byline"><DirectorMark/><span>{showingFindings?'Comprobación local':'Director · Revisión de HTML'}</span></div>
                 {showingFindings&&staticPage?
                   <h1 id="static-result-title" ref={inspectionTitle} tabIndex={-1}>{findingTitle(staticPage.total)}</h1>:
                   <h1 id="desk-title">¿Qué necesitas revisar?</h1>}
@@ -664,7 +664,7 @@ export function ConnectedWorkspace() {
           </section>
           {viewed&&<><PaneDivider kind="director" container={surface} controls="connected-delivery" label="Ancho del Director"/>
             <section id="connected-delivery" className="connected-delivery" aria-label="Actividad y entrega">
-              <header><div><span className="eyebrow">Seguimiento</span><h2>Revisión del documento</h2></div>
+              <header><div className="delivery-document"><span>Documento del encargo</span><h2>{sourceLabel}</h2></div>
                 <span className="delivery-state">{report?'Informe recibido':available?'Informe por leer':terminal(viewed.state)?'Sin informe validado':'Esperando informe'}</span>
               </header>
               <div className="connected-tabs" role="tablist" aria-label="Vista de entrega" onKeyDown={tabKey}>
@@ -675,20 +675,19 @@ export function ConnectedWorkspace() {
               <div className="connected-delivery-body" role="tabpanel" id={'panel-'+resultTab} aria-labelledby={'tab-'+resultTab} tabIndex={0}
                 onFocusCapture={()=>{if(tabChoice?.attempt!==viewed.id||tabChoice.tab!==resultTab)setTabChoice({attempt:viewed.id,tab:resultTab});}}>
               {resultTab==='activity'?<div className="activity-panel">
-                <div className="activity-source"><span>Archivo revisado</span><strong>{sourceLabel}</strong></div>
-                {viewed.observed_ms!==undefined&&Number.isSafeInteger(viewed.observed_ms)&&viewed.observed_ms>0&&viewed.observed_ms<=8640000000000000&&
-                  <p className="activity-read">Última lectura del encargo · <time>{new Date(viewed.observed_ms).toLocaleTimeString('es-ES')}</time></p>}
                 <section className="call-receipts" aria-labelledby="calls-title">
                   <h2 id="calls-title">Llamadas al modelo</h2>
                   <p>{viewed.model} · hasta {viewed.roles} {viewed.roles===1?'llamada autorizada':'llamadas secuenciales autorizadas'}</p>
                   {viewed.calls?.length ? <ol className="connected-call-list" aria-label="Llamadas del modelo">{viewed.calls.map((call,index)=>{
                     const duration=recordedDuration(call,viewed.observed_ms,!terminal(viewed.state));
-                    return <li key={call.seq}><span className="call-order">{index+1}</span><strong>{roles[call.role]||call.role}</strong>
+                    return <li key={call.seq} className={call.state==='STARTED'?'call-started':undefined}><span className="call-order">{index+1}</span><strong>{roles[call.role]||call.role}</strong>
                       <span className="call-fact">{call.state==='DONE'?'Respuesta registrada':call.state==='STARTED'?(connectionError?'En curso en la última lectura':'En curso'):call.state==='INTERRUPTED'?'Interrumpida':call.state}
                         {duration&&<small>{duration}{call.state==='STARTED'?' al último registro':''}</small>}</span></li>;
                   })}</ol>
                     : <p>{viewed.calls?'La última lectura contiene cero llamadas.':'Pendiente de leer las llamadas del encargo.'}</p>}
                 </section>
+                {viewed.observed_ms!==undefined&&Number.isSafeInteger(viewed.observed_ms)&&viewed.observed_ms>0&&viewed.observed_ms<=8640000000000000&&
+                  <p className="activity-read">Última lectura del encargo · <time>{new Date(viewed.observed_ms).toLocaleTimeString('es-ES')}</time></p>}
                 <AttemptActivity key={session+'·'+viewed.id} office={officeId} session={session} attempt={viewed.id} revision={viewed.cursor??viewed.revision}/>
               </div>:resultTab==='report'?(report?<ReportView report={report.report}/>:reportProblem?.id===viewed.id?
                 <div className="report-read-error" role="alert"><h3>No se pudo leer este informe</h3>
@@ -702,7 +701,7 @@ export function ConnectedWorkspace() {
         <footer className="connected-footer"><span>{viewed?.model||(assisted?(selectedModel?.model||'Selecciona tu modelo local') :showingFindings?'Análisis estático':'Director')}</span><span>{connectionError?'Último estado guardado':active?'Trabajo acotado en curso':viewed||assisted?'Modelo local · CPU':'Lectura local del archivo'}</span></footer>
       </main>
     </div>
-    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Fuente capturada</dt><dd>{source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Quedan {approval.value.attempts_remaining} antes de empezar.</dd></dl><p>El archivo original no se modifica. Se generará un informe con comprobaciones estáticas y comentarios del modelo.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
+    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Fuente capturada</dt><dd>{source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Con la reserva, el saldo pasará a {approval.value.attempts_remaining-1} de 3.</dd></dl><p>El archivo original no se modifica. Se generará un informe con comprobaciones estáticas y comentarios del modelo.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
   </div>;
 }
 const findingLabels:Record<string,string>={HTML_LANGUAGE_MISSING:'El documento no declara su idioma',HTML_ELEMENT_MISSING:'No se encontró el elemento HTML',DOCUMENT_TITLE_MISSING:'Falta un título de documento no vacío',IMAGE_ALT_MISSING:'Una imagen no tiene atributo alt',CONTROL_LABEL_CANDIDATE:'Un control podría necesitar una etiqueta'};
@@ -731,6 +730,7 @@ function FindingList({findings,offset=0}:{findings:Finding[];offset?:number}) {
         <small>Línea {line} · columna {column}{global?' · comprobación global del documento':''}</small>
         {action&&<details className="finding-action">
           <summary aria-label={`Qué revisar: ${label}`}>Qué revisar</summary><p>{action}</p>
+          <p className="finding-rule">Regla local <code>{code}</code></p>
         </details>}
       </div>
     </li>;
