@@ -1,6 +1,6 @@
-# Escritorio Neural Office · V5.11 en pruebas
+# Escritorio Neural Office · V5.12 en pruebas
 
-En la mesa del Director puedes escribir una pregunta antes de adjuntar el HTML. Al abrir el informe aparecen las ubicaciones, las llamadas registradas y las sugerencias del modelo. El selector grafito/mineral está al pie de la navegación. [Verificación de V5.11](../docs/V5_11_REVIEW.md) · [Reconexión](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
+En la mesa del Director puedes escribir una pregunta antes de adjuntar el HTML. Al abrir el informe aparecen las ubicaciones, las llamadas registradas y las sugerencias del modelo. El selector grafito/mineral está al pie de la navegación. [Actividad y controles de V5.12](../docs/V5_12_REVIEW.md) · [Verificación de V5.11](../docs/V5_11_REVIEW.md) · [Reconexión](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
 
 ## Abrir el recorrido conectado
 

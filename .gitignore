@@ -309,3 +309,8 @@
 !docs/evidence/V5_11_WINDOWS.json
 !docs/images/v5.11-native-graphite.png
 !docs/images/v5.11-native-mineral.png
+
+!tools/verify_v512_desktop.py
+!docs/V5_12_REVIEW.md
+!docs/evidence/V5_12_WINDOWS.json
+!docs/images/v5.12-actividad.png

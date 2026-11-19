@@ -146,7 +146,7 @@ for(const remaining of [0,1])test(`approval with ${remaining} remaining distingu
     await until(()=>submit()?.disabled===false);submit()!.click();
     if(remaining)await until(()=>!!app.document.querySelector('dialog[open]'));
     await until(()=>app.document.body.textContent.includes(remaining?'APPROVAL_INVALID_OR_EXPIRED':'ATTEMPT_BUDGET_EXHAUSTED'));
-    assert.equal(app.document.querySelector('.connected-quota')!.textContent,(remaining===1?'1 intento disponible':'0 intentos disponibles'));
+    assert.equal(app.document.querySelector('.connected-quota span:last-child')!.textContent,(remaining===1?'1 intento disponible':'0 intentos disponibles'));
     assert.equal(submit()!.disabled,remaining===0);
     assert.ok(!app.document.body.textContent.includes('APPROVAL_CHANGED'));
     assert.ok(!app.document.querySelector('dialog[open]'));
@@ -202,13 +202,13 @@ test('browsing a second project page retains the selected balance only within it
     throw Error('unexpected operation');
   });
   try{
-    await until(()=>app.document.querySelector('.connected-quota')?.textContent==='1 intento disponible');
+    await until(()=>app.document.querySelector('.connected-quota span:last-child')?.textContent==='1 intento disponible');
     Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes('Siguientes proyectos'))!.click();
     await until(()=>!!app.document.querySelector('.connected-projects [title="other"]'));
-    assert.equal(app.document.querySelector('.connected-quota')!.textContent,'1 intento disponible');
+    assert.equal(app.document.querySelector('.connected-quota span:last-child')!.textContent,'1 intento disponible');
     assert.match(app.document.querySelector('.connected-new-project')!.textContent,/1 intento disponible/);
     app.document.querySelector<HTMLButtonElement>('.connected-projects [title="other"]')!.click();
-    await until(()=>app.document.querySelector('.connected-quota')?.textContent==='3 intentos disponibles');
+    await until(()=>app.document.querySelector('.connected-quota span:last-child')?.textContent==='3 intentos disponibles');
   }finally{await app.close();}
 });
 
@@ -503,7 +503,7 @@ test('a failed bootstrap detail read keeps the authoritative active identity and
     assert.ok(refresh);await until(()=>!refresh.disabled);refresh.click();
     await until(()=>reads>=2&&!refresh.disabled);
     assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/2 intentos disponibles/);
-    assert.ok(!app.document.querySelector('[role="alert"]'));
+    assert.ok(!app.document.querySelector('[role="alert"]'),app.document.querySelector('[role="alert"]')?.textContent);
   }finally{await app.close();}
 });
 
@@ -576,15 +576,91 @@ test('a draft precedes its attachment and survives a confirmed empty catalog and
     assert.equal(reads,0);
     field.dispatchEvent(new app.window.KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}));
     await until(()=>!!app.document.querySelector('.model-guide'));
-    assert.ok(button('Revisar encargo').disabled&&button('Comprobar HTML').disabled);
+    assert.ok(button('Revisar encargo').disabled&&!button('Comprobar HTML').disabled);
     button('Comprobar modelos instalados').click();await until(()=>reads===2&&!!app.document.querySelector('[role="alert"]'));
-    assert.ok(button('Revisar encargo').disabled&&button('Comprobar HTML').disabled);
+    assert.ok(button('Revisar encargo').disabled&&!button('Comprobar HTML').disabled);
     await until(()=>!button('Comprobar modelos instalados').disabled);
     button('Comprobar modelos instalados').click();await until(()=>!button('Revisar encargo').disabled);
     assert.ok(!app.document.querySelector('.model-guide')&&!button('Comprobar HTML').disabled);
     assert.equal(field.value,objective);
     assert.ok(!methods.some(m=>m.startsWith('attempt.')));
   }finally{await app.close();}
+});
+
+test('a pending catalog does not delay static findings or overwrite the finished check',async()=>{
+  let release!:()=>void;
+  const calls:string[]=[];
+  const app=await mount(async(method,params)=>{
+    calls.push(method);
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='source.pick')return {entry_token:'source',project_id:'project',filename:'sample.html',sha256:'a'.repeat(64),bytes:50,session_id:'session'};
+    if(method==='models.list'){
+      await new Promise<void>(resolve=>{release=resolve;});
+      throw 'HOST_RESPONSE_TIMEOUT';
+    }
+    if(method==='source.check')return {session_id:'session',project_id:'project',source_sha256:'a'.repeat(64),offset:params.offset,total:0,findings:[]};
+    throw Error(method);
+  });
+  const button=(name:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent===name)!;
+  try{
+    await until(()=>button('Elegir archivo HTML')?.disabled===false);
+    button('Elegir archivo HTML').click();
+    await until(()=>!button('Comprobar HTML').disabled);
+    button('Consultar al Director').click();
+    await until(()=>typeof release==='function');
+    assert.equal(button('Comprobar HTML').disabled,false);
+    button('Comprobar HTML').click();
+    await until(()=>!!app.document.querySelector('#static-result-title'));
+    release();await wait(25);
+    assert.ok(!app.document.querySelector('[role="alert"]'));
+    assert.deepEqual(calls.filter(c=>c==='source.check'||c.startsWith('attempt.')),['source.check']);
+  }finally{release?.();await app.close();}
+});
+
+test('browsing B identifies its balance and draft, and a B report timeout leaves Stop on A',async()=>{
+  const live={...baseAttempt,id:'live',project_id:'A',source_name:'a.html'};
+  const archive={...baseAttempt,id:'archive',project_id:'B',source_name:'b.html',ordinal:2,state:'ACCEPTED',report_available:true};
+  const fixture=validReport();
+  let poll!:()=>void,read!:()=>void;
+  let appReady=false;
+  const cancels:unknown[]=[],picks:unknown[]=[];
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return {...snapshot([live,archive],[project('A',1),project('B',2)]),current_attempt:cancels.length?null:live};
+    if(method==='attempt.get'&&params.attempt_id==='archive')return archive;
+    if(method==='attempt.get'){
+      if(poll===undefined&&appReady)await new Promise<void>(resolve=>{poll=resolve;});
+      return live;
+    }
+    if(method==='report.get')return {...fixture.meta,attempt_id:'archive'};
+    if(method==='report.read'){await new Promise<void>(resolve=>{read=resolve;});throw 'HOST_RESPONSE_TIMEOUT';}
+    if(method==='attempt.cancel'){cancels.push(params.attempt_id);return {...live,state:'CANCELLED',revision:2,session_id:'session'};}
+    if(method==='source.pick'){picks.push(params.project_id);return null;}
+    if(method==='models.list')return {session_id:'session',models:[]};
+    throw Error(method);
+  });
+  const button=(part:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes(part))!;
+  try{
+    await until(()=>!!app.document.querySelector('.active-work button:not(:disabled)'));
+    appReady=true;await until(()=>typeof poll==='function');
+    app.document.querySelector<HTMLButtonElement>('.connected-projects [title="B"]')!.click();
+    await until(()=>!!app.document.querySelector('.connected-projects .selected[title="B"]')&&!!app.document.querySelector('.connected-history button'));
+    const balance=app.document.querySelector('.connected-quota')!;
+    assert.match(balance.textContent,/B/);assert.match(balance.textContent,/1 intento disponible/);
+    assert.match(app.document.querySelector('.active-work strong')!.textContent,/A/);
+    app.document.querySelector<HTMLButtonElement>('.connected-history button')!.click();
+    await until(()=>typeof read==='function');read();
+    await until(()=>app.document.body.textContent.includes('HOST_RESPONSE_TIMEOUT'));
+    const stop=app.document.querySelector<HTMLButtonElement>('.active-work button')!;
+    assert.equal(stop.disabled,false);stop.click();stop.click();
+    await until(()=>!app.document.querySelector('.active-work'));
+    assert.deepEqual(cancels,['live']);
+    button('Preparar otro encargo').click();
+    await until(()=>!!button('Elegir archivo HTML')&&!button('Elegir archivo HTML').disabled);
+    button('Elegir archivo HTML').click();await until(()=>picks.length===1);
+    assert.deepEqual(picks,['B']);
+  }finally{read?.();poll?.();await app.close();}
 });
 
 test('a cached empty catalog from a busy core cannot certify that installation is needed',async()=>{
@@ -690,6 +766,8 @@ test('activity counts only validated rows of the viewed attempt and opens withou
   try{
     await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
     (app.document.querySelector('.connected-history button') as any).click();
+    await until(()=>!!app.document.querySelector('#tab-activity'));
+    app.document.querySelector<HTMLButtonElement>('#tab-activity')!.click();
     await until(()=>!!app.document.querySelector('.connected-event-details'));
     assert.match(app.document.body.textContent,/motivo original no está disponible/);
     assert.equal(eventReads,0);
