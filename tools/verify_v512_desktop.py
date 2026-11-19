@@ -138,8 +138,9 @@ def inspect_without_model(exe, folder, version, mode):
                 wait(lambda: diagnostic in screen.names(), description='explicit model catalog outcome')
             require('4 hallazgos para revisar' not in screen.names(), 'stale result before static check')
             try:
-                screen.button('Comprobar HTML')
-                wait(lambda: all(label in screen.names() for label in ('4 hallazgos para revisar','Línea 7 · columna 3')),
+                # The optional model guide can push the free action below the fold.
+                screen.reveal_button('Comprobar HTML').invoke()
+                wait(lambda: all(label in screen.names(visible_only=False) for label in ('4 hallazgos para revisar','Línea 7 · columna 3')),
                      description='static results and source position before catalogue release')
             finally:
                 if mode=='slow':

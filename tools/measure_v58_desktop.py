@@ -221,7 +221,7 @@ def measure(exe, parent, arm, spec, *, version='5.8.0'):
         wait(screen.core_ready, description='local session connected')
         screen.open_html()
         wait(lambda:screen.window.child_window(auto_id='static-picker').is_enabled(),description='idle HTML session ready')
-        require(screen.window.window_text()==title,'window title')
+        require(win32gui.GetWindowText(hwnd)==title,'native window title')
         result['launch_to_ready_s']=(time.perf_counter_ns()-start)/1e9
         print('native',arm,'ready',flush=True)
         groups=Samples(host)
