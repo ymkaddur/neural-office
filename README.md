@@ -5,7 +5,7 @@
 [![Pruebas de la rama V5.12 en Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.12-control)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.12-control)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-![Encargo al Director antes de adjuntar el ejemplo, en la interfaz V5.11](docs/images/v5.11-encargo.png)
+![Actividad de un encargo de ejemplo en V5.12. Se ven el archivo, la llamada en curso, el saldo del proyecto y la acción para detenerlo.](docs/images/v5.12-actividad.png)
 
 La comprobación local cuesta **0 intentos**. Una revisión con el modelo cuesta **1 intento al autorizarla**. Cada proyecto tiene tres. Puedes volver a una entrega guardada para leerla de nuevo. [Actividad, saldo y parada en V5.12](docs/V5_12_REVIEW.md) · [Comparar grafito y mineral en V5.11](docs/V5_11_REVIEW.md#grafito-y-mineral-en-el-ejecutable-de-windows) · [Mediciones y pruebas de V5.11](docs/V5_11_REVIEW.md#pruebas-y-consumo-en-windows).
 
