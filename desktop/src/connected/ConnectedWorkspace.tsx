@@ -1,4 +1,4 @@
-import {useEffect,useLayoutEffect,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {AttemptActivity} from './AttemptActivity.tsx';
 import {ProjectHistory} from './ProjectHistory.tsx';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
@@ -6,7 +6,19 @@ import {hasNativeHost,readReport,request} from './client.ts';
 import type {Finding,FindingPage,Report} from './client.ts';
 import {acceptAttempt,approvalMatches,approvalScopeMatches,pendingKey,readPending,recordedDuration,remainingLabel,stateLabels,terminal,validateSnapshot,writePending} from './model.ts';
 import type {Approval,Attempt,Model,Pending,Project,Snapshot,Source} from './model.ts';
+import {ReviewDesk} from './ReviewDesk.tsx';
+import type {Inspection} from './ReviewDesk.tsx';
+import {attachmentApi} from './attachments.ts';
+import {AppearancePanel, CommandSearch, DeskDialog, Icon, useAppearance} from './DeskTools.tsx';
+import type {DeskAction} from './DeskTools.tsx';
 import './connected.css';
+import './desk.css';
+import {useInspectionJobs} from './useInspectionJobs.ts';
+
+type AttachmentAPI=ReturnType<typeof attachmentApi>;
+type FragmentApproval=Awaited<ReturnType<AttachmentAPI['preview']>>;
+type FragmentProposal={report:Inspection;objective:string;thread:string;project:string};
+
 
 type LoadedReport=Awaited<ReturnType<typeof readReport>>;
 type Description={session_id:string;inference:string;office_id:string};
@@ -30,6 +42,8 @@ const makeProject=()=>`oficina-${crypto.randomUUID().slice(0,8)}`;
 const short=(id:string)=>id.length>18?`${id.slice(0,9)}…${id.slice(-5)}`:id;
 const roles:Record<string,string>={director:'Director',skeptic:'Revisor',integrator:'Integrador',planner:'Planificador',researcher:'Investigador',implementer:'Implementador',verifier:'Verificador'};
 const errors:Record<string,string>={
+  HOST_BUSY:'El núcleo tiene otras lecturas pendientes. Actualiza la vista para consultar los datos.',
+  ATTACHMENT_READER_BUSY:'Hay otra lectura de archivos en curso.',
   PILOT_FINDINGS_LIMIT:'El modelo admite hasta 24 hallazgos por encargo. Puedes leerlos todos en la comprobación sin modelo.',
   PROMPT_BYTE_BUDGET:'El encargo supera el espacio de entrada del modelo. Acorta la petición o utiliza la comprobación sin modelo.',
   REPORT_NOT_ACCEPTED:'El núcleo no aceptó esta entrega. Puedes consultar el estado del intento.',
@@ -106,6 +120,9 @@ export function ConnectedWorkspace() {
   const [browsedProject,setBrowsedProject]=useState<string|null>(null);
   const [session,setSession]=useState('');
   const [officeId,setOfficeId]=useState('');
+  const attachments=useMemo(()=>attachmentApi(request),[officeId,session]);
+  const inspectionJobs=useInspectionJobs(officeId,session);
+  const [draftThreads,setDraftThreads]=useState<Record<string,{project:string;thread:string;title:string}>>({});
   const [snapshot,setSnapshot]=useState<Snapshot|null>(null);
   const [pagedProject,setPagedProject]=useState<{session:string;office:string;revision:number;value:Project}|null>(null);
   const [models,setModels]=useState<Model[]>([]);
@@ -120,7 +137,7 @@ export function ConnectedWorkspace() {
   const [assisted,setAssisted]=useState(false);
   const [inspection,setInspection]=useState<{token:string;page:FindingPage}|null>(null);
   const inspectionTitle=useRef<HTMLHeadingElement>(null);
-  const [approval,setApproval]=useState<{value:Approval;expiresAt:number}|null>(null);
+  const [approval,setApproval]=useState<{value:Approval;excerpts?:FragmentApproval;expiresAt:number}|null>(null);
   const [attempt,setAttempt]=useState<Attempt|null>(null);
   const [pending,setPending]=useState<Pending|null>(null);
   const [pendingMissing,setPendingMissing]=useState(false);
@@ -132,10 +149,21 @@ export function ConnectedWorkspace() {
   const stopFlight=useRef<symbol|null>(null);
   const [requestingStop,setRequestingStop]=useState(false);
   const [budgetPending,setBudgetPending]=useState(false);
+  const [unconfirmedActive,setUnconfirmedActive]=useState<string|null>(null);
   const [problem,setProblem]=useState<ReturnType<typeof errorInfo>|null>(null);
   const [notice,setNotice]=useState('');
-  const [dark,setDark]=useState(()=>{try{return localStorage.getItem('neural-office.v55.theme')!=='light';}catch{return true;}});
-  const [graphite,setGraphite]=useState(()=>{try{return localStorage.getItem('neural-office.v510.palette')!=='mineral';}catch{return true;}});
+  const appearance=useAppearance(),dark=appearance.dark;
+  const [deskPage,setDeskPage]=useState<'thread'|'html'|'attempt'>('thread');
+  const [panel,setPanel]=useState<'appearance'|'search'|'project'|null>(null);
+  const [projectName,setProjectName]=useState('');
+  const [inspector,setInspector]=useState(()=>!matchMedia('(max-width:680px)').matches);
+  const [threadByProject,setThreadByProject]=useState<Record<string,string>>({});
+  const [threadRows,setThreadRows]=useState<{project:string;rows:Awaited<ReturnType<typeof attachments.threads>>}|null>(null);
+  const [threadRevision,setThreadRevision]=useState(0);
+  const [fragmentProposal,setFragmentProposal]=useState<FragmentProposal|null>(null);
+  const fragmentOrigin=useRef<HTMLElement|null>(null);
+  const proposalGeneration=useRef(0);
+  function dismissProposal(){proposalGeneration.current++;setFragmentProposal(null);}
   const [navOpen,setNavOpen]=useState(false);
   const [tabChoice,setTabChoice]=useState<{attempt:string;tab:DeliveryTab}|null>(null);
   const shell=useRef<HTMLDivElement>(null),surface=useRef<HTMLElement>(null),approvalDialog=useRef<HTMLDialogElement>(null);
@@ -147,6 +175,10 @@ export function ConnectedWorkspace() {
   const viewed=inspected??attempt;
   const sourceLabel=viewed?(viewed.source_name||`HTML · ${viewed.source_sha256.slice(0,12)}`):(source?.filename||'Nuevo encargo');
   const navProject=browsedProject??projectId;
+  const threadId=threadByProject[navProject]??'main';
+  const persistedThreads=threadRows?.project===navProject?threadRows.rows:[];
+  const currentThreads=[...persistedThreads,...Object.values(draftThreads).filter(t=>t.project===navProject&&!persistedThreads.some(p=>p.id===t.thread)).map(t=>({id:t.thread,objective:t.title,created_at:0}))];
+  const threadTitle=currentThreads.find(t=>t.id===threadId)?.objective||'Nuevo hilo';
   const project=snapshot?.projects.find(p=>p.id===navProject)??(pagedProject&&snapshot&&
     pagedProject.value.id===navProject&&pagedProject.session===snapshot.session_id&&pagedProject.office===snapshot.office_id&&
     pagedProject.revision===snapshot.revision?pagedProject.value:null);
@@ -158,7 +190,7 @@ export function ConnectedWorkspace() {
   const available=viewed?.state==='ACCEPTED'&&viewed.report_available;
   const staticPage=source&&inspection?.token===source.entry_token&&inspection.page.session_id===session?inspection.page:null;
   const showingFindings=!!staticPage&&!assisted;
-  const note=viewed?workNote(viewed,!!connectionError):null;
+  const note=viewed?.analysis_scope==='local-inspection-excerpts-v1'&&viewed.state==='ACCEPTED'?'El comentario del Director está guardado con los extractos que recibió.':viewed?workNote(viewed,!!connectionError):null;
   const selectedModel=models.find(m=>m.model_digest===modelDigest);
   const status=viewed?stateLabels[viewed.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
   const epoch=()=>generation.current;
@@ -178,7 +210,7 @@ export function ConnectedWorkspace() {
     stopFlight.current=null;setRequestingStop(false);
     setInitializing(true);setApproval(null);setHandshake(old=>old+1);
   }
-  function invalidate(){generation.current++;setApproval(null);setProblem(null);setNotice('');}
+  function invalidate(){generation.current++;dismissProposal();setApproval(null);setProblem(null);setNotice('');}
   function putAttempt(next:Attempt) {
     const previous=currentAttempt.current;
     const accepted=acceptAttempt(previous,next);
@@ -233,6 +265,7 @@ export function ConnectedWorkspace() {
     }
   }
   async function act(label:string,work:()=>Promise<void>) {
+    if(label==='Preparando revisión')previousFocus.current=document.activeElement as HTMLElement;
     if(operation.current) return;
     operation.current=true;setDoing(label);setProblem(null);
     try {await work();}catch(error){noteError(error);}finally{operation.current=false;if(mounted.current)setDoing('');}
@@ -262,7 +295,7 @@ export function ConnectedWorkspace() {
       if(previousSession&&(previousSession!==description.session_id||previousOffice!==description.office_id)){
         invalidate();setModels([]);setModelDigest('');setCatalog('idle');setCatalogEmpty(false);setSource(null);setInspection(null);setInspected(null);setBrowsedProject(null);
         for(const draft of drafts.current.values())draft.source=null;
-        if(previousOffice!==description.office_id){drafts.current.clear();setObjective('');setProjectId(makeProject());setReport(null);setAttempt(null);currentAttempt.current=null;}
+        if(previousOffice!==description.office_id){setDraftThreads({});setThreadByProject({});drafts.current.clear();setObjective('');setProjectId(makeProject());setReport(null);setAttempt(null);currentAttempt.current=null;}
       }
       setProblem(null);setPendingMissing(false);
       sessionRef.current=description.session_id;officeRef.current=description.office_id;setSession(description.session_id);setOfficeId(description.office_id);setSnapshot(first);
@@ -280,7 +313,7 @@ export function ConnectedWorkspace() {
           if(activeRow&&activeRow.id!==found.id&&terminal(found.state)){
             if(readPending(localStorage,saved.office_id)?.idempotency_key===saved.idempotency_key)localStorage.removeItem(pendingKey(saved.office_id));
             setPending(null);restoreActive=true;
-          }else putAttempt(found);
+          }else {putAttempt(found);setDeskPage('attempt');}
           setNotice('Encargo recuperado por su identidad original. No se ha vuelto a ejecutar.');
         }
         else {setPendingMissing(true);setNotice('El núcleo no tiene una reserva para esta identidad. No se ha reenviado nada.');}
@@ -290,12 +323,12 @@ export function ConnectedWorkspace() {
         if(activeProject)setProjectId(activeProject.id);
         const unresolved=activeRow??(previousOffice===first.office_id?previousAttempt:null);
         if(unresolved){
-          setProjectId(unresolved.project_id);putAttempt(unresolved);
+          setProjectId(unresolved.project_id);putAttempt(unresolved);setDeskPage('attempt');setUnconfirmedActive(unresolved.id);
           const next=await request<Attempt>('attempt.get',{attempt_id:unresolved.id});
           if(!live)return;
           if(next.id!==unresolved.id||next.project_id!==unresolved.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
           if(next.session_id&&next.session_id!==description.session_id)throw Error('HOST_SESSION_CHANGED');
-          putAttempt(next);
+          putAttempt(next);setUnconfirmedActive(null);
         }
       }
       // Static inspection has no dependency on the model catalog.
@@ -308,12 +341,25 @@ export function ConnectedWorkspace() {
     return ()=>{catalogRead.current++;};
   },[assisted,session,!!attempt,exhausted,initializing,!!connectionError]);
   useEffect(()=>{if(staticPage&&!assisted)inspectionTitle.current?.focus();},[staticPage,assisted]);
-  useEffect(()=>{try{localStorage.setItem('neural-office.v55.theme',dark?'dark':'light');}catch{}},[dark]);
-  useEffect(()=>{try{localStorage.setItem('neural-office.v510.palette',graphite?'graphite':'mineral');}catch{}},[graphite]);
+  useEffect(()=>{
+    if(!officeId||!session||initializing||connectionError)return;
+    let live=true;
+    void attachments.threads(navProject).then(rows=>{if(live)setThreadRows({project:navProject,rows});})
+      .catch(e=>{if(live){setThreadRows(null);setProblem(errorInfo(e));}});
+    return ()=>{live=false;};
+  },[officeId,session,navProject,initializing,!!connectionError,threadRevision]);
+  useEffect(()=>{
+    const shortcut=(e:KeyboardEvent)=>{
+      if(e.defaultPrevented||e.isComposing||e.keyCode===229||e.altKey||!(e.ctrlKey||e.metaKey)||document.querySelector('dialog[open]'))return;
+      const next=e.key.toLowerCase()==='k'?'search':e.key===','?'appearance':null;
+      if(next){e.preventDefault();setNavOpen(false);setPanel(next);}
+    };
+    window.addEventListener('keydown',shortcut);return ()=>window.removeEventListener('keydown',shortcut);
+  },[]);
   useLayoutEffect(()=>{
     const dialog=approvalDialog.current;
-    if(approval&&!dialog?.open){previousFocus.current=document.activeElement as HTMLElement;dialog?.showModal();}
-    if(!approval&&dialog?.open){dialog.close();previousFocus.current?.focus();}
+    if(approval&&!dialog?.open){dialog?.showModal();}
+    if(!approval&&dialog?.open){dialog.close();const target=previousFocus.current;requestAnimationFrame(()=>{if(target?.isConnected&&!target.hasAttribute('disabled'))target.focus();else document.getElementById('connected-main')?.focus();});}
     if(!approval)return;
     const timer=setTimeout(()=>{
       setApproval(null);
@@ -334,7 +380,7 @@ export function ConnectedWorkspace() {
         if(cancelled||!mounted.current||peer!==peerGeneration.current||currentAttempt.current?.id!==id)return;
         if(next.id!==id||next.project_id!==currentAttempt.current.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
         if(next.session_id&&next.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
-        putAttempt(next);
+        putAttempt(next);setUnconfirmedActive(null);
         confirmConnection();failures=0;
         if(terminal(next.state))return;
       }catch(error){
@@ -433,14 +479,17 @@ export function ConnectedWorkspace() {
   async function start() {
     const reviewed=approval;
     if(reviewed&&performance.now()>=reviewed.expiresAt){setApproval(null);throw Error('APPROVAL_INVALID_OR_EXPIRED');}
-    if(!reviewed||!approvalMatches(reviewed.value,session,source,objective,modelDigest,roleCount,reviewed.expiresAt,performance.now())){setApproval(null);throw Error('APPROVAL_CHANGED');}
-    const identity={office_id:officeId,project_id:projectId,idempotency_key:crypto.randomUUID()};
+    const bound=reviewed?.excerpts;
+    const fragmentValid=!!bound&&bound===reviewed?.value&&bound.project_id===navProject&&bound.session_id===session&&bound.thread_id===threadId&&bound.model_digest===modelDigest;
+    if(!reviewed||(bound?!fragmentValid:!approvalMatches(reviewed.value,session,source,objective,modelDigest,roleCount,reviewed.expiresAt,performance.now()))){setApproval(null);throw Error('APPROVAL_CHANGED');}
+    const identity={office_id:officeId,project_id:reviewed.value.project_id,idempotency_key:crypto.randomUUID()};
     try{writePending(localStorage,identity);}catch{setStorageBlocked(true);throw Error('PENDING_IDENTITY_NOT_SAVED');}
-    setPending(identity);setPendingMissing(false);setApproval(null);
+    setPending(identity);setPendingMissing(false);setBudgetPending(true);setApproval(null);
     // Identity is durable before send. Any ambiguous failure remains reconcilable.
     const next=await request<Attempt>('attempt.start',{approval_token:reviewed.value.approval_token,idempotency_key:identity.idempotency_key,expected_revision:reviewed.value.expected_revision});
     if(!mounted.current)return;
-    drafts.current.delete(projectId);
+    if(next.project_id!==identity.project_id||next.request_key!==identity.idempotency_key)throw Error('ATTEMPT_IDENTITY_CHANGED');
+    drafts.current.delete(identity.project_id);setProjectId(identity.project_id);setBrowsedProject(null);setDeskPage('attempt');
     putAttempt(next);setSource(null);setObjective('');await refreshSnapshot();
   }
   function retainDraft() {
@@ -471,14 +520,21 @@ export function ConnectedWorkspace() {
     setReport(null);setAttempt(null);currentAttempt.current=null;
     setNavOpen(false);requestAnimationFrame(()=>(document.getElementById('connected-objective')||document.getElementById('static-picker'))?.focus());
   }
+  function openThread(project:string,id:string){
+    if(unconfirmedActive&&project!==currentAttempt.current?.project_id)return;
+    invalidate();
+    if(active){setBrowsedProject(project);setInspected(null);}else openDraft(project);
+    setThreadByProject(old=>({...old,[project]:id}));setDeskPage('thread');setNavOpen(false);
+  }
   function newTask(newProject=false) {
-    openDraft(newProject?makeProject():navProject);
+    openThread(newProject?makeProject():navProject,crypto.randomUUID());
   }
   function chooseProject(id:string) {
-    if(active){setBrowsedProject(id);return;}
-    openDraft(id);
+    openThread(id,threadByProject[id]??'main');
   }
   async function chooseAttempt(item:Attempt) {
+    if(unconfirmedActive&&item.id!==unconfirmedActive)return;
+    setDeskPage('attempt');
     if(!retainDraft())return;
     setNavOpen(false);
     invalidate();const expected=epoch();
@@ -496,7 +552,7 @@ export function ConnectedWorkspace() {
     if(next.session_id&&next.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
     setNavOpen(false);
     if(currentAttempt.current&&currentAttempt.current.id!==item.id&&(active||!terminal(currentAttempt.current.state))){
-      setInspected(next.id===currentAttempt.current.id?null:next);
+      setBrowsedProject(next.project_id);setInspected(next.id===currentAttempt.current.id?null:next);
     }else{
       confirmConnection();
       setInspected(null);setBrowsedProject(null);setSource(null);setProjectId(next.project_id);putAttempt(next);
@@ -520,7 +576,7 @@ export function ConnectedWorkspace() {
       if(next.id!==item.id||next.project_id!==item.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
       if(next.session_id&&next.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
       if(item===inspected)setInspected(acceptAttempt(item,next));
-      else if(currentAttempt.current?.id===item.id)putAttempt(next);
+      else if(currentAttempt.current?.id===item.id){putAttempt(next);setUnconfirmedActive(null);}
       if(next.id===viewed?.id&&next.state==='ACCEPTED'&&next.report_available&&!report)setReportReadRevision(v=>v+1);
     }
     if(pending&&stillCurrent())await reconcile(pending);
@@ -535,40 +591,77 @@ export function ConnectedWorkspace() {
     setNotice('Página siguiente de proyectos.');
   }
 
+  const stopControl=active&&attempt?<button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada registrada':requestingStop?'Solicitando parada':'Detener trabajo'} · {attempt.project_id}</button>:null;
+  const localStops=inspectionJobs.jobs.filter(j=>j.state==='reading'||j.state==='stopping').map(j=><div className="local-read-control" key={j.key}><span><Icon name="clock"/> {j.project} · Inspección local</span><button className="stop-button" disabled={j.state==='stopping'} onClick={()=>void inspectionJobs.stop(j).catch(noteError)}>{j.state==='stopping'?'Parada solicitada':'Detener lectura'} · {j.project}</button></div>);
+  const allStops=<>{stopControl}{localStops}</>;
+  const commands:DeskAction[]=[
+    {id:'appearance',name:'Apariencia y lectura',run:()=>setPanel('appearance')},
+    {id:'inspector',name:inspector?'Ocultar inspector':'Abrir inspector',run:()=>setInspector(v=>!v)},
+    ...(!busy&&!doing?[{id:'new',name:'Nuevo hilo',run:()=>newTask()}]:[]),
+    ...(snapshot?.projects??[]).filter(p=>!unconfirmedActive||p.id===attempt?.project_id).map(p=>({id:'p-'+p.id,name:p.id,detail:'Proyecto',run:()=>chooseProject(p.id)})),
+    ...currentThreads.map(t=>({id:'t-'+t.id,name:t.objective||'Hilo de revisión',detail:navProject,run:()=>openThread(navProject,t.id)})),
+    ...(snapshot?.attempts??[]).filter(a=>!unconfirmedActive||a.id===unconfirmedActive).map(a=>({id:'a-'+a.id,name:a.objective,detail:a.project_id,run:()=>void act('Abriendo encargo',()=>chooseAttempt(a))})),
+  ];
+  async function previewFragments(){
+    const proposal=fragmentProposal;
+    if(!proposal||!selectedModel||busy||exhausted||proposal.thread!==threadId||proposal.project!==navProject)return;
+    const before=performance.now(),expected=epoch(),ticket=proposalGeneration.current;
+    const result=await attachments.preview(proposal.project,proposal.thread,proposal.report.id,modelDigest,proposal.objective);
+    const expires=before+result.expires_in_seconds*1000;
+    if(!mounted.current||expected!==epoch()||ticket!==proposalGeneration.current)return;
+    if(result.project_id!==proposal.project||result.thread_id!==proposal.thread||result.report_id!==proposal.report.id||result.session_id!==session||result.model_digest!==modelDigest||result.objective!==proposal.objective||result.roles!==1||!result.fragments?.length||result.attempts_remaining<1||!Number.isFinite(expires)||expires<=performance.now())throw Error('APPROVAL_CHANGED');
+    previousFocus.current=fragmentOrigin.current;dismissProposal();setApproval({value:result,excerpts:result,expiresAt:expires});
+  }
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.12-POLISHED</span></div>
-    <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Encarga una revisión al Director</h1><p>En el escritorio de Windows puedes escribir tu objetivo, adjuntar un HTML y seguir la revisión con tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.13-Polished</span></div>
+    <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa una entrega con el Director</h1><p>Abre Neural Office en Windows para adjuntar documentos, comprobar sus fuentes y consultar a tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
 
-  return <div className={`v541 connected ${dark?'theme-dark':''} ${graphite?'palette-graphite':''}`}>
+  return <div className={`v541 connected desk513 ${dark?'theme-dark':''}`} data-density={appearance.prefs.density} data-contrast={appearance.prefs.contrast} data-motion={appearance.prefs.motion} style={{'--desk-scale':appearance.prefs.scale/100} as React.CSSProperties}>
+    <header className="desk-titlebar"><div className="desk-brand"><Icon name="mark"/><strong>Neural Office</strong></div>
+      <button className="desk-search" onClick={()=>setPanel('search')}><Icon name="search"/><span>Buscar hilo o acción</span><kbd>Ctrl K</kbd></button>
+      <div className="engine-state"><i className={session&&!connectionError&&!initializing?'ready':''}/>{initializing?'Conectando':connectionError?'Sin conexión':session?'Núcleo local':'Conexión pendiente'}</div></header>
     <div ref={shell} className={`office-shell connected-shell ${navOpen?'nav-open':''}`}>
       <nav className="office-nav connected-nav" aria-label="Proyectos y encargos">
-        <div className="wordmark" title="V5.12-POLISHED"><DirectorMark/><strong>Neural Office</strong><span className="version-tag">5.12.1</span></div>
+        {navOpen&&<div className="nav-stop">{allStops}</div>}
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
-        <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo encargo</button>
-        <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>newTask(true)}>＋</button></div>
-        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(active?p.attempts_consumed<=p.legacy_consumed:!!pending||storageBlocked)} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>{project?.id===projectId&&!budgetPending?remainingLabel(project.attempts_consumed):'Cuota por confirmar'}</small></div>}</div>
-        <div className="connected-nav-heading connected-history-heading">Encargos guardados{navProject!==projectId&&<span>{navProject}</span>}</div>
+        <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo hilo</button>
+        <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>{if(deskPage==='html'){newTask(true);setDeskPage('html');}else{setProjectName('');setNavOpen(false);setPanel('project');}}}>＋</button></div>
+        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(!!unconfirmedActive&&p.id!==attempt?.project_id)||(!active&&(!!pending||storageBlocked))} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>{project?.id===projectId&&!budgetPending?remainingLabel(project.attempts_consumed):'Cuota por confirmar'}</small></div>}</div>
+        <div className="nav-threads">{currentThreads.map(t=><button key={t.id} className={t.id===threadId&&deskPage==='thread'?'chosen':''} aria-current={t.id===threadId&&deskPage==='thread'?'page':undefined} onClick={()=>openThread(navProject,t.id)}><Icon name="thread"/><span>{t.objective||'Hilo de revisión'}</span></button>)}</div>
+        <div className="connected-nav-heading connected-history-heading">Consultas al modelo{navProject!==projectId&&<span>{navProject}</span>}</div>
         <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} snapshot={snapshot} current={attempt} selected={viewed?.id}
           offline={!!connectionError||initializing} disabled={initializing||!!connectionError||!!doing||(!active&&!!pending)} onOpen={a=>void act('Abriendo encargo',()=>chooseAttempt(a))}
           onRefresh={()=>act('Actualizando historial',refreshAll)}/>
         {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',nextProjects)}>Siguientes proyectos →</button>}
         {snapshot&&snapshot.next.project_after>100&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',refreshAll)}>Primeros proyectos</button>}
-        <div className="nav-bottom"><div className="local-engine"><span className={`connected-indicator ${session&&!connectionError&&!initializing?'online':''}`}/><div><strong>{initializing?'Conectando con el núcleo':connectionError?'Conexión por confirmar':session?(active?'Núcleo local conectado':'Última conexión confirmada'):'Conexión pendiente'}</strong><small>{lastConfirmed.current?`Última lectura · ${lastConfirmed.current.toLocaleTimeString('es-ES')}`:'Esperando al núcleo'}</small></div></div><div className="nav-footer"><button className="palette-switch" aria-label={graphite?'Comparar con paleta mineral V5.9':'Activar variante grafito'} title={graphite?'Comparar con V5.9':'Comparar con grafito'} onClick={()=>setGraphite(!graphite)}>{graphite?'Paleta · Grafito':'Paleta · Mineral'}</button><button aria-label={dark?'Activar tema claro':'Activar tema oscuro'} onClick={()=>setDark(!dark)}>{dark?'☼':'◐'}</button></div></div>
+        <div className="nav-bottom"><button className="nav-setting" onClick={()=>{setNavOpen(false);setPanel('appearance');}}><Icon name="settings"/> Apariencia <kbd>Ctrl ,</kbd></button></div>
       </nav>
       <PaneDivider kind="navigation" container={shell} controls="connected-main" label="Ancho de navegación"/>
       {navOpen&&<button className="connected-nav-backdrop" aria-label="Cerrar navegación" onClick={()=>setNavOpen(false)}/>}
       <main id="connected-main" className="office-workspace" tabIndex={-1} inert={navOpen||undefined}>
         <header className="workspace-header connected-header">
-          <div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><span title="Proyecto del documento">{viewed&&viewed.project_id!==navProject?viewed.project_id:'Oficina'}</span><span aria-hidden="true">/</span><strong title={sourceLabel}>{sourceLabel}</strong></div>
+          <div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><Icon name="folder"/><span>{navProject}</span><Icon name="arrow"/><strong>{deskPage==='thread'?threadTitle:sourceLabel}</strong></div>
           <div className="header-actions"><span className="connected-quota" id="project-balance" role="group" aria-label="Saldo del proyecto"><span className="balance-owner">{navProject}</span><span>{budgetPending?'Cuota pendiente de actualizar':project?`${remainingLabel(project.attempts_consumed)}${connectionError?' · última lectura':''}`:'Cuota por confirmar'}</span></span>
-            <button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError||!session?retryConnection():void act('Actualizando estado',refreshAll)}>{initializing?'Conectando…':connectionError||!session?'Reconectar':'Actualizar'}</button>
+            {deskPage==='thread'?<button className="desk-inspect-toggle" aria-pressed={inspector} onClick={()=>setInspector(v=>!v)}><Icon name="panel"/> Inspector</button>:<button className="quiet-button" onClick={()=>openThread(navProject,viewed?.thread_id??threadId)}>Volver al hilo</button>}
+            <button className="quiet-button refresh-core" disabled={initializing||!!doing} onClick={()=>connectionError||!session?retryConnection():void act('Actualizando estado',refreshAll)}>{initializing?'Conectando…':connectionError||!session?'Reconectar':'Actualizar'}</button>
           </div>
         </header>
         {(alert||notice)&&<div className={`connected-notice ${alert?'problem':''}`} role={alert?'alert':'status'}><span>{alert?.message||notice}{alert&&<code>{alert.code}</code>}{connectionError&&lastConfirmed.current&&<small>Última confirmación a las {lastConfirmed.current.toLocaleTimeString('es-ES')}.</small>}</span>{!connectionError&&<button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button>}</div>}
-        {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><div><strong>Trabajo en curso · {attempt.project_id}</strong><span title={attempt.objective}>{attempt.objective}</span></div><button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada solicitada':requestingStop?'Solicitando parada':'Detener trabajo'}</button></div>}
+        {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><button className="inline-link" onClick={()=>{setInspected(null);setBrowsedProject(null);setDeskPage('attempt');}}><Icon name="activity"/><span>{attempt.project_id} · {stateLabels[attempt.state]}</span><small>{attempt.objective}</small></button>{stopControl}</div>}
+        {localStops}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>{try{localStorage.removeItem(pendingKey(pending.office_id));setPending(null);setPendingMissing(false);setNotice('Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}}}>Descartar petición sin reserva</button>}</div>}
+        {deskPage==='thread'?<ReviewDesk key={JSON.stringify([officeId,session,navProject,threadId])} office={officeId} session={session} project={navProject} thread={threadId} online={!!session&&!initializing&&!connectionError}
+          job={inspectionJobs.jobs.find(j=>j.project===navProject&&j.thread===threadId)} inspectFiles={inspectionJobs.inspect} onDraft={value=>{
+            const key=JSON.stringify([officeId,navProject,threadId]);setDraftThreads(old=>{
+              if(!value.trim()){const next={...old};delete next[key];return next;}
+              const title=value.trim().slice(0,90);if(old[key]?.title===title)return old;
+              return {...old,[key]:{project:navProject,thread:threadId,title}};
+            });
+          }} inspector={inspector} showInspector={()=>setInspector(true)} onUpdate={()=>{setThreadRevision(v=>v+1);void refreshSnapshot().catch(noteError);}} modelBlocked={busy||!!doing||exhausted||budgetPending}
+          onConsult={(report,query,origin)=>{proposalGeneration.current++;fragmentOrigin.current=origin;setFragmentProposal({report,objective:query,project:navProject,thread:threadId});void loadModels();}}
+          onLegacy={()=>{if(!active)openDraft(navProject);setDeskPage(active?'attempt':'html');}}/>:<>
         <section ref={surface} className={`connected-surface ${viewed?'with-delivery':''}`} aria-label="Encargo y entrega">
           <section className="connected-director" aria-labelledby={viewed?'director-title':showingFindings?'static-result-title':'desk-title'}>
             {viewed&&<div className="connected-director-heading"><div className="director-signature"><DirectorMark/><strong id="director-title">Director</strong></div><span className={`connected-status ${active&&!inspected&&!connectionError?'active':''}`} role="status">{connectionError&&viewed&&!terminal(viewed.state)?`Último estado · ${status}`:status}</span></div>}
@@ -648,6 +741,7 @@ export function ConnectedWorkspace() {
             </div>}
             {inspected&&attempt&&<div className="history-context"><span>Consultando el historial</span><button className="quiet-button" onClick={()=>{invalidate();setInspected(null);setBrowsedProject(null);}}>{active?'Volver al trabajo en curso':'Volver al último encargo'}</button></div>}
             {viewed&&<div className="connected-conversation"><div className="connected-user-request"><span>Tu encargo</span><h1>{viewed.objective}</h1></div>
+                {viewed&&<AttemptActivity key={session+viewed.id} office={officeId} session={session} attempt={viewed.id} revision={viewed.cursor??viewed.revision}/>}
                 {note&&<div className="connected-work-status"><p>{note}</p></div>}
                 {viewed.state==='FAILED'&&viewed.execution_error_code&&<p className="execution-code">Código de ejecución <code>{viewed.execution_error_code}</code></p>}
                 {active&&!inspected&&(viewed.state==='QUEUED'||viewed.state==='RECOVERY_REQUIRED')&&<div className="connected-action-row"><button className="quiet-button" disabled={initializing||!!connectionError||!!doing} onClick={()=>void act('Comprobando recuperación',async()=>{putAttempt(await request<Attempt>('attempt.recover',{attempt_id:viewed.id,expected_revision:viewed.revision}));await refreshSnapshot();})}>Comprobar recuperación</button></div>}
@@ -688,7 +782,7 @@ export function ConnectedWorkspace() {
                 </section>
                 {viewed.observed_ms!==undefined&&Number.isSafeInteger(viewed.observed_ms)&&viewed.observed_ms>0&&viewed.observed_ms<=8640000000000000&&
                   <p className="activity-read">Última lectura del encargo · <time>{new Date(viewed.observed_ms).toLocaleTimeString('es-ES')}</time></p>}
-                <AttemptActivity key={session+'·'+viewed.id} office={officeId} session={session} attempt={viewed.id} revision={viewed.cursor??viewed.revision}/>
+
               </div>:resultTab==='report'?(report?<ReportView report={report.report}/>:reportProblem?.id===viewed.id?
                 <div className="report-read-error" role="alert"><h3>No se pudo leer este informe</h3>
                   <p>El informe sigue guardado en {viewed.project_id}. Puedes volver a leerlo sin consumir un intento.</p>
@@ -699,9 +793,17 @@ export function ConnectedWorkspace() {
           </div></section></>}
         </section>
         <footer className="connected-footer"><span>{viewed?.model||(assisted?(selectedModel?.model||'Selecciona tu modelo local') :showingFindings?'Análisis estático':'Director')}</span><span>{connectionError?'Último estado guardado':active?'Trabajo acotado en curso':viewed||assisted?'Modelo local · CPU':'Lectura local del archivo'}</span></footer>
+        </>}
       </main>
     </div>
-    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Fuente capturada</dt><dd>{source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Con la reserva, el saldo pasará a {approval.value.attempts_remaining-1} de 3.</dd></dl><p>El archivo original no se modifica. Se generará un informe con comprobaciones estáticas y comentarios del modelo.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
+    {panel==='appearance'&&<AppearancePanel control={allStops} appearance={appearance} close={()=>setPanel(null)}/>}
+    {panel==='search'&&<CommandSearch control={allStops} items={commands} close={()=>setPanel(null)}/>}
+    {panel==='project'&&<DeskDialog label="Nuevo proyecto" close={()=>setPanel(null)}><form className="prefs-body" onSubmit={e=>{e.preventDefault();const id=projectName.trim();if(!id||busy||doing)return;openThread(id,'main');setPanel(null);}}><label htmlFor="new-project-name">Nombre del proyecto</label><input id="new-project-name" autoFocus required maxLength={80} value={projectName} onChange={e=>setProjectName(e.target.value)}/><div className="approval-actions"><button type="submit" className="desk-primary" disabled={!projectName.trim()||busy||!!doing}>Abrir proyecto</button></div></form></DeskDialog>}
+    {fragmentProposal&&<DeskDialog label="Consultar los extractos" close={dismissProposal}><div className="prefs-body"><p>{fragmentProposal.objective}</p>
+      <label htmlFor="fragment-model">Modelo local</label><select id="fragment-model" disabled={catalog!=='ready'||!!doing} value={modelDigest} onChange={e=>setModelDigest(e.target.value)}>{!models.length&&<option value="">{catalog==='loading'?'Consultando Ollama…':'Sin modelos disponibles'}</option>}{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
+      {catalog==='error'&&<p role="alert">No se pudo leer el catálogo de Ollama. La inspección local sigue disponible.</p>}
+      <div className="approval-actions"><button className="desk-secondary" disabled={catalog==='loading'||!!doing} onClick={()=>void loadModels()}>Actualizar modelos</button><button className="desk-primary" disabled={!!doing||!selectedModel||catalog!=='ready'||busy} onClick={()=>void act('Preparando permiso',previewFragments)}>Revisar permiso</button></div></div></DeskDialog>}
+    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Proyecto</dt><dd>{approval.value.project_id}</dd><dt>Fuente capturada</dt><dd>{approval.excerpts?'Extractos de la entrega':source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Con la reserva, el saldo pasará a {approval.value.attempts_remaining-1} de 3.</dd></dl>{approval.excerpts&&<div className="permission-excerpts"><h3>Fragmentos que recibirá el modelo</h3>{approval.excerpts.fragments.map((f,i)=><blockquote key={i}><strong>{f.name}</strong><p>{f.quote}</p></blockquote>)}</div>}<p>El modelo recibe una copia de las entradas autorizadas. Los comentarios se guardan junto a la entrega.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
   </div>;
 }
 const findingLabels:Record<string,string>={HTML_LANGUAGE_MISSING:'El documento no declara su idioma',HTML_ELEMENT_MISSING:'No se encontró el elemento HTML',DOCUMENT_TITLE_MISSING:'Falta un título de documento no vacío',IMAGE_ALT_MISSING:'Una imagen no tiene atributo alt',CONTROL_LABEL_CANDIDATE:'Un control podría necesitar una etiqueta'};
@@ -737,6 +839,9 @@ function FindingList({findings,offset=0}:{findings:Finding[];offset?:number}) {
   })}</ol>;
 }
 function ReportView({report}:{report:Report}) {
+  if(report.scope==='local-inspection-excerpts-v1')return <article className="connected-report excerpt-delivery"><span className="brief-byline">Director · Modelo local</span><h3>Comentario sobre la entrega</h3>
+    {report.role_outputs.map((output,i)=><p className="model-answer" key={i}>{output.content}</p>)}
+    <details><summary>Fuentes que recibió el modelo</summary>{report.authorized_fragments?.map((f,i)=><blockquote key={i}><strong>{f.name}</strong> {f.page?'· pág. '+f.page:f.line?'· línea '+f.line:''}<p>{f.quote}</p></blockquote>)}</details></article>;
   return <article className="connected-report"><span className="eyebrow">Comprobaciones estáticas</span>
     <h3>{findingTitle(report.findings.length)}</h3><p className="report-scope">{report.findings.length?'Ubicaciones de la captura. Comprueba los candidatos en el navegador.':'Comprueba en el navegador el nombre de los controles y la función de las imágenes.'}</p>
     <FindingList findings={report.findings}/>

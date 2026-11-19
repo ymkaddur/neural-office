@@ -42,7 +42,7 @@ def launch(executable, folder, job, *, core_root=ROOT):
     import win32api
     import win32con
     import win32process
-    env={**os.environ,'NEURAL_OFFICE_PYTHON':sys._base_executable,'NEURAL_OFFICE_ROOT':str(core_root),
+    env={**os.environ,'NEURAL_OFFICE_PYTHON':sys.executable,'NEURAL_OFFICE_ROOT':str(core_root),
          'NEURAL_OFFICE_STATE':str(folder/'office.sqlite3'),'WEBVIEW2_USER_DATA_FOLDER':str(folder/'webview')}
     startup=win32process.STARTUPINFO()
     startup.dwFlags=win32con.STARTF_USESHOWWINDOW
@@ -72,10 +72,14 @@ def saved(db):
 
 def choose_source(screen,host,source):
     """Resolve the dialog by its native handle, including when its accessibility provider runs out of process."""
+    screen.open_html()
+    choose_files(screen,host,[source],title='Elegir HTML para revisar',button='.*Elegir archivo HTML.*')
+
+
+def choose_files(screen,host,paths,*,title,button):
     from pywinauto import Desktop
     import win32gui
     import win32process
-    title='Elegir HTML para revisar'
     def dialogs():
         match=[]
         def visit(hwnd,_):
@@ -85,14 +89,17 @@ def choose_source(screen,host,source):
         win32gui.EnumWindows(visit,None)
         return match
     require(not dialogs(),'test picker already open')
-    screen.button('.*Elegir archivo HTML.*',regex=True)
-    handles=wait(dialogs,timeout=18,description='owned native HTML file dialog')
+    screen.button(button,regex=True)
+    handles=wait(dialogs,timeout=18,description='owned native file dialog')
     require(len(handles)==1,'ambiguous owned file dialog')
     dialog=Desktop(backend='uia').window(handle=handles[0])
     field=dialog.child_window(auto_id='1148',control_type='Edit')
     field.wait('visible enabled',timeout=8)
-    field.set_edit_text(str(source))
-    require(field.get_value()==str(source),'file dialog did not acknowledge the synthetic path')
+    require(paths and all(Path(path).is_absolute() and Path(path).is_file() for path in paths),
+            'synthetic selection must contain existing absolute files')
+    selection=str(paths[0]) if len(paths)==1 else ' '.join('"'+str(path)+'"' for path in paths)
+    field.set_edit_text(selection)
+    require(field.get_value()==selection,'file dialog did not acknowledge the selected filenames')
     import win32con
     ok=win32gui.GetDlgItem(handles[0],win32con.IDOK)
     require(ok and win32gui.IsChild(handles[0],ok) and win32gui.IsWindowEnabled(ok)
@@ -211,8 +218,9 @@ def measure(exe, parent, arm, spec, *, version='5.8.0'):
         hwnd=wait(lambda:next((w.handle for w in Desktop(backend='win32').windows(process=host.pid)
                                if w.window_text()==title),None),timeout=35,description='native window')
         screen=NativeWindow(host,hwnd)
-        wait(lambda:'Última conexión confirmada' in screen.names() and
-             screen.window.child_window(auto_id='static-picker').is_enabled(),description='idle session ready')
+        wait(screen.core_ready, description='local session connected')
+        screen.open_html()
+        wait(lambda:screen.window.child_window(auto_id='static-picker').is_enabled(),description='idle HTML session ready')
         require(screen.window.window_text()==title,'window title')
         result['launch_to_ready_s']=(time.perf_counter_ns()-start)/1e9
         print('native',arm,'ready',flush=True)
@@ -225,7 +233,7 @@ def measure(exe, parent, arm, spec, *, version='5.8.0'):
         for index,phase in enumerate(('cold','repeat')):
             print('native',arm,phase,'form',flush=True)
             if index and arm:
-                screen.button('.*Nuevo encargo.*',regex=True)
+                screen.new_html()
             elif index:
                 screen.button('Quitar fuente del borrador')
             action=setup_form(screen,host,source,arm,spec)

@@ -50,6 +50,6 @@ export function ProjectHistory({project, snapshot, current, selected, disabled, 
       </button>;
     })}
     {!failed && !rows && <p className="history-empty">{offline ? 'Historial pendiente de conexión.' : 'Leyendo historial…'}</p>}
-    {!failed && rows?.length === 0 && <p className="history-empty">Aquí quedarán las entregas de este proyecto.</p>}
+    {!failed && rows?.length === 0 && <p className="history-empty">Todavía no hay consultas al modelo.</p>}
   </div>;
 }

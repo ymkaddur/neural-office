@@ -68,7 +68,7 @@ try {
     $core = $web.CoreWebView2
     $core.SetVirtualHostNameToFolderMapping('tauri.localhost',$bundle,[Microsoft.Web.WebView2.Core.CoreWebView2HostResourceAccessKind]::DenyCors)
     [void](Wait-UiTask ($core.AddScriptToExecuteOnDocumentCreatedAsync($scriptText)))
-    $allowed = @('describe','snapshot.get','attempt.get','attempt.lookup','attempt.events','attempt.cancel','report.get','report.read')
+    $allowed = @('describe','snapshot.get','project.history','attempt.get','attempt.lookup','attempt.events','attempt.cancel','report.get','report.read','attachments.threads','attachments.list','attachments.history')
     $core.add_WebMessageReceived({
         param($sender,$eventArgs)
         if ($eventArgs.Source -ne 'https://tauri.localhost/index.html') {return}

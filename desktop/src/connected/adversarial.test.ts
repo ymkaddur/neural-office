@@ -37,9 +37,32 @@ async function mount(send:(method:string,params:Record<string,unknown>)=>Promise
   window.setTimeout=((callback:any,delay?:number,...args:any[])=>{const timer=later(callback,delay,...args);if(delay===250)pollTimer=timer;return timer;}) as any;
   window.clearTimeout=((timer:any)=>{if(timer===pollTimer)pollCleaned=true;return clear(timer);}) as any;
   window.document.body.innerHTML='<div id="root"></div>';
-  Object.assign(window,{isTauri:true,__TAURI_INTERNALS__:{invoke:async(_command:string,{message}:any)=>({version:1,id:message.id,ok:true,result:await send(message.method,message.params),error:null})}});
+  async function invoke(_command:string,{message}:any){
+    // These historical scenarios start with no local inspection documents.
+    // Project balances, history, starts and stops still go through each test's peer.
+    const {method,params}=message;
+    let result:unknown;
+    if(['attachments.threads','attachments.list','attachments.history'].includes(method)){
+      const fields=method==='attachments.threads'?['project_id']:['project_id','thread_id'];
+      assert.deepEqual(Object.keys(params).sort(),fields);
+      assert.equal(typeof params.project_id,'string');
+      if(method!=='attachments.threads')assert.equal(typeof params.thread_id,'string');
+      result=[];
+    }else result=await send(method,params);
+    return {version:1,id:message.id,ok:true,result,error:null};
+  }
+  Object.assign(window,{isTauri:true,__TAURI_INTERNALS__:{invoke}});
   window.eval(await bundle);
   return {window,document:window.document,pollCleaned:()=>pollCleaned,close:async()=>{(window as any).disposeWorkspace();await window.happyDOM.close();}};
+}
+
+async function openHtml(app:Awaited<ReturnType<typeof mount>>){
+  await until(()=>!!app.document.querySelector('#connected-objective, .legacy-link'));
+  if(app.document.querySelector('#connected-objective'))return;
+  const link=app.document.querySelector<HTMLButtonElement>('.legacy-link')!;
+  assert.match(link.textContent,/Abrir revisión de HTML con roles/);
+  link.click();
+  await until(()=>!!app.document.querySelector('#connected-objective'));
 }
 
 test('while a call runs, only its own history row adopts the newer receipt',async()=>{
@@ -118,7 +141,8 @@ test('Stop submits one active identity during an unfinished archive read',async(
     await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
     app.document.querySelector<HTMLButtonElement>('.connected-history button')!.click();
     await until(()=>!!open);
-    const stop=app.document.querySelector<HTMLButtonElement>('.active-work button')!;
+    const stop=app.document.querySelector<HTMLButtonElement>('.active-work .stop-button')!;
+    assert.match(stop.textContent,/Detener trabajo.*project/);
     assert.equal(stop.disabled,false);stop.click();stop.click();
     await until(()=>!!finish);
     assert.deepEqual(cancelled,['attempt']);finish!();open!();
@@ -408,6 +432,7 @@ test('an unverified terminal delivery is never described as waiting for its firs
 });
 
 async function enterDraft(app:Awaited<ReturnType<typeof mount>>,text:string){
+  await openHtml(app);
   if(!app.document.querySelector('#connected-model')){
     const action=Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Consultar al Director');
     assert.ok(action);action.click();await until(()=>!!app.document.querySelector('#connected-model'));
@@ -448,16 +473,20 @@ test('switching projects retains separate bounded in-memory drafts',async()=>{
     if(method==='models.list')return {models:[],session_id:'session'};
     throw Error('Unexpected RPC while navigating drafts');
   });
-  const choose=(id:string)=>(app.document.querySelector(`.connected-projects button[title="${id}"]`) as any).click();
+  const choose=async(id:string)=>{
+    (app.document.querySelector(`.connected-projects button[title="${id}"]`) as any).click();
+    await until(()=>!!app.document.querySelector(`.connected-projects .selected[title="${id}"]`)&&!!app.document.querySelector('.legacy-link'));
+    await openHtml(app);
+  };
   try{
     await until(()=>app.document.querySelectorAll('.connected-projects button').length===2);
-    writeObjective(app,'Alpha: revisar los campos.');await wait(20);
-    choose('beta');await wait(20);
+    await openHtml(app);writeObjective(app,'Alpha: revisar los campos.');await wait(20);
+    await choose('beta');
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'');
     writeObjective(app,'Beta: revisar las imágenes.');await wait(20);
-    choose('alpha');await wait(20);
+    await choose('alpha');
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'Alpha: revisar los campos.');
-    choose('beta');await wait(20);
+    await choose('beta');
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'Beta: revisar las imágenes.');
     assert.equal(calls.filter(method=>method.startsWith('attempt.')).length,0);
   }finally{await app.close();}
@@ -529,6 +558,7 @@ for(const transport of ['HOST_REQUEST_TIMEOUT','HOST_DISCONNECTED'])for(const fo
     button('Elegir archivo HTML')!.click();await until(()=>!!button('synthetic.html'));
     (app.document.querySelector('[title="other"]') as any).click();await wait(20);
     (app.document.querySelector('[title="project"]') as any).click();await wait(20);
+    await openHtml(app);
     app.document.querySelector('form')!.dispatchEvent(new app.window.Event('submit',{bubbles:true,cancelable:true}));
     await until(()=>!!button('Autorizar y ejecutar'));button('Autorizar y ejecutar')!.click();
     await until(()=>starts===1&&!!app.document.querySelector('[role="alert"]'));
@@ -567,6 +597,7 @@ test('a draft precedes its attachment and survives a confirmed empty catalog and
   });
   const button=(text:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes(text))!;
   try{
+    await openHtml(app);
     await until(()=>button('Elegir archivo HTML')?.disabled===false);
     const field=app.document.querySelector('#connected-objective') as any;
     const objective='Identifica el campo que necesita una etiqueta.';
@@ -607,6 +638,7 @@ test('a pending catalog does not delay static findings or overwrite the finished
   });
   const button=(name:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent===name)!;
   try{
+    await openHtml(app);
     await until(()=>button('Elegir archivo HTML')?.disabled===false);
     button('Elegir archivo HTML').click();
     await until(()=>!button('Comprobar HTML').disabled);
@@ -645,17 +677,17 @@ test('browsing B identifies its balance and draft, and a B report timeout leaves
   });
   const button=(part:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes(part))!;
   try{
-    await until(()=>!!app.document.querySelector('.active-work button:not(:disabled)'));
+    await until(()=>!!app.document.querySelector('.active-work .stop-button:not(:disabled)'));
     appReady=true;await until(()=>typeof poll==='function');
     app.document.querySelector<HTMLButtonElement>('.connected-projects [title="B"]')!.click();
     await until(()=>!!app.document.querySelector('.connected-projects .selected[title="B"]')&&!!app.document.querySelector('.connected-history button'));
     const balance=app.document.querySelector('.connected-quota')!;
     assert.match(balance.textContent,/B/);assert.match(balance.textContent,/1 intento disponible/);
-    assert.match(app.document.querySelector('.active-work strong')!.textContent,/A/);
+    assert.match(app.document.querySelector('.active-work .stop-button')!.textContent,/Detener trabajo.*A/);
     app.document.querySelector<HTMLButtonElement>('.connected-history button')!.click();
     await until(()=>typeof read==='function');read();
     await until(()=>app.document.body.textContent.includes('HOST_RESPONSE_TIMEOUT'));
-    const stop=app.document.querySelector<HTMLButtonElement>('.active-work button')!;
+    const stop=app.document.querySelector<HTMLButtonElement>('.active-work .stop-button')!;
     assert.equal(stop.disabled,false);stop.click();stop.click();
     await until(()=>!app.document.querySelector('.active-work'));
     assert.deepEqual(cancels,['live']);
@@ -675,6 +707,7 @@ test('a cached empty catalog from a busy core cannot certify that installation i
   });
   try{
     const consult=()=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Consultar al Director');
+    await openHtml(app);
     await until(()=>consult()?.disabled===false);
     consult()!.click();
     await until(()=>!!app.document.querySelector('[role="alert"],.model-guide'));
@@ -701,6 +734,7 @@ test('static inspection pages the captured source without querying models or spe
   });
   const button=(label:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent===label)!;
   try{
+    await openHtml(app);
     await until(()=>button('Elegir archivo HTML')?.disabled===false);
     button('Elegir archivo HTML').click();await until(()=>!button('Comprobar HTML').disabled);
     button('Comprobar HTML').click();await until(()=>app.document.querySelectorAll('.finding-list li').length===24);
@@ -734,11 +768,11 @@ test('reconnect restores identity on a changed session and an archive read canno
     await until(()=>app.document.querySelector('.breadcrumbs strong')?.textContent==='actual.html');
     outage=true;
     await until(()=>!!button('Reconectar')&&app.document.body.textContent.includes('HOST_DISCONNECTED'));
-    assert.ok(!app.document.body.textContent.includes('Núcleo local conectado'));
+    assert.ok(!app.document.querySelector('.engine-state .ready'));
     assert.ok(button('Detener trabajo')?.disabled);
     session='new-session';outage=false;
     button('Reconectar')!.click();
-    await until(()=>!app.document.querySelector('[role="alert"]')&&app.document.body.textContent.includes('Núcleo local conectado'));
+    await until(()=>!app.document.querySelector('[role="alert"]')&&!!app.document.querySelector('.engine-state .ready'));
     assert.equal(calls.filter(c=>c.method==='describe').length,2);
     button('Informe anterior')!.click();
     await until(()=>app.document.querySelector('.execution-code')?.textContent.includes('MODEL_METADATA_UNAVAILABLE')===true);
@@ -797,6 +831,7 @@ test('a static response for another captured source stays out of the document',a
     throw Error('Unexpected RPC');
   });
   try{
+    await openHtml(app);
     await until(()=>!!app.document.querySelector('#static-picker:not(:disabled)'));
     (app.document.querySelector('#static-picker') as any).click();
     await until(()=>!!app.document.querySelector('.brief-alternative button:not(:disabled)'));

@@ -16,13 +16,16 @@ Set-Location src-tauri
 cargo test --locked --features custom-protocol
 cargo build --locked --release --features custom-protocol
 Set-Location ../..
+.\Start-NeuralOffice-Desktop.ps1 -PrepareReaders
 .\Start-NeuralOffice-Desktop.ps1 -Check
 .\Start-NeuralOffice-Desktop.ps1
 ```
 
 `custom-protocol` es necesario para este comando Cargo directo: usar assets de producción forma parte de la regresión, no basta con que exista un exe. No hace falta arrancar Vite para usar el binario construido. Las instrucciones se ejecutan desde el árbol del repositorio; Python no va embebido en este paquete.
 
-El launcher conserva por defecto el estado existente del piloto. Si utilizas otro estado, pasa `-State` con esa misma base y conserva su testigo; no borres archivos ni crees una oficina nueva para recuperar cuota. `-Python` y `-Executable` permiten señalar instalaciones de confianza; no son capacidades que el renderer pueda modificar. `-Check` valida configuración sin arrancar servicios.
+El lanzador conserva por defecto el estado existente del piloto. Para PDF, PNG y JPEG, `-PrepareReaders` instala los paquetes fijados por huella en un entorno local de Python 3.12. Comprueba PDFium y la decodificación de imágenes. Las siguientes aperturas usan ese entorno. HTML, JSON y el inventario ZIP usan la biblioteca estándar. `-Check` comprueba las capacidades antes de abrir el escritorio.
+
+Si utilizas otro estado, pasa `-State` con esa misma base y conserva su testigo. `-Python` y `-Executable` permiten señalar instalaciones de confianza desde el lanzador.
 
 Windows puede bloquear el ejecutable no firmado: se ha observado con App Control en el equipo de desarrollo. No desactives esa protección para probarlo. Firma, distribución e instalación en equipos limpios son una puerta pendiente. Los artefactos de CI incluyen avisos; acompañan al exe y deben conservarse al redistribuirlo. [Licencias](THIRD_PARTY_NOTICES.md).
 

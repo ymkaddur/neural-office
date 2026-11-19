@@ -12,6 +12,15 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "snapshot.get",
     "source.pick",
     "source.check",
+    "attachments.pick",
+    "attachments.list",
+    "attachments.cancel",
+    "attachments.threads",
+    "attachments.inspect",
+    "attachments.view",
+    "attachments.history",
+    "attachments.report",
+    "attachments.preview",
     "attempt.preview",
     "attempt.start",
     "attempt.cancel",
@@ -64,9 +73,13 @@ pub fn validate_request(value: &Value) -> Result<(), &'static str> {
     {
         return Err("HOST_REQUEST_SIZE");
     }
-    if value["method"] == "source.pick" {
+    let multiple = value["method"] == "attachments.pick";
+    if multiple || value["method"] == "source.pick" {
         let params = value["params"].as_object().unwrap();
-        if params.len() != 1 || !valid_project(&value["params"]["project_id"]) {
+        if !valid_project(&value["params"]["project_id"])
+            || (multiple && (params.len() != 2 || !valid_id(&value["params"]["thread_id"])))
+            || (!multiple && params.len() != 1)
+        {
             return Err("HOST_PICKER_PARAMETERS");
         }
     }
@@ -183,6 +196,22 @@ mod tests {
         let mut long = BufReader::with_capacity(2, Cursor::new(b"12345\n"));
         assert!(bounded_line(&mut long, 4).is_err());
         assert!(bounded_line(&mut Cursor::new(b"1234"), 4).is_err());
+    }
+
+    #[test]
+    fn multi_file_picker_accepts_only_a_project_and_thread() {
+        let mut request = json!({"version":1,"id":"pick","method":"attachments.pick",
+            "params":{"project_id":"Portal","thread_id":"thread-2"}});
+        assert!(validate_request(&request).is_ok());
+        request["params"]["paths"] = json!(["C:/unselected.txt"]);
+        assert!(validate_request(&request).is_err());
+        request["method"] = json!("host.attachments.capture");
+        assert!(validate_request(&request).is_err());
+        request["method"] = json!("attachments.pick");
+        request["params"] = json!({"project_id":"Portal","thread_id":"../another-project"});
+        assert!(validate_request(&request).is_err());
+        request["params"] = json!({"thread_id":"valid"});
+        assert!(validate_request(&request).is_err());
     }
 
     #[test]

@@ -41,7 +41,8 @@ async fn desktop_request(
     if host.closing.load(Ordering::Acquire) {
         return Err("HOST_CLOSING".into());
     }
-    if message["method"] == "source.pick" {
+    let multiple = message["method"] == "attachments.pick";
+    if multiple || message["method"] == "source.pick" {
         let bridge = tauri::async_runtime::spawn_blocking(move || read_peer(&slot, false))
             .await
             .map_err(|_| "HOST_REQUEST_FAILED".to_string())?
@@ -50,22 +51,49 @@ async fn desktop_request(
             return Err("HOST_PICKER_BUSY".into());
         }
         let selected = tauri::async_runtime::spawn_blocking(move || {
-            rfd::FileDialog::new()
-                .set_title("Elegir HTML para revisar")
-                .add_filter("Documento HTML", &["html", "htm"])
-                .pick_file()
+            let dialog = rfd::FileDialog::new();
+            if multiple {
+                dialog
+                    .set_title("Adjuntar archivos al hilo")
+                    .add_filter("Documentos e imágenes", &["pdf", "zip", "json", "png", "jpg", "jpeg", "htm", "html"])
+                    .pick_files()
+            } else {
+                dialog
+                    .set_title("Elegir HTML para revisar")
+                    .add_filter("Documento HTML", &["html", "htm"])
+                    .pick_file()
+                    .map(|file| vec![file])
+            }
         })
         .await;
         host.picking.store(false, Ordering::Release);
         let selected = selected.map_err(|_| "HOST_PICKER_FAILED")?;
-        let Some(path) = selected else {
-            return Ok(cancelled_picker(&message["id"]));
+        let Some(paths) = selected else {
+            let mut reply = cancelled_picker(&message["id"]);
+            if multiple {
+                reply["result"] = json!([]);
+            }
+            return Ok(reply);
         };
-        // No JS-supplied path crosses this boundary. Python freezes the selected
-        // file and returns an opaque expiring token, never the local path.
-        let path = path.to_str().ok_or("HOST_PICKER_ENCODING")?;
-        let captured = json!({"version":1,"id":message["id"],"method":"host.source.capture",
-            "params":{"project_id":message["params"]["project_id"],"path":path}});
+        if host.closing.load(Ordering::Acquire) {
+            return Err("HOST_CLOSING".into());
+        }
+        if paths.is_empty() || paths.len() > 8 {
+            return Err("HOST_PICKER_FILE_LIMIT".into());
+        }
+        let local: Vec<&str> = paths
+            .iter()
+            .map(|path| path.to_str().ok_or("HOST_PICKER_ENCODING"))
+            .collect::<Result<_, _>>()?;
+        // Only paths returned by the operating-system dialog reach the private pipe.
+        let captured = if multiple {
+            json!({"version":1,"id":message["id"],"method":"host.attachments.capture",
+                "params":{"project_id":message["params"]["project_id"],
+                          "thread_id":message["params"]["thread_id"],"paths":local}})
+        } else {
+            json!({"version":1,"id":message["id"],"method":"host.source.capture",
+                "params":{"project_id":message["params"]["project_id"],"path":local[0]}})
+        };
         return tauri::async_runtime::spawn_blocking(move || bridge.request(captured))
             .await
             .map_err(|_| "HOST_REQUEST_FAILED".to_string())?

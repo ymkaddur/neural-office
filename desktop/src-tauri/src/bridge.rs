@@ -32,6 +32,27 @@ fn fail_pending(pending: &Pending, reason: &'static str) {
     }
 }
 
+fn register_request(
+    pending: &Pending,
+    method: Option<&str>,
+    id: &str,
+    sender: mpsc::SyncSender<Reply>,
+) -> Result<(), &'static str> {
+    // A full set of observation requests must leave space on the same FIFO for
+    // a stop. Reordering or replaying already admitted commands would be unsafe.
+    let limit = match method {
+        Some("attempt.cancel") => MAX_PENDING,
+        Some("attachments.cancel") => MAX_PENDING - 1,
+        _ => MAX_PENDING - 2,
+    };
+    let mut requests = pending.lock().unwrap_or_else(|e| e.into_inner());
+    if requests.len() >= limit {
+        return Err("HOST_BUSY");
+    }
+    requests.insert(id.to_owned(), sender);
+    Ok(())
+}
+
 fn configured_path(name: &str) -> Result<PathBuf, &'static str> {
     let value = std::env::var_os(name).ok_or("HOST_CONFIGURATION_REQUIRED")?;
     let path = PathBuf::from(value);
@@ -172,20 +193,24 @@ impl Bridge {
             return Err("HOST_REQUEST_SIZE");
         }
         let (sender, receiver) = mpsc::sync_channel(1);
-        {
-            let mut pending = self.pending.lock().unwrap_or_else(|e| e.into_inner());
-            if pending.len() >= MAX_PENDING {
-                return Err("HOST_BUSY");
-            }
-            pending.insert(transport_id.clone(), sender);
-        }
+        register_request(
+            &self.pending,
+            message["method"].as_str(),
+            &transport_id,
+            sender,
+        )?;
         let sent = self
             .outgoing
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .as_ref()
             .ok_or("HOST_DISCONNECTED")
-            .and_then(|out| out.try_send(bytes).map_err(|_| "HOST_BUSY"));
+            .and_then(|out| {
+                out.try_send(bytes).map_err(|error| match error {
+                    mpsc::TrySendError::Full(_) => "HOST_BUSY",
+                    mpsc::TrySendError::Disconnected(_) => "HOST_DISCONNECTED",
+                })
+            });
         if let Err(error) = sent {
             self.pending
                 .lock()
@@ -196,10 +221,9 @@ impl Bridge {
         let result = receiver
             .recv_timeout(Duration::from_secs(30))
             .unwrap_or(Err("HOST_RESPONSE_TIMEOUT"));
-        self.pending
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .remove(&transport_id);
+        // A timeout retires the caller, not an outstanding wire operation. The
+        // reader releases its slot on reply, and fail_pending clears it on EOF.
+        // Releasing it here would let stale queued reads fill the stop slot.
         result.map(|mut response| {
             response["id"] = client_id;
             response
@@ -232,6 +256,39 @@ impl Bridge {
         // Closing the job kills the owned process tree even if EOF cleanup failed.
         self.job.lock().unwrap_or_else(|e| e.into_inner()).take();
         let _ = self.child.lock().unwrap_or_else(|e| e.into_inner()).wait();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn outstanding_reads_admit_attachment_stop_and_durable_stop() {
+        let pending: Pending = Default::default();
+        let (sender, receiver) = mpsc::sync_channel(1);
+        for i in 0..MAX_PENDING - 2 {
+            register_request(
+                &pending,
+                Some("report.read"),
+                &format!("read{i}"),
+                sender.clone(),
+            )
+            .unwrap();
+        }
+        drop(receiver); // Timed-out callers still own an in-flight wire slot.
+        assert_eq!(
+            register_request(&pending, Some("attempt.start"), "start", sender.clone()),
+            Err("HOST_BUSY")
+        );
+        register_request(&pending, Some("attachments.cancel"), "files", sender.clone()).unwrap();
+        register_request(&pending, Some("attempt.cancel"), "stop", sender.clone()).unwrap();
+        assert_eq!(
+            register_request(&pending, Some("attempt.cancel"), "again", sender),
+            Err("HOST_BUSY")
+        );
+        fail_pending(&pending, "HOST_DISCONNECTED");
+        assert!(pending.lock().unwrap().is_empty());
     }
 }
 

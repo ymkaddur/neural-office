@@ -54,6 +54,19 @@ class WaitingModel(FixtureModel):
 
 def test_peer(folder, mode):
     """Private sidecar for this test only. Production gets no new RPC or fault flag."""
+    def hold(marker, release):
+        (folder/marker).touch()
+        deadline = time.monotonic() + 75
+        while not (folder/release).exists():
+            if time.monotonic() >= deadline:
+                raise RuntimeError('The observer did not release the fixture.')
+            time.sleep(.025)
+
+    def catalog():
+        if mode == 'slow':
+            hold('catalog-held', 'release-catalog')
+        return [] if mode in ('empty', 'slow') else [PROFILE]
+
     class Peer(DesktopService):
         def dispatch(self, raw):
             command = decode_command(raw)
@@ -61,21 +74,15 @@ def test_peer(folder, mode):
             if mode == 'control' and method == 'report.read' and not (folder/'fault-seen').exists():
                 require(command['params']['attempt_id'] == archived, 'wrong report fault target')
                 super().dispatch(raw)  # The accepted report and requested bytes must exist.
-                (folder/'fault-seen').touch(exist_ok=False)
+                hold('fault-seen', 'release-read')
                 raise Denied('HOST_RESPONSE_TIMEOUT')
             if mode == 'control' and method == 'attempt.get' and command['params']['attempt_id'] == live:
                 if (folder/'fault-seen').exists() and not (folder/'release-read').exists():
-                    (folder/'poll-held').touch()
-                    deadline = time.monotonic() + 20
-                    while not (folder/'release-read').exists():
-                        if time.monotonic() >= deadline:
-                            raise RuntimeError('test observer did not release the poll')
-                        time.sleep(.04)
+                    hold('poll-held', 'release-read')
             return super().dispatch(raw)
 
     ledger = Ledger(folder/'office.sqlite3')
-    service = Peer(ledger, backend_factory=WaitingModel,
-                   model_discovery=lambda: [] if mode == 'empty' else [PROFILE])
+    service = Peer(ledger, backend_factory=WaitingModel, model_discovery=catalog)
     if mode == 'control':
         archived = (folder/'archived-id').read_text(encoding='ascii')
         source = service.host_capture(A, folder/A/'documento-a.html')
@@ -107,15 +114,15 @@ def stored(folder):
         return attempts, calls, [s[0] for s in stops]
 
 
-def inspect_without_model(exe, folder, version, empty):
-    core = private_core(folder, 'empty') if empty else ROOT
-    if not empty:
+def inspect_without_model(exe, folder, version, mode):
+    core = ROOT if mode == 'offline' else private_core(folder, mode)
+    if mode == 'offline':
         with socket.socket() as sock:
             sock.settimeout(2)
             require(sock.connect_ex(('127.0.0.1', 11434)) != 0, 'real offline check requires an unused Ollama port')
     sample = (ROOT/'examples/audit-sample.html').read_bytes()
     with window(exe, core, folder, version) as (screen, host, _, _ready):
-        for number in range(2):
+        for number in range(1 if mode == 'slow' else 2):
             if number:
                 screen.button('Crear otro proyecto')
             source = folder/str(number)/'audit-sample.html'
@@ -124,15 +131,23 @@ def inspect_without_model(exe, folder, version, empty):
             choose_source(screen, host, source)
             wait(lambda: source.name in screen.names(), description='source was captured')
             screen.button('Consultar al Director')
-            diagnostic = 'Modelo local para la consulta' if empty else 'MODEL_METADATA_UNAVAILABLE'
-            wait(lambda: diagnostic in screen.names(), description='explicit model catalog outcome')
+            diagnostic = 'MODEL_METADATA_UNAVAILABLE' if mode=='offline' else 'Modelo local para la consulta'
+            if mode=='slow':
+                wait(lambda: (folder/'catalog-held').is_file(), description='catalogue barrier entered')
+            else:
+                wait(lambda: diagnostic in screen.names(), description='explicit model catalog outcome')
             require('4 hallazgos para revisar' not in screen.names(), 'stale result before static check')
-            screen.button('Comprobar HTML')
-            wait(lambda: all(label in screen.names() for label in ('4 hallazgos para revisar','Línea 7 · columna 3')),
-                 description='static results and source position')
+            try:
+                screen.button('Comprobar HTML')
+                wait(lambda: all(label in screen.names() for label in ('4 hallazgos para revisar','Línea 7 · columna 3')),
+                     description='static results and source position before catalogue release')
+            finally:
+                if mode=='slow':
+                    (folder/'release-catalog').touch()
             require(stored(folder) == ([], 0, []), 'free check consumed work')
             require(not any(p.name().lower() == 'ollama.exe' for p in host.children(recursive=True)), 'a model was launched')
-    return {'projects_checked': 2, 'findings_per_file': 4, 'attempts': 0, 'model_calls': 0}
+    return {'projects_checked': number + 1, 'findings_per_file': 4, 'attempts': 0, 'model_calls': 0,
+            'catalogue': mode}
 
 
 def selected_balance(screen, project, remaining):
@@ -172,16 +187,17 @@ def two_projects(exe, folder, version, out):
         require(len(before) == 3 and calls == 2, 'three seeded charges and two real call receipts expected')
         screen.button(B+'.*', regex=True)
         wait(lambda: selected_balance(screen,B,'1 intento disponible'), description='history project balance')
-        controls = screen.window.child_window(title='Control del trabajo en curso').wrapper_object()
-        active_text = [item.element_info.name.strip() for item in controls.descendants(control_type='Text') if item.is_visible()]
-        require('Trabajo en curso · '+A in ' '.join(active_text), 'Stop lost its active project label')
+        controls = screen.window.child_window(title='Control del trabajo en curso')
+        stop = controls.child_window(title_re=r'.*Detener trabajo.*' + A + '$', control_type='Button')
+        require(stop.exists() and stop.is_enabled(), 'Stop lost its active project identity')
         screen.button(ARCHIVED+'.*', regex=True)
         try:
-            wait(lambda: 'HOST_RESPONSE_TIMEOUT' in screen.names() and (folder/'poll-held').is_file(),
-                 description='archive timed out and next active poll is still unresolved')
-            stop = screen.window.child_window(title_re='.*Detener trabajo', control_type='Button').wrapper_object()
-            require(stop.is_enabled(), 'archive report error disabled Stop before the next healthy poll')
+            wait(lambda: (folder/'fault-seen').is_file() and (folder/'poll-held').is_file(),
+                 description='archive B and active poll A are both retained')
+            stop = screen.control(r'.*Detener trabajo.*' + A + '$', regex=True)
             stop.invoke()
+            wait(lambda: stored(folder)[2] == old_stops + [active], timeout=6,
+                 description='independent ledger observed A stop while both readers are held')
         finally:
             (folder/'release-read').touch()
         wait(lambda: any(row == (A,active,'CANCELLED') for row in stored(folder)[0]), description='durable stop on A')
@@ -199,7 +215,7 @@ def two_projects(exe, folder, version, out):
     return {'A_remaining': 2, 'B_remaining': 1, 'attempts_before': len(before), 'attempts_after': len(after),
             'admitted_calls_before': calls, 'admitted_calls_after': final_calls, 'new_stop_receipts_for_A': 1,
             'archived_report_retrieved': True, 'draft_reopened_in_B': True, 'stop_enabled_before_next_active_read': True,
-            'admitted_call_and_reservation_disclosed': True}
+            'admitted_call_and_reservation_disclosed': True, 'stop_committed_before_both_reads_released': True}
 
 
 def main():
@@ -213,12 +229,12 @@ def main():
     version = json.loads((ROOT/'desktop/src-tauri/tauri.conf.json').read_bytes())['version']
     result = {'version': version, 'exe_sha256': hashlib.sha256(exe.read_bytes()).hexdigest()}
     with tempfile.TemporaryDirectory(prefix='neural-v512-') as temp:
-        for name in ('offline','empty','control'):
+        for name in ('offline','empty','slow','control'):
             folder = Path(temp)/name
             folder.mkdir()
             print('Checking', name, flush=True)
             result[name] = (two_projects(exe,folder,version,out) if name == 'control' else
-                            inspect_without_model(exe,folder,version,name == 'empty'))
+                            inspect_without_model(exe,folder,version,name))
         for name,fail_balance in [('historical_stop',False),('failed_balance_refresh',True)]:
             folder = Path(temp)/name
             folder.mkdir()

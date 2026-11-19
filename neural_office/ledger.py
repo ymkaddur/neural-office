@@ -79,14 +79,16 @@ class Ledger:
             con.close()
 
     @contextmanager
-    def transaction(self):
+    def transaction(self, *, seal_unchanged=True):
         from .legacy import held_sources
         with self.connection() as con, held_sources():
             con.execute('BEGIN IMMEDIATE')
             try:
+                before = con.total_changes
                 yield con
                 from .continuity import seal
-                seal(con)
+                if seal_unchanged or con.total_changes != before:
+                    seal(con)
                 con.execute('COMMIT')
             except BaseException:
                 con.rollback()
@@ -345,9 +347,9 @@ class Ledger:
             self._event(con,'MODEL_CALL_COMPLETED',{'attempt':attempt,'call':seq,'content_sha':digest(content)})
 
     def cancel(self, attempt):
-        with self.transaction() as con:
+        with self.transaction(seal_unchanged=False) as con:
             row = self._row(con,attempt)
-            if row['state'] in TERMINAL:
+            if row['state'] in TERMINAL or row['cancelled']:
                 return row['state']
             lease = con.execute('SELECT attempt FROM lease').fetchone()[0]
             state = 'STOPPING' if lease==attempt else 'CANCELLED'
@@ -390,6 +392,7 @@ class Ledger:
 
     def finalize(self, attempt, artifact):
         from .audit import verify_report
+        from . import excerpt_review
         if type(artifact) is not bytes or not 0<len(artifact)<=4_194_304:
             raise Denied('ARTIFACT_SIZE_OR_TYPE')
         with self.transaction() as con:
@@ -399,7 +402,9 @@ class Ledger:
                 raise Denied('TERMINAL_RESULT_CONFLICT')
             self._authorized(con,row)
             if row['state']!='VERIFYING': raise Denied('NOT_VERIFYING')
-            receipt = verify_report(bytes(row['snapshot']),artifact)
+            scope = json.loads(row['profile']).get('analysis_scope')
+            verifier = excerpt_review.verify_report if scope == excerpt_review.SCOPE else verify_report
+            receipt = verifier(bytes(row['snapshot']), artifact)
             from .runner import role_order
             stored=[dict(r) for r in con.execute('SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid',(attempt,))]
             try:

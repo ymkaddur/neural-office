@@ -137,6 +137,31 @@ class Screen:
     def button(self, name, regex=False):
         self.control(name, regex=regex).invoke()
 
+    def core_ready(self):
+        return any(name in self.names().splitlines() for name in (
+            'Núcleo local', 'Última conexión confirmada', 'Núcleo local conectado'))
+
+    def open_html(self):
+        # Older clients opened directly on HTML. V5.13 keeps it in the
+        # attachment inspector, including when that inspector is collapsed.
+        if 'Instrucción para el Director' not in self.names().splitlines():
+            return
+        if 'Abrir revisión de HTML con roles' not in self.names():
+            if 'Ver adjuntos' in self.names().splitlines():
+                self.button('Ver adjuntos')
+            else:
+                self.button('Inspector')
+        self.button('Abrir revisión de HTML con roles')
+        wait(lambda: 'Instrucción para el Director' not in self.names().splitlines(), description='HTML review opened')
+
+    def new_html(self):
+        if 'Nuevo hilo' in self.names().splitlines():
+            self.button('Nuevo hilo')
+            wait(lambda: 'Instrucción para el Director' in self.names(), description='new review thread')
+            self.open_html()
+        else:
+            self.button('Nuevo encargo')
+
     def objective(self, text):
         editor = self.control('Tu encargo al Director', 'Edit')
         receipt = {'requested_length': len(text), 'readings': [], 'matched': False}
@@ -304,7 +329,8 @@ def main():
             host = psutil.Process(app.pid)
             screen = Screen(host)
             screen.edit_receipts = evidence.setdefault('input_acknowledgements', [])
-            wait(lambda: re.search('Última conexión confirmada|Núcleo local conectado', screen.names()), description='native IPC ready')
+            wait(screen.core_ready, description='native IPC ready')
+            screen.open_html()
             return app, host, screen
 
         stage = 'open_packaged_ui'
@@ -473,7 +499,7 @@ def main():
         screen.screenshot(output / '05-reopened.png')
         checks.append({'check': 'normal-close-owned-core-exit-reopen-without-new-attempt-or-call', 'verified': True})
         stage = 'cancel_second_attempt'
-        screen.button('Nuevo encargo')
+        screen.new_html()
         screen.button('Consultar al Director')
         screen.objective(SECOND)
         screen.button('Elegir archivo HTML'); native_picker(host, source)

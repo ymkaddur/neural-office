@@ -41,8 +41,7 @@ def window(exe, core, folder, version):
         hwnd = wait(lambda: next((w.handle for w in Desktop(backend='win32').windows(process=host.pid)
                                   if w.window_text()==title), None), description='versioned Windows host')
         screen = NativeWindow(host, hwnd)
-        wait(lambda: any(s in screen.names() for s in ('Última conexión confirmada','Núcleo local conectado')),
-             description='confirmed local core')
+        wait(screen.core_ready, description='confirmed local core')
         ready = time.perf_counter()-start
         try:
             yield screen, host, job, ready
@@ -188,7 +187,7 @@ def incident(exe,folder,fail_snapshot=False,evidence_dir=None):
             screen.button('Reconectar')
         wait(lambda:'0 intentos disponibles' in screen.names() and 'Sin informe validado' in screen.names(),
              description='terminal current attempt and budget')
-        screen.button('Nuevo encargo')
+        screen.new_html()
         choose_source(screen,host,source)
         screen.button('Comprobar HTML')
         try:

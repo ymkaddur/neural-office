@@ -4,6 +4,7 @@ No web server, shell command or frontend supplied file path is exposed. Producti
 uses OwnedOllama; tests may inject a clearly labelled fixture backend/catalog.
 """
 import base64
+from contextlib import nullcontext
 import json
 import os
 import re
@@ -11,13 +12,13 @@ import secrets
 import threading
 import time
 
-from . import continuity
-from .audit import audit_html, make_report
+from . import continuity, excerpt_review
+from .audit import audit_html
 from .desktop_contract import MAX_SAFE_INTEGER, decode_command, valid
 from .files import capture_html, local_path
 from .ledger import Denied, TERMINAL, canonical, digest
 from .ollama import OwnedOllama, local_metadata, select_model
-from .runner import MAX_MODEL_FINDINGS, _recover_owned, check_first_prompt, run
+from .runner import MAX_MODEL_FINDINGS, _recover_owned, check_first_prompt, make_attempt_report, run
 
 GRANT_TTL_SECONDS = 120
 MAX_GRANTS = 32
@@ -58,6 +59,9 @@ class DesktopService:
                  model_discovery=discover_models, clock=time.monotonic):
         self.ledger = ledger
         self.ledger.initialize()
+        self._attachment_store = None
+        self._attachment_store_lock = threading.Lock()
+        self._readers_closed = False
         self.session_id = secrets.token_urlsafe(24)
         self.backend_factory = backend_factory
         self.model_discovery = model_discovery
@@ -70,7 +74,6 @@ class DesktopService:
         self._errors = {}
         self._closed = False
         self._catalog = None
-        self._catalog_stale = False
 
     def _meta(self, con):
         office, revision = con.execute('SELECT office,revision FROM continuity_meta WHERE id=1').fetchone()
@@ -89,11 +92,12 @@ class DesktopService:
 
     def _summary(self, row):
         profile = json.loads(row['profile']) if type(row['profile']) is str else row['profile']
+        inspection = {key: profile[key] for key in ('analysis_scope', 'thread_id', 'inspection_id') if key in profile}
         return {'id': row['id'], 'project_id': row['project'], 'ordinal': row['ordinal'],
                 'state': row['state'], 'revision': row['revision'],
                 'source_sha256': row['snapshot_sha'], 'model': profile['model'],
                 'model_digest': profile['model_digest'], 'roles': profile['roles'],
-                'objective': row['objective'], 'mode': profile['mode'], 'request_key': row['request_key']}
+                'objective': row['objective'], 'mode': profile['mode'], 'request_key': row['request_key'], **inspection}
 
     def snapshot(self, project_after=0, attempt_after=0, limit=100):
         with self.ledger.connection() as con:
@@ -126,14 +130,19 @@ class DesktopService:
         with self.ledger.connection() as con:
             return con.execute('SELECT attempt FROM lease WHERE id=1').fetchone()[0] is not None
 
-    def models(self):
+    def models(self, *, with_status=False):
+        models, cached = self._model_catalog()
+        return (models, cached) if with_status else models
+
+    def _model_catalog(self):
         # A slow metadata peer must not occupy this session's request reader
         # while its own execution needs a cancellation command. Refresh only
         # while idle; an already captured catalog is explicitly marked stale.
-        if self._execution_busy():
-            self._catalog_stale = True
-            if self._catalog is None: raise Denied('MODEL_CATALOG_BUSY')
-            return [dict(model) for model in self._catalog]
+        with self._command_lock:
+            if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
+            if self._execution_busy():
+                if self._catalog is None: raise Denied('MODEL_CATALOG_BUSY')
+                return [dict(model) for model in self._catalog], True
         profiles = self.model_discovery()
         if type(profiles) is not list:
             raise Denied('MODEL_METADATA_INVALID')
@@ -152,9 +161,10 @@ class DesktopService:
         ordered = sorted(catalog.values(), key=lambda model: (model['model'], model['model_digest']))
         if len(ordered) > MAX_MODELS:
             raise Denied('MODEL_CATALOG_LIMIT')
-        self._catalog = [dict(model) for model in ordered]
-        self._catalog_stale = False
-        return ordered
+        with self._command_lock:
+            if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
+            self._catalog = [dict(model) for model in ordered]
+        return ordered, False
 
     def _prune(self):
         now = self.clock()
@@ -194,8 +204,41 @@ class DesktopService:
             raise Denied('SOURCE_GRANT_INVALID_OR_EXPIRED')
         return source
 
+    @property
+    def attachments(self):
+        with self._attachment_store_lock:
+            if self._readers_closed: raise Denied('DESKTOP_SESSION_CLOSED')
+            if self._attachment_store is None:
+                from .attachments import AttachmentStore
+                self._attachment_store = AttachmentStore(self.ledger)
+            return self._attachment_store
+
+    def host_attachments_capture(self, project_id, thread_id, paths):
+        """Invoked only by the private native picker, never by a renderer RPC."""
+        with self._command_lock:
+            if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
+        if not valid('project', project_id) or not valid('id', thread_id):
+            raise Denied('DESKTOP_HOST_CAPTURE_INVALID')
+        return self.attachments.capture(project_id, paths, thread_id=thread_id)
+
+    def attachment_view(self, project_id, thread_id, capture_id, page, member):
+        return self.attachments.preview(project_id, capture_id, page=page, member=member, thread_id=thread_id)
+
+    def cancel_attachment_reads(self, project_id, thread_id):
+        return {'cancelled': self.attachments.cancel_reads(project_id, thread_id=thread_id)}
+
+    def preview_excerpts(self, project_id, thread_id, report_id, model_digest, objective):
+        report = self.attachments.report(project_id, report_id, thread_id=thread_id)
+        snapshot, fragments = excerpt_review.capture_excerpts(report, project_id, thread_id)
+        source = {'snapshot': snapshot, 'filename': 'Extractos de la inspección', 'sha256': digest(snapshot)}
+        origin = {'analysis_scope': excerpt_review.SCOPE, 'inspection_id': report_id, 'thread_id': thread_id}
+        approval = self._prepare_approval(project_id, source, model_digest, 1, objective, origin=origin)
+        return {**approval, 'thread_id': thread_id, 'report_id': report_id, 'fragments': fragments}
+
     def check_source(self, project_id, entry_token, offset):
-        source = self._source(project_id, entry_token)
+        with self._command_lock:
+            if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
+            source = self._source(project_id, entry_token)
         findings = audit_html(source['snapshot'])
         if offset and offset >= len(findings):
             raise Denied('FINDING_OFFSET_RANGE')
@@ -203,25 +246,36 @@ class DesktopService:
                 'offset': offset, 'total': len(findings), 'findings': findings[offset:offset + MAX_MODEL_FINDINGS]}
 
     def preview(self, project_id, entry_token, model_digest, roles, objective):
+        with self._command_lock:
+            if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
+            if self._execution_busy(): raise Denied('GLOBAL_INFERENCE_BUSY')
+            source = self._source(project_id, entry_token)
+        return self._prepare_approval(project_id, source, model_digest, roles, objective, entry_token=entry_token)
+
+    def _prepare_approval(self, project_id, source, model_digest, roles, objective, *, entry_token=None, origin=None):
         if self._execution_busy(): raise Denied('GLOBAL_INFERENCE_BUSY')
-        source = self._source(project_id, entry_token)
         if len(objective) < 12: raise Denied('OBJECTIVE_SIZE')
-        if len(self._approvals) >= MAX_GRANTS: raise Denied('APPROVAL_GRANT_LIMIT')
         matching = [model for model in self.models() if model['model_digest'] == model_digest]
         if len(matching) != 1: raise Denied('MODEL_DIGEST_UNAVAILABLE')
-        profile = {**matching[0], 'roles': roles}
+        profile = {**matching[0], 'roles': roles, **(origin or {})}
         check_first_prompt(source['snapshot'], objective, profile)
         with self.ledger.connection() as con:
             project = con.execute('SELECT * FROM projects WHERE id=?', (project_id,)).fetchone()
             if project is None: raise Denied('UNKNOWN_PROJECT')
             counts = self._project(con, project)
             meta = self._meta(con)
-        if source['expires'] <= self.clock():
-            raise Denied('SOURCE_GRANT_INVALID_OR_EXPIRED')
-        token = secrets.token_urlsafe(32)
-        self._approvals[token] = {'project_id': project_id, 'snapshot': source['snapshot'], 'source_name': source['filename'],
-                                 'objective': objective, 'profile': profile, 'revision': meta['revision'],
-                                 'expires': self.clock() + GRANT_TTL_SECONDS, 'used_key': None}
+        if origin and counts['attempts_consumed'] >= 3: raise Denied('ATTEMPT_BUDGET_EXHAUSTED')
+        with self._command_lock:
+            if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
+            self._prune()
+            if entry_token is not None:
+                self._source(project_id, entry_token)
+            if self._execution_busy(): raise Denied('GLOBAL_INFERENCE_BUSY')
+            if len(self._approvals) >= MAX_GRANTS: raise Denied('APPROVAL_GRANT_LIMIT')
+            token = secrets.token_urlsafe(32)
+            self._approvals[token] = {'project_id': project_id, 'snapshot': source['snapshot'], 'source_name': source['filename'],
+                                     'objective': objective, 'profile': profile, 'revision': meta['revision'],
+                                     'expires': self.clock() + GRANT_TTL_SECONDS, 'used_key': None}
         return {**meta, 'approval_token': token, 'expected_revision': meta['revision'],
                 'expires_in_seconds': GRANT_TTL_SECONDS, 'project_id': project_id,
                 'source_sha256': source['sha256'], 'objective': objective, 'roles': roles,
@@ -343,7 +397,7 @@ class DesktopService:
                     self.ledger.cancel(attempt_id)
                 elif state == 'VERIFYING':
                     row = self.ledger.attempt(attempt_id)
-                    self.ledger.finalize(attempt_id, make_report(bytes(row['snapshot']), row['outputs']))
+                    self.ledger.finalize(attempt_id, make_attempt_report(row))
                 else:
                     _recover_owned(self.ledger, attempt_id)
                 return self.attempt(attempt_id)
@@ -403,9 +457,12 @@ class DesktopService:
 
     def dispatch(self, raw):
         request = decode_command(raw)
-        with self._command_lock:
+        method, params = request['method'], request['params']
+        # These commands decide who owns an attempt. Reads carry frozen source
+        # bytes or use the ledger's own verified connection.
+        authority = method in ('attempt.start', 'attempt.cancel', 'attempt.recover')
+        with self._command_lock if authority else nullcontext():
             if self._closed: raise Denied('DESKTOP_SESSION_CLOSED')
-            method, params = request['method'], request['params']
             if method == 'describe':
                 with self.ledger.connection() as con:
                     identity = self._meta(con)
@@ -415,12 +472,19 @@ class DesktopService:
                         'approval_ttl_seconds': GRANT_TTL_SECONDS, 'max_attempts_per_project': 3,
                         'max_active_projects': 2, 'max_concurrent_inference': 1}
             if method == 'models.list':
-                models = self.models()
-                return {'models': models, 'cached': self._catalog_stale, 'session_id': self.session_id}
+                models, cached = self.models(with_status=True)
+                return {'models': models, 'cached': cached, 'session_id': self.session_id}
             if method == 'projects.list': return self.snapshot()
             if method == 'project.history': return self.project_history(**params)
             if method == 'snapshot.get': return self.snapshot(**params)
-            if method == 'source.pick': raise Denied('NATIVE_PICKER_REQUIRED')
+            if method in ('source.pick', 'attachments.pick'): raise Denied('NATIVE_PICKER_REQUIRED')
+            if method.startswith('attachments.'):
+                store = self.attachments
+                attachment_commands = {'attachments.list': store.list, 'attachments.view': self.attachment_view,
+                                       'attachments.inspect': store.inspect, 'attachments.threads': store.threads,
+                                       'attachments.history': store.history, 'attachments.report': store.report,
+                                       'attachments.preview': self.preview_excerpts, 'attachments.cancel': self.cancel_attachment_reads}
+                return attachment_commands[method](**params)
             handlers = {'source.check': self.check_source, 'attempt.preview': self.preview, 'attempt.start': self.start,
                         'attempt.cancel': self.cancel, 'attempt.recover': self.recover,
                         'attempt.get': self.attempt, 'attempt.lookup': self.lookup,
@@ -428,14 +492,23 @@ class DesktopService:
                         'report.get': self.report, 'report.read': self.report_read}
             return handlers[method](**params)
 
+    def stop_owned(self):
+        with self._command_lock:
+            worker = self._worker
+            if worker is not None and worker.is_alive():
+                self.ledger.cancel(self._worker_attempt)
+        with self._attachment_store_lock:
+            self._readers_closed = True
+            if self._attachment_store is not None:
+                self._attachment_store.close()
+        return worker
+
     def close(self, timeout=15):
         """EOF revokes new session commands and requests owned-work cancellation."""
         with self._command_lock:
             self._closed = True
             self._sources.clear()
             self._approvals.clear()
-            worker = self._worker
-            if worker is not None and worker.is_alive():
-                self.ledger.cancel(self._worker_attempt)
+            worker = self.stop_owned()
         if worker is not None: worker.join(timeout)
         return worker is None or not worker.is_alive()

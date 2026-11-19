@@ -1,5 +1,5 @@
 // Desired sizes survive viewport changes; effective sizes always fit the container.
-export const PANE_DEFAULT = { navigation:208, director:44 } as const;
+export const PANE_DEFAULT = { navigation:208, director:44, inspection:64 } as const;
 export type PaneKind = keyof typeof PANE_DEFAULT;
 export function paneBounds(kind:PaneKind, extent:number) {
   if(kind==='navigation') return {min:180,max:280};

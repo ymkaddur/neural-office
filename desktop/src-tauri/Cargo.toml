@@ -1,6 +1,6 @@
 [package]
 name = "neural-office-desktop"
-version = "5.12.1"
+version = "5.13.0"
 edition = "2021"
 license = "MIT"
 publish = false
