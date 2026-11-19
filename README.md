@@ -7,7 +7,7 @@
 
 ![Encargo al Director antes de adjuntar el ejemplo, en la interfaz V5.11](docs/images/v5.11-encargo.png)
 
-La comprobación local cuesta **0 intentos**. Una revisión con el modelo cuesta **1 intento al autorizarla**. Cada proyecto tiene tres. Puedes volver a una entrega guardada para leerla de nuevo. [Resultados y alcance de V5.11](docs/V5_11_REVIEW.md).
+La comprobación local cuesta **0 intentos**. Una revisión con el modelo cuesta **1 intento al autorizarla**. Cada proyecto tiene tres. Puedes volver a una entrega guardada para leerla de nuevo. [Comparar grafito y mineral en Windows](docs/V5_11_REVIEW.md#grafito-y-mineral-en-el-ejecutable-de-windows) · [Mediciones y pruebas de V5.11](docs/V5_11_REVIEW.md#pruebas-y-consumo-en-windows).
 
 ## Qué puedes hacer
 
@@ -28,7 +28,7 @@ py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.
 
 Devuelve cuatro hallazgos en JSON y la huella del archivo. No inicia Ollama, crea estado ni consume intentos. [Ejemplos y alcance](docs/HTML_REVIEW.md).
 
-**En el escritorio:** sigue la [guía de compilación y uso](desktop/README.md). Necesita Windows x64, Python 3.12 y WebView2. La consulta opcional al Director requiere Ollama y un modelo instalado. Compilar requiere Node, Rust y las herramientas de Windows. Todavía se distribuye como código para desarrollo, sin instalador firmado.
+Para abrir el escritorio necesitas Windows x64, Python 3.12 y WebView2. La consulta opcional al Director requiere Ollama y un modelo instalado. Puedes usar el ejecutable de pruebas de GitHub Actions junto con el código de su commit, o compilarlo con Node, Rust y las herramientas de Windows. [Abrir el ejecutable medido](docs/V5_11_REVIEW.md#abrir-el-ejecutable-medido) · [Guía de compilación](desktop/README.md).
 
 1. Escribe una pregunta, por ejemplo «¿Qué campo del formulario necesita una etiqueta?». Adjunta `examples/audit-sample.html`.
 2. Pulsa **Comprobar HTML**. Abre **Qué revisar** en la fila del control de la línea 7. La pregunta sigue en el borrador.

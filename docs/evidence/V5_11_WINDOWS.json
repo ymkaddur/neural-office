@@ -1,0 +1,615 @@
+{
+  "schema": "neural-office/v5.11/windows-review/1",
+  "candidate_commit": "e0052fc6de020e7ae4ad27749fcb8522029cbbb2",
+  "baseline_commit": "829dc7beeae394e6b960e2f6c90975afbb184585",
+  "artifacts": {
+    "workflow": "https://github.com/ymkaddur/neural-office/actions/runs/44425005101",
+    "test_host": {
+      "url": "https://github.com/ymkaddur/neural-office/actions/runs/44425005101/artifacts/14484113204",
+      "archive_sha256": "78c1418750fb33680a4b462b0077c47f269963c3e65f23d081319181ffae7560",
+      "exe_sha256": "d01cc6e8b1cea96a03ad052743850f8cc7b3914bb4037575c72d8ab17aa7f1d9"
+    },
+    "native_evidence": {
+      "url": "https://github.com/ymkaddur/neural-office/actions/runs/44425005101/artifacts/14483239825",
+      "archive_sha256": "e9004927634ff3d4592079defb7e0a5924c8884448d2685830bc691465c9bbed"
+    }
+  },
+  "example": {
+    "path": "examples/audit-sample.html",
+    "sha256_by_line_ending": {
+      "git_lf": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+      "windows_crlf": "b8b1ee7cf6d328cf93d64ce0fdf41dbbb94749cdfed6900a9a68deb80e1321e1"
+    }
+  },
+  "local_windows": {
+    "reference_exe_sha256": "0b72bc029ca7449a9714f60e8745be0a7f6725aa0af2c14cf22f4552e3c1c169",
+    "scope": [
+      "One first and one repeated measurement per operation and version on one Windows machine.",
+      "Time from UI Automation invocation to the first observed result. CPU is job CPU time. RAM is peak sampled summed working set. Shared pages may be counted more than once.",
+      "Cold denotes first work in a fresh window and ledger; OS disk cache was not purged."
+    ],
+    "work": [
+      {
+        "version": "5.10",
+        "operation": "static",
+        "phase": "cold",
+        "wall_s": 0.651,
+        "cpu_s": 0.234,
+        "peak_ws_mib": 564.7,
+        "peak_private_mib": 275.3,
+        "attempts": 0,
+        "calls": 0
+      },
+      {
+        "version": "5.10",
+        "operation": "static",
+        "phase": "repeat",
+        "wall_s": 0.748,
+        "cpu_s": 0.125,
+        "peak_ws_mib": 573.4,
+        "peak_private_mib": 283.8,
+        "attempts": 0,
+        "calls": 0
+      },
+      {
+        "version": "5.10",
+        "operation": "director",
+        "phase": "cold",
+        "wall_s": 37.6,
+        "cpu_s": 27.484,
+        "peak_ws_mib": 1199.7,
+        "peak_private_mib": 1283.8,
+        "attempts": 1,
+        "calls": 1
+      },
+      {
+        "version": "5.10",
+        "operation": "director",
+        "phase": "repeat",
+        "wall_s": 11.056,
+        "cpu_s": 20.75,
+        "peak_ws_mib": 1273.4,
+        "peak_private_mib": 1273.8,
+        "attempts": 1,
+        "calls": 1
+      },
+      {
+        "version": "5.11",
+        "operation": "static",
+        "phase": "cold",
+        "wall_s": 2.132,
+        "cpu_s": 0.172,
+        "peak_ws_mib": 557.0,
+        "peak_private_mib": 275.8,
+        "attempts": 0,
+        "calls": 0
+      },
+      {
+        "version": "5.11",
+        "operation": "static",
+        "phase": "repeat",
+        "wall_s": 2.158,
+        "cpu_s": 0.203,
+        "peak_ws_mib": 568.4,
+        "peak_private_mib": 290.0,
+        "attempts": 0,
+        "calls": 0
+      },
+      {
+        "version": "5.11",
+        "operation": "director",
+        "phase": "cold",
+        "wall_s": 15.163,
+        "cpu_s": 22.156,
+        "peak_ws_mib": 1223.9,
+        "peak_private_mib": 1307.0,
+        "attempts": 1,
+        "calls": 1
+      },
+      {
+        "version": "5.11",
+        "operation": "director",
+        "phase": "repeat",
+        "wall_s": 15.076,
+        "cpu_s": 21.656,
+        "peak_ws_mib": 1252.4,
+        "peak_private_mib": 1342.5,
+        "attempts": 1,
+        "calls": 1
+      }
+    ],
+    "all_findings_uia": {
+      "method": "New window and ledger per round. Each of two checks selects the same public HTML. Readiness requires all four finding labels and all four locations in UI Automation. Confirm zero reserved attempts and zero calls after each check.",
+      "rounds": [
+        {
+          "round": 1,
+          "version": "5.10.0",
+          "read": 1,
+          "title_s": 2.157,
+          "all_rows_s": 2.157
+        },
+        {
+          "round": 1,
+          "version": "5.10.0",
+          "read": 2,
+          "title_s": 2.159,
+          "all_rows_s": 2.159
+        },
+        {
+          "round": 2,
+          "version": "5.11.0",
+          "read": 1,
+          "title_s": 2.152,
+          "all_rows_s": 2.152
+        },
+        {
+          "round": 2,
+          "version": "5.11.0",
+          "read": 2,
+          "title_s": 2.165,
+          "all_rows_s": 2.165
+        },
+        {
+          "round": 3,
+          "version": "5.11.0",
+          "read": 1,
+          "title_s": 2.163,
+          "all_rows_s": 2.163
+        },
+        {
+          "round": 3,
+          "version": "5.11.0",
+          "read": 2,
+          "title_s": 2.145,
+          "all_rows_s": 2.145
+        },
+        {
+          "round": 4,
+          "version": "5.10.0",
+          "read": 1,
+          "title_s": 2.144,
+          "all_rows_s": 2.144
+        },
+        {
+          "round": 4,
+          "version": "5.10.0",
+          "read": 2,
+          "title_s": 2.164,
+          "all_rows_s": 2.164
+        }
+      ]
+    },
+    "accepted_attempt_reads": [
+      {
+        "version": "510",
+        "measurement": {
+          "reads": 80,
+          "continuity_checks": 1,
+          "median_ms": 1.793,
+          "p95_ms": 2.123,
+          "process_cpu_ms": 156.25,
+          "process_peak_working_set_bytes": 33521664
+        }
+      },
+      {
+        "version": "511",
+        "measurement": {
+          "reads": 80,
+          "continuity_checks": 1,
+          "median_ms": 1.796,
+          "p95_ms": 2.001,
+          "process_cpu_ms": 125.0,
+          "process_peak_working_set_bytes": 33267712
+        }
+      },
+      {
+        "version": "511",
+        "measurement": {
+          "reads": 80,
+          "continuity_checks": 1,
+          "median_ms": 1.782,
+          "p95_ms": 2.059,
+          "process_cpu_ms": 140.625,
+          "process_peak_working_set_bytes": 33300480
+        }
+      },
+      {
+        "version": "510",
+        "measurement": {
+          "reads": 80,
+          "continuity_checks": 1,
+          "median_ms": 1.769,
+          "p95_ms": 2.012,
+          "process_cpu_ms": 140.625,
+          "process_peak_working_set_bytes": 33189888
+        }
+      }
+    ],
+    "owner_exit_probe": {
+      "test": "tests/test_v52_boundaries.py::test_abrupt_owner_exit_terminates_descendants",
+      "columns": [
+        "job_active_count_after_owner_exit",
+        "descendant_reported_still_active",
+        "wait_on_original_handle_ms"
+      ],
+      "rows": [
+        [
+          0,
+          false,
+          3.64
+        ],
+        [
+          0,
+          false,
+          2.18
+        ],
+        [
+          0,
+          false,
+          1.3
+        ],
+        [
+          0,
+          false,
+          3.47
+        ],
+        [
+          0,
+          false,
+          4.22
+        ],
+        [
+          0,
+          false,
+          3.52
+        ],
+        [
+          0,
+          false,
+          3.63
+        ],
+        [
+          0,
+          false,
+          1.79
+        ],
+        [
+          0,
+          false,
+          3.66
+        ],
+        [
+          0,
+          false,
+          2.4
+        ],
+        [
+          0,
+          false,
+          3.04
+        ],
+        [
+          0,
+          false,
+          2.53
+        ],
+        [
+          0,
+          false,
+          4.9
+        ],
+        [
+          0,
+          false,
+          2.58
+        ],
+        [
+          0,
+          false,
+          2.92
+        ],
+        [
+          0,
+          false,
+          2.74
+        ],
+        [
+          0,
+          false,
+          6.24
+        ],
+        [
+          0,
+          false,
+          4.26
+        ],
+        [
+          0,
+          false,
+          4.15
+        ],
+        [
+          0,
+          false,
+          6.63
+        ],
+        [
+          0,
+          false,
+          5.16
+        ],
+        [
+          0,
+          false,
+          1.96
+        ],
+        [
+          0,
+          false,
+          4.27
+        ],
+        [
+          0,
+          false,
+          4.78
+        ],
+        [
+          0,
+          false,
+          3.98
+        ],
+        [
+          0,
+          false,
+          4.35
+        ],
+        [
+          0,
+          false,
+          4.68
+        ],
+        [
+          0,
+          false,
+          4.23
+        ],
+        [
+          0,
+          false,
+          4.18
+        ],
+        [
+          0,
+          false,
+          4.71
+        ]
+      ]
+    }
+  },
+  "windows_actions": {
+    "commit": "e0052fc6de020e7ae4ad27749fcb8522029cbbb2",
+    "run": 44425005101,
+    "exe_sha256": "d01cc6e8b1cea96a03ad052743850f8cc7b3914bb4037575c72d8ab17aa7f1d9",
+    "model": "qwen2.5:0.5b",
+    "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "platform": "Windows-2025Server-10.0.26100-SP0",
+    "logical_cpus": 4,
+    "ram_gib": 16.0,
+    "work": [
+      {
+        "roles": 0,
+        "phase": "cold",
+        "attempts": 0,
+        "calls": 0,
+        "wall_s": 0.086,
+        "cpu_s": 0.062,
+        "peak_ws_mib": 404.941,
+        "samples": 3
+      },
+      {
+        "roles": 0,
+        "phase": "repeat",
+        "attempts": 0,
+        "calls": 0,
+        "wall_s": 0.086,
+        "cpu_s": 0.062,
+        "peak_ws_mib": 408.352,
+        "samples": 3
+      },
+      {
+        "roles": 1,
+        "phase": "cold",
+        "attempts": 1,
+        "calls": 1,
+        "wall_s": 4.582,
+        "cpu_s": 7.609,
+        "peak_ws_mib": 1024.406,
+        "samples": 46
+      },
+      {
+        "roles": 1,
+        "phase": "repeat",
+        "attempts": 1,
+        "calls": 1,
+        "wall_s": 4.748,
+        "cpu_s": 6.672,
+        "peak_ws_mib": 1032.801,
+        "samples": 46
+      }
+    ],
+    "static_comparison": {
+      "reference": {
+        "samples": 4,
+        "wall_median_s": 0.649,
+        "peak_ws_range_mib": [
+          404.0,
+          410.8
+        ]
+      },
+      "graphite": {
+        "samples": 4,
+        "wall_median_s": 0.098,
+        "peak_ws_range_mib": [
+          403.4,
+          410.8
+        ]
+      },
+      "mineral": {
+        "samples": 4,
+        "wall_median_s": 0.093,
+        "peak_ws_range_mib": [
+          404.4,
+          408.4
+        ]
+      }
+    },
+    "incident": {
+      "seeded_attempts": 3,
+      "final_attempts": 3,
+      "target_stop_receipts": 1,
+      "model_calls": 0,
+      "forced_balance_timeout": false,
+      "native_static_findings": 3,
+      "image_line": 4,
+      "image_column": 3,
+      "finding_visibility_frames": [
+        {
+          "ms": 63,
+          "missing": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "ms": 641,
+          "missing": []
+        }
+      ]
+    },
+    "failed_quota_read": {
+      "seeded_attempts": 3,
+      "final_attempts": 3,
+      "target_stop_receipts": 1,
+      "model_calls": 0,
+      "forced_balance_timeout": true,
+      "native_static_findings": 3,
+      "image_line": 4,
+      "image_column": 3,
+      "finding_visibility_frames": [
+        {
+          "ms": 78,
+          "missing": []
+        }
+      ]
+    },
+    "checks": 13,
+    "reopened_and_cancelled": {
+      "attempts": 2,
+      "calls": 1,
+      "states": [
+        "ACCEPTED",
+        "CANCELLED"
+      ]
+    },
+    "scope": "Windows hosted runner. Fresh window and ledger per role count. Cold means the first operation in a new window, with existing OS cache. CPU is cumulative job time. RAM is peak sampled sum of working sets. The metadata server is outside the measured job.",
+    "reference_exe_sha256": "fe0ff5d330c13218ab14f2a1f6b0b5cc801509d4bd9a7d89a66f9112b5953e0b",
+    "ollama_version": "0.40.16",
+    "native_checks": [
+      "native-window-title-matches-release",
+      "normal-restore-and-remaximize-content-within-work-area",
+      "initial-native-client-and-review-action-within-work-area",
+      "keyboard-static-review-four-visible-positions-without-ollama-or-consumption",
+      "packaged-ui-native-ipc-real-catalog-no-devtools",
+      "native-file-picker-visible-approval-no-early-consumption",
+      "four-visible-findings-expand-collapse-real-guidance-without-new-work",
+      "real-model-one-call-four-visible-findings-and-matching-visible-hashes",
+      "normal-close-owned-core-exit-reopen-without-new-attempt-or-call",
+      "history-return-retains-exact-draft-and-source-without-reservation",
+      "cancelled-delivery-header-terminal-without-report",
+      "native-cancellation-history-quota-and-owned-backend-quiescence",
+      "static-and-one-role-first-and-repeat-job-counters"
+    ],
+    "comparison_window": {
+      "client_rect_px": [
+        0,
+        0,
+        1024,
+        697
+      ],
+      "dpi": 96
+    }
+  },
+  "edge_renderer": {
+    "scope": "Compiled renderer connected to local Python, sampled in Edge on Windows. Six text/background pairs on the brief screen per palette and mode.",
+    "ratios_and_narrow_viewport": {
+      "styles": [
+        {
+          "palette": "grafito",
+          "mode": "oscuro",
+          "contrast": {
+            "#desk-title": 15.00718665762046,
+            ".brief-writing label": 8.822323211065283,
+            "#connected-objective": 13.871158064267048,
+            ".brief-file small": 9.544859237339399,
+            ".brief-primary small": 9.544859237339399,
+            ".brief-primary .solid-button": 11.655717184144638
+          }
+        },
+        {
+          "palette": "grafito",
+          "mode": "claro",
+          "contrast": {
+            "#desk-title": 13.32567431064935,
+            ".brief-writing label": 7.077810044136514,
+            "#connected-objective": 15.062643171139614,
+            ".brief-file small": 6.261622904373034,
+            ".brief-primary small": 6.261622904373034,
+            ".brief-primary .solid-button": 8.31427217461577
+          }
+        },
+        {
+          "palette": "mineral",
+          "mode": "oscuro",
+          "contrast": {
+            "#desk-title": 15.309552379262563,
+            ".brief-writing label": 9.136665532031374,
+            "#connected-objective": 14.157912531235887,
+            ".brief-file small": 9.87986464994969,
+            ".brief-primary small": 9.87986464994969,
+            ".brief-primary .solid-button": 10.53471567814696
+          }
+        },
+        {
+          "palette": "mineral",
+          "mode": "claro",
+          "contrast": {
+            "#desk-title": 12.935913245297437,
+            ".brief-writing label": 6.807747438938001,
+            "#connected-objective": 14.026883583824047,
+            ".brief-file small": 6.278260580101672,
+            ".brief-primary small": 6.278260580101672,
+            ".brief-primary .solid-button": 9.37580600103481
+          }
+        }
+      ],
+      "bounds": {
+        "width": 390,
+        "scroll": 390,
+        "actions": [
+          [
+            18,
+            176.8125
+          ],
+          [
+            225.140625,
+            357
+          ]
+        ]
+      }
+    }
+  }
+}

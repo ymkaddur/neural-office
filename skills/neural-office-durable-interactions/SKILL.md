@@ -16,6 +16,8 @@ Consulta [evidencia y regresiones](references/evidence.md) para la frontera modi
 - Concilia los datos dependientes antes de publicar una transición que desmonte su propio observador. Prueba respuestas inmediatas y diferidas; no mantengas polling indefinido para ocultar el problema.
 - Colecciones con cursores independientes se paginan por separado. Combina páginas solo bajo identidad y revisión compatibles; conserva límites de memoria. Si el proyecto seleccionado no está en la página, su cuota es desconocida, no cero.
 
+Si el historial y el detalle leen el mismo intento a ritmos distintos, comprueba ambos mientras ocurre una transición. Concilia por oficina, sesión, proyecto, intento y revisión. Mantén cada fila archivada vinculada a su propio recibo. Antes de sugerir una acción al usuario por ausencia de modelos, comprueba si el catálogo responde con una lectura vigente o con una copia antigua.
+
 Para el cambio actual, retén una respuesta en la frontera relevante mediante evento/barrera y varía solo su orden. Comprueba estado persistido, representación visible, llamadas y consumo. Incluye reapertura cuando se prometa durabilidad; cierre limpio y muerte abrupta son experimentos diferentes.
 
 Entrega secuencia causal, estado anterior/posterior y prueba de regresión. No prometas ejecución «exactamente una vez» de herramientas externas por tener una tabla de claves: necesita identidad del efecto, recibo y conciliación de su ventana de incertidumbre. Para una investigación de seguridad o fiabilidad completa utiliza la skill forense existente.
