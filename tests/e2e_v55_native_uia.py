@@ -156,8 +156,7 @@ class Screen:
         keyboard.send_keys('{SPACE}', turn_off_numlock=False)
 
     def disclosure(self, title, expanded):
-        # Chromium's Expand action can synthesize a pointer click while the
-        # thread is still scrolling. Space acts on the focused summary itself.
+        # Uncontrolled HTML summaries report their own UIA expanded state.
         summary = self.reveal_button(r'(?s)^(?:[›⌄]\s*)?'+re.escape(title)+r'.*', regex=True)
         pattern = summary.iface_expand_collapse
         if pattern.CurrentExpandCollapseState != int(expanded):

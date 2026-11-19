@@ -818,16 +818,22 @@ test('activity counts only validated rows of the viewed attempt and opens withou
     assert.match(app.document.body.textContent,/motivo original no está disponible/);
     assert.equal(eventReads,0);
     const disclosure=app.document.querySelector('.connected-event-details') as any;
-    disclosure.open=true;disclosure.dispatchEvent(new app.window.Event('toggle'));
+    const activityButton=disclosure.querySelector('button[aria-expanded]');
+    assert.equal(activityButton.getAttribute('aria-expanded'),'false');
+    activityButton.click();
     await until(()=>disclosure.textContent.includes('Reintentar lectura'));
     assert.equal(disclosure.querySelectorAll('li').length,0);
-    mismatched=false;(disclosure.querySelector('button') as any).click();
+    mismatched=false;(disclosure.querySelector('[role="status"] button') as HTMLButtonElement).click();
     await until(()=>disclosure.querySelectorAll('li').length===1);
-    assert.match(disclosure.querySelector('summary')!.textContent,/1 en esta página/);
+    assert.equal(activityButton.getAttribute('aria-expanded'),'true');
+    assert.match(activityButton.textContent,/1 en esta página/);
     assert.match(disclosure.querySelector('li')!.textContent,/Intento reservado/);
     assert.equal(disclosure.querySelector('li code')!.textContent,'#1');
     assert.equal(disclosure.querySelector('.event-fact strong')!.textContent,'Intento reservado');
     assert.equal(disclosure.querySelector('.event-fact span'),null);
+    activityButton.click();
+    await until(()=>activityButton.getAttribute('aria-expanded')==='false');
+    assert.equal(disclosure.querySelector('li'),null);
   }finally{await app.close();}
 });
 
