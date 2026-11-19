@@ -120,6 +120,14 @@ class Screen:
         return '\n'.join(control.element_info.name for control in self.window.descendants()
                          if control.is_visible() and control.element_info.name)
 
+    def approval_shows_balance(self, remaining):
+        dialog = self.window.child_window(title='Este es el encargo.', control_type='Window')
+        if not dialog.exists(timeout=0):
+            return False
+        # WebView2 can expose the amount and the surrounding sentence as separate text nodes.
+        text = ''.join(node.element_info.name for node in dialog.descendants(control_type='Text') if node.is_visible())
+        return f'Consumirá 1 intento. Con la reserva, el saldo pasará a {remaining} de 3.' in text
+
     def control(self, name, kind='Button', regex=False):
         selector = {'title_re' if regex else 'title': name, 'control_type': kind}
         control = self.window.child_window(**selector)
@@ -403,8 +411,7 @@ def main():
         assert viewport_checks(assisted_geometry)['review_button_within_work_area'], 'ASSISTED_ACTION_OFFSCREEN'
         assert screen.control('Tu encargo al Director','Edit').get_value() == OBJECTIVE, 'STATIC_REVIEW_LOST_OBJECTIVE'
         screen.button('Revisar encargo.*', regex=True)
-        wait(lambda: 'el saldo pasará a 2 de 3' in screen.names() and 'Consumirá 1 intento' in screen.names(),
-             description='visible approval with the projected balance')
+        wait(lambda: screen.approval_shows_balance(2), description='visible approval with the projected balance')
         assert readonly_counts(state)['attempts'] == 0, 'PREVIEW_CONSUMED_ATTEMPT'
         screen.screenshot(output / '02-approval.png')
         checks.append({'check': 'native-file-picker-visible-approval-no-early-consumption', 'verified': True})
@@ -483,7 +490,7 @@ def main():
         screen.screenshot(output / '05-draft-return.png')
         stage = 'cancel_second_attempt'
         screen.button('Revisar encargo.*', regex=True)
-        wait(lambda: 'el saldo pasará a 1 de 3' in screen.names(), description='second visible approval with one left after reservation')
+        wait(lambda: screen.approval_shows_balance(1), description='second visible approval with one left after reservation')
         screen.button('Autorizar y ejecutar.*', regex=True)
         screen.button('.*Detener trabajo', regex=True)
         wait(lambda: 'Encargo detenido' in screen.names(), timeout=90, description='confirmed cancellation')
