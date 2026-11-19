@@ -115,7 +115,7 @@ def run_excerpt_ui(screen, host, state, work, output, model, model_digest, evide
     from pywinauto import keyboard
     import win32gui
 
-    track=evidence['excerpt_ui']={'surface':'Tauri/WebView2 UI Automation, native multi-file picker, owned Ollama',
+    track=evidence['excerpt_ui']={'surface':'Windows UI Automation, native multi-file picker, owned Ollama',
                                   'project':PROJECT,'checkpoints':{},'stage':'setup'}
     starting=counts(state)
     assert starting['states']==[] and starting['calls']==0,'EXCERPT_PROJECT_NOT_FRESH'
