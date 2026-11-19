@@ -1,4 +1,4 @@
-import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
+import {useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {request} from './client.ts';
 import type {InspectionJob} from './useInspectionJobs.ts';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
@@ -69,6 +69,7 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
   const [working,setWorking]=useState('');
   const [problem,setProblem]=useState(''),[viewProblem,setViewProblem]=useState('');
   const [expanded,setExpanded]=useState(memo.expanded);
+  const receiptsId=useId();
   const [zoom,setZoom]=useState(1);
   const [revision,setRevision]=useState(0);
   const alive=useRef(false),flight=useRef(false),read=useRef(0),scroll=useRef<HTMLDivElement>(null),inspectorRef=useRef<HTMLElement>(null);
@@ -152,10 +153,12 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
             {finding.sources.map((c,j)=><button key={c.attachment_id+j} className={'citation-row'+(selection?.citation===c?' chosen':'')} onClick={()=>open({id:c.attachment_id,page:c.page,citation:c},true)}>
               <Icon name={kindIcon(c.kind)}/><span><strong>{c.name}</strong><small>{c.quote}</small></span><code>{coordinate(c)}</code><Icon name="arrow"/></button>)}
           </section>)}
-          {report&&<details className="desk-events" open={expanded} onToggle={e=>setExpanded(e.currentTarget.open)}>
-            <summary><Icon name="activity"/><strong>Actividad de la inspección</strong><small>{report.steps.length} registros · {report.reservations} intentos</small></summary>
-            <ol>{report.steps.map((step,i)=><li key={i}><Icon name={['ok','match','mismatch','observed'].includes(step.status)?'check':'activity'}/><div><strong>{step.action}</strong><p>{step.actor} · {step.detail}</p>{step.attachment_id&&<button className="inline-link" onClick={()=>open({id:step.attachment_id!},true)}>Abrir fuente</button>}</div><time>{when(step.at)}<small>{Math.round(step.duration_ms)} ms</small></time></li>)}</ol>
-          </details>}
+          {report&&<section className="desk-events">
+            <button type="button" className="event-disclosure" aria-expanded={expanded} aria-controls={receiptsId} onClick={()=>setExpanded(value=>!value)}>
+              <Icon name="activity"/><strong>Actividad de la inspección</strong><small>{report.steps.length} registros · {report.reservations} intentos</small>
+            </button>
+            <ol id={receiptsId} aria-label="Registros de la inspección" hidden={!expanded}>{report.steps.map((step,i)=><li key={i}><Icon name={['ok','match','mismatch','observed'].includes(step.status)?'check':'activity'}/><div><strong>{step.action}</strong><p>{step.actor} · {step.detail}</p>{step.attachment_id&&<button className="inline-link" onClick={()=>open({id:step.attachment_id!},true)}>Abrir fuente</button>}</div><time>{when(step.at)}<small>{Math.round(step.duration_ms)} ms</small></time></li>)}</ol>
+          </section>}
           {history.length>1&&<details className="desk-events"><summary><Icon name="clock"/>Entregas de este hilo <small>{history.length}</small></summary>{history.map(h=><button key={h.id} disabled={!!working} className="history-entry" onClick={()=>reopen(h.id)}>{h.objective||'Inspección local'} <time>{new Date(h.created_at*1000).toLocaleString('es-ES')}</time></button>)}</details>}
         </article>
       </div>

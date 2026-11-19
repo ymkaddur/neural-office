@@ -335,6 +335,7 @@
 !tests/test_v513_control.py
 !tools/verify_v513_desktop.py
 !tests/verify_v513_model.py
+!tests/v513_excerpt_uia.py
 !tests/verify_v513_renderer.cjs
 !docs/V5_13_POLISHED.md
 !docs/evidence/V5_13_CONTROL_WINDOWS.json

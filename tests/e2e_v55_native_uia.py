@@ -146,15 +146,22 @@ class Screen:
     def button(self, name, regex=False):
         self.control(name, regex=regex).invoke()
 
+    def press_space(self, button):
+        from pywinauto import keyboard
+        import win32gui
+        self.window.set_focus()
+        button.set_focus()
+        wait(lambda: win32gui.GetForegroundWindow()==self.window.handle and button.has_keyboard_focus(),
+             timeout=5, description='own window and button have keyboard focus')
+        keyboard.send_keys('{SPACE}', turn_off_numlock=False)
+
     def disclosure(self, title, expanded):
-        # Edge keeps the summary in the UIA tree even below the scrollport.
-        # Focus scrolls the actual thread, then the native pattern expands it.
+        # Chromium's Expand action can synthesize a pointer click while the
+        # thread is still scrolling. Space acts on the focused summary itself.
         summary = self.reveal_button(r'(?s)^(?:[›⌄]\s*)?'+re.escape(title)+r'.*', regex=True)
         pattern = summary.iface_expand_collapse
-        if expanded:
-            pattern.Expand()
-        else:
-            pattern.Collapse()
+        if pattern.CurrentExpandCollapseState != int(expanded):
+            self.press_space(summary)
         wait(lambda: pattern.CurrentExpandCollapseState == int(expanded), timeout=5,
              description='native disclosure state for '+title)
 
@@ -314,7 +321,9 @@ def main():
                     'python': sys.version, 'logical_cpus': psutil.cpu_count(logical=True),
                     'physical_cpus': psutil.cpu_count(logical=False), 'total_ram_bytes': psutil.virtual_memory().total},
                 'checks': [], 'limitations': [
-                    'One synthetic HTML task and one cancellation; no semantic model quality claim.',
+                    'The synthetic HTML sample exercises local rules, an authorized one-role Ollama review, report recovery, and a second cancelled review.',
+                    'The separate multiformat case inspects five synthetic files locally, then authorizes one real Ollama call on selected PDF and JSON excerpts. Counts and receipts establish scope and execution. They do not evaluate the quality of model advice.',
+                    'Resource profiles measure first and repeated work on the HTML task. They do not estimate the cost of multiformat inspection or excerpt inference.',
                     'Windows CI runner only, not a user-machine policy override or clean-machine installer test.',
                     'UI Automation is instrumentation, not a human usability or accessibility audit.',
                     'RSS may double-count shared pages; half-second samples are not absolute peaks or leak proof.',
@@ -558,6 +567,11 @@ def main():
         screen.screenshot(output / '06-cancelled.png')
         evidence['final_counts'] = counts
         checks.append({'check': 'native-cancellation-history-quota-and-owned-backend-quiescence', 'verified': True})
+        if release == '5.13.0':
+            from v513_excerpt_uia import run_excerpt_ui
+            stage = 'multiformat_excerpt_permission_and_delivery'
+            run_excerpt_ui(screen, host, state, work, output, MODEL, MODEL_DIGEST, evidence)
+            checks.append({'check':'two-excerpts-native-picker-dismiss-approve-one-real-call-receipt','verified':True})
         if args.profile_work:
             stage = 'measure_packaged_work'
             screen.close()

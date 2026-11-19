@@ -260,8 +260,17 @@ async function main(){
     assert(!await page.locator('.desk513').evaluate(el=>el.classList.contains('theme-dark')));await save('02-evidencia-arena');
     await page.locator('.citation-row').filter({hasText:'manifiesto.json'}).click();await page.locator('.line-target').waitFor();
     assert.match(await page.locator('.line-target').innerText(),/48/);
-    await page.locator('.desk-events summary').filter({hasText:'Actividad de la inspección'}).click();
-    assert((await page.locator('.desk-events li').count())>=2);await save('03-actividad-real');
+    const activityButton=page.getByRole('button',{name:/Actividad de la inspección/});
+    const receipts=page.getByRole('list',{name:'Registros de la inspección'});
+    assert.equal(await activityButton.getAttribute('aria-expanded'),'false');
+    await activityButton.press('Enter');
+    await receipts.getByText('Comparar el plazo de primera respuesta').waitFor({state:'visible'});
+    assert.equal(await receipts.getByRole('listitem').count(),6);
+    await activityButton.press('Space');
+    assert.equal(await activityButton.getAttribute('aria-expanded'),'false');
+    assert.equal(await receipts.isVisible(),false);
+    await activityButton.click();
+    await receipts.waitFor({state:'visible'});await save('03-actividad-real');
     await page.keyboard.press('Control+,');await btn('Oscuro').click();await btn('Compacta').click();await btn('115 %').click();
     await page.getByLabel('Alto contraste',{exact:true}).check();await save('04-apariencia');await btn('Volver al hilo').click();
     measures.fonts[115]=await fontSizes(page);
@@ -357,6 +366,10 @@ async function main(){
     assert(!calls.includes('attempt.start')&&!calls.includes('models.list'));assert.deepEqual(errors,[]);
     const evidence={surface:'Microsoft Edge + production React + actual stdio Python. Picker and Tauri bridge substituted only in this test.',browser:browser.version(),sha256:Object.fromEntries(inputs.map(f=>[path.basename(f),crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex')])),checks:['multi-select','PDF page 2','JSON line 4','24 vs 48','receipt expansion','ZIP member image and zoom','appearance/density/scale/contrast','keyboard search','reopen persistent thread','390px draft and overflow','0 model calls'],requests:[...new Set(calls)],errors};
     evidence.checks.push('named project', 'OS theme change', 'computed colors, including keyboard focus', 'high contrast preference', '100/115/125% measured text', 'two text-only drafts', 'eight-source scope', 'excluded source blocks model','Windows process accounting for Edge and Python');
+    const buildFiles=['index.html',...fs.readdirSync(path.join(dist,'assets')).sort().map(name=>'assets/'+name)];
+    evidence.frontend_sha256=Object.fromEntries(buildFiles.map(name=>[
+      name,crypto.createHash('sha256').update(fs.readFileSync(path.join(dist,name))).digest('hex')
+    ]));
     evidence.measures=measures;
     fs.writeFileSync(path.join(out,'renderer.json'),JSON.stringify(evidence,null,2));console.log('PASS '+evidence.checks.join(', '));
   }catch(e){writeMeasures();await save('failed-state');fs.writeFileSync(path.join(out,'failed.txt'),[String(e),await page.locator('body').innerText(),JSON.stringify(calls),JSON.stringify(errors)].join('\n'));throw e;}

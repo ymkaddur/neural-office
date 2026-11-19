@@ -73,14 +73,14 @@
 .user-turn small {display:inline-flex;align-items:center;gap:6px}.director-byline>span {display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);border-radius:7px;background:var(--selection);color:var(--accent)}
 .desk513 .thread-document h1 {font-size:clamp(1.65em,2.15vw,2.35em);line-height:1.14;font-weight:650;letter-spacing:-.047em;margin:14px 0 8px;max-width:30ch;font-family:inherit;color:var(--ink)}
 .desk-lede {font-size:1.04em;color:var(--muted);line-height:1.62;max-width:65ch;margin:0 0 20px}
-.work-rows {border-top:1px solid var(--line)}.work-rows button,.citation-row,.evidence-heading,.file-inspector>header,.file-inspector>footer,.desk-events summary,.viewer-toolbar,.image-tools,.file-list button,.package-list button {display:flex;align-items:center;gap:10px}
+.work-rows {border-top:1px solid var(--line)}.work-rows button,.citation-row,.evidence-heading,.file-inspector>header,.file-inspector>footer,.desk-events :is(summary,.event-disclosure),.viewer-toolbar,.image-tools,.file-list button,.package-list button {display:flex;align-items:center;gap:10px}
 .work-rows button,.citation-row,.history-entry {width:100%;text-align:start;padding:var(--row) 8px;border-bottom:1px solid var(--line);background:transparent;color:var(--ink)}
-.work-rows button small,.evidence-heading small,.desk-events summary small,.file-inspector>header small,.file-inspector>header button,.viewer-toolbar div,.image-tools small,.file-list code,.package-list small {color:var(--muted);margin-left:auto;font-size:.84em}
+.work-rows button small,.evidence-heading small,.desk-events :is(summary,.event-disclosure) small,.file-inspector>header small,.file-inspector>header button,.viewer-toolbar div,.image-tools small,.file-list code,.package-list small {color:var(--muted);margin-left:auto;font-size:.84em}
 .work-rows button:hover,.citation-row:hover,.file-list button:hover,.package-list button:hover,.command-results button:hover {background:var(--wash)}
 .evidence-block {border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:13px 0}.evidence-heading {background:var(--wash);padding:var(--row) 12px;font-size:.94em}
 .evidence-block>p {padding:0 12px}.citation-row:last-child {border-bottom:0}.citation-row>svg:first-child {color:var(--accent)}.citation-row.chosen {background:var(--selection)}
 .citation-row span {min-width:0}.citation-row small,.file-list small,.desk-events time small {display:block;color:var(--muted);font-size:.84em;font-weight:400}.citation-row code {margin-left:auto;color:var(--muted);font-size:.78em;overflow-wrap:anywhere}
-.desk-events {margin:17px 0;border-block:1px solid var(--line)}.desk-events summary {padding:var(--row) 3px;cursor:pointer;list-style:none}.desk-events summary::before {content:'›' / '';color:var(--muted)}.desk-events[open] summary::before {content:'⌄' / ''}
+.desk-events {margin:17px 0;border-block:1px solid var(--line)}.desk-events :is(summary,.event-disclosure) {padding:var(--row) 3px;cursor:pointer;list-style:none}.event-disclosure {width:100%;text-align:start;background:transparent;color:var(--ink);border:0}.desk-events :is(summary,.event-disclosure)::before {content:'›' / '';color:var(--muted)}.desk-events[open] summary::before,.desk-events .event-disclosure[aria-expanded=true]::before {content:'⌄' / ''}
 .desk-events ol,.file-list,.package-list {list-style:none;margin:0;padding:0}.desk-events li {display:flex;align-items:flex-start;gap:9px;padding:8px 4px}.desk-events li>svg {color:var(--green);margin-top:4px}.desk-events li p {margin:2px 0;color:var(--muted);font-size:.91em}.desk-events time {margin-left:auto;white-space:nowrap;text-align:end}
 .history-entry {display:flex;justify-content:space-between;gap:8px}.composer-wrap {flex:none;padding-block:8px 12px}.desk-composer {border:1px solid var(--outline);border-radius:10px;padding:8px;background:var(--surface)}
 .desk-composer:focus-within {box-shadow:0 0 0 1px var(--accent)}.desk-composer textarea {display:block;width:100%;padding:5px 5px 9px;background:transparent;color:var(--ink);resize:vertical;min-height:48px;max-height:20vh;line-height:1.45;outline:none}
@@ -116,3 +116,24 @@
 @media(max-width:850px){.desk513 .office-shell {grid-template-columns:minmax(0,1fr)}.desk513 .connected-nav {max-width:min(320px,86vw)}.desk513 .desk-titlebar {grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) auto}.desk513 .connected-header {padding-inline:8px;align-items:center}.desk513 .breadcrumbs strong {max-width:26ch}}
 @media(max-width:680px){.desk513 .desk-titlebar {gap:6px;padding:5px 8px;grid-template-columns:auto minmax(0,1fr) auto}.desk513 .desk-brand {font-size:.93em}.desk513 .engine-state {font-size:.72em}.desk513 .desk-search kbd,.desk513 .breadcrumbs>svg,.desk513 .refresh-core:not(:focus-visible) {display:none}.desk513 .desk-search {font-size:.82em}.desk513 .breadcrumbs span {max-width:12ch;overflow:hidden;text-overflow:ellipsis}.desk513 .header-actions {gap:3px}.desk513 .connected-header {flex-wrap:wrap}.review-desk.has-inspector {grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}.review-desk.has-inspector .desk-thread,.review-desk.has-inspector .inspection-divider {display:none}.thread-document,.composer-wrap {padding-inline:12px}.composer-actions {gap:3px}.composer-actions button {min-height:32px}.file-inspector {border-left:0}.desk513 .active-work {padding:6px 8px;gap:4px}.desk513 .active-work>* {min-width:0}.desk513 .active-work button {white-space:normal;overflow-wrap:anywhere}.pref-row{align-items:flex-start}.desk513 .desk-dialog {max-height:90dvh}.user-turn {max-width:96%}}
 @media(max-height:550px){.thread-document {padding-block:16px}.composer-wrap {padding-block:3px}.desk-composer textarea {min-height:31px;height:33px}.desk-caption {display:none}}
+
+@media (min-width: 1001px) and (max-height: 820px) {
+  .desk513 .connected-delivery > header { padding-block: 9px; }
+  .desk513 .connected-tabs > button { padding-block: 8px; }
+  .desk513 .connected-delivery-body:has(> .connected-report) { padding: 14px 18px; }
+  .desk513 .connected-report > h3 { margin: 3px 0 5px; }
+  .desk513 .connected-report .report-scope { margin: 0 0 9px; }
+  .desk513 .connected-report .finding-list { margin-bottom: 14px; }
+  .desk513 .connected-report .finding-list li { padding-block: 7px; gap: 10px; }
+  .desk513 .connected-report .finding-list li > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 2px 10px;
+    flex: 1;
+  }
+  .desk513 .connected-report .finding-list strong { grid-column: 1 / -1; }
+  .desk513 .connected-report .finding-list small { margin: 0; }
+  .desk513 .connected-report .finding-action { margin: 0; }
+  .desk513 .connected-report .finding-action[open] { grid-column: 1 / -1; }
+}

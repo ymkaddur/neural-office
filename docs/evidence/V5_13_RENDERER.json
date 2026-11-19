@@ -42,6 +42,11 @@
     "attachments.view"
   ],
   "errors": [],
+  "frontend_sha256": {
+    "index.html": "7e4b1ee71be603acb271340fd54c255cc57be0c71e07ec16fb436e057cf2dab5",
+    "assets/index-BG8EsOdp.js": "c8248760011842ce4320fc7fd9ea070b29edcf613525da1d44b665d940902e4a",
+    "assets/index-CL6RSYAh.css": "e8478a5ba35936b2797a4a5ff78536922b1599cc78d285cf04565cc8e436384b"
+  },
   "measures": {
     "contrast": [
       {
@@ -865,20 +870,20 @@
       "cpu_base": "100% = un núcleo lógico",
       "memory_unit": "MiB = 1048576 bytes",
       "idle_with_five_sources": {
-        "from_utc": "2026-11-19T18:21:29.4930923Z",
-        "to_utc": "2026-11-19T18:21:33.4961517Z",
-        "seconds": 4.003,
+        "from_utc": "2026-11-19T18:44:16.3397373Z",
+        "to_utc": "2026-11-19T18:44:20.2832537Z",
+        "seconds": 3.944,
         "groups": {
           "edge": {
             "processes_start": 9,
             "processes_end": 9,
             "processes_common": 9,
-            "cpu_ms_common": 15.63,
-            "cpu_pct_one_core": 0.39,
-            "working_set_mib_start": 627.13,
-            "working_set_mib_end": 627.69,
-            "private_mib_start": 337.26,
-            "private_mib_end": 337.6
+            "cpu_ms_common": 31.25,
+            "cpu_pct_one_core": 0.79,
+            "working_set_mib_start": 625.28,
+            "working_set_mib_end": 625.14,
+            "private_mib_start": 335.71,
+            "private_mib_end": 334.77
           },
           "sidecar": {
             "processes_start": 3,
@@ -886,43 +891,43 @@
             "processes_common": 3,
             "cpu_ms_common": 0,
             "cpu_pct_one_core": 0,
-            "working_set_mib_start": 39.57,
-            "working_set_mib_end": 39.57,
-            "private_mib_start": 18.63,
-            "private_mib_end": 18.63
+            "working_set_mib_start": 39.32,
+            "working_set_mib_end": 39.32,
+            "private_mib_start": 18.57,
+            "private_mib_end": 18.57
           }
         }
       },
       "five_source_local_inspection": {
-        "from_utc": "2026-11-19T18:21:33.4961517Z",
-        "to_utc": "2026-11-19T18:21:36.6645716Z",
-        "seconds": 3.168,
+        "from_utc": "2026-11-19T18:44:20.2832537Z",
+        "to_utc": "2026-11-19T18:44:24.0741651Z",
+        "seconds": 3.791,
         "groups": {
           "edge": {
             "processes_start": 9,
             "processes_end": 8,
             "processes_common": 8,
-            "cpu_ms_common": 171.88,
-            "cpu_pct_one_core": 5.43,
-            "working_set_mib_start": 627.69,
-            "working_set_mib_end": 594.94,
-            "private_mib_start": 337.6,
-            "private_mib_end": 324.45
+            "cpu_ms_common": 187.5,
+            "cpu_pct_one_core": 4.95,
+            "working_set_mib_start": 625.14,
+            "working_set_mib_end": 595.86,
+            "private_mib_start": 334.77,
+            "private_mib_end": 326.25
           },
           "sidecar": {
             "processes_start": 3,
             "processes_end": 3,
             "processes_common": 3,
-            "cpu_ms_common": 140.63,
-            "cpu_pct_one_core": 4.44,
-            "working_set_mib_start": 39.57,
-            "working_set_mib_end": 39.48,
-            "private_mib_start": 18.63,
-            "private_mib_end": 18.37
+            "cpu_ms_common": 93.75,
+            "cpu_pct_one_core": 2.47,
+            "working_set_mib_start": 39.32,
+            "working_set_mib_end": 39.3,
+            "private_mib_start": 18.57,
+            "private_mib_end": 18.57
           }
         }
       },
-      "action_to_first_visible_finding_ms": 1378.8
+      "action_to_first_visible_finding_ms": 1890.3
     }
   }
 }
