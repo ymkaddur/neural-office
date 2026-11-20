@@ -396,3 +396,5 @@
 !docs/V5_35_POLISHED.md
 !docs/images/v5.35-polished-oscuro.png
 !docs/images/v5.35-polished-claro.png
+!.github/workflows/v535-native-acceptance.yml
+!tests/v535_windows_acceptance.py
