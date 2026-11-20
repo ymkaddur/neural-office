@@ -389,3 +389,10 @@
 !tools/verify_v535_workspace.cjs
 !docs/V5_35_LOCAL.md
 !docs/images/v5.35-director.png
+!neural_office/inspection_plan.py
+!tests/test_v535_polished.py
+!tools/verify_v535_polished.cjs
+!tests/v535_interrupted_excerpt.py
+!docs/V5_35_POLISHED.md
+!docs/images/v5.35-polished-oscuro.png
+!docs/images/v5.35-polished-claro.png

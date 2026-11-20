@@ -496,13 +496,13 @@ class DesktopService:
             if method.startswith('library.'):
                 from .project_library import ProjectLibrary
                 library = ProjectLibrary(self.attachments)
-                return {'library.list': library.read, 'library.history': library.history,
+                return {'library.list': library.read, 'library.history': library.history, 'library.for_draft': library.for_draft,
                         'library.change': library.change}[method](**params)
             if method.startswith('attachments.'):
                 store = self.attachments
                 attachment_commands = {'attachments.list': store.list, 'attachments.view': self.attachment_view,
                                        'attachments.inspect': store.inspect, 'attachments.threads': store.threads,
-                                       'attachments.history': store.history, 'attachments.report': store.report,
+                                       'attachments.history': store.history, 'attachments.search': store.search, 'attachments.report': store.report,
                                        'attachments.activity': store.activity, 'attachments.decide': store.decide, 'attachments.preview': self.preview_excerpts, 'attachments.cancel': self.cancel_attachment_reads}
                 return attachment_commands[method](**params)
             handlers = {'source.check': self.check_source, 'attempt.preview': self.preview, 'attempt.start': self.start,

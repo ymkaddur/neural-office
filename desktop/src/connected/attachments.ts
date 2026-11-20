@@ -12,7 +12,7 @@ export type Citation = {
 };
 export type InspectionFinding = {
   rule: string; origin_report?: string; status: 'match' | 'mismatch' | 'insufficient' | 'observed'; total?: number;
-  title: string; detail: string; sources: Citation[];
+  title: string; detail: string; sources: Citation[]; request?: string;
 };
 export type InspectionStep = {
   at: number; duration_ms: number; actor: string; action: string;

@@ -11,7 +11,8 @@ import time
 
 from .attachment_formats import MAX_FILE, classify, legacy_kind, result
 from .desktop_contract import valid
-from .inspection_intent import literal_findings, literal_query, reader_findings, reader_modes, requested_checks
+from .inspection_intent import READER_FORMATS, literal_findings, reader_findings
+from .inspection_plan import plan, read_plan, unsupported
 from .files import FileStamp, capture_local, local_path
 from .ledger import Denied, canonical, digest
 from .team_review import review as review_with_team, verify_saved
@@ -19,7 +20,7 @@ from .team_review import review as review_with_team, verify_saved
 
 SCHEMA = 2
 APPLICATION_ID = 0x4E4F4154
-RULE_VERSION = 'local-inspection-6'
+RULE_VERSION = 'local-inspection-7'
 MAX_CAPTURE_BATCH = 8
 MAX_REPORT = 300_000
 MAX_IDENTIFIED_FILE = 512 * 1024 * 1024
@@ -195,9 +196,9 @@ def recover_report(db, project_id, thread_id, identity):
                            (item['id'], project_id, thread_id)).fetchone()
         if owner is None or owner[0] != item['sha256']:
             raise Denied('ATTACHMENT_INTEGRITY_FAILED')
-    if record['rule_version'] in ('local-inspection-5', RULE_VERSION):
+    if record['rule_version'] in ('local-inspection-5', 'local-inspection-6', 'local-inspection-7'):
         only_guidance = all(f['rule'] in ('scope', 'greeting') for f in record['findings'])
-        if record['rule_version'] == RULE_VERSION and only_guidance:
+        if record['rule_version'] != 'local-inspection-5' and only_guidance:
             if 'team' in record:
                 raise Denied('ATTACHMENT_INTEGRITY_FAILED')
         else:
@@ -214,7 +215,7 @@ def matching_legacy_report(db, project, thread, objective, inputs, findings):
         r.created_at DESC,r.id''', (project, thread, objective, len(inputs), len(findings)))
     for row in candidates:
         old = recover_report(db, project, thread, row['id'])
-        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3', 'local-inspection-4', 'local-inspection-5')
+        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3', 'local-inspection-4', 'local-inspection-5', 'local-inspection-6')
                 or (old['rule_version'] == 'local-inspection-5' and all(f['rule'] in ('scope', 'greeting') for f in findings))
                 or old['objective'] != objective or old['findings'] != findings
                 or len(old['attachments']) != len(inputs)):
@@ -436,27 +437,30 @@ class AttachmentStore:
         views = {}
         steps = []
         findings = []
-        html_results = []
+        html_results = {}
         created = time.time()
         deadline = time.monotonic() + 26
         with (self._observed_inspection(project_id, thread_id, attachment_ids, objective) as note,
               self._reading(project_id, thread_id) as cancelled, self._db(office) as db):
             slots = ','.join('?' for _ in attachment_ids)
-            kinds = dict(db.execute(f'SELECT id,kind FROM captures WHERE project=? AND thread=? AND id IN ({slots})',
-                                    (project_id, thread_id, *attachment_ids)))
-            if len(kinds) != len(attachment_ids):
+            captured = {row['id']: row for row in db.execute(
+                f'SELECT id,kind,name FROM captures WHERE project=? AND thread=? AND id IN ({slots})',
+                (project_id, thread_id, *attachment_ids))}
+            if len(captured) != len(attachment_ids):
                 raise Denied('ATTACHMENT_NOT_FOUND')
-            checks = requested_checks(objective, set(kinds.values()))
-            modes = reader_modes(checks, list(kinds.values()))
+            ordered = [captured[i] for i in attachment_ids]
+            tasks = plan(objective, ordered)
+            checks = [t.action for t in tasks]
+            modes = read_plan(tasks, ordered)
             for identity in attachment_ids:
                 if cancelled():
                     raise Denied('ATTACHMENT_READ_CANCELLED')
                 started = time.monotonic()
-                mode = modes.get(kinds[identity])
+                mode = modes.get(identity)
                 info, data = verified_content(db, project_id, thread_id, identity,
                                               need_bytes=mode is not None, cancelled=cancelled)
                 kind = info['kind']
-                if kind != kinds[identity]:
+                if (kind, info['name']) != (captured[identity]['kind'], captured[identity]['name']):
                     raise Denied('ATTACHMENT_INTEGRITY_FAILED')
                 if mode is None:
                     if cancelled():
@@ -482,30 +486,48 @@ class AttachmentStore:
                                   status=view['status'], attachment_id=identity))
                 if kind == 'html' and view['status'] == 'ok':
                     lines = data.decode('utf-8-sig').replace('\r\n', '\n').replace('\r', '\n').split('\n')
-                    html_results.append(dict(rule='static_html', status='observed', title='Comprobación HTML',
+                    html_results[identity] = dict(rule='static_html', status='observed', title='Comprobación HTML',
                                          detail=f"{view['findings_total']} hallazgos en las cuatro comprobaciones locales.",
                                          sources=[dict(attachment_id=identity, name=info['name'], sha256=info['sha256'],
                                                        kind=kind, line=row['line'], column=row['column'], code=row['code'],
                                                        quote=lines[row['line']-1][max(0, row['column']-25):row['column']+130])
-                                                  for row in view['findings'][:24]], total=view['findings_total']))
+                                                  for row in view['findings'][:24]], total=view['findings_total'])
                     del lines
                 del data
             note('Contrastando las lecturas con el encargo', len(inputs))
             # Freeze the current human revision only after native readers have
             # finished. No decoder or network operation runs inside the write transaction.
             db.execute('BEGIN IMMEDIATE')
-            for task in checks:
+            for request in tasks:
                 started = time.monotonic()
-                if task == 'literal':
-                    answers = literal_findings(literal_query(objective), inputs, views)
+                task = request.action
+                sources = [f for f in inputs if f['id'] in request.sources]
+                if request.limit or task == 'clarify':
+                    answers = [unsupported(request, sources)]
+                elif task == 'literal':
+                    answers = literal_findings(request.phrase, sources, views)
                 elif task == 'hours':
-                    answers = [comparison(inputs, views)]
+                    answers = [comparison(sources, views)]
                 elif task == 'decision':
-                    answers = [self._decision_answer(db, project_id, thread_id, inputs)]
-                elif task == 'html' and html_results:
-                    answers = html_results
+                    answers = [self._decision_answer(db, project_id, thread_id, sources)]
+                elif task == 'html' and any(f['id'] in html_results for f in sources):
+                    answers = [html_results.get(f['id']) or reader_findings(task, [f], views)[0]
+                               for f in sources if f['kind'] == 'html']
+                elif task in READER_FORMATS and not any(
+                    f['kind'] in READER_FORMATS[task] or
+                    (task == 'syntax' and modes.get(f['id']) == 'xml_syntax') for f in sources
+                ):
+                    answers = [unsupported(request, sources)]
                 else:
-                    answers = reader_findings(task, inputs, views)
+                    answers = reader_findings(task, sources, views)
+                if request.explicit and task in READER_FORMATS and answers and answers[0]['rule']!='scope':
+                    omitted=[f for f in sources if f['kind'] not in READER_FORMATS[task] and
+                             not (task=='syntax' and modes.get(f['id'])=='xml_syntax')]
+                    if omitted:
+                        answers.append(unsupported(request,omitted))
+                if len(tasks) > 1:
+                    for answer in answers:
+                        answer['request'] = request.clause
                 findings.extend(answers)
                 for answer in answers:
                     steps.append(dict(at=time.time(), duration_ms=round((time.monotonic()-started)*1000),
@@ -588,6 +610,19 @@ class AttachmentStore:
                        (project_id, thread_id, report_id, revision+1, choice, at))
             db.commit()
             return dict(revision=revision+1, choice=choice, at=at)
+
+    def search(self, project_id, query):
+        from .inspection_plan import fold
+        scope(project_id, 'main')
+        office, root = self._authority(project_id)
+        needle = fold(query.strip())
+        if not root or not needle:
+            return []
+        with self._db(office) as db:
+            # A project is capped at 300 reports. Read only the titles, never report payloads or source bytes.
+            rows = db.execute('SELECT id,thread AS thread_id,objective FROM reports WHERE project=? ORDER BY created_at DESC,id',
+                              (project_id,))
+            return [dict(row) for row in rows if needle in fold(row['objective'])][:30]
 
     def history(self, project_id, *, thread_id='main'):
         scope(project_id, thread_id)

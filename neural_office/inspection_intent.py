@@ -90,6 +90,10 @@ def literal_findings(phrase, inputs, views):
         status = 'insufficient'
         detail = 'El lector no recuperó texto en el que buscar la expresión.'
         citation = dict(attachment_id=item['id'], name=name, sha256=item['sha256'], kind=item['kind'], quote='')
+        coverage = {}
+        if item['kind']=='pdf' and 'pages_examined' in view:
+            coverage=dict(total_pages=view['pages'],examined_pages=view['pages_examined'],text_pages=view['pages_with_text'],
+                          image_pages=view['image_pages'],complete=not view['text_truncated'])
         if isinstance(text, str):
             slices = view.get('page_texts', [dict(page=view.get('page'), text=text)])
             found = next(((part.get('page'), number, line, match)
@@ -108,7 +112,18 @@ def literal_findings(phrase, inputs, views):
                 status='insufficient' if partial else 'observed'
                 detail=('La expresión no aparece en el extracto recuperado.' if partial else
                         'La expresión no aparece en el texto completo del archivo.')
-        rows.append(dict(rule='literal',status=status,title=name,detail=detail,sources=[citation]))
+                if coverage and partial:
+                    checked, total = coverage['examined_pages'], coverage['total_pages']
+                    detail=f'No apareció en el texto recuperado de {name}. Se examinaron {checked} de {total} páginas.'
+                    if checked < total:
+                        detail+=f' Pendientes de lectura: {checked+1}–{total}.' if total>checked+1 else f' Falta la página {total}.'
+                    if not coverage['text_pages']:
+                        detail+=' No se recuperó texto seleccionable.'
+                    elif coverage['image_pages']:
+                        detail+=' La búsqueda no lee el texto dentro de las imágenes.'
+                    elif checked==total:
+                        detail+=' El texto extraído tiene cobertura parcial.'
+        rows.append(dict(rule='literal',status=status,title=name,detail=detail,sources=[citation],**({'coverage':coverage} if coverage else {})))
     return rows
 
 
@@ -180,7 +195,8 @@ def reader_findings(check, inputs, views):
     if check == 'clarify':
         return [dict(rule='scope', status='insufficient', title='Hace falta concretar la comprobación',
                      detail='Puedo identificar los adjuntos, recuperar texto y contrastar datos que tengan una fuente. Indica qué archivo y qué dato quieres comprobar.', sources=[])]
-    files = [item for item in inputs if item['kind'] in READER_FORMATS[check]]
+    files = [item for item in inputs if item['kind'] in READER_FORMATS[check]
+             or (check == 'syntax' and item['kind'] == 'text' and item['name'].lower().endswith('.xml'))]
     if not files:
         return [dict(rule=check, status='insufficient', title=titles[check], detail='Falta una fuente compatible con esta comprobación.', sources=[])]
     results = []
@@ -190,7 +206,12 @@ def reader_findings(check, inputs, views):
         detail = view['detail']
         title = titles[check]
         outcome = 'observed' if view['status']=='ok' else 'insufficient'
-        if check=='syntax':
+        if check == 'syntax' and item['kind'] == 'text':
+            label = {True:'XML bien formado',False:'Error de sintaxis XML'}.get(view.get('xml_valid'),'Sintaxis XML pendiente')
+            title = label+' · '+item['name']
+            detail = view.get('xml_detail', 'No se pudo comprobar la sintaxis XML de esta captura.')
+            outcome = 'observed' if 'xml_valid' in view else 'insufficient'
+        elif check=='syntax':
             if view['status']=='ok':
                 title='La sintaxis JSON es válida'
                 detail=f"El lector pudo analizar {item['name']}."

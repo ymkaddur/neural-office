@@ -31,6 +31,10 @@ if (-not $State) { $State = Join-Path $env:LOCALAPPDATA 'NeuralOffice/v52.sqlite
 if (-not $Executable) { $Executable = Join-Path $PSScriptRoot 'desktop/src-tauri/target/release/neural-office-desktop.exe' }
 $Python = Get-LocalAbsolutePath $Python
 $State = Get-LocalAbsolutePath $State
+if (Test-Path -LiteralPath $State -PathType Container) { throw 'State must name a SQLite file, not a directory.' }
+$ancestor = [IO.Path]::GetDirectoryName($State)
+while ($ancestor -and -not (Test-Path -LiteralPath $ancestor)) { $ancestor = [IO.Path]::GetDirectoryName($ancestor) }
+if ($ancestor -and -not (Test-Path -LiteralPath $ancestor -PathType Container)) { throw 'The SQLite path has a parent that is not a directory.' }
 $Executable = Get-LocalAbsolutePath $Executable
 if (-not (Test-Path -LiteralPath $Python -PathType Leaf)) { throw 'Python executable is missing.' }
 $version = & $Python -B -c 'import sys; print(sys.version_info.major,sys.version_info.minor)'

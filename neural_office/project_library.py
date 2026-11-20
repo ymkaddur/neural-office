@@ -37,6 +37,25 @@ class ProjectLibrary:
             return [dict(r) for r in db.execute('''SELECT * FROM library_versions WHERE project=? AND id=?
                 ORDER BY revision DESC''', (project_id, entry_id))]
 
+    def for_draft(self, project_id, entry_id, expected_revision):
+        office, root = self.store._authority(project_id)
+        if not root:
+            raise Denied('LIBRARY_PROJECT_REQUIRED')
+        with self.store._db(office) as db:
+            self._table(db)
+            db.execute('BEGIN')
+            row = db.execute('SELECT * FROM library_versions WHERE project=? AND id=? ORDER BY revision DESC LIMIT 1',
+                             (project_id, entry_id)).fetchone()
+            if not row or row['retired']:
+                raise Denied('LIBRARY_ENTRY_RETIRED')
+            if row['revision'] != expected_revision:
+                raise Denied('LIBRARY_REVISION_CHANGED')
+            if row['kind'] != 'skill' or not row['body']:
+                raise Denied('LIBRARY_TRANSITION_INVALID')
+            if recover_report(db, project_id, row['thread'], row['report']) is None:
+                raise Denied('LIBRARY_SOURCE_REQUIRED')
+            return dict(id=row['id'], revision=row['revision'], body=row['body'])
+
     def change(self, project_id, thread_id, report_id, entry_id, kind, title, body, operation, expected_revision):
         office, root = self.store._authority(project_id)
         if not root:
@@ -51,14 +70,16 @@ class ProjectLibrary:
                              (project_id, entry_id)).fetchone()
             if (old['revision'] if old else 0) != expected_revision:
                 raise Denied('LIBRARY_REVISION_CHANGED')
-            if expected_revision >= 48:
+            if expected_revision >= 48 and operation != 'retire':
                 raise Denied('LIBRARY_STORAGE_LIMIT')
-            if recover_report(db, project_id, thread_id, report_id) is None:
-                raise Denied('LIBRARY_SOURCE_REQUIRED')
             if old and (old['kind'], old['thread'], old['report']) != (kind, thread_id, report_id):
                 raise Denied('LIBRARY_SOURCE_CHANGED')
             if old and old['retired']:
                 raise Denied('LIBRARY_ENTRY_RETIRED')
+            # Withdrawing an existing entry uses its stored scope and revision. A damaged
+            # report must not keep it active. All changes that publish content still verify it.
+            if not (old and operation == 'retire') and recover_report(db, project_id, thread_id, report_id) is None:
+                raise Denied('LIBRARY_SOURCE_REQUIRED')
             active, proposal, retired = (old['body'], old['proposal'], 0) if old else ('', None, 0)
             if operation == 'create' and not old and body:
                 if db.execute('SELECT COUNT(*) FROM library_versions WHERE project=? AND revision=1', (project_id,)).fetchone()[0] >= 64:

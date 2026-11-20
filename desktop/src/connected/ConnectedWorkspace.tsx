@@ -338,6 +338,14 @@ export function ConnectedWorkspace() {
           if(next.id!==unresolved.id||next.project_id!==unresolved.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
           if(next.session_id&&next.session_id!==description.session_id)throw Error('HOST_SESSION_CHANGED');
           putAttempt(next);setUnconfirmedActive(null);
+        }else if(!previousOffice){
+          // Restore the navigation address only after the authority has checked pending and active work.
+          let address:unknown;
+          try{address=JSON.parse(sessionStorage.getItem('office-thread:'+description.office_id)??'null');}catch{/* Storage is optional. */}
+          if(Array.isArray(address)&&address.length===2&&address.every(v=>typeof v==='string'&&v.length>0&&v.length<=120)){
+            const [project,thread]=address;
+            if(first.projects.some(p=>p.id===project)){setProjectId(project);setThreadByProject(old=>({...old,[project]:thread}));}
+          }
         }
       }
       // Static inspection has no dependency on the model catalog.
@@ -540,6 +548,7 @@ export function ConnectedWorkspace() {
     invalidate();
     if(active){setBrowsedProject(project);setInspected(null);}else openDraft(project);
     setThreadByProject(old=>({...old,[project]:id}));setDeskPage('thread');setNavOpen(false);
+    try{sessionStorage.setItem('office-thread:'+officeId,JSON.stringify([project,id]));}catch{/* The live view already holds this selection. */}
   }
   function newTask(newProject=false) {
     if(newProject&&unconfirmedActive)return;
@@ -611,6 +620,34 @@ export function ConnectedWorkspace() {
   const stopControl=active&&attempt?<button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada registrada':requestingStop?'Solicitando parada':'Detener trabajo'} · {attempt.project_id}</button>:null;
   const localStops=inspectionJobs.jobs.filter(j=>j.state==='reading'||j.state==='stopping').map(j=><div className="local-read-control" key={j.key}><span><Icon name="clock"/> {j.project} · Inspección local</span><button className="stop-button" disabled={j.state==='stopping'} onClick={()=>void inspectionJobs.stop(j).catch(noteError)}>{j.state==='stopping'?'Parada solicitada':'Detener lectura'} · {j.project}</button></div>);
   const allStops=<>{stopControl}{localStops}</>;
+  const searchReports=useCallback((query:string)=>request<{id:string;thread_id:string;objective:string}[]>('attachments.search',{project_id:navProject,query}),[navProject,session]);
+  function recoverAttempt(item:Attempt){
+    if(stopFlight.current)return;
+    const peer=peerGeneration.current;
+    const stillHere=()=>mounted.current&&peer===peerGeneration.current&&currentAttempt.current?.id===item.id;
+    function verifyIdentity(value:Attempt){
+      if(value.id!==item.id||value.project_id!==item.project_id||value.session_id!==sessionRef.current)throw Error('ATTEMPT_IDENTITY_CHANGED');
+    }
+    void act('Comprobando el propietario de la consulta',async()=>{
+      for(let turn=0;turn<2;turn++){
+        const current=await request<Attempt>('attempt.get',{attempt_id:item.id});
+        if(!stillHere())return;
+        verifyIdentity(current);
+        if(terminal(current.state)){putAttempt(current);break;}
+        try{
+          const restored=await request<Attempt>('attempt.recover',{attempt_id:item.id,expected_revision:current.revision});
+          if(!stillHere())return;
+          verifyIdentity(restored);putAttempt(restored);break;
+        }catch(error){
+          if(!stillHere())return;
+          if(error instanceof Error&&error.message==='DESKTOP_REVISION_CHANGED'&&turn===0)continue;
+          if(!(error instanceof Error)||error.message!=='OFFICE_RUNNER_STILL_ACTIVE')throw error;
+          putAttempt(current);setNotice('El núcleo confirma que la consulta sigue en ejecución.');break;
+        }
+      }
+      if(stillHere())await refreshSnapshot();
+    });
+  }
   const commands:DeskAction[]=[
     {id:'appearance',name:'Apariencia y lectura',run:()=>setSection('settings')},
     {id:'library',name:'Memoria y skills del proyecto',run:()=>setSection('library')},
@@ -681,6 +718,7 @@ export function ConnectedWorkspace() {
           return <section className="thread-consult" aria-label="Consulta de este hilo">
             <div className="source-label">Consulta {attached.ordinal} · {attached.model}</div>
             <AttemptActivity key={session+attached.id} office={officeId} session={session} attempt={attached.id} revision={attached.cursor??attached.revision}/>
+            {active&&!inspected&&!terminal(attached.state)&&<button className="inline-link" disabled={initializing||!!connectionError||!!doing||requestingStop} onClick={()=>recoverAttempt(attached)}>Comprobar recuperación</button>}
             {report?.report.inspection_id===reportId?<ReportView report={report.report}/>:<p role="status">{attached.state==='ACCEPTED'?'Recuperando el comentario':stateLabels[attached.state]}</p>}
             <button className="inline-link" onClick={()=>{setDeskPage('attempt');setTabChoice({attempt:attached.id,tab:'evidence'});}}>Ver recibo de la consulta</button>
           </section>;
@@ -776,7 +814,7 @@ export function ConnectedWorkspace() {
                 {viewed&&<AttemptActivity key={session+viewed.id} office={officeId} session={session} attempt={viewed.id} revision={viewed.cursor??viewed.revision}/>}
                 {note&&<div className="connected-work-status"><p>{note}</p></div>}
                 {viewed.state==='FAILED'&&viewed.execution_error_code&&<p className="execution-code">Código de ejecución <code>{viewed.execution_error_code}</code></p>}
-                {active&&!inspected&&(viewed.state==='QUEUED'||viewed.state==='RECOVERY_REQUIRED')&&<div className="connected-action-row"><button className="quiet-button" disabled={initializing||!!connectionError||!!doing} onClick={()=>void act('Comprobando recuperación',async()=>{putAttempt(await request<Attempt>('attempt.recover',{attempt_id:viewed.id,expected_revision:viewed.revision}));await refreshSnapshot();})}>Comprobar recuperación</button></div>}
+                {active&&!inspected&&!terminal(viewed.state)&&<div className="connected-action-row"><button className="quiet-button" disabled={initializing||!!connectionError||!!doing||requestingStop} onClick={()=>recoverAttempt(viewed)}>Comprobar recuperación</button></div>}
                 {!active&&!connectionError&&terminal(viewed.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>viewed.thread_id?openThread(viewed.project_id,viewed.thread_id):openDraft(viewed.project_id)}>{viewed.thread_id?'Revisar la decisión del hilo':drafts.current.has(viewed.project_id)?'Volver al borrador':'Preparar otro encargo →'}{(inspected||navProject!==viewed.project_id)&&` · ${viewed.project_id}`}</button>}
                 {!inspected&&(active||drafts.current.get(viewed.project_id)?.afterAttempt===viewed.id)&&<details key={officeId+':'+viewed.id} className="next-draft">
                   <summary>Preparar el siguiente encargo</summary>
@@ -829,7 +867,7 @@ export function ConnectedWorkspace() {
       </main>
     </div>
     {panel==='appearance'&&<AppearancePanel control={allStops} appearance={appearance} close={()=>setPanel(null)}/>}
-    {panel==='search'&&<CommandSearch control={allStops} items={commands} close={()=>setPanel(null)}/>}
+    {panel==='search'&&<CommandSearch key={navProject} control={allStops} items={commands} project={navProject} search={searchReports} openReport={(thread,id)=>{openThread(navProject,thread);setReturnTo({report:id});}} close={()=>setPanel(null)}/>}
     {panel==='project'&&<DeskDialog label="Nuevo proyecto" close={()=>setPanel(null)}><form className="prefs-body" onSubmit={e=>{e.preventDefault();const id=projectName.trim();if(!id||busy||doing)return;openThread(id,'main');setPanel(null);}}><label htmlFor="new-project-name">Nombre del proyecto</label><input id="new-project-name" autoFocus required maxLength={80} value={projectName} onChange={e=>setProjectName(e.target.value)}/><div className="approval-actions"><button type="submit" className="desk-primary" disabled={!projectName.trim()||busy||!!doing}>Abrir proyecto</button></div></form></DeskDialog>}
     {fragmentProposal&&<DeskDialog label="Consultar los extractos" close={dismissProposal}><div className="prefs-body"><p>{fragmentProposal.objective}</p>
       <label htmlFor="fragment-model">Modelo local</label><select id="fragment-model" disabled={catalog!=='ready'||!!doing} value={modelDigest} onChange={e=>setModelDigest(e.target.value)}>{!models.length&&<option value="">{catalog==='loading'?'Consultando Ollama…':'Sin modelos disponibles'}</option>}{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>

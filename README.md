@@ -1,10 +1,10 @@
 # Neural Office
 
-**V5.35 · oficina local de archivos para Windows.** Adjunta documentos, datos, imágenes o archivos de una aplicación propia y escribe qué necesitas averiguar. El Director reúne la entrega, las fuentes y las preguntas pendientes en un hilo. Puedes abrir las tres rondas de cada uno de los seis especialistas y descargar el informe y la evidencia. [Funcionamiento y pruebas de V5.35](docs/V5_35_LOCAL.md)
+**V5.35-POLISHED · oficina local de archivos para Windows.** Adjunta los archivos de un proyecto y escribe qué necesitas averiguar. El Director devuelve cada comprobación con su fuente o explica qué queda pendiente. Puedes abrir las tres rondas de los seis especialistas y descargar el informe con sus citas. La inspección de archivos ejecuta reglas locales y registra cero llamadas al modelo. [Cambios y verificación de 5.35.1](docs/V5_35_POLISHED.md)
 
-En Windows se verificaron el núcleo y la interfaz de producción en Edge. El ejecutable Tauri final compiló. Control de aplicaciones bloqueó su arranque con el error 4551. La validación de ese ejecutable queda pendiente.
+En Windows se probaron el núcleo Python y la interfaz de producción en Edge. Tauri compiló el ejecutable 5.35.1. Al abrirlo, Control de aplicaciones lo bloqueó con el error 4551 antes de crear el proceso. Queda pendiente verificar la ventana nativa y su selector de archivos.
 
-![Director de la oficina con dos fuentes leídas y una medición pendiente. Captura de Edge y el núcleo local de Windows.](docs/images/v5.35-director.png)
+![Director en el tema oscuro. Dos archivos con contenido leído y una medición con identidad registrada, en Edge con el núcleo local de Windows.](docs/images/v5.35-polished-oscuro.png)
 
 ## Probar un encargo
 

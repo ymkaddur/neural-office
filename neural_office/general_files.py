@@ -44,6 +44,21 @@ def plain(data):
     return text
 
 
+def xml_syntax(data):
+    if len(data) > 1024 * 1024:
+        return dict(xml_detail='El lector de sintaxis XML admite hasta 1 MiB.')
+    text = plain(data)
+    if text is None or re.search(r'<!\s*(?:DOCTYPE|ENTITY)', text, re.I):
+        return dict(xml_detail='La codificación o la declaración del documento requiere otro lector XML.')
+    try:
+        ET.fromstring(text)
+    except ET.ParseError as exc:
+        line, column = exc.position
+        return dict(xml_valid=False, line=line, column=column+1,
+                    xml_detail=f'El XML contiene un error en la línea {line}, columna {column+1}.')
+    return dict(xml_valid=True, xml_detail='El documento XML está bien formado.')
+
+
 def xml_part(archive, info):
     if info.file_size > 1024*1024 or info.flag_bits & 1 or info.compress_type not in (0, 8) or info.file_size > 200*max(1,info.compress_size):
         raise ValueError('part limit')

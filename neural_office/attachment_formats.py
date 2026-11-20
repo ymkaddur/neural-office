@@ -234,6 +234,7 @@ def pdf_view(data, page_number, mode):
         scan_pages = mode in ('inspect', 'text')
         nums = range(1, min(pages, MAX_PAGES) + 1) if scan_pages else [page_number]
         page_texts = []
+        image_pages = []
         remaining_text = MAX_TEXT
         values = dict(page=page_number, pages=pages)
         for number in nums:
@@ -248,7 +249,10 @@ def pdf_view(data, page_number, mode):
                     chars = textpage.count_chars()
                     if chars > 30_000:
                         complete = False
-                    text = textpage.get_text_range(0, min(chars, 30_000)) if chars else ''
+                    text = (textpage.get_text_bounded() if chars <= 30_000 else textpage.get_text_range(0,30_000)) if chars else ''
+                    if mode == 'text' and next(page.get_objects(filter=[raw.FPDF_PAGEOBJ_IMAGE]), None) is not None:
+                        complete = False
+                        image_pages.append(number)
                     if not text.strip():
                         count_scanned += 1
                     if mode == 'text':
@@ -294,7 +298,8 @@ def pdf_view(data, page_number, mode):
         complete = complete and (not scan_pages or pages <= MAX_PAGES) and count_scanned == 0
         if mode == 'text':
             first = page_texts[0] if page_texts else dict(page=page_number,text='')
-            values.update(text=first['text'],page=first['page'],text_truncated=not complete,page_texts=page_texts)
+            values.update(text=first['text'],page=first['page'],text_truncated=not complete,page_texts=page_texts,
+                          pages_examined=len(nums), pages_with_text=len(page_texts), image_pages=image_pages)
         status = 'no_text' if count_scanned == len(nums) else 'ok'
         detail = ('No se detectó texto seleccionable. Puedes revisar la imagen de la página.'
                   if status == 'no_text' else 'Texto localizado en las páginas de la captura.')
@@ -398,8 +403,11 @@ def read(kind, data, *, page=1, member='', mode='preview'):
             return result(kind, 'ok', 'Se ejecutaron las cuatro comprobaciones HTML locales.',
                           text=text[:MAX_TEXT], text_truncated=len(text) > MAX_TEXT,
                           findings=findings[:100], findings_total=len(findings))
-        from .general_files import general_view
-        return general_view(kind, data)
+        from .general_files import general_view, xml_syntax
+        view = general_view(kind, data)
+        if mode == 'xml_syntax' and kind == 'text':
+            view.update(xml_syntax(data))
+        return view
     except ImportError:
         return result(kind, 'unavailable', 'El lector local requiere las dependencias de escritorio de esta versión.')
     except (ValueError, OSError, KeyError, EOFError, SyntaxError, OverflowError, RuntimeError, zipfile.BadZipFile, wave.Error) as exc:

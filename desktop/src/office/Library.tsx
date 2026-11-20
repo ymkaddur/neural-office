@@ -29,6 +29,22 @@ export function Library({project,source,online,openSource,useSkill}:{project:str
     setFault('');setForm(op);setTitle(op==='create'?'':current?.title??'');
     setBody(op==='create'?'':current?.proposal??current?.body??'');
   }
+  async function insertSkill(){
+    if(flight.current||!online||!current)return;
+    flight.current=true;setBusy(true);setFault('');
+    try{
+      const value=await request<{id:string;revision:number;body:string}>('library.for_draft',{
+        project_id:project,entry_id:current.id,expected_revision:current.revision});
+      if(mounted.current&&value.id===current.id&&value.revision===current.revision)useSkill(value.body);
+    }catch(e){
+      if(mounted.current){
+        const code=e instanceof Error?e.message:'';
+        setFault(code==='LIBRARY_ENTRY_RETIRED'?'La skill fue retirada. Tu borrador se conserva.':
+          code==='LIBRARY_REVISION_CHANGED'?'La skill cambió. Revisa la versión vigente antes de usarla.':code);
+        setRefresh(v=>v+1);
+      }
+    }finally{flight.current=false;if(mounted.current)setBusy(false);}
+  }
   async function save(op:Operation){
     if(flight.current||!online)return;
     const origin=op==='create'?source&&{thread:source.thread_id,report:source.id}:current;
@@ -58,7 +74,7 @@ export function Library({project,source,online,openSource,useSkill}:{project:str
           <p className={current.proposal?'library-copy replacing':'library-copy'}>{current.body}</p></>}
         {current.proposal&&<><h3>Propuesta pendiente</h3><p className="proposal-copy">{current.proposal}</p>
           <p>Se puede insertar en un encargo cuando la aceptes.</p><div className="arc-actions"><button disabled={busy||!online} onClick={()=>void save('accept')}>Aceptar propuesta</button><button disabled={busy||!online} onClick={()=>void save('discard')}>Descartar</button></div></>}
-        <div className="arc-actions">{current.kind==='skill'&&current.body&&<button onClick={()=>useSkill(current.body)}>Usar en un borrador</button>}
+        <div className="arc-actions">{current.kind==='skill'&&current.body&&<button disabled={!online||busy} onClick={()=>void insertSkill()}>Usar en un borrador</button>}
           {!current.proposal&&<button disabled={!online||busy} onClick={()=>begin(current.kind==='skill'?'propose':'edit')}>{current.kind==='skill'?'Proponer cambio':'Editar nota'}</button>}
           <button disabled={!online||busy} onClick={()=>begin('retire')}>Retirar</button></div></>}
       <button className="provenance-link" onClick={()=>openSource(current.thread,current.report)}><Icon name="thread"/>Abrir el hilo de origen</button></>}</section></div>

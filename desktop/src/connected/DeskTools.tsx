@@ -52,7 +52,13 @@ export function useAppearance(){
 }
 export function DeskDialog({label,close,children,wide=false}:{label:string;close:()=>void;children:ReactNode;wide?:boolean}){
   const ref=useRef<HTMLDialogElement>(null);
-  useLayoutEffect(()=>{const origin=document.activeElement;const dialog=ref.current;dialog?.showModal();return ()=>{dialog?.close();if(origin instanceof HTMLElement&&origin.isConnected)origin.focus();};},[]);
+  useLayoutEffect(()=>{
+    const origin=document.activeElement;
+    const dialog=ref.current;
+    dialog?.showModal();
+    dialog?.querySelector<HTMLElement>('[data-initial-focus]')?.focus();
+    return ()=>{dialog?.close();if(origin instanceof HTMLElement&&origin.isConnected)origin.focus();};
+  },[]);
   return <dialog ref={ref} aria-label={label} className={'desk-dialog'+(wide?' wide':'')} onCancel={e=>{e.preventDefault();close();}}>
     <header><h2>{label}</h2><button className="desk-icon-button" aria-label={'Cerrar '+label} onClick={close}>×</button></header>{children}</dialog>;
 }
@@ -82,21 +88,32 @@ export function AppearancePanel({appearance,close,control}:{appearance:ReturnTyp
   </div></DeskDialog>;
 }
 export type DeskAction={id:string;name:string;detail?:string;run:()=>void};
-export function CommandSearch({items,close,control}:{items:DeskAction[];close:()=>void;control?:ReactNode}){
+type SearchResult={id:string;thread_id:string;objective:string};
+export function CommandSearch({items,close,control,project,openReport,search}:{items:DeskAction[];close:()=>void;control?:ReactNode;project:string;openReport:(thread:string,id:string)=>void;search:(query:string)=>Promise<SearchResult[]>}){
   const [query,setQuery]=useState('');
+  const [history,setHistory]=useState<{query:string;rows:SearchResult[];failed?:boolean}|null>(null);
+  useEffect(()=>{
+    let current=true;
+    const term=query.trim();
+    if(!term)return;
+    const timer=setTimeout(()=>{search(term).then(rows=>{if(current)setHistory({query:term,rows});})
+      .catch(()=>{if(current)setHistory({query:term,rows:[],failed:true});});},140);
+    return ()=>{current=false;clearTimeout(timer);};
+  },[query,project,search]);
   const norm=(s:string)=>s.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
   const choices=items.filter(item=>norm(item.name+' '+(item.detail??'')).includes(norm(query.trim())));
+  if(history?.query===query.trim())choices.push(...history.rows.map(r=>({id:'r-'+r.id,name:r.objective||'Inspección local',detail:project+' · '+r.id.slice(0,8),run:()=>openReport(r.thread_id,r.id)})));
   return <DeskDialog label="Buscar hilo o acción" close={close}><div className="command-body">{control}
-    <input aria-label="Buscar por nombre o proyecto" autoFocus value={query} placeholder="Nombre del hilo, proyecto o acción…" onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.command-results button')?.focus();}}}/>
+    <input aria-label="Buscar por nombre o proyecto" data-initial-focus maxLength={2000} value={query} placeholder="Hilo, entrega, proyecto o acción…" onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='ArrowDown'||(e.key==='Enter'&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229)){e.preventDefault();const first=e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.command-results button');if(e.key==='Enter')first?.click();else first?.focus();}}}/>
     <div className="command-results" onKeyDown={e=>{
       if(!['ArrowDown','ArrowUp'].includes(e.key))return;
       const nodes=[...e.currentTarget.querySelectorAll('button')];
       const index=nodes.indexOf(document.activeElement as HTMLButtonElement);
       if(index<0)return;
       e.preventDefault();nodes[(index+(e.key==='ArrowDown'?1:-1)+nodes.length)%nodes.length]?.focus();
-    }}>{(['Acciones','Proyectos','Hilos','Consultas'] as const).map(group=>{
-      const rows=choices.filter(item=>(item.id.startsWith('p-')?'Proyectos':item.id.startsWith('t-')?'Hilos':item.id.startsWith('a-')?'Consultas':'Acciones')===group);
+    }}>{(['Acciones','Proyectos','Hilos','Entregas','Consultas'] as const).map(group=>{
+      const rows=choices.filter(item=>(item.id.startsWith('p-')?'Proyectos':item.id.startsWith('t-')?'Hilos':item.id.startsWith('r-')?'Entregas':item.id.startsWith('a-')?'Consultas':'Acciones')===group);
       return rows.length>0&&<section key={group} aria-label={group}><h3>{group}</h3>{rows.map(item=><button key={item.id} onClick={()=>{close();item.run();}}><span>{item.name}</span><small>{item.detail}</small></button>)}</section>;
-    })}{!choices.length&&<p>Sin coincidencias.</p>}</div>
+    })}{!choices.length&&<p role="status">{history?.query!==query.trim()&&query.trim()?'Buscando entregas…':history?.failed?'No se pudo consultar el historial.':'Sin coincidencias.'}</p>}</div>
   </div></DeskDialog>;
 }
