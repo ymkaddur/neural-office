@@ -1,6 +1,6 @@
 {
   "name": "neural-office-desktop-preview",
-  "version": "5.9.0-alpha.1",
+  "version": "5.35.1-alpha.1",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -13,7 +13,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "native:dev": "tauri dev",
     "native:build": "tauri build --no-bundle",
-    "test": "node --test src/state.test.ts src/workspace/model.test.ts src/workspace/panes.test.ts src/connected/model.test.ts src/connected/adversarial.test.ts"
+    "test": "node --test src/state.test.ts src/workspace/model.test.ts src/workspace/panes.test.ts src/connected/model.test.ts src/connected/adversarial.test.ts src/connected/attachments.test.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "2.12.5",

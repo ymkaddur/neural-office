@@ -44,6 +44,7 @@ def kernel():
         'SetInformationJobObject':([w.HANDLE,ctypes.c_int,ctypes.c_void_p,w.DWORD],w.BOOL),
         'QueryInformationJobObject':([w.HANDLE,ctypes.c_int,ctypes.c_void_p,w.DWORD,ctypes.c_void_p],w.BOOL),
         'AssignProcessToJobObject':([w.HANDLE,w.HANDLE],w.BOOL),
+        'IsProcessInJob':([w.HANDLE,w.HANDLE,ctypes.POINTER(w.BOOL)],w.BOOL),
         'TerminateJobObject':([w.HANDLE,w.UINT],w.BOOL),
         'CloseHandle':([w.HANDLE],w.BOOL), 'GetCurrentProcess':([],w.HANDLE)}
     for name,(args,result) in signatures.items():
@@ -52,7 +53,11 @@ def kernel():
 
 
 class Job:
-    def __init__(self,name,existing=False):
+    def __init__(self,name,existing=False,*,memory_bytes=None,cpu_seconds=None):
+        if any(value is not None and (type(value) is not int or value <= 0) for value in (memory_bytes,cpu_seconds)):
+            raise ValueError('JOB_LIMIT_INVALID')
+        if existing and (memory_bytes is not None or cpu_seconds is not None):
+            raise ValueError('JOB_LIMIT_ALREADY_CONFIGURED')
         self.dll=kernel(); self.name=name; self.handle=None; self.process=None
         if existing:
             handle=self.dll.OpenJobObjectW(ALL_ACCESS,False,name)
@@ -66,9 +71,23 @@ class Job:
             if ctypes.get_last_error()==183:
                 self.dll.CloseHandle(handle); raise RuntimeError('JOB_NAME_COLLISION')
             limits=ExtendedLimits(); limits.BasicLimitInformation.LimitFlags=KILL_ON_CLOSE
+            if memory_bytes is not None:
+                limits.BasicLimitInformation.LimitFlags |= 0x200  # JOB_OBJECT_LIMIT_JOB_MEMORY
+                limits.JobMemoryLimit = memory_bytes
+            if cpu_seconds is not None:
+                limits.BasicLimitInformation.LimitFlags |= 0x4  # JOB_OBJECT_LIMIT_JOB_TIME
+                limits.BasicLimitInformation.PerJobUserTimeLimit = cpu_seconds * 10_000_000
             if not self.dll.SetInformationJobObject(handle,EXTENDED_LIMIT,ctypes.byref(limits),ctypes.sizeof(limits)):
                 error=ctypes.get_last_error(); self.dll.CloseHandle(handle); raise ctypes.WinError(error)
         self.handle=handle
+
+    def contains_current_process(self):
+        if self.handle is None:
+            return False
+        member = w.BOOL()
+        if not self.dll.IsProcessInJob(self.dll.GetCurrentProcess(),self.handle,ctypes.byref(member)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        return bool(member.value)
 
     def start(self,command,env=None,log=None):
         if self.handle is None or self.process is not None: raise RuntimeError('JOB_STATE')

@@ -86,6 +86,7 @@ class OwnedOllama:
             process=self.job.start([executable,'serve'],env=env,log=self.log)
         self._startup_event('BOOTSTRAP_LAUNCHED',pid=process.pid,port=self.port)
         deadline=time.monotonic()+30
+        owner_read_retried=False
         last_error=None; probe=0; phase='metadata'
         while time.monotonic()<deadline:
             if process.poll() is not None:
@@ -108,8 +109,17 @@ class OwnedOllama:
                 self._startup_event('STARTUP_RETRY',probe=probe,phase=phase,error_type=last_error)
                 time.sleep(.1)
             except (subprocess.CalledProcessError,subprocess.TimeoutExpired) as exc:
+                owner_timeout=phase=='listener_owner' and isinstance(exc,subprocess.TimeoutExpired)
+                if owner_timeout and not owner_read_retried and time.monotonic()<deadline:
+                    # Repeat observation of the same managed process before any model call.
+                    owner_read_retried=True
+                    last_error=type(exc).__name__
+                    self._startup_event('STARTUP_RETRY',probe=probe,phase=phase,error_type=last_error)
+                    continue
                 self._startup_event('STARTUP_SUBPROCESS_FAILED',probe=probe,phase=phase,
                                     error_type=type(exc).__name__,returncode=getattr(exc,'returncode',None))
+                if owner_timeout:
+                    raise Denied('OWNED_BACKEND_START_TIMEOUT') from exc
                 raise
         self._startup_event('START_TIMEOUT',active_processes=self.job.active(),last_error=last_error,phase=phase,probe=probe)
         raise Denied('OWNED_BACKEND_START_TIMEOUT')

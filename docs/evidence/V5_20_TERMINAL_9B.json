@@ -1,0 +1,101 @@
+{
+  "schema": 2,
+  "captured_utc": "2026-11-20T10:00:59.648754+00:00",
+  "kind": "single_terminal_baseline",
+  "system": "Windows-11-10.0.26200-SP0",
+  "logical_cpus": 20,
+  "powershell": "pwsh.EXE",
+  "powershell_version": "7.6.9",
+  "cpu_model": "Intel(R) Core(TM) Ultra 7 255HX",
+  "host_ram_bytes": 33752997888,
+  "ollama": "0.40.16",
+  "model": "qwen3.5:9b",
+  "model_digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+  "prompt": "Fuentes locales. PDF: Primera respuesta en 24 horas. JSON: response_sla_hours = 48. Compara las dos fuentes. Responde en una sola frase en español con el origen de cada cifra y di si coinciden.",
+  "generation_mode": "thinking_disabled",
+  "prompt_sha256": "071465e44c03973783154a4ccea7652736ab17a000d40a8b9c1c353d74698da1",
+  "sample_interval_s": 0.1,
+  "scope": "private ready server, runner, PowerShell and CLI; OS file cache not purged",
+  "runs": [
+    {
+      "phase": "cold",
+      "elapsed_s": 12.848,
+      "observed_s": 12.849,
+      "cpu_s": 30.766,
+      "peak_cpu_cores_1s": 10.02,
+      "peak_ws_bytes": 1538564096,
+      "peak_private_bytes": 8851492864,
+      "samples": 120,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 6242414097,
+        "size_vram": 5458456739
+      },
+      "answer": "Las cifras no coinciden, ya que el documento PDF indica un tiempo de respuesta de 24 horas mientras que el objeto JSON especifica 48 horas; por lo tanto, la fuente del PDF es la primera respuesta en 24 horas según el documento local y la segunda fuente (JSON) establece response_sla_hours = 48.",
+      "mentions_both_values": true
+    },
+    {
+      "phase": "warm",
+      "elapsed_s": 1.669,
+      "observed_s": 1.67,
+      "cpu_s": 11.188,
+      "peak_cpu_cores_1s": 9.871,
+      "peak_ws_bytes": 1649025024,
+      "peak_private_bytes": 8955289600,
+      "samples": 17,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 6242414097,
+        "size_vram": 5458456739
+      },
+      "answer": "Las fuentes locales no coinciden, ya que el documento PDF indica una respuesta en 24 horas mientras que la fuente JSON especifica 48 horas.",
+      "mentions_both_values": true
+    },
+    {
+      "phase": "warm",
+      "elapsed_s": 1.778,
+      "observed_s": 1.778,
+      "cpu_s": 13.594,
+      "peak_cpu_cores_1s": 9.77,
+      "peak_ws_bytes": 1641713664,
+      "peak_private_bytes": 8913367040,
+      "samples": 18,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 6242414097,
+        "size_vram": 5458456739
+      },
+      "answer": "Las fuentes localizan dos cifras diferentes, ya que el documento PDF establece un tiempo de respuesta de 24 horas mientras que el JSON indica 48 horas, por lo que no coinciden.",
+      "mentions_both_values": true
+    },
+    {
+      "phase": "warm",
+      "elapsed_s": 1.747,
+      "observed_s": 1.748,
+      "cpu_s": 13.0,
+      "peak_cpu_cores_1s": 9.952,
+      "peak_ws_bytes": 1640853504,
+      "peak_private_bytes": 8912084992,
+      "samples": 18,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 6242414097,
+        "size_vram": 5458456739
+      },
+      "answer": "Las cifras no coinciden porque la fuente local (PDF) indica una primera respuesta en 24 horas, mientras que la fuente JSON establece un SLA de respuesta de 48 horas.",
+      "mentions_both_values": true
+    }
+  ]
+}

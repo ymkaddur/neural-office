@@ -1,0 +1,933 @@
+{
+  "surface": "Microsoft Edge + production React + actual stdio Python. Picker and Tauri bridge substituted only in this test.",
+  "browser": "157.0.4341.60",
+  "sha256": {
+    "especificacion.pdf": "1971b67678268bf5fa1b9eff201a1779809f2c54769e698ef2bcd9923e103ea0",
+    "entrega.zip": "c11ae3658a14b4177b91759d0e8bcfc46d160708768746f781cf7a0273250645",
+    "manifiesto.json": "f09570bdae4023698ae1770b26788dde6ff0e6a60b95fbe6028dfd7f4d094b30",
+    "portada.png": "aed85e3f1f1b9d0fe5aae943725091d3ab0ee4145c703520ed4b498087457190",
+    "movil.jpg": "9b0ee2ca5d52f39aa671801b1e854d1870c6db0e190c4aac94d1cd7297c4999b"
+  },
+  "checks": [
+    "multi-select",
+    "PDF page 2",
+    "JSON line 4",
+    "24 vs 48",
+    "receipt expansion",
+    "ZIP member image and zoom",
+    "appearance/density/scale/contrast",
+    "keyboard search",
+    "reopen persistent thread",
+    "390px draft and overflow",
+    "0 model calls",
+    "named project",
+    "OS theme change",
+    "computed colors, including keyboard focus",
+    "high contrast preference",
+    "100/115/125% measured text",
+    "two text-only drafts",
+    "eight-source scope",
+    "excluded source blocks model",
+    "Windows process accounting for Edge and Python"
+  ],
+  "requests": [
+    "describe",
+    "snapshot.get",
+    "attachments.list",
+    "attachments.threads",
+    "attachments.history",
+    "attachments.pick",
+    "attachments.inspect",
+    "attachments.report",
+    "attachments.view"
+  ],
+  "errors": [],
+  "frontend_sha256": {
+    "index.html": "7e4b1ee71be603acb271340fd54c255cc57be0c71e07ec16fb436e057cf2dab5",
+    "assets/index-BG8EsOdp.js": "c8248760011842ce4320fc7fd9ea070b29edcf613525da1d44b665d940902e4a",
+    "assets/index-CL6RSYAh.css": "e8478a5ba35936b2797a4a5ff78536922b1599cc78d285cf04565cc8e436384b"
+  },
+  "measures": {
+    "contrast": [
+      {
+        "theme": "Azul noche",
+        "label": "marca",
+        "kind": "text",
+        "foreground": "#f1f3fa",
+        "background": "#171a22",
+        "ratio": 15.689,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 16.5,
+        "weight": "700"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "búsqueda",
+        "kind": "text",
+        "foreground": "#b1bed3",
+        "background": "#1e222d",
+        "ratio": 8.454,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 14.1,
+        "weight": "400"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "saldo",
+        "kind": "text",
+        "foreground": "#b1bed3",
+        "background": "#222631",
+        "ratio": 8.042,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.6,
+        "weight": "400"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "encabezado",
+        "kind": "text",
+        "foreground": "#f1f3fa",
+        "background": "#222631",
+        "ratio": 13.63,
+        "minimum": 3,
+        "passed": true,
+        "font_px": 30.96,
+        "weight": "650"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "inspector",
+        "kind": "text",
+        "foreground": "#f1f3fa",
+        "background": "#1e222d",
+        "ratio": 14.328,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 15,
+        "weight": "650"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "nombre de archivo",
+        "kind": "text",
+        "foreground": "#f1f3fa",
+        "background": "#1e222d",
+        "ratio": 14.328,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 15,
+        "weight": "700"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "capacidad del archivo",
+        "kind": "text",
+        "foreground": "#b1bed3",
+        "background": "#1e222d",
+        "ratio": 8.454,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.6,
+        "weight": "400"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "tamaño del archivo",
+        "kind": "text",
+        "foreground": "#b1bed3",
+        "background": "#1e222d",
+        "ratio": 8.454,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.6,
+        "weight": "400"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "nota local",
+        "kind": "text",
+        "foreground": "#b1bed3",
+        "background": "#222631",
+        "ratio": 8.042,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 11.85,
+        "weight": "400"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "adjuntar",
+        "kind": "text",
+        "foreground": "#b1bed3",
+        "background": "#1e222d",
+        "ratio": 8.454,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.9,
+        "weight": "600"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "acción primaria",
+        "kind": "text",
+        "foreground": "#202b43",
+        "background": "#c4d2ff",
+        "ratio": 9.415,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.9,
+        "weight": "600"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "instrucción vacía",
+        "kind": "placeholder",
+        "foreground": "#b1bed3",
+        "background": "#1e222d",
+        "ratio": 8.454,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 15,
+        "weight": "400"
+      },
+      {
+        "theme": "Azul noche",
+        "label": "foco adjuntar",
+        "kind": "focus",
+        "foreground": "#aebff5",
+        "background": "#1e222d",
+        "ratio": 8.753,
+        "minimum": 3,
+        "passed": true,
+        "outline_width": 2,
+        "offset": -2
+      },
+      {
+        "theme": "Azul noche",
+        "label": "foco inspeccionar",
+        "kind": "focus",
+        "foreground": "#202b43",
+        "background": "#c4d2ff",
+        "ratio": 9.415,
+        "minimum": 3,
+        "passed": true,
+        "outline_width": 2,
+        "offset": -4
+      },
+      {
+        "theme": "Azul noche",
+        "label": "foco buscar",
+        "kind": "focus",
+        "foreground": "#aebff5",
+        "background": "#1e222d",
+        "ratio": 8.753,
+        "minimum": 3,
+        "passed": true,
+        "outline_width": 2,
+        "offset": -2
+      },
+      {
+        "theme": "Arena",
+        "label": "marca",
+        "kind": "text",
+        "foreground": "#2b2422",
+        "background": "#eee7dd",
+        "ratio": 12.415,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 16.5,
+        "weight": "700"
+      },
+      {
+        "theme": "Arena",
+        "label": "búsqueda",
+        "kind": "text",
+        "foreground": "#66584f",
+        "background": "#f4eee5",
+        "ratio": 5.924,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 14.1,
+        "weight": "400"
+      },
+      {
+        "theme": "Arena",
+        "label": "saldo",
+        "kind": "text",
+        "foreground": "#66584f",
+        "background": "#faf7f1",
+        "ratio": 6.389,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.6,
+        "weight": "400"
+      },
+      {
+        "theme": "Arena",
+        "label": "encabezado",
+        "kind": "text",
+        "foreground": "#2b2422",
+        "background": "#faf7f1",
+        "ratio": 14.25,
+        "minimum": 3,
+        "passed": true,
+        "font_px": 30.96,
+        "weight": "650"
+      },
+      {
+        "theme": "Arena",
+        "label": "inspector",
+        "kind": "text",
+        "foreground": "#2b2422",
+        "background": "#f4eee5",
+        "ratio": 13.212,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 15,
+        "weight": "650"
+      },
+      {
+        "theme": "Arena",
+        "label": "nombre de archivo",
+        "kind": "text",
+        "foreground": "#2b2422",
+        "background": "#f4eee5",
+        "ratio": 13.212,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 15,
+        "weight": "700"
+      },
+      {
+        "theme": "Arena",
+        "label": "capacidad del archivo",
+        "kind": "text",
+        "foreground": "#66584f",
+        "background": "#f4eee5",
+        "ratio": 5.924,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.6,
+        "weight": "400"
+      },
+      {
+        "theme": "Arena",
+        "label": "tamaño del archivo",
+        "kind": "text",
+        "foreground": "#66584f",
+        "background": "#f4eee5",
+        "ratio": 5.924,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.6,
+        "weight": "400"
+      },
+      {
+        "theme": "Arena",
+        "label": "nota local",
+        "kind": "text",
+        "foreground": "#66584f",
+        "background": "#faf7f1",
+        "ratio": 6.389,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 11.85,
+        "weight": "400"
+      },
+      {
+        "theme": "Arena",
+        "label": "adjuntar",
+        "kind": "text",
+        "foreground": "#66584f",
+        "background": "#f4eee5",
+        "ratio": 5.924,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.9,
+        "weight": "600"
+      },
+      {
+        "theme": "Arena",
+        "label": "acción primaria",
+        "kind": "text",
+        "foreground": "#ffffff",
+        "background": "#75394b",
+        "ratio": 8.595,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 12.9,
+        "weight": "600"
+      },
+      {
+        "theme": "Arena",
+        "label": "instrucción vacía",
+        "kind": "placeholder",
+        "foreground": "#66584f",
+        "background": "#f4eee5",
+        "ratio": 5.924,
+        "minimum": 4.5,
+        "passed": true,
+        "font_px": 15,
+        "weight": "400"
+      },
+      {
+        "theme": "Arena",
+        "label": "foco adjuntar",
+        "kind": "focus",
+        "foreground": "#795165",
+        "background": "#f4eee5",
+        "ratio": 5.73,
+        "minimum": 3,
+        "passed": true,
+        "outline_width": 2,
+        "offset": -2
+      },
+      {
+        "theme": "Arena",
+        "label": "foco inspeccionar",
+        "kind": "focus",
+        "foreground": "#ffffff",
+        "background": "#75394b",
+        "ratio": 8.595,
+        "minimum": 3,
+        "passed": true,
+        "outline_width": 2,
+        "offset": -4
+      },
+      {
+        "theme": "Arena",
+        "label": "foco buscar",
+        "kind": "focus",
+        "foreground": "#795165",
+        "background": "#f4eee5",
+        "ratio": 5.73,
+        "minimum": 3,
+        "passed": true,
+        "outline_width": 2,
+        "offset": -2
+      }
+    ],
+    "contrast_scope": {
+      "surface": "Edge headless, hilo con adjuntos, selección visible, 1440 × 900, estilo calculado y fondos opacos compuestos.",
+      "normal_text_ratio": 4.5,
+      "large_text_ratio": 3,
+      "keyboard_focus_ratio": 3,
+      "large": "24 px, o al menos 18⅔ px con peso ≥700.",
+      "references": [
+        "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+        "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html"
+      ],
+      "scope": "Doce muestras de lectura y acción y tres contornos de foco por paleta. No cubre todos los estados, lectores de pantalla, colores forzados ni una certificación WCAG."
+    },
+    "high_contrast": {
+      "Azul noche": {
+        "sample": "capacidad del archivo",
+        "normal": 8.454,
+        "enhanced": 13.051,
+        "normal_color": "#b1bed3",
+        "enhanced_color": "#e3e9f6",
+        "enhanced_samples_all_pass": true,
+        "samples": [
+          {
+            "theme": "Azul noche",
+            "label": "marca",
+            "kind": "text",
+            "foreground": "#f1f3fa",
+            "background": "#171a22",
+            "ratio": 15.689,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 16.5,
+            "weight": "700"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "búsqueda",
+            "kind": "text",
+            "foreground": "#e3e9f6",
+            "background": "#1e222d",
+            "ratio": 13.051,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 14.1,
+            "weight": "400"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "saldo",
+            "kind": "text",
+            "foreground": "#e3e9f6",
+            "background": "#222631",
+            "ratio": 12.415,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.6,
+            "weight": "400"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "encabezado",
+            "kind": "text",
+            "foreground": "#f1f3fa",
+            "background": "#222631",
+            "ratio": 13.63,
+            "minimum": 3,
+            "passed": true,
+            "font_px": 30.96,
+            "weight": "650"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "inspector",
+            "kind": "text",
+            "foreground": "#f1f3fa",
+            "background": "#1e222d",
+            "ratio": 14.328,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 15,
+            "weight": "650"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "nombre de archivo",
+            "kind": "text",
+            "foreground": "#f1f3fa",
+            "background": "#1e222d",
+            "ratio": 14.328,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 15,
+            "weight": "700"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "capacidad del archivo",
+            "kind": "text",
+            "foreground": "#e3e9f6",
+            "background": "#1e222d",
+            "ratio": 13.051,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.6,
+            "weight": "400"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "tamaño del archivo",
+            "kind": "text",
+            "foreground": "#e3e9f6",
+            "background": "#1e222d",
+            "ratio": 13.051,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.6,
+            "weight": "400"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "nota local",
+            "kind": "text",
+            "foreground": "#e3e9f6",
+            "background": "#222631",
+            "ratio": 12.415,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 11.85,
+            "weight": "400"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "adjuntar",
+            "kind": "text",
+            "foreground": "#e3e9f6",
+            "background": "#1e222d",
+            "ratio": 13.051,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.9,
+            "weight": "600"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "acción primaria",
+            "kind": "text",
+            "foreground": "#202b43",
+            "background": "#c4d2ff",
+            "ratio": 9.415,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.9,
+            "weight": "600"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "instrucción vacía",
+            "kind": "placeholder",
+            "foreground": "#e3e9f6",
+            "background": "#1e222d",
+            "ratio": 13.051,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 15,
+            "weight": "400"
+          },
+          {
+            "theme": "Azul noche",
+            "label": "foco adjuntar",
+            "kind": "focus",
+            "foreground": "#ecf1ff",
+            "background": "#1e222d",
+            "ratio": 14.065,
+            "minimum": 3,
+            "passed": true,
+            "outline_width": 2,
+            "offset": -2
+          },
+          {
+            "theme": "Azul noche",
+            "label": "foco inspeccionar",
+            "kind": "focus",
+            "foreground": "#202b43",
+            "background": "#c4d2ff",
+            "ratio": 9.415,
+            "minimum": 3,
+            "passed": true,
+            "outline_width": 2,
+            "offset": -4
+          },
+          {
+            "theme": "Azul noche",
+            "label": "foco buscar",
+            "kind": "focus",
+            "foreground": "#ecf1ff",
+            "background": "#1e222d",
+            "ratio": 14.065,
+            "minimum": 3,
+            "passed": true,
+            "outline_width": 2,
+            "offset": -2
+          }
+        ]
+      },
+      "Arena": {
+        "sample": "capacidad del archivo",
+        "normal": 5.924,
+        "enhanced": 9.544,
+        "normal_color": "#66584f",
+        "enhanced_color": "#453a34",
+        "enhanced_samples_all_pass": true,
+        "samples": [
+          {
+            "theme": "Arena",
+            "label": "marca",
+            "kind": "text",
+            "foreground": "#2b2422",
+            "background": "#eee7dd",
+            "ratio": 12.415,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 16.5,
+            "weight": "700"
+          },
+          {
+            "theme": "Arena",
+            "label": "búsqueda",
+            "kind": "text",
+            "foreground": "#453a34",
+            "background": "#f4eee5",
+            "ratio": 9.544,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 14.1,
+            "weight": "400"
+          },
+          {
+            "theme": "Arena",
+            "label": "saldo",
+            "kind": "text",
+            "foreground": "#453a34",
+            "background": "#faf7f1",
+            "ratio": 10.294,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.6,
+            "weight": "400"
+          },
+          {
+            "theme": "Arena",
+            "label": "encabezado",
+            "kind": "text",
+            "foreground": "#2b2422",
+            "background": "#faf7f1",
+            "ratio": 14.25,
+            "minimum": 3,
+            "passed": true,
+            "font_px": 30.96,
+            "weight": "650"
+          },
+          {
+            "theme": "Arena",
+            "label": "inspector",
+            "kind": "text",
+            "foreground": "#2b2422",
+            "background": "#f4eee5",
+            "ratio": 13.212,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 15,
+            "weight": "650"
+          },
+          {
+            "theme": "Arena",
+            "label": "nombre de archivo",
+            "kind": "text",
+            "foreground": "#2b2422",
+            "background": "#f4eee5",
+            "ratio": 13.212,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 15,
+            "weight": "700"
+          },
+          {
+            "theme": "Arena",
+            "label": "capacidad del archivo",
+            "kind": "text",
+            "foreground": "#453a34",
+            "background": "#f4eee5",
+            "ratio": 9.544,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.6,
+            "weight": "400"
+          },
+          {
+            "theme": "Arena",
+            "label": "tamaño del archivo",
+            "kind": "text",
+            "foreground": "#453a34",
+            "background": "#f4eee5",
+            "ratio": 9.544,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.6,
+            "weight": "400"
+          },
+          {
+            "theme": "Arena",
+            "label": "nota local",
+            "kind": "text",
+            "foreground": "#453a34",
+            "background": "#faf7f1",
+            "ratio": 10.294,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 11.85,
+            "weight": "400"
+          },
+          {
+            "theme": "Arena",
+            "label": "adjuntar",
+            "kind": "text",
+            "foreground": "#453a34",
+            "background": "#f4eee5",
+            "ratio": 9.544,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.9,
+            "weight": "600"
+          },
+          {
+            "theme": "Arena",
+            "label": "acción primaria",
+            "kind": "text",
+            "foreground": "#ffffff",
+            "background": "#75394b",
+            "ratio": 8.595,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 12.9,
+            "weight": "600"
+          },
+          {
+            "theme": "Arena",
+            "label": "instrucción vacía",
+            "kind": "placeholder",
+            "foreground": "#453a34",
+            "background": "#f4eee5",
+            "ratio": 9.544,
+            "minimum": 4.5,
+            "passed": true,
+            "font_px": 15,
+            "weight": "400"
+          },
+          {
+            "theme": "Arena",
+            "label": "foco adjuntar",
+            "kind": "focus",
+            "foreground": "#54263a",
+            "background": "#f4eee5",
+            "ratio": 10.615,
+            "minimum": 3,
+            "passed": true,
+            "outline_width": 2,
+            "offset": -2
+          },
+          {
+            "theme": "Arena",
+            "label": "foco inspeccionar",
+            "kind": "focus",
+            "foreground": "#ffffff",
+            "background": "#75394b",
+            "ratio": 8.595,
+            "minimum": 3,
+            "passed": true,
+            "outline_width": 2,
+            "offset": -4
+          },
+          {
+            "theme": "Arena",
+            "label": "foco buscar",
+            "kind": "focus",
+            "foreground": "#54263a",
+            "background": "#f4eee5",
+            "ratio": 10.615,
+            "minimum": 3,
+            "passed": true,
+            "outline_width": 2,
+            "offset": -2
+          }
+        ]
+      }
+    },
+    "density": {
+      "Azul noche": {
+        "selector": ".file-list button",
+        "comfortable_padding_px": 10,
+        "compact_padding_px": 6
+      },
+      "Arena": {
+        "selector": ".file-list button",
+        "comfortable_padding_px": 10,
+        "compact_padding_px": 6
+      }
+    },
+    "fonts": {
+      "100": {
+        ".desk513": 15,
+        ".desk-composer textarea": 15,
+        ".file-inspector h2": 15
+      },
+      "115": {
+        ".desk513": 17.25,
+        ".desk-composer textarea": 17.25,
+        ".file-inspector h2": 17.25
+      },
+      "125": {
+        ".desk513": 18.75,
+        ".desk-composer textarea": 18.75,
+        ".file-inspector h2": 18.75
+      }
+    },
+    "selection": {
+      "exclusion_blocks_model": true,
+      "initial_included": 8,
+      "after_trying_ninth": 8,
+      "inspected": 8
+    },
+    "drafts": {
+      "threads": 2,
+      "attachments": 0,
+      "same_window_restored": true,
+      "mutations": 0
+    },
+    "contrast_summary": [
+      {
+        "theme": "Azul noche",
+        "samples": 15,
+        "normal_text_min": 8.042,
+        "large_text_min": 13.63,
+        "keyboard_focus_min": 8.753
+      },
+      {
+        "theme": "Arena",
+        "samples": 15,
+        "normal_text_min": 5.924,
+        "large_text_min": 14.25,
+        "keyboard_focus_min": 5.73
+      }
+    ],
+    "system_theme": "dark → light → dark",
+    "resources": {
+      "surface": "Edge headless con bundle de producción y sidecar Python real por stdio. Selector y puente nativo sustituidos.",
+      "scope": "Edge según los procesos del navegador publicados por CDP. Sidecar Python y descendientes presentes al muestrear. Excluye el proceso Node de pruebas, consulta a modelos y núcleo Tauri.",
+      "limits": "Dos muestras por ventana. CPU acumulada sólo de procesos presentes en ambos extremos. La suma de working sets puede repetir páginas compartidas. Los lectores fugaces y los picos entre muestras no se cuantifican. El intervalo incluye el coste temporal de muestrear desde PowerShell.",
+      "logical_cpus": 20,
+      "cpu_base": "100% = un núcleo lógico",
+      "memory_unit": "MiB = 1048576 bytes",
+      "idle_with_five_sources": {
+        "from_utc": "2026-11-19T18:44:16.3397373Z",
+        "to_utc": "2026-11-19T18:44:20.2832537Z",
+        "seconds": 3.944,
+        "groups": {
+          "edge": {
+            "processes_start": 9,
+            "processes_end": 9,
+            "processes_common": 9,
+            "cpu_ms_common": 31.25,
+            "cpu_pct_one_core": 0.79,
+            "working_set_mib_start": 625.28,
+            "working_set_mib_end": 625.14,
+            "private_mib_start": 335.71,
+            "private_mib_end": 334.77
+          },
+          "sidecar": {
+            "processes_start": 3,
+            "processes_end": 3,
+            "processes_common": 3,
+            "cpu_ms_common": 0,
+            "cpu_pct_one_core": 0,
+            "working_set_mib_start": 39.32,
+            "working_set_mib_end": 39.32,
+            "private_mib_start": 18.57,
+            "private_mib_end": 18.57
+          }
+        }
+      },
+      "five_source_local_inspection": {
+        "from_utc": "2026-11-19T18:44:20.2832537Z",
+        "to_utc": "2026-11-19T18:44:24.0741651Z",
+        "seconds": 3.791,
+        "groups": {
+          "edge": {
+            "processes_start": 9,
+            "processes_end": 8,
+            "processes_common": 8,
+            "cpu_ms_common": 187.5,
+            "cpu_pct_one_core": 4.95,
+            "working_set_mib_start": 625.14,
+            "working_set_mib_end": 595.86,
+            "private_mib_start": 334.77,
+            "private_mib_end": 326.25
+          },
+          "sidecar": {
+            "processes_start": 3,
+            "processes_end": 3,
+            "processes_common": 3,
+            "cpu_ms_common": 93.75,
+            "cpu_pct_one_core": 2.47,
+            "working_set_mib_start": 39.32,
+            "working_set_mib_end": 39.3,
+            "private_mib_start": 18.57,
+            "private_mib_end": 18.57
+          }
+        }
+      },
+      "action_to_first_visible_finding_ms": 1890.3
+    }
+  }
+}

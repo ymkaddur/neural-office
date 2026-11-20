@@ -14,6 +14,8 @@ TERMINAL = {'ACCEPTED', 'REJECTED', 'FAILED', 'CANCELLED'}
 STATES = TERMINAL | {'QUEUED', 'RUNNING', 'VERIFYING', 'STOPPING', 'RECOVERY_REQUIRED'}
 APPLICATION_ID = 0x4E4F3532
 MAX_CALLS = 12
+READABLE_SCHEMAS = (2, 3)
+OFFICE_MODE = 'office-local-v2'
 # Only these operational reasons may be persisted in a public-facing receipt.
 EXECUTION_CODES = frozenset({
     'BACKEND_CANCELLED_BEFORE_START', 'BACKEND_COMPLETION_UNPROVEN',
@@ -70,7 +72,7 @@ class Ledger:
             if con.execute('PRAGMA application_id').fetchone()[0] != APPLICATION_ID:
                 raise Denied('FOREIGN_STATE')
             from .continuity import attach, validate
-            if con.execute('PRAGMA user_version').fetchone()[0] != 2:
+            if con.execute('PRAGMA user_version').fetchone()[0] not in READABLE_SCHEMAS:
                 raise Denied('CONTINUITY_UPGRADE_REQUIRED_RUN_PROTECT')
             attach(con, self.path)
             validate(con)
@@ -79,14 +81,16 @@ class Ledger:
             con.close()
 
     @contextmanager
-    def transaction(self):
+    def transaction(self, *, seal_unchanged=True):
         from .legacy import held_sources
         with self.connection() as con, held_sources():
             con.execute('BEGIN IMMEDIATE')
             try:
+                before = con.total_changes
                 yield con
                 from .continuity import seal
-                seal(con)
+                if seal_unchanged or con.total_changes != before:
+                    seal(con)
                 con.execute('COMMIT')
             except BaseException:
                 con.rollback()
@@ -101,7 +105,7 @@ class Ledger:
         from .continuity import protect, witness_path
         if self.path.exists():
             with self.connection() as con:
-                if con.execute('PRAGMA user_version').fetchone()[0] != 2:
+                if con.execute('PRAGMA user_version').fetchone()[0] not in READABLE_SCHEMAS:
                     raise Denied('SCHEMA_VERSION')
             return
         if witness_path(self.path).exists():
@@ -165,7 +169,7 @@ class Ledger:
         root = Path(root).resolve(strict=True)
         if not root.is_dir(): raise Denied('PROJECT_ROOT_NOT_DIRECTORY')
         root = os.path.normcase(str(root))
-        with self.transaction() as con:
+        with self.transaction(seal_unchanged=False) as con:
             from .legacy import require_reconciliation
             require_reconciliation(con, project, root)
             old = con.execute('SELECT root FROM projects WHERE id=?', (project,)).fetchone()
@@ -197,6 +201,12 @@ class Ledger:
     def revoke(self, project):
         with self.transaction() as con:
             con.execute('UPDATE projects SET approved=0 WHERE id=?', (project,))
+            # A subsequent activation cannot reopen a previously revoked office permit.
+            pending = con.execute("""SELECT id FROM attempts WHERE project=?
+                AND state NOT IN ('ACCEPTED','REJECTED','FAILED','CANCELLED') AND json_extract(profile,'$.mode')=?""",
+                                  (project, OFFICE_MODE)).fetchone()
+            if pending:
+                self._cancel(con, pending['id'])
             self._event(con, 'USER_REVOCATION', {'project':project})
 
     def park(self, project):
@@ -217,7 +227,7 @@ class Ledger:
                                         or any(c in source_name for c in '/\\\\:') or not source_name.isprintable()):
             source_name = None
         signature = digest(canonical([objective,digest(snapshot),profile]))
-        with self.transaction() as con:
+        with self.transaction(seal_unchanged=False) as con:
             old = con.execute('SELECT id,request_digest FROM attempts WHERE project=? AND request_key=?', (project,key)).fetchone()
             if old:
                 if old['request_digest']!=signature:
@@ -234,8 +244,13 @@ class Ledger:
                 raise Denied('ATTEMPT_BUDGET_EXHAUSTED')
             if con.execute("SELECT 1 FROM attempts WHERE project=? AND state NOT IN ('ACCEPTED','REJECTED','FAILED','CANCELLED')", (project,)).fetchone():
                 raise Denied('UNRESOLVED_ATTEMPT')
-            from .runner import check_first_prompt
-            check_first_prompt(snapshot, objective, profile)
+            if profile.get('mode') == OFFICE_MODE:
+                from .office_protocol import validate_permit, install_schema
+                validate_permit(profile, snapshot)
+                install_schema(con)
+            else:
+                from .runner import check_first_prompt
+                check_first_prompt(snapshot, objective, profile)
             attempt, stamp = uuid.uuid4().hex, time.time()
             con.execute('''INSERT INTO attempts(id,project,ordinal,request_key,request_digest,objective,
                 profile,snapshot,snapshot_sha,state,created,last_seen) VALUES(?,?,?,?,?,?,?,?,?,'QUEUED',?,?)''',
@@ -252,7 +267,13 @@ class Ledger:
             raise Denied('UNKNOWN_ATTEMPT')
         return row
 
-    def _authorized(self, con, row):
+    def _pilot_row(self, con, attempt):
+        row = self._row(con, attempt)
+        if json.loads(row['profile']).get('mode') == OFFICE_MODE:
+            raise Denied('OFFICE_PROTOCOL_REQUIRED')
+        return row
+
+    def _check_authorized(self, con, row):
         from .legacy import check_authority
         check_authority(con, row['project'])
         authority = con.execute('SELECT active,approved FROM projects WHERE id=?',(row['project'],)).fetchone()
@@ -261,7 +282,11 @@ class Ledger:
         now = time.time()
         if now < row['last_seen'] or now-row['created']>3600:
             raise Denied('CLOCK_OR_ATTEMPT_DEADLINE')
-        con.execute('UPDATE attempts SET last_seen=? WHERE id=?',(now,row['id']))
+        return now
+
+    def _authorized(self, con, row):
+        stamp = self._check_authorized(con, row)
+        con.execute('UPDATE attempts SET last_seen=? WHERE id=?',(stamp,row['id']))
 
     def interruption_reason(self, attempt):
         """Read-only in-flight check; revocation must reach an already admitted call."""
@@ -281,7 +306,7 @@ class Ledger:
 
     def acquire(self, attempt, job):
         with self.transaction() as con:
-            row = self._row(con, attempt)
+            row = self._pilot_row(con, attempt)
             self._authorized(con,row)
             if row['state']!='QUEUED':
                 raise Denied('NOT_QUEUED')
@@ -297,7 +322,7 @@ class Ledger:
     def start_call(self, attempt, generation, role, payload, key):
         signature = digest(canonical(payload))
         with self.transaction() as con:
-            row = self._row(con,attempt)
+            row = self._pilot_row(con,attempt)
             self._authorized(con,row)
             lease = con.execute('SELECT * FROM lease').fetchone()
             if (lease['attempt'],lease['generation'])!=(attempt,generation) or row['state']!='RUNNING':
@@ -327,6 +352,7 @@ class Ledger:
         if len(encoded.encode('utf-8'))>1048576:
             raise Denied('RESPONSE_TOO_LARGE')
         with self.transaction() as con:
+            self._pilot_row(con, attempt)
             lease = con.execute('SELECT * FROM lease').fetchone()
             call = con.execute('SELECT * FROM calls WHERE seq=? AND attempt=?',(seq,attempt)).fetchone()
             if (lease['attempt'],lease['generation'])!=(attempt,generation) or call is None:
@@ -345,21 +371,26 @@ class Ledger:
             self._event(con,'MODEL_CALL_COMPLETED',{'attempt':attempt,'call':seq,'content_sha':digest(content)})
 
     def cancel(self, attempt):
-        with self.transaction() as con:
-            row = self._row(con,attempt)
-            if row['state'] in TERMINAL:
-                return row['state']
-            lease = con.execute('SELECT attempt FROM lease').fetchone()[0]
-            state = 'STOPPING' if lease==attempt else 'CANCELLED'
-            con.execute('UPDATE attempts SET state=?,cancelled=1,revision=revision+1 WHERE id=?',(state,attempt))
-            self._event(con,'CANCELLATION_REQUESTED',{'attempt':attempt,'state':state})
-            if state=='CANCELLED': self._park_exhausted(con,row['project'])
-            return state
+        with self.transaction(seal_unchanged=False) as con:
+            return self._cancel(con, attempt)
+
+    def _cancel(self, con, attempt):
+        row = self._row(con,attempt)
+        if row['state'] in TERMINAL or row['cancelled']:
+            return row['state']
+        lease = con.execute('SELECT attempt FROM lease').fetchone()[0]
+        state = 'STOPPING' if lease==attempt else 'CANCELLED'
+        con.execute('UPDATE attempts SET state=?,cancelled=1,revision=revision+1 WHERE id=?',(state,attempt))
+        if state == 'CANCELLED' and json.loads(row['profile']).get('mode') == OFFICE_MODE:
+            con.execute("UPDATE office_transports SET state='CANCELLED' WHERE attempt=? AND state='PREPARED'", (attempt,))
+        self._event(con,'CANCELLATION_REQUESTED',{'attempt':attempt,'state':state})
+        if state=='CANCELLED': self._park_exhausted(con,row['project'])
+        return state
 
     def release_after_termination(self, attempt, generation, *, failed=False, error_code=None):
         """Trusted runner invokes this only after owned OS job termination is observed."""
         with self.transaction() as con:
-            row = self._row(con,attempt)
+            row = self._pilot_row(con,attempt)
             lease = con.execute('SELECT * FROM lease').fetchone()
             if (lease['attempt'],lease['generation'])!=(attempt,generation):
                 raise Denied('STALE_LEASE')
@@ -376,6 +407,7 @@ class Ledger:
 
     def mark_unknown(self, attempt, generation):
         with self.transaction() as con:
+            self._pilot_row(con, attempt)
             lease = con.execute('SELECT * FROM lease').fetchone()
             if (lease['attempt'],lease['generation'])!=(attempt,generation):
                 raise Denied('STALE_LEASE')
@@ -390,16 +422,19 @@ class Ledger:
 
     def finalize(self, attempt, artifact):
         from .audit import verify_report
+        from . import excerpt_review
         if type(artifact) is not bytes or not 0<len(artifact)<=4_194_304:
             raise Denied('ARTIFACT_SIZE_OR_TYPE')
         with self.transaction() as con:
-            row = self._row(con,attempt)
+            row = self._pilot_row(con,attempt)
             if row['state'] in TERMINAL:
                 if row['artifact_sha']==digest(artifact): return row['state']
                 raise Denied('TERMINAL_RESULT_CONFLICT')
             self._authorized(con,row)
             if row['state']!='VERIFYING': raise Denied('NOT_VERIFYING')
-            receipt = verify_report(bytes(row['snapshot']),artifact)
+            scope = json.loads(row['profile']).get('analysis_scope')
+            verifier = excerpt_review.verify_report if scope == excerpt_review.SCOPE else verify_report
+            receipt = verifier(bytes(row['snapshot']), artifact)
             from .runner import role_order
             stored=[dict(r) for r in con.execute('SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid',(attempt,))]
             try:

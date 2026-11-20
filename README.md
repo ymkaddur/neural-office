@@ -1,48 +1,25 @@
 # Neural Office
 
-**Revisa en local. Decide con evidencia.**
+**V5.35-POLISHED · oficina local de archivos para Windows.** Adjunta los archivos de un proyecto y escribe qué necesitas averiguar. El Director devuelve cada comprobación con su fuente o explica qué queda pendiente. Puedes abrir las tres rondas de los seis especialistas y descargar el informe con sus citas. La inspección de archivos ejecuta reglas locales y registra cero llamadas al modelo. [Cambios y verificación de 5.35.1](docs/V5_35_POLISHED.md)
 
-Un espacio de trabajo para encargar una revisión, seguir su ejecución y recuperar la entrega. Gratis y open source, con las mismas funciones para todo el mundo.
+El ejecutable 5.35.1 abrió en Windows de GitHub Actions. El selector nativo capturó dos archivos en una sola operación y el Director respondió «31 horas» al consultar el extracto autorizado del PDF. WebView2 anunció la versión correcta y el botón de autorización estuvo visible a 760 × 540. El mismo ejecutable fue bloqueado con el error 4551 en un equipo que exigía firma de confianza. La publicación del binario espera a la firma. [Prueba del ejecutable](https://github.com/ymkaddur/neural-office/actions/runs/44818201923)
 
-**V5.9 · escritorio de revisión HTML para Windows.** Elige un archivo y encuentra las líneas que conviene revisar. La comprobación estática cuesta cero intentos. Si consultas a tu modelo local, puedes seguir sus llamadas, redactar la siguiente pregunta y recuperar la entrega por proyecto.
+![Director en el tema oscuro. Dos archivos con contenido leído y una medición con identidad registrada, en Edge con el núcleo local de Windows.](docs/images/v5.35-polished-oscuro.png)
 
-[![Tests Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=main)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml)
-[![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+## Probar un encargo
 
-![El escritorio V5.9 muestra audit-sample.html, sus cuatro hallazgos y el coste de cada opción](docs/images/v5.9-review.png)
+1. Abre el escritorio, crea un proyecto y usa **Adjuntar archivos** para elegir tus fuentes en Windows.
+2. Escribe **Inspecciona los archivos** para obtener un inventario con los datos recuperados, o **Busca «24 horas» en los archivos** para obtener una cita con su página o línea cuando exista. Ejecuta la inspección local. Consume cero intentos.
+3. Lee la entrega del Director. Abre un especialista, cambia de iteración y consulta la instrucción recibida, la operación realizada y su resultado. Desde la entrega puedes descargar **informe.pdf** y **evidencia.json**.
+4. En **Memoria y skills**, guarda una nota o propone una instrucción a partir de esa entrega. Puedes revisar su historial, aceptar el cambio e insertarlo en el borrador de un nuevo encargo. **Ajustes** controla el tema claro, oscuro o del sistema, el tamaño del texto y el movimiento.
 
-Captura del cliente V5.9 en Edge con el HTML público de ejemplo y una oficina de prueba. [Verificación de V5.9](docs/V5_9_REVIEW.md) · [Reconexión del ejecutable V5.8](docs/V5_8_REVIEW.md).
+El selector admite cualquier extensión, incluidos archivos sin extensión. La lectura depende de la estructura y del tamaño. Un binario desconocido conserva tamaño y huella. El trabajo de las tres rondas se ejecuta con lectores y reglas locales. La consulta opcional a Ollama conserva su autorización y su presupuesto propio. [Diferencias entre inspección, consulta e inferencia autónoma](docs/V5_35_LOCAL.md)
 
-## Qué puedes hacer
+Para compilar y abrir el escritorio se necesita Windows x64 con WebView2 y Python 3.12. El lanzador usa los lectores locales fijados para PDF e imágenes. [Instalación y compilación](desktop/README.md) · [Licencia MIT](LICENSE) · [Pruebas anteriores](docs/V5_30_LOCAL.md)
 
-- **Revisar un HTML:** idioma, título, alternativas de imágenes y posibles controles sin etiqueta, con ubicación y una acción sugerida.
-- **Pedir comentarios al Director:** elige tu modelo instalado en Ollama y autoriza el alcance antes de empezar.
-- **Controlar el trabajo:** consulta llamadas, detén la ejecución y vuelve a abrir el informe sin repetirla.
-- **Conservar contexto:** consulta el historial y vuelve al borrador durante la misma apertura. La fuente original permanece intacta.
+## Hacia la oficina local V6.0
 
-Los hallazgos estáticos y los comentarios del modelo se presentan por separado. El producto lee archivos; no edita repositorios ni ejecuta herramientas propuestas por un modelo.
-
-## Probarlo
-
-**Sin modelo:** con Windows y Python 3.12, [descarga el código](https://github.com/ymkaddur/neural-office/archive/refs/heads/main.zip), extrae la carpeta y ejecuta desde ella:
-
-```powershell
-py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.html
-```
-
-Devuelve cuatro hallazgos en JSON y la huella del archivo. No inicia Ollama, crea estado ni consume intentos. [Ejemplos y alcance](docs/HTML_REVIEW.md).
-
-**En el escritorio:** sigue la [guía de compilación y uso](desktop/README.md). Necesita Windows x64, Python 3.12 y WebView2. La consulta opcional al Director requiere Ollama y un modelo instalado. Compilar requiere Node, Rust y las herramientas de Windows. Todavía se distribuye como código para desarrollo, sin instalador firmado.
-
-1. Pulsa **Elegir archivo HTML** y **Comprobar HTML**. Puedes recorrer todas las ubicaciones sin gastar intentos.
-2. Abre **Qué revisar** junto a un hallazgo para decidir cómo comprobarlo en tu documento.
-3. **Consultar al Director** conserva la fuente. Revisa el número de llamadas y autoriza el encargo si te interesa guardarlo con comentarios.
-
-La consulta asistida empieza con un rol en CPU. Cada proyecto dispone de tres intentos. Un fallo o una cancelación después de reservar también cuenta. [Uso, datos y recuperación](docs/README.md).
-
-## Hacia V6.5
-
-La beta V6 exige instalación probada y un recorrido completo con personas nuevas. Hasta V6.5 se incorporan borradores recuperables, skills que el usuario puede inspeccionar y revocar, y revisiones con un presupuesto explícito. [Hoja de ruta y criterios de aceptación](ROADMAP.md).
+La beta prevé tres rondas autónomas, modelos locales propios o importados, revisión de una URL, memoria por proyecto y skills con historial y revocación. La hoja de ruta define las pruebas de autoridad, utilidad, recuperación y el techo de 1,50× de recursos frente a una consulta real de Ollama en PowerShell. [Implementación y criterios por versión](ROADMAP.md).
 
 En seis tareas con un modelo local pequeño, el Director y la revisión de tres roles dieron las mismas ubicaciones que las reglas. Sus comentarios no añadieron acciones útiles según la rúbrica fijada. [Comparación y costes](docs/V5_7_REVIEW.md).
 

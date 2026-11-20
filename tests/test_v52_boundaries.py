@@ -166,28 +166,39 @@ j=Job(sys.argv[1]);p=j.start([sys.executable,'-c','import time;time.sleep(60)'])
 deadline=time.monotonic()+10
 while j.active()<2 and time.monotonic()<deadline:time.sleep(.02)
 print(p.pid,j.active(),flush=True)
+sys.stdin.readline()
 os._exit(0)
 """
-        parent=subprocess.Popen([sys.executable,'-B','-c',code,name],stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE,text=True)
-        stdout,stderr=parent.communicate(timeout=15)
-        self.assertEqual(parent.returncode,0,stderr)
-        pid,count=map(int,stdout.split());self.assertGreaterEqual(count,2)
+        dll=ctypes.WinDLL('kernel32',use_last_error=True)
+        dll.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD];dll.OpenProcess.restype=wintypes.HANDLE
+        dll.WaitForSingleObject.argtypes=[wintypes.HANDLE,wintypes.DWORD];dll.WaitForSingleObject.restype=wintypes.DWORD
+        dll.CloseHandle.argtypes=[wintypes.HANDLE];dll.CloseHandle.restype=wintypes.BOOL
+        with tempfile.TemporaryFile(mode='w+t') as ready, subprocess.Popen(
+                [sys.executable,'-B','-c',code,name],stdin=subprocess.PIPE,stdout=ready,
+                stderr=subprocess.PIPE,text=True) as parent:
+            try:
+                deadline=time.monotonic()+15
+                while not os.fstat(ready.fileno()).st_size and parent.poll() is None and time.monotonic()<deadline:
+                    time.sleep(.02)
+                ready.seek(0)
+                pid,count=map(int,ready.readline().split())
+                self.assertGreaterEqual(count,2)
+                # Pin this particular process before the owner exits. A process
+                # handle cannot keep the Windows job alive.
+                handle=dll.OpenProcess(0x00100000,False,pid)  # SYNCHRONIZE
+                self.assertTrue(handle)
+                try:
+                    _,stderr=parent.communicate('\n',timeout=5)
+                    self.assertEqual(parent.returncode,0,stderr)
+                    self.assertEqual(dll.WaitForSingleObject(handle,5000),0,'Bootstrap did not terminate')
+                finally:dll.CloseHandle(handle)
+            finally:
+                if parent.poll() is None:parent.kill()
         # Opening a job before the owner dies would itself keep that job alive.
         with Job(name,existing=True) as remaining:
             deadline=time.monotonic()+5
             while remaining.active() and time.monotonic()<deadline:time.sleep(.02)
             self.assertEqual(remaining.active(),0)
-        dll=ctypes.WinDLL('kernel32',use_last_error=True)
-        dll.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD];dll.OpenProcess.restype=wintypes.HANDLE
-        dll.GetExitCodeProcess.argtypes=[wintypes.HANDLE,ctypes.POINTER(wintypes.DWORD)];dll.GetExitCodeProcess.restype=wintypes.BOOL
-        dll.CloseHandle.argtypes=[wintypes.HANDLE];dll.CloseHandle.restype=wintypes.BOOL
-        handle=dll.OpenProcess(0x1000,False,pid)
-        if handle:
-            try:
-                result=wintypes.DWORD();self.assertTrue(dll.GetExitCodeProcess(handle,ctypes.byref(result)))
-                self.assertNotEqual(result.value,259,'Bootstrap remains STILL_ACTIVE after owner exit')
-            finally:dll.CloseHandle(handle)
 
 
 if __name__=='__main__':unittest.main()

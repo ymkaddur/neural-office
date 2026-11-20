@@ -1,0 +1,123 @@
+{
+  "date": "2026-11-19",
+  "platform": "Windows x64, CPython 3.12",
+  "measurement": "Proceso Python de escritorio, protocolo stdio y Ollama local administrado",
+  "fixture_inputs": "Cinco archivos sintéticos generados por examples/multiformat/build_example.py",
+  "runs": [
+    {
+      "isolated_project": 1,
+      "state": "FAILED",
+      "error_code": "OWNED_BACKEND_START_TIMEOUT",
+      "retained_evidence": "El sondeo observó el estado y el código. El directorio temporal de esta primera ejecución se cerró antes de conservar los recibos."
+    },
+    {
+      "isolated_project": 2,
+      "surface": "Windows Python sidecar over stdio",
+      "model": "qwen2.5:0.5b",
+      "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "scope": "local-inspection-excerpts-v1",
+      "attempt_id": "649b6ba2439c4e92ac8b7b1f28405949",
+      "inspection_id": "0ea4c3b543b343b3564e438dfc5b3a12",
+      "inputs": [
+        {
+          "name": "especificacion.pdf",
+          "sha256": "1971b67678268bf5fa1b9eff201a1779809f2c54769e698ef2bcd9923e103ea0"
+        },
+        {
+          "name": "entrega.zip",
+          "sha256": "6cee52420665ab3fabb6b5311feef9311ab4f0dd80621a736d054787335158ea"
+        },
+        {
+          "name": "manifiesto.json",
+          "sha256": "f09570bdae4023698ae1770b26788dde6ff0e6a60b95fbe6028dfd7f4d094b30"
+        },
+        {
+          "name": "portada.png",
+          "sha256": "c02cd3e62629f611bd2112ac018bc0797e9964b7586382fca0b3c57b25d4acac"
+        },
+        {
+          "name": "movil.jpg",
+          "sha256": "f01c605f01ad8cf2c2624551f849c88a755a1fd604fd2b4cf784f420eaefce71"
+        }
+      ],
+      "expected_hours": 24,
+      "declared_hours": 48,
+      "pdf_page": 2,
+      "json_line": 4,
+      "local_calls": 0,
+      "local_reservations": 0,
+      "authorized_fragments": [
+        {
+          "attachment_id": "33c71622f15f19ab7dee3c896bddbe73094b9d9e3b4a64cb0edae4bf9570f198",
+          "name": "especificacion.pdf",
+          "page": 2,
+          "quote": "Primera respuesta en 24 horas.",
+          "sha256": "1971b67678268bf5fa1b9eff201a1779809f2c54769e698ef2bcd9923e103ea0",
+          "unit": "h",
+          "value": 24
+        },
+        {
+          "attachment_id": "7d3e66c94b335d827979121eb316ac66dcccd4d32a3d9c48fa7eb70c8009cf1e",
+          "column": 25,
+          "line": 4,
+          "name": "manifiesto.json",
+          "pointer": "/response_sla_hours",
+          "quote": "48",
+          "sha256": "f09570bdae4023698ae1770b26788dde6ff0e6a60b95fbe6028dfd7f4d094b30",
+          "unit": "h",
+          "value": 48
+        }
+      ],
+      "state": "ACCEPTED",
+      "calls": [
+        {
+          "completed_ms": 1795110538611,
+          "role": "director",
+          "seq": 1,
+          "started_ms": 1795110533464,
+          "state": "DONE"
+        }
+      ],
+      "project_attempts_consumed": 1,
+      "report_sha256": "4acc994d08eb57c070f68b5f730348229512329391862ad0827c5075afd86435",
+      "output": {
+        "content": "Compara los plazos de 24 horas y 48 horas, identifica el valor que debe confirmar la persona responsable, y proporciona un resumen de los datos.",
+        "content_sha": "f78ac91dc8670831afe93566539a25f3c10ec87fad1b576ebdcecccdef69e73d",
+        "role": "director"
+      },
+      "verdict": {
+        "artifact_sha256": "4acc994d08eb57c070f68b5f730348229512329391862ad0827c5075afd86435",
+        "checks": {
+          "canonical_encoding": true,
+          "matches_authorized_excerpts": true,
+          "outputs_bound_to_receipts": true,
+          "outputs_type": true,
+          "roles_complete": true
+        },
+        "coverage": "Identidad de los extractos autorizados y del comentario del modelo.",
+        "passed": true,
+        "source_sha256": "7a556ff9712dba12f75a9c1c7efa4bf693f30bd07430583ff7035d403e151743",
+        "verifier": "local-inspection-excerpts-v1"
+      },
+      "input_receipt": {
+        "admitted_payload_sha256": "0e52b35a401ed3e80bf9e4a8ebe7b6031474ee8a9f31c02210cd65aa766d16a2",
+        "payload_bytes": 1175,
+        "user_fields": [
+          "authorized_fragments",
+          "objective",
+          "role",
+          "scope"
+        ],
+        "attachment_excerpts": 2,
+        "local_startup_ms": 18598,
+        "startup_retries": [
+          "metadata",
+          "metadata"
+        ]
+      },
+      "call_duration_ms": 5147
+    }
+  ],
+  "assessment": "El Director repitió los plazos y la petición de confirmación. En esta muestra no aportó una decisión adicional a la regla local.",
+  "reproduce": "Desde la raíz, con los lectores fijados y el modelo local instalado, ejecuta python tests/verify_v513_model.py --model qwen2.5:0.5b --work <directorio-nuevo> --output <archivo-nuevo.json>."
+}

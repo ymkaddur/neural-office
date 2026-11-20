@@ -116,9 +116,17 @@ class Screen:
         self.window.wait('visible', timeout=30)
         self.edit_receipts = []
 
-    def names(self):
+    def names(self, *, visible_only=True):
         return '\n'.join(control.element_info.name for control in self.window.descendants()
-                         if control.is_visible() and control.element_info.name)
+                         if control.element_info.name and (not visible_only or control.is_visible()))
+
+    def approval_shows_balance(self, remaining):
+        dialog = self.window.child_window(title='Este es el encargo.', control_type='Window')
+        if not dialog.exists(timeout=0):
+            return False
+        # WebView2 can expose the amount and the surrounding sentence as separate text nodes.
+        text = ''.join(node.element_info.name for node in dialog.descendants(control_type='Text') if node.is_visible())
+        return f'Consumirá 1 intento. Con la reserva, el saldo pasará a {remaining} de 3.' in text
 
     def control(self, name, kind='Button', regex=False):
         selector = {'title_re' if regex else 'title': name, 'control_type': kind}
@@ -126,8 +134,62 @@ class Screen:
         control.wait('visible enabled', timeout=15)
         return control.wrapper_object()
 
+    def reveal_button(self, name, regex=False):
+        selector = {'title_re' if regex else 'title': name, 'control_type': 'Button', 'visible_only': False}
+        target = self.window.child_window(**selector)
+        target.wait('exists enabled', timeout=15)
+        button = target.wrapper_object()
+        button.set_focus()
+        wait(button.is_visible, timeout=5, description='button scrolled into its viewport')
+        return button
+
     def button(self, name, regex=False):
         self.control(name, regex=regex).invoke()
+
+    def press_space(self, button):
+        from pywinauto import keyboard
+        import win32gui
+        self.window.set_focus()
+        button.set_focus()
+        wait(lambda: win32gui.GetForegroundWindow()==self.window.handle and button.has_keyboard_focus(),
+             timeout=5, description='own window and button have keyboard focus')
+        keyboard.send_keys('{SPACE}', turn_off_numlock=False)
+
+    def disclosure(self, title, expanded):
+        # Uncontrolled HTML summaries report their own UIA expanded state.
+        summary = self.reveal_button(r'(?s)^(?:[›⌄]\s*)?'+re.escape(title)+r'.*', regex=True)
+        pattern = summary.iface_expand_collapse
+        if pattern.CurrentExpandCollapseState != int(expanded):
+            self.press_space(summary)
+        wait(lambda: pattern.CurrentExpandCollapseState == int(expanded), timeout=5,
+             description='native disclosure state for '+title)
+
+    def core_ready(self):
+        names = set(self.names().splitlines())
+        return bool(names.intersection({'Núcleo local', 'Última conexión confirmada', 'Núcleo local conectado'}))
+
+    def open_html(self):
+        if 'Instrucción para el Director' not in self.names().splitlines():
+            return
+        # The command also works on an empty thread, before attaching an HTML file.
+        if self.window.child_window(title='Buscar hilo o acción', control_type='Button').exists(timeout=.3):
+            self.button('Buscar hilo o acción')
+            self.reveal_button(r'^Revisión especializada de HTML.*', regex=True).invoke()
+        else:
+            if 'Abrir revisión de HTML con roles' not in self.names():
+                self.button('Ver adjuntos' if 'Ver adjuntos' in self.names().splitlines() else 'Inspector')
+            self.button('Abrir revisión de HTML con roles')
+        # The composer also disappears from UI Automation while the command dialog is
+        # open. The enabled picker identifies the destination after navigation settles.
+        self.window.child_window(auto_id='static-picker', control_type='Button').wait('visible enabled', timeout=20)
+
+    def new_html(self):
+        if 'Nuevo hilo' in self.names().splitlines():
+            self.button('Nuevo hilo')
+            wait(lambda: 'Instrucción para el Director' in self.names(), description='new review thread')
+            self.open_html()
+        else:
+            self.button('Nuevo encargo')
 
     def objective(self, text):
         editor = self.control('Tu encargo al Director', 'Edit')
@@ -214,9 +276,9 @@ class Screen:
         dwm.DwmGetWindowAttribute.restype = ctypes.c_long
         extended = wintypes.RECT()
         has_frame = dwm.DwmGetWindowAttribute(handle, 9, ctypes.byref(extended), ctypes.sizeof(extended)) == 0
-        send = self.window.child_window(title='Comprobar HTML', control_type='Button')
+        send = self.window.child_window(title_re='Revisar encargo.*', control_type='Button')
         if not send.exists(timeout=.1):
-            send = self.window.child_window(title_re='Revisar encargo.*', control_type='Button')
+            send = self.window.child_window(title='Comprobar HTML', control_type='Button')
         send_rect = send.rectangle() if send.exists(timeout=.1) else None
         return {'window_rectangle_px': [rectangle.left, rectangle.top, rectangle.right, rectangle.bottom],
                 'monitor_work_area_px': list(work_area),
@@ -241,6 +303,7 @@ def main():
     import psutil
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--profile-work', action='store_true', help='Measure first and repeated static and one-role work in separate windows')
     args = parser.parse_args()
     output = args.output.resolve(); output.mkdir(parents=True, exist_ok=False)
     root = Path(__file__).resolve().parents[1]
@@ -259,7 +322,9 @@ def main():
                     'python': sys.version, 'logical_cpus': psutil.cpu_count(logical=True),
                     'physical_cpus': psutil.cpu_count(logical=False), 'total_ram_bytes': psutil.virtual_memory().total},
                 'checks': [], 'limitations': [
-                    'One synthetic HTML task and one cancellation; no semantic model quality claim.',
+                    'The synthetic HTML sample exercises local rules, an authorized one-role Ollama review, report recovery, and a second cancelled review.',
+                    'The separate multiformat case inspects five synthetic files locally, then authorizes one real Ollama call on selected PDF and JSON excerpts. Counts and receipts establish scope and execution. They do not evaluate the quality of model advice.',
+                    'Resource profiles measure first and repeated work on the HTML task. They do not estimate the cost of multiformat inspection or excerpt inference.',
                     'Windows CI runner only, not a user-machine policy override or clean-machine installer test.',
                     'UI Automation is instrumentation, not a human usability or accessibility audit.',
                     'RSS may double-count shared pages; half-second samples are not absolute peaks or leak proof.',
@@ -295,18 +360,21 @@ def main():
             host = psutil.Process(app.pid)
             screen = Screen(host)
             screen.edit_receipts = evidence.setdefault('input_acknowledgements', [])
-            wait(lambda: re.search('Última conexión confirmada|Núcleo local conectado', screen.names()), description='native IPC ready')
+            wait(screen.core_ready, description='native IPC ready')
+            screen.open_html()
             return app, host, screen
 
         stage = 'open_packaged_ui'
         app, host, screen = open_desktop()
         release = json.loads((root / 'desktop/src-tauri/tauri.conf.json').read_bytes())['version']
-        evidence['window_title'] = screen.window.window_text()
+        import win32gui
+        evidence['window_title'] = win32gui.GetWindowText(screen.window.handle)
+        evidence['accessible_window_title'] = screen.window.window_text()
         assert evidence['window_title'] == f'Neural Office · V{release}', 'WINDOW_RELEASE_MISMATCH'
         checks.append({'check': 'native-window-title-matches-release', 'verified': True})
         evidence['initial_geometry'] = screen.geometry()
         sampler = Samples(host)
-        wait(lambda: 'Sin modelo · 0 intentos' in screen.names(), description='model-free entry visible')
+        wait(lambda: '0 intentos · sin modelo' in screen.names(), description='model-free entry visible')
         screen.screenshot(output / '01-ready.png')
         sampler.phase = 'window_differential'
         before = evidence['initial_geometry']
@@ -348,6 +416,8 @@ def main():
         sampler.phase = 'idle_before'
         time.sleep(5)
         stage = 'native_static_review'; sampler.phase = 'prepare'
+        screen.objective(OBJECTIVE)
+        assert screen.control('Tu encargo al Director', 'Edit').get_value() == OBJECTIVE
         screen.button('Elegir archivo HTML')
         native_picker(host, source)
         wait(lambda: 'audit-sample.html' in screen.names(), description='captured source')
@@ -398,9 +468,9 @@ def main():
         assert 'audit-sample.html' in screen.names(), 'MODE_SWITCH_LOST_SOURCE'
         assisted_geometry = screen.geometry()
         assert viewport_checks(assisted_geometry)['review_button_within_work_area'], 'ASSISTED_ACTION_OFFSCREEN'
-        screen.objective(OBJECTIVE)
+        assert screen.control('Tu encargo al Director','Edit').get_value() == OBJECTIVE, 'STATIC_REVIEW_LOST_OBJECTIVE'
         screen.button('Revisar encargo.*', regex=True)
-        wait(lambda: 'Consumirá 1 intento' in screen.names(), description='visible approval')
+        wait(lambda: screen.approval_shows_balance(2), description='visible approval with the projected balance')
         assert readonly_counts(state)['attempts'] == 0, 'PREVIEW_CONSUMED_ATTEMPT'
         screen.screenshot(output / '02-approval.png')
         checks.append({'check': 'native-file-picker-visible-approval-no-early-consumption', 'verified': True})
@@ -422,14 +492,15 @@ def main():
         screen.screenshot(output / '04-result.png')
         stage = 'finding_guidance_disclosure'
         guidance = 'Añade un title descriptivo en head. Debe identificar el propósito de esta página.'
-        assert guidance not in screen.names(), 'GUIDANCE_NOT_COLLAPSED'
+        rule = 'DOCUMENT_TITLE_MISSING'
+        assert guidance not in screen.names() and rule not in screen.names(), 'GUIDANCE_NOT_COLLAPSED'
         # WebView2 exposes summary as a button without the Invoke pattern.
         # Use actual pointer input, then require the observable disclosure state.
         screen.control('Qué revisar: Falta un título de documento no vacío').click_input()
-        wait(lambda: guidance in screen.names(), description='selected finding guidance visible')
+        wait(lambda: guidance in screen.names() and rule in screen.names(), description='selected guidance and rule visible')
         screen.screenshot(output / '04-finding-guidance.png')
         screen.control('Qué revisar: Falta un título de documento no vacío').click_input()
-        wait(lambda: guidance not in screen.names() and all(label in screen.names() for label in LABELS),
+        wait(lambda: guidance not in screen.names() and rule not in screen.names() and all(label in screen.names() for label in LABELS),
              description='collapsed guidance restores overview of all four findings')
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'GUIDANCE_REEXECUTED_WORK'
         checks.append({'check': 'four-visible-findings-expand-collapse-real-guidance-without-new-work', 'verified': True})
@@ -457,11 +528,11 @@ def main():
         screen.button(re.escape(OBJECTIVE) + '.*', regex=True)
         wait(lambda: '4 hallazgos para revisar' in screen.names(), description='persisted report visible')
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'REOPEN_REEXECUTED_WORK'
-        assert '1 de 3 intentos' in screen.names(), 'REOPEN_LOST_BUDGET'
+        assert '2 intentos disponibles' in screen.names(), 'REOPEN_LOST_BUDGET'
         screen.screenshot(output / '05-reopened.png')
         checks.append({'check': 'normal-close-owned-core-exit-reopen-without-new-attempt-or-call', 'verified': True})
         stage = 'cancel_second_attempt'
-        screen.button('Nuevo encargo')
+        screen.new_html()
         screen.button('Consultar al Director')
         screen.objective(SECOND)
         screen.button('Elegir archivo HTML'); native_picker(host, source)
@@ -478,13 +549,13 @@ def main():
         screen.screenshot(output / '05-draft-return.png')
         stage = 'cancel_second_attempt'
         screen.button('Revisar encargo.*', regex=True)
-        wait(lambda: 'Consumirá 1 intento' in screen.names(), description='second visible approval')
+        wait(lambda: screen.approval_shows_balance(1), description='second visible approval with one left after reservation')
         screen.button('Autorizar y ejecutar.*', regex=True)
         screen.button('.*Detener trabajo', regex=True)
         wait(lambda: 'Encargo detenido' in screen.names(), timeout=90, description='confirmed cancellation')
         counts = readonly_counts(state)
         assert counts['attempts'] == 2 and counts['calls'] in (1, 2) and counts['states'] == ['ACCEPTED', 'CANCELLED'], 'CANCEL_CONTRACT'
-        assert '2 de 3 intentos' in screen.names(), 'CANCEL_BUDGET_NOT_VISIBLE'
+        assert '1 intento disponible' in screen.names(), 'CANCEL_BUDGET_NOT_VISIBLE'
         assert 'Encargo detenido' in screen.control(re.escape(SECOND) + '.*', regex=True).window_text(), 'HISTORY_TERMINAL_STATE_STALE'
         def cancelled_delivery_header():
             delivery = screen.window.child_window(auto_id='connected-delivery').wrapper_object()
@@ -497,6 +568,31 @@ def main():
         screen.screenshot(output / '06-cancelled.png')
         evidence['final_counts'] = counts
         checks.append({'check': 'native-cancellation-history-quota-and-owned-backend-quiescence', 'verified': True})
+        if release == '5.13.0':
+            from v513_excerpt_uia import run_excerpt_ui
+            stage = 'multiformat_excerpt_permission_and_delivery'
+            run_excerpt_ui(screen, host, state, work, output, MODEL, MODEL_DIGEST, evidence)
+            checks.append({'check':'two-excerpts-native-picker-dismiss-approve-one-real-call-receipt','verified':True})
+        if args.profile_work:
+            stage = 'measure_packaged_work'
+            screen.close()
+            screen = None
+            evidence['work_profiles'] = []
+            for arm in (0, 1):
+                subprocess.run([sys.executable, '-B', '-m', 'tools.measure_v58_desktop',
+                                '--executable', str(executable), '--expected-sha256', evidence['executable_sha256'],
+                                '--version', release, '--arm', str(arm), '--output', str(work/'profiles')],
+                               cwd=root, env=env, check=True, timeout=360)
+                profile = json.loads((work/'profiles'/f'native-{arm}'/'result.json').read_bytes())
+                assert profile['job_empty'] and profile['close']['exited'] and profile['exe_sha256'] == evidence['executable_sha256']
+                for row in profile['rows']:
+                    before, after = row['counts_before'], row['counts_after']
+                    calls = after['calls'] - before['calls']
+                    attempts = len(after['states']) - len(before['states'])
+                    assert calls == attempts == arm
+                    evidence['work_profiles'].append({'roles':arm, 'phase':row['phase'], 'attempts':attempts,
+                                                      'calls':calls, **row['work']})
+            checks.append({'check':'static-and-one-role-first-and-repeat-job-counters','verified':True})
         evidence['status'] = 'passed'
     except Exception as error:
         evidence['status'] = 'failed'
@@ -506,6 +602,11 @@ def main():
                 evidence['failure']['durable_counts'] = readonly_counts(state)
                 with closing(sqlite3.connect(state.as_uri()+'?mode=ro',uri=True)) as con:
                     first = con.execute('SELECT id FROM attempts ORDER BY rowid LIMIT 1').fetchone()
+                    if first:
+                        evidence['failure']['termination_receipts'] = [
+                            json.loads(payload) for payload, in con.execute(
+                                "SELECT payload FROM events WHERE kind='OWNED_JOB_TERMINATED' AND json_extract(payload,'$.attempt')=? ORDER BY seq",
+                                first)]
                 if first and re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',first[0]):
                     evidence['failure']['startup_stages'] = startup_tail(work/'logs'/(first[0]+'.log'))
             except (OSError,sqlite3.Error) as diagnostic_error:

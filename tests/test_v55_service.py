@@ -156,10 +156,36 @@ class DesktopServiceTests(unittest.TestCase):
                     "SELECT seq FROM events WHERE json_extract(payload,'$.attempt')=? ORDER BY seq", (target,))]
             self.assertEqual([e['seq'] for e in all_events], expected)
             self.assertEqual(reader.attempt_events(target,expected[0],2)['events'], [])
-            self.assertEqual(len(reader.attempt(target)['calls']), 1)
+            detail = reader.attempt(target)
+            self.assertEqual(len(detail['calls']), 1)
+            call, = detail['calls']
+            with self.ledger.connection() as con:
+                times = dict(con.execute(
+                    "SELECT kind, stamp_ns / 1000000 FROM events WHERE json_extract(payload,'$.call')=? "
+                    "AND json_extract(payload,'$.attempt')=?", (call['seq'], target)))
+            self.assertEqual(call['started_ms'], times['MODEL_CALL_ADMITTED'])
+            self.assertEqual(call['completed_ms'], times['MODEL_CALL_COMPLETED'])
+            self.assertIsInstance(detail['observed_ms'], int)
         with self.assertRaises(Denied): self.command('attempt.events', {'attempt_id':first,'before':0,'limit':0},reader)
         with self.assertRaises(Denied): reader.attempt_events('missing',0,2)
         self.assertEqual(reader.snapshot(), before)
+
+    def test_running_call_has_no_completion_time_before_an_answer(self):
+        owner = self.new_service(backend_factory=BlockingBackend)
+        item = self.start(self.preview(owner), service=owner)
+        try:
+            self.assertTrue(BlockingBackend.entered.wait(3))
+            live, = owner.attempt(item['id'])['calls']
+            self.assertEqual(live['state'], 'STARTED')
+            self.assertIsInstance(live['started_ms'], int)
+            self.assertNotIn('completed_ms', live)
+        finally:
+            BlockingBackend.released.set()
+            self.finish(owner)
+        done, = self.new_service().attempt(item['id'])['calls']
+        self.assertEqual((done['seq'], done['started_ms']), (live['seq'], live['started_ms']))
+        self.assertEqual(done['state'], 'DONE')
+        self.assertIsInstance(done['completed_ms'], int)
 
     def test_real_controller_loss_recovers_the_original_charge_and_call(self):
         # This process owns its runner lock. The fixture waits only after real admission.

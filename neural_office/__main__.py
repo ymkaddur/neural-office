@@ -17,11 +17,31 @@ def snapshot_file(file,root):
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description=f'Neural Office {__version__} — Windows CPU static HTML audit pilot')
+    parser=argparse.ArgumentParser(description=f'Neural Office {__version__} — local review engine for Windows')
     parser.add_argument('--version',action='version',version=__version__)
     parser.add_argument('--state',help='Office ledger; defaults to one per user. Preserve its witness when restoring.')
     sub=parser.add_subparsers(dest='action',required=True)
     sub.add_parser('init'); sub.add_parser('status'); sub.add_parser('models'); sub.add_parser('gui')
+    plan = sub.add_parser('office-plan', help='Describe the three-round office without executing it')
+    plan.add_argument('--objective', required=True)
+    office = sub.add_parser('office-start', help='Authorize a fixed static HTML review and reserve one project attempt')
+    for name in ('project', 'thread', 'root', 'file', 'key'):
+        office.add_argument('--' + name, required=True)
+    office.add_argument('--objective', required=True, help='Recorded instruction for this static HTML review')
+    office.add_argument('--max-dispatches', type=int, choices=range(1, 7), default=3)
+    office.add_argument('--tries-per-step', type=int, choices=(1, 2), default=1)
+    lookup = sub.add_parser('office-lookup', help='Reopen a reservation by project, thread and original request key')
+    for name in ('project', 'thread', 'key'):
+        lookup.add_argument('--' + name, required=True)
+    commands = {'office-step': 'Dispatch one authorized step by its ID',
+                'office-show': 'Read the durable state, next action and remaining balance',
+                'office-reconcile': 'Resolve an interrupted delivery without starting a receiver',
+                'office-output': 'Read a confirmed result and its input receipt identities'}
+    for name, description in commands.items():
+        command = sub.add_parser(name, help=description)
+        command.add_argument('attempt')
+        if name in ('office-step', 'office-output'):
+            command.add_argument('step')
     check=sub.add_parser('check',help='Static HTML findings only: no model, ledger or inference')
     check.add_argument('--root',required=True); check.add_argument('--file',required=True)
     sub.add_parser('protect',help='Enroll an idle schema-1 V5.2 ledger without resetting history')
@@ -40,12 +60,35 @@ def main(argv=None):
     for action in ('cancel','recover','report','resume'):
         command=sub.add_parser(action); command.add_argument('attempt')
     args=parser.parse_args(argv)
+    if args.action == 'office-plan':
+        from .office_plan import office_plan
+        print(canonical(office_plan(args.objective)))
+        return
     if args.action=='check':
         from .audit import make_report
         print(make_report(snapshot_file(args.file,args.root),[]).decode('utf-8')); return
     if args.action=='models':
         print(canonical({'models':[{'name':m['name'],'digest':m.get('digest'),'size':m.get('size')} for m in local_metadata()['models']]})); return
     ledger=Ledger(args.state)
+    if args.action.startswith('office-'):
+        from . import office_protocol as office
+        if args.action == 'office-start':
+            identity = office.start(ledger, args.project, args.thread, args.root, args.file, args.objective, args.key,
+                                    args.max_dispatches, args.tries_per_step)
+            result = office.status(ledger, identity)
+        elif args.action == 'office-lookup':
+            identity = office.lookup(ledger, args.project, args.thread, args.key)
+            result = office.status(ledger, identity) if identity else {'found': False}
+        elif args.action == 'office-step':
+            result = office.run_step(ledger, args.attempt, args.step)
+        elif args.action == 'office-reconcile':
+            result = office.reconcile(ledger, args.attempt)
+        elif args.action == 'office-output':
+            result = office.output(ledger, args.attempt, args.step)
+        else:
+            result = office.status(ledger, args.attempt)
+        print(canonical(result))
+        return
     if args.action in ('protect','backup','restore'):
         from . import continuity
         operation=getattr(continuity,args.action)

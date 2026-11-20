@@ -122,6 +122,9 @@ def run(exe, dest, baseline, sdk=None, cycles=1):
         return '\n'.join(c.element_info.name for c in win.descendants()
                          if c.is_visible() and c.element_info.name)
 
+    def connected(text):
+        return bool({'Núcleo local', 'Núcleo local conectado', 'Última conexión confirmada'}.intersection(text.splitlines()))
+
     def btn(win, regex):
         return win.child_window(title_re=regex,control_type='Button').wrapper_object()
 
@@ -154,7 +157,7 @@ def run(exe, dest, baseline, sdk=None, cycles=1):
         out['target_reservation_cost']=before['charged']-charge_before_target
         assert out['target_reservation_cost']==1
         win=open_window()
-        wait_until(lambda:'Núcleo local conectado' in names(win) and live_title in names(win),'No se mostró el intento vivo')
+        wait_until(lambda:connected(names(win)) and live_title in names(win),'No se mostró el intento vivo')
         select_evidence(win)
         wait_until(lambda:live_id in names(win),'El intento inicial no coincide')
         window_handle=win.handle
@@ -174,7 +177,7 @@ def run(exe, dest, baseline, sdk=None, cycles=1):
             child.terminate()
             child.wait(timeout=10)
             broken=wait_until(lambda:(s if 'HOST_DISCONNECTED' in (s:=names(win)) else None),'Falta señal de pérdida del pipe',22)
-            out['online_during_outage']='Núcleo local conectado' in broken
+            out['online_during_outage']=connected(broken)
             out['after_disconnect']=counts()
             if baseline:
                 assert out['online_during_outage'] and not out['initial_history_enabled']
@@ -184,12 +187,12 @@ def run(exe, dest, baseline, sdk=None, cycles=1):
                 out['same_window_reconnected']=False
                 close_window(win)
                 win=open_window()
-                wait_until(lambda:'Núcleo local conectado' in names(win),'Reapertura sin conexión')
+                wait_until(lambda:connected(names(win)),'Reapertura sin conexión')
                 select_evidence(win)
             else:
                 assert not out['online_during_outage'] and out['initial_history_enabled']
                 btn(win,'^Reconectar$').invoke()
-                wait_until(lambda:'Núcleo local conectado' in names(win) and 'HOST_DISCONNECTED' not in names(win),'La conexión no se concilió',30)
+                wait_until(lambda:connected(names(win)) and 'HOST_DISCONNECTED' not in names(win),'La conexión no se concilió',30)
                 replacement = local_sidecar()
                 assert replacement is not None and (replacement.pid,replacement.create_time())!=old_peer
                 assert control.poll() is None and win.wrapper_object().element_info.process_id==control.pid
@@ -209,7 +212,9 @@ def run(exe, dest, baseline, sdk=None, cycles=1):
             assert owner.attempt(live_id)['state']=='RUNNING'
             assert owner.attempt(old_id)['state']=='FAILED'
             visible_history=names(win)
-            assert 'documento.html' in visible_history and 'Detener trabajo' not in visible_history
+            assert 'documento.html' in visible_history
+            if 'Núcleo local' in visible_history.splitlines():
+                assert btn(win,r'.*Detener trabajo.*ejemplo$').is_enabled()
             out['history_read_kept_charge']=counts()==before
             assert out['history_read_kept_charge']
             btn(win,'.*Volver al (trabajo|encargo) en curso.*').invoke()

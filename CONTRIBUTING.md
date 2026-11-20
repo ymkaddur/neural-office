@@ -33,3 +33,5 @@ No adjuntes bases SQLite, prompts privados, conversaciones, claves, rutas person
 Incluye origen y licencia de cualquier aporte externo, conserva sus avisos y declara asistencia de IA cuando resulte relevante para la revisión. No copies recursos de otro repositorio porque su README resulte atractivo. Al enviar una contribución debes tener derecho a ofrecerla bajo la licencia MIT del proyecto; esto no garantiza por sí solo la titularidad de todo material generado por IA.
 
 No cambies límites, actives proveedores remotos ni amplíes herramientas con efectos como parte incidental de otra corrección. Describe esas propuestas como cambios de alcance separados.
+
+Tras preparar los archivos con `git add`, actualiza el inventario con `python -B tools/publication_manifest.py --write` y añade `PUBLICATION_MANIFEST.sha256` al mismo commit. La integración contrasta cada entrada con los bytes publicados por Git.

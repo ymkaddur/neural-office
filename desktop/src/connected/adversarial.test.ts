@@ -37,10 +37,58 @@ async function mount(send:(method:string,params:Record<string,unknown>)=>Promise
   window.setTimeout=((callback:any,delay?:number,...args:any[])=>{const timer=later(callback,delay,...args);if(delay===250)pollTimer=timer;return timer;}) as any;
   window.clearTimeout=((timer:any)=>{if(timer===pollTimer)pollCleaned=true;return clear(timer);}) as any;
   window.document.body.innerHTML='<div id="root"></div>';
-  Object.assign(window,{isTauri:true,__TAURI_INTERNALS__:{invoke:async(_command:string,{message}:any)=>({version:1,id:message.id,ok:true,result:await send(message.method,message.params),error:null})}});
+  async function invoke(_command:string,{message}:any){
+    // These historical scenarios start with no local inspection documents.
+    // Project balances, history, starts and stops still go through each test's peer.
+    const {method,params}=message;
+    let result:unknown;
+    if(['attachments.threads','attachments.list','attachments.history'].includes(method)){
+      const fields=method==='attachments.threads'?['project_id']:['project_id','thread_id'];
+      assert.deepEqual(Object.keys(params).sort(),fields);
+      assert.equal(typeof params.project_id,'string');
+      if(method!=='attachments.threads')assert.equal(typeof params.thread_id,'string');
+      result=[];
+    }else result=await send(method,params);
+    return {version:1,id:message.id,ok:true,result,error:null};
+  }
+  // Happy DOM has no Web Locks. Serialize this window's operations under the same
+  // lock contract exercised by the real-browser, two-window recovery test.
+  const locks=new Map<string,Promise<unknown>>();
+  Object.defineProperty(window.navigator,'locks',{value:{request:(name:string,_options:unknown,fn?:()=>unknown)=>{
+    const work=fn??(_options as ()=>unknown);
+    const task=(locks.get(name)??Promise.resolve()).then(work);
+    locks.set(name,task.catch(()=>{}));return task;
+  }}});
+  Object.assign(window,{isTauri:true,__TAURI_INTERNALS__:{invoke}});
   window.eval(await bundle);
   return {window,document:window.document,pollCleaned:()=>pollCleaned,close:async()=>{(window as any).disposeWorkspace();await window.happyDOM.close();}};
 }
+
+async function openHtml(app:Awaited<ReturnType<typeof mount>>){
+  await until(()=>!!app.document.querySelector('#connected-objective, .review-desk'));
+  if(app.document.querySelector('#connected-objective'))return;
+  app.document.querySelector<HTMLButtonElement>('.arc-search')!.click();
+  const command=()=>[...app.document.querySelectorAll<HTMLButtonElement>('.command-results button')].find(b=>b.textContent.includes('Revisión especializada de HTML'));
+  await until(()=>!!command());
+  command()!.click();
+  await until(()=>!!app.document.querySelector('#connected-objective'));
+}
+
+test('while a call runs, only its own history row adopts the newer receipt',async()=>{
+  const queued={...baseAttempt,state:'QUEUED',revision:1,ordinal:2};
+  const archived={...baseAttempt,id:'old',state:'CANCELLED',ordinal:1,objective:'Anterior'};
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return {...snapshot([queued,archived],[project('project',2)]),current_attempt:queued};
+    if(method==='attempt.get')return {...baseAttempt,session_id:'session',ordinal:2,revision:2,calls:[{seq:5,state:'STARTED',role:'director'}]};
+    throw Error('Unexpected operation');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('.connected-call-list li'));
+    const names=Array.from(app.document.querySelectorAll('.connected-history small'),el=>el.textContent);
+    assert.deepEqual(names,['Trabajando · intento 2','Encargo detenido · intento 1']);
+  }finally{await app.close();}
+});
 
 for(const delayed of [false,true])test(`terminal polling reconciles saved history even when event delivery is ${delayed?'delayed':'immediate'}`,async()=>{
   let gets=0,snapshots=0,release:(()=>void)|undefined;
@@ -64,6 +112,84 @@ for(const delayed of [false,true])test(`terminal polling reconciles saved histor
   }finally{release?.();await app.close();}
 });
 
+test('a confirmed terminal state survives a failed balance refresh',async()=>{
+  let snapshots=0,reads=0;
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get'){if(++snapshots>1)throw 'HOST_RESPONSE_TIMEOUT';return snapshot();}
+    if(method==='attempt.get')return {...baseAttempt,state:++reads>1?'CANCELLED':'RUNNING',revision:reads};
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>app.document.body.textContent.includes('HOST_RESPONSE_TIMEOUT'));
+    assert.match(app.document.querySelector('.connected-director-heading [role="status"]')!.textContent,/Encargo detenido/);
+    assert.match(app.document.querySelector('.connected-quota')!.textContent,/Cuota pendiente/);
+    assert.equal(app.document.querySelector('.active-work'),null);
+    assert.equal(snapshots,2);
+  }finally{await app.close();}
+});
+
+test('Stop submits one active identity during an unfinished archive read',async()=>{
+  const archive={...baseAttempt,id:'archive',state:'FAILED',objective:'Consulta anterior'};
+  let open:(()=>void)|undefined,finish:(()=>void)|undefined;
+  const cancelled:unknown[]=[];
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return {...snapshot([archive]),current_attempt:baseAttempt};
+    if(method==='attempt.get'&&params.attempt_id==='archive'){
+      await new Promise<void>(r=>open=r);return archive;
+    }
+    if(method==='attempt.get')return baseAttempt;
+    if(method==='attempt.cancel'){
+      cancelled.push(params.attempt_id);await new Promise<void>(r=>finish=r);
+      return {...baseAttempt,state:'CANCELLED',revision:3,session_id:'session'};
+    }
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
+    app.document.querySelector<HTMLButtonElement>('.connected-history button')!.click();
+    await until(()=>!!open);
+    const stop=app.document.querySelector<HTMLButtonElement>('.active-work .stop-button')!;
+    assert.match(stop.textContent,/Detener trabajo.*project/);
+    assert.equal(stop.disabled,false);stop.click();stop.click();
+    await until(()=>!!finish);
+    assert.deepEqual(cancelled,['attempt']);finish!();open!();
+    await until(()=>app.document.querySelector('.active-work')===null);
+    assert.equal(cancelled.length,1);
+  }finally{finish?.();open?.();await app.close();}
+});
+
+for(const remaining of [0,1])test(`approval with ${remaining} remaining distinguishes exhaustion and expiry without starting`,async()=>{
+  let previews=0,starts=0;
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',previews?3-remaining:2)]);
+    if(method==='models.list')return {session_id:'session',models:[{model:'synthetic',model_digest:'b'.repeat(64),mode:'fixture'}]};
+    if(method==='source.pick')return {session_id:'session',project_id:'project',filename:'ejemplo.html',entry_token:'grant',bytes:60,sha256:'a'.repeat(64)};
+    if(method==='attempt.preview'){previews++;return {session_id:'session',approval_token:'ok',project_id:'project',objective:params.objective,roles:1,model_digest:'b'.repeat(64),source_sha256:'a'.repeat(64),attempts_consumed:3-remaining,attempts_remaining:remaining,expires_in_seconds:1};}
+    if(method==='attempt.start')starts++;
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>!!app.document.querySelector('.connected-projects button:not(:disabled)'));
+    await enterDraft(app,'Revisar el documento seleccionado.');
+    app.document.querySelector<HTMLButtonElement>('.source-picker')!.click();
+    const submit=()=>app.document.querySelector<HTMLButtonElement>('button[type="submit"]');
+    await until(()=>submit()?.disabled===false);submit()!.click();
+    if(remaining){
+      await until(()=>!!app.document.querySelector('dialog[open]'));
+      assert.match(app.document.querySelector('dialog')!.textContent,/el saldo pasará a 0 de 3/);
+    }
+    await until(()=>app.document.body.textContent.includes(remaining?'APPROVAL_INVALID_OR_EXPIRED':'ATTEMPT_BUDGET_EXHAUSTED'));
+    assert.equal(app.document.querySelector('.connected-quota span:last-child')!.textContent,(remaining===1?'1 intento disponible':'0 intentos disponibles'));
+    assert.equal(submit()!.disabled,remaining===0);
+    assert.ok(!app.document.body.textContent.includes('APPROVAL_CHANGED'));
+    assert.ok(!app.document.querySelector('dialog[open]'));
+    assert.deepEqual([previews,starts],[1,0]);
+  }finally{await app.close();}
+});
+
 test('selected project history includes all three attempts across the global page boundary',async()=>{
   const projects=Array.from({length:50},(_,i)=>project(`p${i}`,3));
   const attempts=Array.from({length:150},(_,i)=>({...baseAttempt,id:`a${i}`,project_id:`p${Math.floor(i/3)}`,ordinal:i%3+1,state:'CANCELLED',request_key:`k${i}`,objective:`Encargo ${i}`}));
@@ -81,7 +207,7 @@ test('selected project history includes all three attempts across the global pag
     if(method==='project.history'){
       const id=params.project_id;
       if(id==='p33')await new Promise<void>(resolve=>{release=resolve;});
-      return {office_id:'office',session_id:'session',revision:2,project_id:id,attempts:attempts.filter(a=>a.project_id===id).reverse()};
+      return {office_id:'office',session_id:'session',revision:3,project_id:id,attempts:attempts.filter(a=>a.project_id===id).reverse()};
     }
     if(method==='models.list')return {models:[],session_id:'session'};
     throw Error('Unexpected synthetic RPC');
@@ -96,8 +222,30 @@ test('selected project history includes all three attempts across the global pag
     assert.deepEqual(Array.from(app.document.querySelectorAll('.connected-history strong'),r=>r.textContent),['Encargo 149','Encargo 148','Encargo 147']);
     assert.equal(pages,1);
     assert.equal(app.document.querySelectorAll('.connected-projects button').length,50);
-    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/3 de 3/);
+    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/0 intentos disponibles/);
   }finally{release?.();await app.close();}
+});
+
+test('browsing a second project page retains the selected balance only within its revision',async()=>{
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get'){
+      const after=Number(params.project_after);
+      const result=snapshot([],[project(after?'other':'project',after?0:2)]);
+      result.next.project_after=after?101:100;result.has_more.projects=after===0;
+      return result;
+    }
+    throw Error('unexpected operation');
+  });
+  try{
+    await until(()=>app.document.querySelector('.connected-quota span:last-child')?.textContent==='1 intento disponible');
+    Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes('Siguientes proyectos'))!.click();
+    await until(()=>!!app.document.querySelector('.connected-projects [title="other"]'));
+    assert.equal(app.document.querySelector('.connected-quota span:last-child')!.textContent,'1 intento disponible');
+    assert.match(app.document.querySelector('.connected-new-project')!.textContent,/1 intento disponible/);
+    app.document.querySelector<HTMLButtonElement>('.connected-projects [title="other"]')!.click();
+    await until(()=>app.document.querySelector('.connected-quota span:last-child')?.textContent==='3 intentos disponibles');
+  }finally{await app.close();}
 });
 
 test('drafting during live work preserves the next objective without submitting it',async()=>{
@@ -117,14 +265,17 @@ test('drafting during live work preserves the next objective without submitting 
     await until(()=>app.document.querySelector('.connected-call-list li')?.textContent.includes('Respuesta registrada')===true);
     assert.equal(app.document.querySelector('.call-order')?.textContent,'1');
     const field=app.document.querySelector('#next-objective') as any;
+    field.closest('details').open=true;field.focus();
     field.value='Revisar el segundo documento';
     field.dispatchEvent(new app.window.Event('input',{bubbles:true}));
     field.dispatchEvent(new app.window.KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}));
     finished=true;
     const reopen=()=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Volver al borrador');
-    await until(()=>!!reopen());reopen()!.click();
+    await until(()=>!!reopen());
+    assert.equal(app.document.activeElement,field);
+    reopen()!.click();
     await until(()=>(app.document.querySelector('#connected-objective') as any)?.value===field.value);
-    assert.match(app.document.querySelector('.connected-quota')!.textContent,/1 de 3/);
+    assert.match(app.document.querySelector('.connected-quota')!.textContent,/2 intentos disponibles/);
     assert.ok(!methods.some(m=>['attempt.preview','attempt.start','attempt.cancel','attempt.recover'].includes(m)));
   }finally{await app.close();}
 });
@@ -133,6 +284,7 @@ test('legacy project identifiers roundtrip without weakening opaque request iden
   const disk=new Map<string,string>();
   const storage={getItem:(key:string)=>disk.get(key)??null,setItem:(key:string,value:string)=>{disk.set(key,value);}};
   for(const projectId of ['Área de revisión','x'.repeat(65),'x'.repeat(80),'🙂'.repeat(80),' ','nul\0project']){
+    disk.clear(); // Independent saved identity for each supported legacy project name.
     const pending={office_id:'office',project_id:projectId,idempotency_key:'command'};
     writePending(storage,pending);assert.deepEqual(readPending(storage,'office'),pending);
     const row={...baseAttempt,project_id:projectId};
@@ -222,7 +374,7 @@ for(const outcome of ['deferred','failed'] as const)test(`accepted report ${outc
   }finally{release?.();await app.close();}
 });
 
-for(const scope of ['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3'])test(`${scope} accepted report renders the verified bytes without another attempt`,async()=>{
+for(const scope of ['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3','static-html-checks-v4'])test(`${scope} accepted report renders the verified bytes without another attempt`,async()=>{
   const fixture=validReport(scope);
   const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>method==='report.get'?fixture.meta:fixture.chunk);
   const app=await mount(peer.send);
@@ -233,6 +385,23 @@ for(const scope of ['static-html-checks-v1','static-html-checks-v2','static-html
     assert.equal(app.document.querySelector('.delivery-state')?.textContent,'Informe recibido');
     assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
   }finally{await app.close();}
+});
+
+test('a delayed verified report preserves the selected evidence tab and its focus',async()=>{
+  const fixture=validReport('static-html-checks-v4');let release:(()=>void)|undefined;
+  const peer=savedAttemptPeer({...baseAttempt,state:'ACCEPTED',report_available:true},async method=>{
+    if(method==='report.get')return fixture.meta;
+    await new Promise<void>(r=>release=r);return fixture.chunk;
+  });
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);await until(()=>!!release);
+    const tab=app.document.querySelector<HTMLButtonElement>('#tab-evidence')!;
+    tab.focus();tab.click();await until(()=>tab.getAttribute('aria-selected')==='true');
+    release!();await until(()=>app.document.querySelector('.delivery-state')?.textContent==='Informe recibido');
+    assert.equal(tab.getAttribute('aria-selected'),'true');assert.equal(app.document.activeElement,tab);
+    assert.match(app.document.querySelector('#panel-evidence')!.textContent,new RegExp(fixture.meta.sha256));
+  }finally{release?.();await app.close();}
 });
 
 test('Actualizar retries a transient report read for the unchanged accepted attempt without starting work',async()=>{
@@ -257,15 +426,30 @@ test('Actualizar retries a transient report read for the unchanged accepted atte
     assert.equal(peer.calls.filter(call=>call.method==='report.get').length,2);
     assert.equal(peer.calls.filter(call=>call.method==='report.read').length,1);
     assert.equal(peer.calls.filter(call=>call.method==='attempt.start').length,0);
-    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/1 de 3/);
+    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/2 intentos disponibles/);
+  }finally{await app.close();}
+});
+
+test('an unverified terminal delivery is never described as waiting for its first call',async()=>{
+  const peer=savedAttemptPeer({...baseAttempt,state:'REJECTED',report_available:false});
+  const app=await mount(peer.send);
+  try{
+    await openSavedAttempt(app);
+    const note=app.document.querySelector('.connected-work-status')!.textContent;
+    assert.match(note,/no superó la verificación/);
+    assert.doesNotMatch(note,/Esperando/);
   }finally{await app.close();}
 });
 
 async function enterDraft(app:Awaited<ReturnType<typeof mount>>,text:string){
-  if(!app.document.querySelector('#connected-objective')){
+  await openHtml(app);
+  if(!app.document.querySelector('#connected-model')){
     const action=Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Consultar al Director');
-    assert.ok(action);action.click();await until(()=>!!app.document.querySelector('#connected-objective'));
+    assert.ok(action);action.click();await until(()=>!!app.document.querySelector('#connected-model'));
   }
+  writeObjective(app,text);
+}
+function writeObjective(app:Awaited<ReturnType<typeof mount>>,text:string){
   const field=app.document.querySelector('#connected-objective') as any;
   assert.ok(field);
   const setter=Object.getOwnPropertyDescriptor(app.window.HTMLTextAreaElement.prototype,'value')!.set!;
@@ -279,7 +463,7 @@ test('reading history returns to the unsent draft without reserving work',async(
   try{
     await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
     await enterDraft(app,'Revisar el formulario antes de publicarlo.');
-    await until(()=>app.document.querySelector('.connected-send-row')?.textContent.includes('42/2000')===true);
+    await until(()=>app.document.querySelector('.brief-writing')?.textContent.includes('42/2000')===true);
     await openSavedAttempt(app);
     const back=Array.from(app.document.querySelectorAll('button')).find(button=>button.textContent.includes('Volver al borrador'));
     assert.ok(back,'History is a read operation: the composer needs a return path');
@@ -299,16 +483,20 @@ test('switching projects retains separate bounded in-memory drafts',async()=>{
     if(method==='models.list')return {models:[],session_id:'session'};
     throw Error('Unexpected RPC while navigating drafts');
   });
-  const choose=(id:string)=>(app.document.querySelector(`.connected-projects button[title="${id}"]`) as any).click();
+  const choose=async(id:string)=>{
+    (app.document.querySelector(`.connected-projects button[title="${id}"]`) as any).click();
+    await until(()=>!!app.document.querySelector(`.connected-projects .selected[title="${id}"]`)&&!!app.document.querySelector('.review-desk'));
+    await openHtml(app);
+  };
   try{
     await until(()=>app.document.querySelectorAll('.connected-projects button').length===2);
-    await enterDraft(app,'Alpha: revisar los campos.');await wait(20);
-    choose('beta');await wait(20);
+    await openHtml(app);writeObjective(app,'Alpha: revisar los campos.');await wait(20);
+    await choose('beta');
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'');
-    await enterDraft(app,'Beta: revisar las imágenes.');await wait(20);
-    choose('alpha');await wait(20);
+    writeObjective(app,'Beta: revisar las imágenes.');await wait(20);
+    await choose('alpha');
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'Alpha: revisar los campos.');
-    choose('beta');await wait(20);
+    await choose('beta');
     assert.equal((app.document.querySelector('#connected-objective') as any).value,'Beta: revisar las imágenes.');
     assert.equal(calls.filter(method=>method.startsWith('attempt.')).length,0);
   }finally{await app.close();}
@@ -334,7 +522,7 @@ test('bootstrap cannot expose another project while its active attempt is still 
     assert.ok(!composer||composer.disabled,'No editable composer before active identity reconciliation');
     release?.();await until(()=>!!app.document.querySelector('.connected-user-request'));
     assert.equal(app.document.querySelector('.connected-projects .selected')?.getAttribute('title'),'project');
-    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/1 de 3/);
+    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/2 intentos disponibles/);
   }finally{release?.();await app.close();}
 });
 
@@ -356,8 +544,8 @@ test('a failed bootstrap detail read keeps the authoritative active identity and
     const refresh=Array.from(app.document.querySelectorAll('button')).find(button=>button.textContent==='Actualizar');
     assert.ok(refresh);await until(()=>!refresh.disabled);refresh.click();
     await until(()=>reads>=2&&!refresh.disabled);
-    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/1 de 3/);
-    assert.ok(!app.document.querySelector('[role="alert"]'));
+    assert.match(app.document.querySelector('.connected-quota')?.textContent||'',/2 intentos disponibles/);
+    assert.ok(!app.document.querySelector('[role="alert"]'),app.document.querySelector('[role="alert"]')?.textContent);
   }finally{await app.close();}
 });
 
@@ -366,7 +554,7 @@ for(const transport of ['HOST_REQUEST_TIMEOUT','HOST_DISCONNECTED'])for(const fo
   const app=await mount(async(method,params)=>{
     if(method==='describe'){if(starts>0&&transport==='HOST_DISCONNECTED')session='replacement';return {session_id:session,office_id:'office'};}
     if(method==='snapshot.get')return {...snapshot([],[project('project',found&&starts?1:0),project('other',0)]),session_id:session};
-    if(method==='models.list')return {session_id:'session',models:[{model:'synthetic',model_digest:'b'.repeat(64),mode:'fixture'}]};
+    if(method==='models.list')return {session_id:session,models:[{model:'synthetic',model_digest:'b'.repeat(64),mode:'fixture'}]};
     if(method==='source.pick')return {entry_token:'source',project_id:'project',filename:'synthetic.html',sha256:'a'.repeat(64),bytes:60,session_id:'session',expires_in_seconds:120};
     if(method==='attempt.preview')return {session_id:'session',approval_token:'approval',expected_revision:2,expires_in_seconds:120,project_id:'project',source_sha256:'a'.repeat(64),objective:params.objective,roles:1,model:'synthetic',model_digest:'b'.repeat(64),mode:'fixture',attempts_consumed:0,attempts_remaining:3};
     if(method==='attempt.start'){starts++;key=String(params.idempotency_key);throw transport;}
@@ -380,6 +568,7 @@ for(const transport of ['HOST_REQUEST_TIMEOUT','HOST_DISCONNECTED'])for(const fo
     button('Elegir archivo HTML')!.click();await until(()=>!!button('synthetic.html'));
     (app.document.querySelector('[title="other"]') as any).click();await wait(20);
     (app.document.querySelector('[title="project"]') as any).click();await wait(20);
+    await openHtml(app);
     app.document.querySelector('form')!.dispatchEvent(new app.window.Event('submit',{bubbles:true,cancelable:true}));
     await until(()=>!!button('Autorizar y ejecutar'));button('Autorizar y ejecutar')!.click();
     await until(()=>starts===1&&!!app.document.querySelector('[role="alert"]'));
@@ -401,6 +590,142 @@ for(const transport of ['HOST_REQUEST_TIMEOUT','HOST_DISCONNECTED'])for(const fo
   }finally{await app.close();}
 });
 
+test('a draft precedes its attachment and survives a confirmed empty catalog and a failed refresh',async()=>{
+  const methods:string[]=[];
+  let reads=0;
+  const app=await mount(async(method)=>{
+    methods.push(method);
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='source.pick')return {entry_token:'grant',project_id:'project',filename:'example.html',sha256:'a'.repeat(64),bytes:60,session_id:'session',expires_in_seconds:120};
+    if(method==='models.list'){
+      reads++;
+      if(reads===2)throw 'MODEL_METADATA_UNAVAILABLE';
+      return {session_id:'session',models:reads===1?[]:[{model:'installed',model_digest:'b'.repeat(64),mode:'fixture'}]};
+    }
+    throw Error('Unexpected access');
+  });
+  const button=(text:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes(text))!;
+  try{
+    await openHtml(app);
+    await until(()=>button('Elegir archivo HTML')?.disabled===false);
+    const field=app.document.querySelector('#connected-objective') as any;
+    const objective='Identifica el campo que necesita una etiqueta.';
+    Object.getOwnPropertyDescriptor(app.window.HTMLTextAreaElement.prototype,'value')!.set!.call(field,objective);
+    field.dispatchEvent(new app.window.Event('input',{bubbles:true}));
+    const composing=new app.window.KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true});
+    Object.defineProperty(composing,'isComposing',{value:true});
+    field.dispatchEvent(composing);
+    button('Elegir archivo HTML').click();await until(()=>!button('Comprobar HTML').disabled);
+    assert.equal(reads,0);
+    field.dispatchEvent(new app.window.KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}));
+    await until(()=>!!app.document.querySelector('.model-guide'));
+    assert.ok(button('Revisar encargo').disabled&&!button('Comprobar HTML').disabled);
+    button('Comprobar modelos instalados').click();await until(()=>reads===2&&!!app.document.querySelector('[role="alert"]'));
+    assert.ok(button('Revisar encargo').disabled&&!button('Comprobar HTML').disabled);
+    await until(()=>!button('Comprobar modelos instalados').disabled);
+    button('Comprobar modelos instalados').click();await until(()=>!button('Revisar encargo').disabled);
+    assert.ok(!app.document.querySelector('.model-guide')&&!button('Comprobar HTML').disabled);
+    assert.equal(field.value,objective);
+    assert.ok(!methods.some(m=>m.startsWith('attempt.')));
+  }finally{await app.close();}
+});
+
+test('a pending catalog does not delay static findings or overwrite the finished check',async()=>{
+  let release!:()=>void;
+  const calls:string[]=[];
+  const app=await mount(async(method,params)=>{
+    calls.push(method);
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='source.pick')return {entry_token:'source',project_id:'project',filename:'sample.html',sha256:'a'.repeat(64),bytes:50,session_id:'session'};
+    if(method==='models.list'){
+      await new Promise<void>(resolve=>{release=resolve;});
+      throw 'HOST_RESPONSE_TIMEOUT';
+    }
+    if(method==='source.check')return {session_id:'session',project_id:'project',source_sha256:'a'.repeat(64),offset:params.offset,total:0,findings:[]};
+    throw Error(method);
+  });
+  const button=(name:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent===name)!;
+  try{
+    await openHtml(app);
+    await until(()=>button('Elegir archivo HTML')?.disabled===false);
+    button('Elegir archivo HTML').click();
+    await until(()=>!button('Comprobar HTML').disabled);
+    button('Consultar al Director').click();
+    await until(()=>typeof release==='function');
+    assert.equal(button('Comprobar HTML').disabled,false);
+    button('Comprobar HTML').click();
+    await until(()=>!!app.document.querySelector('#static-result-title'));
+    release();await wait(25);
+    assert.ok(!app.document.querySelector('[role="alert"]'));
+    assert.deepEqual(calls.filter(c=>c==='source.check'||c.startsWith('attempt.')),['source.check']);
+  }finally{release?.();await app.close();}
+});
+
+test('browsing B identifies its balance and draft, and a B report timeout leaves Stop on A',async()=>{
+  const live={...baseAttempt,id:'live',project_id:'A',source_name:'a.html'};
+  const archive={...baseAttempt,id:'archive',project_id:'B',source_name:'b.html',ordinal:2,state:'ACCEPTED',report_available:true};
+  const fixture=validReport();
+  let poll!:()=>void,read!:()=>void;
+  let appReady=false;
+  const cancels:unknown[]=[],picks:unknown[]=[];
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return {...snapshot([live,archive],[project('A',1),project('B',2)]),current_attempt:cancels.length?null:live};
+    if(method==='attempt.get'&&params.attempt_id==='archive')return archive;
+    if(method==='attempt.get'){
+      if(poll===undefined&&appReady)await new Promise<void>(resolve=>{poll=resolve;});
+      return live;
+    }
+    if(method==='report.get')return {...fixture.meta,attempt_id:'archive'};
+    if(method==='report.read'){await new Promise<void>(resolve=>{read=resolve;});throw 'HOST_RESPONSE_TIMEOUT';}
+    if(method==='attempt.cancel'){cancels.push(params.attempt_id);return {...live,state:'CANCELLED',revision:2,session_id:'session'};}
+    if(method==='source.pick'){picks.push(params.project_id);return null;}
+    if(method==='models.list')return {session_id:'session',models:[]};
+    throw Error(method);
+  });
+  const button=(part:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes(part))!;
+  try{
+    await until(()=>!!app.document.querySelector('.active-work .stop-button:not(:disabled)'));
+    appReady=true;await until(()=>typeof poll==='function');
+    app.document.querySelector<HTMLButtonElement>('.connected-projects [title="B"]')!.click();
+    await until(()=>!!app.document.querySelector('.connected-projects .selected[title="B"]')&&!!app.document.querySelector('.connected-history button'));
+    const balance=app.document.querySelector('.connected-quota')!;
+    assert.match(balance.textContent,/B/);assert.match(balance.textContent,/1 intento disponible/);
+    assert.match(app.document.querySelector('.active-work .stop-button')!.textContent,/Detener trabajo.*A/);
+    app.document.querySelector<HTMLButtonElement>('.connected-history button')!.click();
+    await until(()=>typeof read==='function');read();
+    await until(()=>app.document.body.textContent.includes('HOST_RESPONSE_TIMEOUT'));
+    const stop=app.document.querySelector<HTMLButtonElement>('.active-work .stop-button')!;
+    assert.equal(stop.disabled,false);stop.click();stop.click();
+    await until(()=>!app.document.querySelector('.active-work'));
+    assert.deepEqual(cancels,['live']);
+    button('Preparar otro encargo').click();
+    await until(()=>!!button('Elegir archivo HTML')&&!button('Elegir archivo HTML').disabled);
+    button('Elegir archivo HTML').click();await until(()=>picks.length===1);
+    assert.deepEqual(picks,['B']);
+  }finally{read?.();poll?.();await app.close();}
+});
+
+test('a cached empty catalog from a busy core cannot certify that installation is needed',async()=>{
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='models.list')return {models:[],cached:true,session_id:'session'};
+    throw Error('Unexpected operation');
+  });
+  try{
+    const consult=()=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent==='Consultar al Director');
+    await openHtml(app);
+    await until(()=>consult()?.disabled===false);
+    consult()!.click();
+    await until(()=>!!app.document.querySelector('[role="alert"],.model-guide'));
+    assert.ok(!app.document.querySelector('.model-guide'),'An old catalog cannot instruct the user to install software');
+    assert.match(app.document.querySelector('[role="alert"]')?.textContent||'',/ocupado/i);
+  }finally{await app.close();}
+});
+
 test('static inspection pages the captured source without querying models or spending an attempt',async()=>{
   const methods:string[]=[];
   const source={entry_token:'grant',project_id:'project',filename:'partes.html',sha256:'a'.repeat(64),bytes:200,session_id:'session',expires_in_seconds:120};
@@ -419,6 +744,7 @@ test('static inspection pages the captured source without querying models or spe
   });
   const button=(label:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent===label)!;
   try{
+    await openHtml(app);
     await until(()=>button('Elegir archivo HTML')?.disabled===false);
     button('Elegir archivo HTML').click();await until(()=>!button('Comprobar HTML').disabled);
     button('Comprobar HTML').click();await until(()=>app.document.querySelectorAll('.finding-list li').length===24);
@@ -444,7 +770,7 @@ test('reconnect restores identity on a changed session and an archive read canno
     if(method==='describe')return {session_id:session,office_id:'office'};
     if(method==='snapshot.get')return {...snapshot([history],[project('project',2)]),current_attempt:{...live,state:stopped?'CANCELLED':'RUNNING'},session_id:session};
     if(method==='attempt.get')return {...(params.attempt_id==='archive'?history:live),session_id:session};
-    if(method==='attempt.cancel'){assert.equal(params.attempt_id,live.id);stopped=true;return {...live,state:'CANCELLED',revision:2};}
+    if(method==='attempt.cancel'){assert.equal(params.attempt_id,live.id);stopped=true;return {...live,session_id:session,state:'CANCELLED',revision:2};}
     throw Error('unexpected operation');
   });
   const button=(label:string)=>Array.from(app.document.querySelectorAll('button')).find(b=>b.textContent.includes(label));
@@ -452,19 +778,17 @@ test('reconnect restores identity on a changed session and an archive read canno
     await until(()=>app.document.querySelector('.breadcrumbs strong')?.textContent==='actual.html');
     outage=true;
     await until(()=>!!button('Reconectar')&&app.document.body.textContent.includes('HOST_DISCONNECTED'));
-    assert.ok(!app.document.body.textContent.includes('Núcleo local conectado'));
+    assert.ok(!app.document.querySelector('.engine-state .ready'));
     assert.ok(button('Detener trabajo')?.disabled);
     session='new-session';outage=false;
     button('Reconectar')!.click();
-    await until(()=>!app.document.querySelector('[role="alert"]')&&app.document.body.textContent.includes('Núcleo local conectado'));
+    await until(()=>!app.document.querySelector('[role="alert"]')&&!!app.document.querySelector('.engine-state .ready'));
     assert.equal(calls.filter(c=>c.method==='describe').length,2);
     button('Informe anterior')!.click();
     await until(()=>app.document.querySelector('.execution-code')?.textContent.includes('MODEL_METADATA_UNAVAILABLE')===true);
     assert.equal(app.document.querySelector('.breadcrumbs strong')?.textContent,'anterior.html');
-    assert.equal(button('Detener trabajo'),undefined);
-    button('Volver al trabajo en curso')!.click();
-    await until(()=>!!button('Detener trabajo')&&!button('Detener trabajo')!.disabled);
-    assert.equal(app.document.querySelector('.breadcrumbs strong')?.textContent,'actual.html');
+    assert.equal(button('Detener trabajo')?.disabled,false);
+    assert.match(app.document.querySelector('.active-work')?.textContent||'',/Synthetic controlled task/);
     button('Detener trabajo')!.click();
     await until(()=>stopped);
     assert.equal(calls.filter(c=>c.method==='attempt.cancel').length,1);
@@ -489,17 +813,28 @@ test('activity counts only validated rows of the viewed attempt and opens withou
   try{
     await until(()=>!!app.document.querySelector('.connected-history button:not(:disabled)'));
     (app.document.querySelector('.connected-history button') as any).click();
+    await until(()=>!!app.document.querySelector('#tab-activity'));
+    app.document.querySelector<HTMLButtonElement>('#tab-activity')!.click();
     await until(()=>!!app.document.querySelector('.connected-event-details'));
     assert.match(app.document.body.textContent,/motivo original no está disponible/);
     assert.equal(eventReads,0);
     const disclosure=app.document.querySelector('.connected-event-details') as any;
-    disclosure.open=true;disclosure.dispatchEvent(new app.window.Event('toggle'));
+    const activityButton=disclosure.querySelector('button[aria-expanded]');
+    assert.equal(activityButton.getAttribute('aria-expanded'),'false');
+    activityButton.click();
     await until(()=>disclosure.textContent.includes('Reintentar lectura'));
     assert.equal(disclosure.querySelectorAll('li').length,0);
-    mismatched=false;(disclosure.querySelector('button') as any).click();
+    mismatched=false;(disclosure.querySelector('[role="status"] button') as HTMLButtonElement).click();
     await until(()=>disclosure.querySelectorAll('li').length===1);
-    assert.match(disclosure.querySelector('summary')!.textContent,/1 en esta página/);
+    assert.equal(activityButton.getAttribute('aria-expanded'),'true');
+    assert.match(activityButton.textContent,/1 en esta página/);
     assert.match(disclosure.querySelector('li')!.textContent,/Intento reservado/);
+    assert.equal(disclosure.querySelector('li code')!.textContent,'#1');
+    assert.equal(disclosure.querySelector('.event-fact strong')!.textContent,'Intento reservado');
+    assert.equal(disclosure.querySelector('.event-fact span'),null);
+    activityButton.click();
+    await until(()=>activityButton.getAttribute('aria-expanded')==='false');
+    assert.equal(disclosure.querySelector('li'),null);
   }finally{await app.close();}
 });
 
@@ -512,10 +847,11 @@ test('a static response for another captured source stays out of the document',a
     throw Error('Unexpected RPC');
   });
   try{
+    await openHtml(app);
     await until(()=>!!app.document.querySelector('#static-picker:not(:disabled)'));
     (app.document.querySelector('#static-picker') as any).click();
-    await until(()=>!!app.document.querySelector('.static-actions button:not(:disabled)'));
-    (app.document.querySelector('.static-actions button') as any).click();
+    await until(()=>!!app.document.querySelector('.brief-alternative button:not(:disabled)'));
+    (app.document.querySelector('.brief-alternative button') as any).click();
     await until(()=>!!app.document.querySelector('[role="alert"]'));
     assert.match(app.document.querySelector('[role="alert"]')?.textContent||'',/SOURCE_CHECK_CONTRACT/);
     assert.ok(!app.document.querySelector('.static-results'));

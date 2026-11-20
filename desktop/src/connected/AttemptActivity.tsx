@@ -1,9 +1,12 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useId, useState} from 'react';
 import {request} from './client.ts';
 import type {Event} from './model.ts';
 
 type Page = {session_id:string; office_id:string; attempt_id:string; events:Event[]; next_before:number; has_more:boolean};
 const pageSize=24;
+// UI navigation is scoped to the durable attempt; receipts are always read again from the service.
+const positions=new Map<string,{open:boolean;before:number}>();
+const publicFields:Record<string,string>={role:'Rol',state:'Estado',reason:'Motivo',code:'Código',model:'Modelo',project:'Proyecto',attempt:'Intento',source_sha256:'Huella de entrada',prompt_sha256:'Huella del mensaje',output_sha256:'Huella de salida',tokens:'Tokens registrados'};
 const labels:Record<string,string>={
   ATTEMPT_RESERVED:'Intento reservado', LEASE_ACQUIRED:'Ejecución adquirida',
   MODEL_CALL_ADMITTED:'Llamada autorizada', MODEL_CALL_COMPLETED:'Respuesta registrada', OWNED_JOB_TERMINATED:'Ejecución cerrada',
@@ -30,8 +33,11 @@ function timeOf(stamp:string) {
 }
 
 export function AttemptActivity({office,session,attempt,revision}:{office:string;session:string;attempt:string;revision:number}){
-  const [open,setOpen]=useState(false);
-  const [before,setBefore]=useState(0);
+  const key=JSON.stringify([office,attempt]);
+  const eventsId=useId();
+  const [open,setOpen]=useState(()=>positions.get(key)?.open??false);
+  const [before,setBefore]=useState(()=>positions.get(key)?.before??0);
+  useEffect(()=>{if(positions.size>200&&!positions.has(key))positions.delete(positions.keys().next().value!);positions.set(key,{open,before});},[key,open,before]);
   const [retry,setRetry]=useState(0);
   const [page,setPage]=useState<Page|null>(null);
   const [failed,setFailed]=useState(false);
@@ -48,13 +54,22 @@ export function AttemptActivity({office,session,attempt,revision}:{office:string
     return ()=>{current=false;};
   },[open,office,session,attempt,before,latestRevision,retry]);
   function navigate(cursor:number){setPage(null);setBefore(cursor);}
-  return <details className="connected-event-details" onToggle={e=>setOpen(e.currentTarget.open)}>
-    <summary>Actividad del encargo{open&&page&&<span>{page.events.length} en esta página</span>}</summary>
-    {open&&(failed?<p role="status">No se pudo leer la actividad. <button type="button" className="quiet-button" onClick={()=>setRetry(value=>value+1)}>Reintentar lectura</button></p>
+  return <section className="connected-event-details">
+    <button type="button" className="attempt-disclosure" aria-expanded={open} aria-controls={eventsId} onClick={()=>setOpen(value=>!value)}>
+      Actividad del encargo{open&&page&&<span>{page.events.length} en esta página</span>}
+    </button>
+    <div id={eventsId} hidden={!open}>{open&&(failed?<p role="status">No se pudo leer la actividad. <button type="button" className="quiet-button" onClick={()=>setRetry(value=>value+1)}>Reintentar lectura</button></p>
       :page?<>{page.events.length===0?<p>Sin eventos registrados para este encargo.</p>:<ol>{page.events.map(event=><li key={event.seq}>
-        <code>#{event.seq}</code> {labels[event.kind]||event.kind.toLowerCase().replaceAll('_',' ')}{typeof event.payload.role==='string'&&<span> · {event.payload.role}</span>} <time>{timeOf(event.stamp_ns)}</time>
+        <code>#{event.seq}</code>
+        <div className="event-fact"><strong>{Object.hasOwn(labels,event.kind)?labels[event.kind]:event.kind.toLowerCase().replaceAll('_',' ')}</strong>
+          {typeof event.payload.role==='string'&&<span>{event.payload.role}</span>}
+          <details className="receipt-details"><summary>Datos del recibo #{event.seq}</summary><dl>{Object.entries(publicFields).flatMap(([field,label])=>{
+            const value=event.payload[field];return typeof value==='string'||typeof value==='number'?[<div key={field}><dt>{label}</dt><dd>{String(value)}</dd></div>]:[];
+          })}</dl></details></div>
+        <time>{timeOf(event.stamp_ns)}</time>
       </li>)}</ol>}
       {page.has_more&&<button type="button" className="quiet-button" onClick={()=>navigate(page.next_before)}>Ver eventos anteriores</button>}
       {before>0&&<button type="button" className="quiet-button" onClick={()=>navigate(0)}>Volver a los más recientes</button>}</>:<p role="status">Leyendo actividad…</p>)}
-  </details>;
+    </div>
+  </section>;
 }

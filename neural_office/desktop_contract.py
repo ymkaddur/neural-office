@@ -15,6 +15,27 @@ METHODS = {
     'project.history': {'project_id': 'project'},
     'snapshot.get': {'project_after': 'revision', 'attempt_after': 'revision', 'limit': 'limit'},
     'source.pick': {'project_id': 'project'},
+    'library.list': {'project_id': 'project'},
+    'library.for_draft': {'project_id': 'project', 'entry_id': 'id', 'expected_revision': 'revision'},
+    'library.history': {'project_id': 'project', 'entry_id': 'id'},
+    'library.change': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id', 'entry_id': 'id',
+                       'kind': 'library_kind', 'title': 'objective', 'body': 'inspection_objective',
+                       'operation': 'library_op', 'expected_revision': 'revision'},
+    'attachments.pick': {'project_id': 'project', 'thread_id': 'id'},
+    'attachments.list': {'project_id': 'project', 'thread_id': 'id'},
+    'attachments.cancel': {'project_id': 'project', 'thread_id': 'id'},
+    'attachments.threads': {'project_id': 'project'},
+    'attachments.inspect': {'project_id': 'project', 'thread_id': 'id',
+                            'attachment_ids': 'capture_ids', 'objective': 'inspection_objective'},
+    'attachments.view': {'project_id': 'project', 'thread_id': 'id', 'capture_id': 'id',
+                         'page': 'page', 'member': 'member'},
+    'attachments.history': {'project_id': 'project', 'thread_id': 'id'},
+    'attachments.search': {'project_id': 'project', 'query': 'objective'},
+    'attachments.report': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id'},
+    'attachments.activity': {'project_id':'project','thread_id':'id'},
+    'attachments.decide': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id', 'choice':'decision', 'expected_revision':'revision'},
+    'attachments.preview': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id',
+                            'model_digest': 'digest', 'objective': 'objective'},
     'source.check': {'project_id': 'project', 'entry_token': 'id', 'offset': 'revision'},
     'attempt.preview': {'project_id': 'project', 'entry_token': 'id', 'model_digest': 'digest',
                         'roles': 'roles', 'objective': 'objective'},
@@ -30,6 +51,11 @@ METHODS = {
 
 
 def valid(kind, value):
+    if kind == 'library_kind':
+        return value in ('memory', 'skill') if type(value) is str else False
+    if kind == 'library_op':
+        return value in ('create', 'edit', 'propose', 'accept', 'discard', 'retire') if type(value) is str else False
+    if kind == 'decision': return type(value) is str and value in ('pdf','json','defer')
     if kind == 'project':
         # Existing ledger identifiers are user text, not opaque capability IDs.
         if type(value) is not str or not 1 <= len(value) <= 80: return False
@@ -40,7 +66,17 @@ def valid(kind, value):
         return type(value) is str and re.fullmatch(r'[A-Za-z0-9_-]{1,64}', value) is not None
     if kind == 'digest':
         return type(value) is str and re.fullmatch(r'[a-f0-9]{64}', value) is not None
-    if kind == 'objective':
+    if kind == 'capture_ids':
+        return (type(value) is list and 1 <= len(value) <= 8
+                and all(valid('id', item) for item in value) and len(set(value)) == len(value))
+    if kind == 'page': return type(value) is int and 1 <= value <= 10000
+    if kind == 'member':
+        if type(value) is not str or len(value) > 512 or '\x00' in value: return False
+        try: value.encode('utf-8')
+        except UnicodeError: return False
+        return True
+    if kind == 'inspection_objective' and value == '': return True
+    if kind in ('objective', 'inspection_objective'):
         if type(value) is not str or not 1 <= len(value) <= 2000 or not value.strip() or '\x00' in value:
             return False
         try: value.encode('utf-8')

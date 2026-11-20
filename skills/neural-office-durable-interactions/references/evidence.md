@@ -105,6 +105,10 @@ PENDIENTE: cancelar antes/durante/después de finalizar un hijo, repetir notific
 **Límite:** Leímos el intercambio público, no los logs internos. No generalizar el diagnóstico a todo Cursor. El formulario dice CLI, pero versión y soporte lo sitúan en panel IDE.
 
 
+## Dos lecturas del mismo encargo en V5.11
+
+Durante una llamada a Ollama, la fila del historial aún mostraba «Encargo registrado» mientras el Director ya mostraba «Trabajando». La prueba retiene la lista antigua y avanza la lectura del intento seleccionado. Comprueba que cambia esa fila y que la fila de un intento cancelado conserva su estado. Otro caso entrega una lista de modelos vacía marcada como antigua y verifica que la pantalla explica que el núcleo está ocupado. [Regresiones del renderer](https://github.com/ymkaddur/neural-office/blob/3970a2bb67e777b4ccd73e31cc198571c62b9bf9/desktop/src/connected/adversarial.test.ts)
+
 ## Método docente
 
 ### University of Oxford

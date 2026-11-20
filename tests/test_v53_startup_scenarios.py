@@ -12,7 +12,7 @@ from test_v52 import PROFILE
 
 
 class StartupScenarios(unittest.TestCase):
-    def scenario(self, metadata=None, owner=None, identity=None, clock=None):
+    def scenario(self, metadata=None, owner=None, identity=None, clock=None, poll=None):
         with tempfile.TemporaryDirectory() as tmp, patch('neural_office.ollama.Job') as jobs, \
                 patch('neural_office.ollama.shutil.which', return_value='ollama'), \
                 patch('neural_office.ollama.local_metadata', side_effect=metadata), \
@@ -21,6 +21,9 @@ class StartupScenarios(unittest.TestCase):
                 patch('neural_office.ollama.time.monotonic', side_effect=clock or [0, 0]), \
                 patch('neural_office.ollama.time.sleep'):
             jobs.return_value.start.return_value.poll.return_value = None
+            if poll is not None:
+                jobs.return_value.start.return_value.poll.side_effect = poll
+                jobs.return_value.start.return_value.returncode = poll[-1]
             jobs.return_value.start.return_value.pid = 123
             jobs.return_value.active.return_value = 1
             path = Path(tmp) / 'trace.jsonl'; backend = OwnedOllama('synthetic', PROFILE, path)
@@ -38,11 +41,39 @@ class StartupScenarios(unittest.TestCase):
         self.assertEqual(str(error), 'OWNED_BACKEND_START_TIMEOUT')
         self.assertEqual(events[-1]['phase'], 'metadata')
 
-    def test_owner_subprocess_timeout_has_a_different_signature(self):
-        error, events = self.scenario(owner=subprocess.TimeoutExpired('synthetic-query', 15))
-        self.assertIsInstance(error, subprocess.TimeoutExpired)
-        self.assertFalse(any(e['stage'] == 'START_TIMEOUT' for e in events))
-        self.assertEqual(events[-1]['phase'], 'listener_owner')
+    def test_one_owner_read_timeout_can_recover_on_the_same_bootstrap(self):
+        failure = subprocess.TimeoutExpired('synthetic-query', 15)
+        error, events = self.scenario(owner=[failure, None], clock=[0, 0, 15, 15])
+        self.assertIsNone(error)
+        stages = [e['stage'] for e in events]
+        self.assertEqual(stages.count('BOOTSTRAP_LAUNCHED'), 1)
+        self.assertEqual(stages.count('STARTUP_RETRY'), 1)
+        self.assertEqual([e['phase'] for e in events if e['stage']=='STARTUP_PHASE'],
+                         ['listener_owner','listener_owner','model_identity'])
+        self.assertEqual(stages[-1], 'OWNED_BACKEND_READY')
+
+    def test_owner_timeout_retry_has_a_budget_and_a_deadline(self):
+        failure = subprocess.TimeoutExpired('synthetic-query', 15)
+        for clock, probes in (([0, 0, 15, 15], 2), ([0, 0, 31], 1)):
+            with self.subTest(probes=probes):
+                error, events = self.scenario(owner=failure, clock=clock)
+                self.assertIsInstance(error, Denied)
+                self.assertEqual(str(error), 'OWNED_BACKEND_START_TIMEOUT')
+                self.assertIs(error.__cause__, failure)
+                self.assertEqual((events[-1]['stage'],events[-1]['phase'],events[-1]['probe']),
+                                 ('STARTUP_SUBPROCESS_FAILED','listener_owner',probes))
+                self.assertFalse(any(e.get('phase')=='model_identity' for e in events))
+
+    def test_lost_process_or_unowned_listener_cannot_pass_on_retry(self):
+        failure = subprocess.TimeoutExpired('synthetic-query', 15)
+        for poll,owner,reason in [
+            ([None,1],[failure],'OWNED_BACKEND_START_FAILED'),
+            ([None,None],[failure,Denied('BACKEND_NOT_OWNED_BY_OFFICE')],'BACKEND_NOT_OWNED_BY_OFFICE'),
+        ]:
+            with self.subTest(reason=reason):
+                error, events = self.scenario(owner=owner, poll=poll, clock=[0,0,15,15])
+                self.assertEqual(str(error), reason)
+                self.assertFalse(any(e.get('phase')=='model_identity' or e['stage']=='OWNED_BACKEND_READY' for e in events))
 
     def test_unavailable_model_metadata_reproduces_timeout_later(self):
         error, events = self.scenario(identity=ConnectionRefusedError(), clock=[0, 0, 31])

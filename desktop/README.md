@@ -1,10 +1,12 @@
-# Escritorio Neural Office · V5.9 local
+# Escritorio Neural Office · V5.35
 
-Una fuente, un encargo al Director y una entrega revisable. El host Tauri conecta React con el núcleo Python. Esta edición para desarrollo en Windows permite preparar el siguiente encargo en esta ventana y abrir el historial del proyecto seleccionado. [Pruebas de la mesa de revisión](../docs/V5_9_REVIEW.md) · [Reconexión en Windows](../docs/V5_8_REVIEW.md) · [Hoja de ruta](../ROADMAP.md).
+El Director, los hilos de seis especialistas, la biblioteca del proyecto y los ajustes comparten la misma oficina en los temas claro y oscuro. El selector de Windows admite cualquier extensión. El informe distingue el contenido leído de los archivos que solo pudo identificar. [Recorrido, límites y pruebas de V5.35](../docs/V5_35_LOCAL.md) · [Hoja de ruta](../ROADMAP.md)
 
 ## Abrir el recorrido conectado
 
 La comprobación estática requiere Windows x64, Python 3.12 y WebView2. Para consultar al Director instala también Ollama y descarga un modelo local. El host no descarga modelos ni configura proveedores cloud. Para compilar hacen falta Node 24, el toolchain Rust fijado y las herramientas MSVC/SDK de Windows; son requisitos de desarrollo, no el onboarding prometido para V10.
+
+El paquete de validación incluye el host compilado, el núcleo Python, el lanzador, las huellas por archivo y los avisos de dependencias. Puede probarse desde una carpeta extraída independiente. La publicación del binario espera a la firma. [Abrir el piloto empaquetado](../docs/PILOTO_WINDOWS.md)
 
 Desde esta carpeta, compila los assets y el host de producción:
 
@@ -16,20 +18,25 @@ Set-Location src-tauri
 cargo test --locked --features custom-protocol
 cargo build --locked --release --features custom-protocol
 Set-Location ../..
+.\Start-NeuralOffice-Desktop.ps1 -PrepareReaders
 .\Start-NeuralOffice-Desktop.ps1 -Check
 .\Start-NeuralOffice-Desktop.ps1
 ```
 
 `custom-protocol` es necesario para este comando Cargo directo: usar assets de producción forma parte de la regresión, no basta con que exista un exe. No hace falta arrancar Vite para usar el binario construido. Las instrucciones se ejecutan desde el árbol del repositorio; Python no va embebido en este paquete.
 
-El launcher conserva por defecto el estado existente del piloto. Si utilizas otro estado, pasa `-State` con esa misma base y conserva su testigo; no borres archivos ni crees una oficina nueva para recuperar cuota. `-Python` y `-Executable` permiten señalar instalaciones de confianza; no son capacidades que el renderer pueda modificar. `-Check` valida configuración sin arrancar servicios.
+El lanzador conserva por defecto el estado existente del piloto. Para PDF, PNG y JPEG, `-PrepareReaders` instala los paquetes fijados por huella en un entorno local de Python 3.12. Comprueba PDFium y la decodificación de imágenes. Las siguientes aperturas usan ese entorno. HTML, JSON y el inventario ZIP usan la biblioteca estándar. `-Check` comprueba las capacidades antes de abrir el escritorio.
+
+Si utilizas otro estado, pasa `-State` con esa misma base y conserva su testigo. `-Python` y `-Executable` permiten señalar instalaciones de confianza desde el lanzador.
 
 Windows puede bloquear el ejecutable no firmado: se ha observado con App Control en el equipo de desarrollo. No desactives esa protección para probarlo. Firma, distribución e instalación en equipos limpios son una puerta pendiente. Los artefactos de CI incluyen avisos; acompañan al exe y deben conservarse al redistribuirlo. [Licencias](THIRD_PARTY_NOTICES.md).
 
-## Recorrido real
+## Revisión de HTML con roles
 
-1. Elige un HTML UTF-8 de hasta 256 KiB y pulsa **Comprobar HTML**. El selector captura los bytes una sola vez. Puedes abrir la orientación por hallazgo y avanzar por páginas de 24. Esta vista dura mientras trabajas con la captura. El selector registra el proyecto. Comprobar y paginar consumen cero intentos y cero llamadas.
-2. Si quieres una entrega guardada con comentarios, pulsa **Consultar al Director**, escribe tu pregunta y elige un modelo. El perfil inicial usa una llamada. Los perfiles de tres y siete roles hacen llamadas secuenciales. El modelo recibe el objetivo y las ubicaciones detectadas. La asistencia admite hasta 24 hallazgos.
+El comando de compatibilidad **Revisión especializada de HTML** está en la paleta de acciones.
+
+1. Escribe tu pregunta y adjunta un HTML UTF-8 de hasta 256 KiB. **Comprobar HTML** localiza los hallazgos por páginas de 24 y conserva la pregunta. Capturar el archivo registra el proyecto. Comprobar y paginar consumen cero intentos y cero llamadas.
+2. **Consultar al Director** abre el selector de modelos. Si el catálogo confirma que está vacío, la pantalla conserva el borrador y muestra cómo instalar un modelo y actualizar la lista para continuar. El perfil inicial usa una llamada. Los perfiles de tres y siete roles hacen llamadas secuenciales. El modelo recibe el objetivo y las ubicaciones detectadas. La asistencia admite hasta 24 hallazgos.
 3. Pulsa **Revisar encargo**, comprueba fuente/modelo/alcance/consumo y después **Autorizar y ejecutar**. Preparar no consume un intento; la reserva sí.
 4. Revisa hallazgos y sugerencias por separado. **Evidencia y alcance** permite inspeccionar identidades y el informe original; no ejecuta HTML generado.
 5. **Detener** solicita parada y mantiene el estado pendiente hasta confirmación. Error o cancelación conserva consumo. Reabre para consultar el mismo intento; una respuesta perdida se concilia por su identidad.

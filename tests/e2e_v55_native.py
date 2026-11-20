@@ -160,13 +160,19 @@ class Samples:
         self.worker.join(5)
 
 
-def prepare_ollama(tools):
+def prepare_ollama(tools, *, destination=None):
     archive = tools / 'ollama.zip'
-    urllib.request.urlretrieve(
-        f'https://github.com/ollama/ollama/releases/download/v{OLLAMA_VERSION}/ollama-windows-amd64.zip', archive)
-    if sha(archive) != OLLAMA_SHA256:
+    if not archive.exists():
+        with tempfile.TemporaryDirectory(dir=tools) as scratch:
+            download = Path(scratch) / archive.name
+            urllib.request.urlretrieve(
+                f'https://github.com/ollama/ollama/releases/download/v{OLLAMA_VERSION}/ollama-windows-amd64.zip', download)
+            if sha(download) != OLLAMA_SHA256:
+                raise AssertionError('OLLAMA_ARCHIVE_HASH_CHANGED')
+            download.replace(archive)
+    elif sha(archive) != OLLAMA_SHA256:
         raise AssertionError('OLLAMA_ARCHIVE_HASH_CHANGED')
-    root = tools / 'ollama'
+    root = tools / 'ollama' if destination is None else destination
     root.mkdir()
     # The pinned distribution places CPU backends directly in lib/ollama.
     # GPU subdirectories and the tray application are deliberately not loaded.
@@ -285,16 +291,27 @@ def main():
                 return next((p for p in psutil.Process(driver_process.pid).children(recursive=True)
                              if p.name().lower() == executable.name.lower()), None)
             owned = wait(find_host, description='owned desktop process')
-            wait(lambda: re.search('Última conexión confirmada|Núcleo local conectado', current.body()), description='native IPC ready')
+            wait(lambda: current.script('return !!document.querySelector(".engine-state .ready")'),
+                 description='native IPC ready')
             url = current.call('GET', '/url')
             assert url.startswith(('http://tauri.localhost/', 'https://tauri.localhost/', 'tauri://localhost/')), 'DEV_SERVER_USED'
             assert current.script('return !!window.__TAURI_INTERNALS__'), 'NATIVE_HOST_MISSING'
             return current, owned
 
+        def prepare_html(current):
+            if not current.script('return !!document.querySelector(".legacy-link")'):
+                current.click('.desk-inspect-toggle')
+            current.click('.legacy-link')
+            wait(lambda: current.script('return !!document.querySelector("#connected-objective")'),
+                 description='HTML review visible')
+            current.click('.brief-primary button')
+            wait(lambda: MODEL in current.script('return document.querySelector("#connected-model")?.innerText || ""'),
+                 description='real model in UI')
+
         stage = 'open_packaged_ui'
         driver, host = open_desktop()
         sampler = Samples(host)
-        wait(lambda: MODEL in driver.script('return document.querySelector("#connected-model").innerText'), description='real model in UI')
+        prepare_html(driver)
         driver.screenshot(output / '01-ready.png')
         time.sleep(5)  # Explicitly measured idle window, not synchronization for a race.
         steps.append({'check': 'packaged-assets-native-ipc-model-catalog', 'verified': True})
@@ -304,8 +321,8 @@ def main():
         driver.click('.source-picker')
         native_picker(host, source)
         wait(lambda: 'audit-sample.html' in driver.script('return document.querySelector(".source-picker").innerText'), description='captured source')
-        driver.click('.connected-send-row button[type=submit]')
-        wait(lambda: driver.script('return document.querySelector("dialog").open'), description='approval dialog')
+        driver.click('.brief-primary button[type=submit]')
+        wait(lambda: driver.script('return !!document.querySelector(".connected-approval[open]")'), description='approval dialog')
         assert 'Consumirá 1 intento' in driver.body(), 'APPROVAL_BUDGET_MISSING'
         assert readonly_counts(state)['attempts'] == 0, 'PREVIEW_CONSUMED_ATTEMPT'
         driver.screenshot(output / '02-approval.png')
@@ -345,20 +362,21 @@ def main():
         driver.click('.connected-history button')
         wait(lambda: driver.script('return !!document.querySelector(".connected-report")'), description='persisted report after reopen')
         assert readonly_counts(state) == {'attempts': 1, 'calls': 1, 'states': ['ACCEPTED']}, 'REOPEN_REEXECUTED_WORK'
-        assert '1 de 3 intentos' in driver.body(), 'REOPEN_LOST_BUDGET'
+        assert '2 intentos disponibles' in driver.script('return document.querySelector("#project-balance").innerText'), 'REOPEN_LOST_BUDGET'
         driver.screenshot(output / '05-reopened.png')
         steps.append({'check': 'native-close-reopen-preserves-report-attempt-and-call-count', 'verified': True})
         stage = 'cancel_second_attempt'
         driver.click('.new-task')
+        prepare_html(driver)
         driver.type('#connected-objective', 'Revisa el mismo HTML sintético; esta ejecución se cancelará desde la interfaz.')
         driver.click('.source-picker'); native_picker(host, source)
         wait(lambda: 'audit-sample.html' in driver.script('return document.querySelector(".source-picker").innerText'), description='second captured source')
-        driver.click('.connected-send-row button[type=submit]')
-        wait(lambda: driver.script('return document.querySelector("dialog").open'), description='second approval')
+        driver.click('.brief-primary button[type=submit]')
+        wait(lambda: driver.script('return !!document.querySelector(".connected-approval[open]")'), description='second approval')
         driver.click('.approval-actions .solid-button')
         wait(lambda: driver.script('return !!document.querySelector(".stop-button:not(:disabled)")'), description='cancellable work')
         driver.click('.stop-button')
-        wait(lambda: 'Encargo detenido' in driver.script('return document.querySelector(".connected-work-status")?.innerText || ""'), timeout=90, description='confirmed cancellation')
+        wait(lambda: 'Encargo detenido' in driver.script('return document.querySelector(".connected-director-heading [role=status]")?.innerText || ""'), timeout=90, description='confirmed cancellation')
         counts = readonly_counts(state)
         assert counts['attempts'] == 2 and counts['states'] == ['ACCEPTED', 'CANCELLED'], 'CANCELLATION_QUOTA_OR_STATE_CHANGED'
         assert 'Encargo detenido' in driver.script('return document.querySelector(".connected-history").innerText'), 'HISTORY_TERMINAL_STATE_STALE'
