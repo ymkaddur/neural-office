@@ -171,7 +171,7 @@ def two_projects(exe, folder, version, out):
     require(run(ledger, archived, 1, FixtureModel) == 'ACCEPTED', 'could not seed a verified report')
     (folder/'archived-id').write_text(archived, encoding='ascii')
     core = private_core(folder, 'control')
-    with window(exe, core, folder, version) as (screen, host, _, _ready):
+    with window(exe, core, folder, version, failure_dir=out) as (screen, host, _, _ready):
         wait(lambda: selected_balance(screen,A,'2 intentos disponibles'), description='active project balance')
         wait(lambda: 'En curso' in screen.names() and 'documento-a.html' in screen.names(),
              description='active role, source and running call in the default activity view')
@@ -240,6 +240,7 @@ def main():
             result[name] = (two_projects(exe,folder,version,out) if name == 'control' else
                             inspect_without_model(exe,folder,version,name))
         for name,fail_balance in [('historical_stop',False),('failed_balance_refresh',True)]:
+            print('Checking', name, flush=True)
             folder = Path(temp)/name
             folder.mkdir()
             result[name] = incident(exe,folder,fail_snapshot=fail_balance,evidence_dir=out)

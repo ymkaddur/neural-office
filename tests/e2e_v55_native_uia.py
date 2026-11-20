@@ -174,12 +174,14 @@ class Screen:
         # The command also works on an empty thread, before attaching an HTML file.
         if self.window.child_window(title='Buscar hilo o acción', control_type='Button').exists(timeout=.3):
             self.button('Buscar hilo o acción')
-            self.press_space(self.reveal_button(r'^Revisión especializada de HTML.*', regex=True))
+            self.reveal_button(r'^Revisión especializada de HTML.*', regex=True).invoke()
         else:
             if 'Abrir revisión de HTML con roles' not in self.names():
                 self.button('Ver adjuntos' if 'Ver adjuntos' in self.names().splitlines() else 'Inspector')
             self.button('Abrir revisión de HTML con roles')
-        wait(lambda: 'Instrucción para el Director' not in self.names().splitlines(), description='HTML review opened')
+        # The composer also disappears from UI Automation while the command dialog is
+        # open. The enabled picker identifies the destination after navigation settles.
+        self.window.child_window(auto_id='static-picker', control_type='Button').wait('visible enabled', timeout=20)
 
     def new_html(self):
         if 'Nuevo hilo' in self.names().splitlines():

@@ -73,10 +73,10 @@ def saved(db):
 def choose_source(screen,host,source):
     """Resolve the dialog by its native handle, including when its accessibility provider runs out of process."""
     screen.open_html()
-    choose_files(screen,host,[source],title='Elegir HTML para revisar',button='.*Elegir archivo HTML.*')
+    choose_files(screen,host,[source],title='Elegir HTML para revisar',button_id='static-picker')
 
 
-def choose_files(screen,host,paths,*,title,button):
+def choose_files(screen,host,paths,*,title,button=None,button_id=None):
     from pywinauto import Desktop
     import win32gui
     import win32process
@@ -89,7 +89,12 @@ def choose_files(screen,host,paths,*,title,button):
         win32gui.EnumWindows(visit,None)
         return match
     require(not dialogs(),'test picker already open')
-    screen.button(button,regex=True)
+    if button_id is None:
+        screen.button(button,regex=True)
+    else:
+        picker=screen.window.child_window(auto_id=button_id,control_type='Button')
+        picker.wait('visible enabled',timeout=15)
+        picker.wrapper_object().invoke()
     handles=wait(dialogs,timeout=18,description='owned native file dialog')
     require(len(handles)==1,'ambiguous owned file dialog')
     dialog=Desktop(backend='uia').window(handle=handles[0])

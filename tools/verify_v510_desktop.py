@@ -32,7 +32,7 @@ ACTIVE = 'Revisión pendiente de parada'
 
 
 @contextmanager
-def window(exe, core, folder, version):
+def window(exe, core, folder, version, *, failure_dir=None):
     from pywinauto import Desktop
     with Job('Local\\NeuralOffice510_'+uuid.uuid4().hex) as job:
         start = time.perf_counter()
@@ -45,6 +45,14 @@ def window(exe, core, folder, version):
         ready = time.perf_counter()-start
         try:
             yield screen, host, job, ready
+        except Exception as error:
+            if failure_dir is not None:
+                try:
+                    screen.screenshot(failure_dir/(folder.name+'-fallo.png'))
+                    (failure_dir/(folder.name+'-controles.txt')).write_text(screen.names(visible_only=False),encoding='utf-8')
+                except Exception as capture_error:
+                    error.add_note('Native failure capture: '+type(capture_error).__name__)
+            raise
         finally:
             screen.close()
             wait(lambda: job.active()==0, description='owned desktop tree closed')
@@ -168,7 +176,7 @@ def incident(exe,folder,fail_snapshot=False,evidence_dir=None):
     before=saved(db)
     require(dict(before['states'])[ids[-1]]=='QUEUED','live identity not queued')
     core=timeout_core(folder) if fail_snapshot else ROOT
-    with window(exe,core,folder,json.loads((ROOT/'desktop/src-tauri/tauri.conf.json').read_bytes())['version']) as (screen,host,_,_ready):
+    with window(exe,core,folder,json.loads((ROOT/'desktop/src-tauri/tauri.conf.json').read_bytes())['version'],failure_dir=evidence_dir) as (screen,host,_,_ready):
         screen.button(ARCHIVE+'.*',regex=True)
         wait(lambda:'Consultando el historial' in screen.names(),description='viewing other attempt')
         if fail_snapshot:
