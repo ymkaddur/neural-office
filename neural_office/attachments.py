@@ -17,7 +17,7 @@ from .ledger import Denied, canonical, digest
 
 SCHEMA = 2
 APPLICATION_ID = 0x4E4F4154
-RULE_VERSION = 'local-inspection-2'
+RULE_VERSION = 'local-inspection-3'
 MAX_CAPTURE_BATCH = 8
 MAX_REPORT = 300_000
 READERS = threading.BoundedSemaphore(2)
@@ -353,6 +353,7 @@ class AttachmentStore:
         steps = []
         findings = []
         html_results = []
+        recall_only = requested_checks(objective, set()) == ['decision']
         created = time.time()
         deadline = time.monotonic() + 26
         with self._observed_inspection(project_id, thread_id, attachment_ids, objective) as note, self._reading(project_id, thread_id) as cancelled:
@@ -360,6 +361,18 @@ class AttachmentStore:
                 started = time.monotonic()
                 info, data = self._content(office, project_id, thread_id, identity)
                 kind = info['kind']
+                if recall_only:
+                    if cancelled():
+                        raise Denied('ATTACHMENT_READ_CANCELLED')
+                    # _content rechecks ownership, signature and bytes. The decision
+                    # belongs to those immutable captures, independent of their format.
+                    inputs.append(info)
+                    action = 'Comprobar la identidad de la captura'
+                    note(action+' · '+info['name'], len(inputs))
+                    steps.append(dict(at=time.time(), duration_ms=round((time.monotonic()-started)*1000),
+                                      actor='Lector local', action=action, detail=info['name'],
+                                      status='ok', attachment_id=identity))
+                    continue
                 note(ACTIONS[kind]+' · '+info['name'], len(inputs))
                 view = decode(kind, data, page=1, member='', mode='inspect', cancelled=cancelled,
                               deadline=min(deadline, time.monotonic() + 7))
@@ -408,9 +421,15 @@ class AttachmentStore:
             with self._db(office) as db:
                 db.execute('BEGIN IMMEDIATE')
                 old = recover_report(db, project_id, thread_id, identity)
+                if not old and RULE_VERSION != 'local-inspection-2':
+                    # Reopening an unchanged V5.14 finding must preserve its human
+                    # decision. A changed scope, source or answer has a different key.
+                    legacy_id = report_identity('local-inspection-2', project_id, thread_id,
+                                                objective, inputs, findings)
+                    old = recover_report(db, project_id, thread_id, legacy_id)
                 if old:
                     db.commit()
-                    return self.report(project_id, identity, thread_id=thread_id)
+                    return self.report(project_id, old['id'], thread_id=thread_id)
                 if db.execute('SELECT COUNT(*) FROM reports WHERE project=?', (project_id,)).fetchone()[0] >= 300:
                     raise Denied('ATTACHMENT_STORAGE_LIMIT')
                 if cancelled():

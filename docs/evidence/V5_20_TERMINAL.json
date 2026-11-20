@@ -1,0 +1,100 @@
+{
+  "schema": 2,
+  "captured_utc": "2026-11-20T09:46:08.588666+00:00",
+  "kind": "single_terminal_baseline",
+  "system": "Windows-11-10.0.26200-SP0",
+  "logical_cpus": 20,
+  "powershell": "pwsh.EXE",
+  "powershell_version": "7.6.9",
+  "cpu_model": "Intel(R) Core(TM) Ultra 7 255HX",
+  "host_ram_bytes": 33752997888,
+  "ollama": "0.40.16",
+  "model": "qwen2.5:0.5b",
+  "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+  "prompt": "Fuentes locales. PDF: Primera respuesta en 24 horas. JSON: response_sla_hours = 48. Compara las dos fuentes. Responde en una sola frase en español con el origen de cada cifra y di si coinciden.",
+  "prompt_sha256": "071465e44c03973783154a4ccea7652736ab17a000d40a8b9c1c353d74698da1",
+  "sample_interval_s": 0.1,
+  "scope": "private ready server, runner, PowerShell and CLI; OS file cache not purged",
+  "runs": [
+    {
+      "phase": "cold",
+      "elapsed_s": 2.471,
+      "observed_s": 2.471,
+      "cpu_s": 2.562,
+      "peak_cpu_cores_1s": 1.119,
+      "peak_ws_bytes": 809373696,
+      "peak_private_bytes": 1618247680,
+      "samples": 24,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 483645193,
+        "size_vram": 483645193
+      },
+      "answer": "La segunda respuesta se encuentra en formato JSON, con \"response_sla_hours\" = 48. Las fuentes locales y el formato JSON son del mismo origen.",
+      "mentions_both_values": false
+    },
+    {
+      "phase": "warm",
+      "elapsed_s": 0.816,
+      "observed_s": 1.101,
+      "cpu_s": 0.969,
+      "peak_cpu_cores_1s": 0.892,
+      "peak_ws_bytes": 808620032,
+      "peak_private_bytes": 1618153472,
+      "samples": 12,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 483645193,
+        "size_vram": 483645193
+      },
+      "answer": "La fuentes locales se comparan y se comparam en términos de la respuesta (primera respuesta en 24 horas) y en términos de la duración (response_sla_hours). Esto significa que las fuentes ofrecen una respuesta a la pregunta en 24 horas y una respuesta más larga (cifrón) que duraría aproximadamente 48 horas.",
+      "mentions_both_values": true
+    },
+    {
+      "phase": "warm",
+      "elapsed_s": 0.781,
+      "observed_s": 1.101,
+      "cpu_s": 0.891,
+      "peak_cpu_cores_1s": 0.818,
+      "peak_ws_bytes": 809287680,
+      "peak_private_bytes": 1617940480,
+      "samples": 12,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 483645193,
+        "size_vram": 483645193
+      },
+      "answer": "La segunda respuesta se encuentra en JSON, con una respuesta de 48 horas. Las fuentes se comparan, y se comparamos la respuesta de la segunda respuesta con la primera. Conclusión: La segunda respuesta es correcta, ya que está en JSON y tiene la misma respuesta en 48 horas.",
+      "mentions_both_values": false
+    },
+    {
+      "phase": "warm",
+      "elapsed_s": 0.79,
+      "observed_s": 1.101,
+      "cpu_s": 0.922,
+      "peak_cpu_cores_1s": 0.847,
+      "peak_ws_bytes": 810373120,
+      "peak_private_bytes": 1569828864,
+      "samples": 12,
+      "complete": true,
+      "incomplete_samples": 0,
+      "observation_errors": [],
+      "resident": {
+        "context_length": 4096,
+        "size": 483645193,
+        "size_vram": 483645193
+      },
+      "answer": "La fuentes locales y las fuentes JSON de la misma forma, ambas cálculos se deben realizar en la fuentes locales.",
+      "mentions_both_values": false
+    }
+  ]
+}

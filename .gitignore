@@ -348,3 +348,10 @@
 !tests/test_v514_decisions.py
 !docs/V5_14_LOCAL.md
 !docs/evidence/V5_14_LOCAL.json
+
+!neural_office/office_plan.py
+!tests/test_v520_local.py
+!tools/measure_decision_recall.py
+!tools/measure_ollama_terminal.py
+!docs/V5_20_LOCAL.md
+!docs/evidence/V5_20_TERMINAL.json

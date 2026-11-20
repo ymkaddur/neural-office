@@ -17,11 +17,13 @@ def snapshot_file(file,root):
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description=f'Neural Office {__version__} — Windows CPU static HTML audit pilot')
+    parser=argparse.ArgumentParser(description=f'Neural Office {__version__} — local review engine for Windows')
     parser.add_argument('--version',action='version',version=__version__)
     parser.add_argument('--state',help='Office ledger; defaults to one per user. Preserve its witness when restoring.')
     sub=parser.add_subparsers(dest='action',required=True)
     sub.add_parser('init'); sub.add_parser('status'); sub.add_parser('models'); sub.add_parser('gui')
+    plan = sub.add_parser('office-plan', help='Describe the three-round office without executing it')
+    plan.add_argument('--objective', required=True)
     check=sub.add_parser('check',help='Static HTML findings only: no model, ledger or inference')
     check.add_argument('--root',required=True); check.add_argument('--file',required=True)
     sub.add_parser('protect',help='Enroll an idle schema-1 V5.2 ledger without resetting history')
@@ -40,6 +42,10 @@ def main(argv=None):
     for action in ('cancel','recover','report','resume'):
         command=sub.add_parser(action); command.add_argument('attempt')
     args=parser.parse_args(argv)
+    if args.action == 'office-plan':
+        from .office_plan import office_plan
+        print(canonical(office_plan(args.objective)))
+        return
     if args.action=='check':
         from .audit import make_report
         print(make_report(snapshot_file(args.file,args.root),[]).decode('utf-8')); return

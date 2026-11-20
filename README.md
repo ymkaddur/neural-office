@@ -1,6 +1,6 @@
 # Neural Office
 
-**V5.14 · revisión local del candidato para Windows.** El Director contrasta las fuentes seleccionadas con el encargo. En el ejemplo del portal puedes elegir qué plazo rige la entrega, aplazar la decisión o revisarla al volver al hilo. Cada decisión se guarda junto a la identidad de esa inspección. El modelo local requiere una autorización aparte.
+**V5.20 · núcleo local en desarrollo.** El Director puede recuperar una decisión del mismo hilo, comprobar la identidad de sus fuentes y contestar varias operaciones locales en un encargo. El escritorio de esta rama corresponde a V5.14. La nueva orden `python -m neural_office office-plan --objective "Revisar la entrega"` imprime el plan de un Director y seis especialistas durante tres rondas. La orden solo describe el plan. [Alcance comprobado de V5.20](docs/V5_20_LOCAL.md).
 
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
@@ -28,9 +28,9 @@ py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.
 
 Para ejecutar la aplicación necesitas Windows x64, WebView2, Python 3.12 y el código del mismo commit que el ejecutable de prueba. El lanzador prepara los lectores PDF e imagen. Ollama se utiliza al pedir comentarios del modelo. [Instalación y compilación](desktop/README.md) · [Coste, datos y recuperación](docs/README.md)
 
-## Hacia V6.5
+## Hacia la oficina local V6.0
 
-La beta V6 exige instalación probada y un recorrido completo con personas nuevas. Hasta V6.5 se incorporan borradores recuperables, skills que el usuario puede inspeccionar y revocar, y revisiones con un presupuesto explícito. [Hoja de ruta y criterios de aceptación](ROADMAP.md).
+La beta prevé tres rondas autónomas, modelos locales propios o importados, revisión de una URL, memoria por proyecto y skills con historial y revocación. La hoja de ruta define las pruebas de autoridad, utilidad, recuperación y el techo de 1,50× de recursos frente a una consulta real de Ollama en PowerShell. [Implementación y criterios por versión](ROADMAP.md).
 
 En seis tareas con un modelo local pequeño, el Director y la revisión de tres roles dieron las mismas ubicaciones que las reglas. Sus comentarios no añadieron acciones útiles según la rúbrica fijada. [Comparación y costes](docs/V5_7_REVIEW.md).
 
