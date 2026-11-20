@@ -85,7 +85,8 @@ def run(exe, out):
                 screen.button('Ver adjuntos')
                 screen.press_space(screen.reveal_button(r'(?s)entrega\.zip.*Inventario del paquete.*', regex=True))
                 screen.press_space(screen.reveal_button(r'(?s).*visual/\s*movil\.jpg.*', regex=True))
-                wait(lambda: re.search(r'\b360\s*×\s*720\b', screen.names()) and 'Inventario del paquete' in screen.names(),
+                wait(lambda: screen.window.child_window(title='visual/movil.jpg', control_type='Image').is_visible()
+                     and re.search(r'\b360\s*×\s*720\b', screen.names()) and 'entrega.zip · Inventario' in screen.names(),
                      description='real image decoded inside the ZIP')
                 screen.button('Ampliar zoom')
                 wait(lambda: re.search(r'\b125\s*%', screen.names()), description='image zoom applied')

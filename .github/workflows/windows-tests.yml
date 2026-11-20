@@ -18,6 +18,8 @@ jobs:
           python-version: '3.12'
       - name: Install the pinned local readers
         run: 'python -m pip install --only-binary=:all: --require-hashes -r requirements-readers-windows.txt'
+      - name: Verify the source inventory against canonical Git bytes
+        run: python -B tools/publication_manifest.py
       - name: Test without models, credentials or private state
         run: python -B -m unittest discover -s tests -v
       - name: Verify the published V5.7 comparison without a model

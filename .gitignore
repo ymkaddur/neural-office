@@ -393,6 +393,7 @@
 !tests/test_v535_polished.py
 !tools/verify_v535_polished.cjs
 !tools/package_windows_pilot.py
+!tools/publication_manifest.py
 !tests/v535_windows_acceptance.py
 !docs/PILOTO_WINDOWS.md
 !tests/v535_interrupted_excerpt.py

@@ -154,7 +154,7 @@ def inspect_without_model(exe, folder, version, mode):
 def selected_balance(screen, project, remaining):
     group = screen.window.child_window(auto_id='project-balance', control_type='Group').wrapper_object()
     texts = [child.element_info.name for child in group.descendants(control_type='Text') if child.is_visible()]
-    return project in texts and remaining in texts
+    return group.element_info.name == 'Saldo del proyecto ' + project and remaining in texts
 
 
 def two_projects(exe, folder, version, out):

@@ -127,13 +127,22 @@ def desktop(exe, work, out, phase):
             code = job.start(command, env=env, log=stream).wait(timeout=45)
         message = log.read_text(encoding='utf-8-sig', errors='replace')
         verify(code == 0, 'Packaged launcher failed: ' + message[-600:])
-        match = re.search(r'Neural Office desktop started \(PID (\d+)\)', message)
-        verify(match is not None, 'Packaged launcher did not identify the host')
-        host = psutil.Process(int(match[1]))
-        verify(Path(host.exe()).samefile(exe) and Path(host.cwd()).samefile(package), 'Host outside the package')
-        verify(Path(host.environ()['NEURAL_OFFICE_ROOT']).samefile(package), 'Core outside the package')
-        hwnd = wait(lambda: next((w.handle for w in Desktop(backend='win32').windows(process=host.pid)
-                                  if w.window_text() == 'Neural Office · V' + VERSION), None), description='packaged host window')
+        # A console-less starter can return no stdout on Windows. Identify the actual
+        # window by its owner and the executable in this run's isolated package.
+        def packaged_window():
+            for window in Desktop(backend='win32').windows():
+                if window.window_text() != 'Neural Office · V' + VERSION:
+                    continue
+                process = psutil.Process(window.process_id())
+                if Path(process.exe()).samefile(exe):
+                    return window.handle, process
+            return None
+
+        hwnd, host = wait(packaged_window, description='packaged host window')
+        verify(Path(host.cwd()).samefile(package), 'Host outside the package')
+        inherited = host.environ()
+        verify(Path(inherited['NEURAL_OFFICE_ROOT']).samefile(package), 'Core outside the package')
+        verify(Path(inherited['NEURAL_OFFICE_STATE']) == work / 'office.sqlite3', 'Unexpected state file')
         screen = NativeWindow(host, hwnd)
         try:
             wait(screen.core_ready, description='packaged core connected to WebView2')

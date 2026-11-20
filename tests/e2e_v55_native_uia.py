@@ -600,6 +600,11 @@ def main():
                 evidence['failure']['durable_counts'] = readonly_counts(state)
                 with closing(sqlite3.connect(state.as_uri()+'?mode=ro',uri=True)) as con:
                     first = con.execute('SELECT id FROM attempts ORDER BY rowid LIMIT 1').fetchone()
+                    if first:
+                        evidence['failure']['termination_receipts'] = [
+                            json.loads(payload) for payload, in con.execute(
+                                "SELECT payload FROM events WHERE kind='OWNED_JOB_TERMINATED' AND json_extract(payload,'$.attempt')=? ORDER BY seq",
+                                first)]
                 if first and re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',first[0]):
                     evidence['failure']['startup_stages'] = startup_tail(work/'logs'/(first[0]+'.log'))
             except (OSError,sqlite3.Error) as diagnostic_error:
