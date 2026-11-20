@@ -156,7 +156,7 @@ export function ConnectedWorkspace() {
   const [deskPage,setDeskPage]=useState<'thread'|'html'|'attempt'>('thread');
   const [panel,setPanel]=useState<'appearance'|'search'|'project'|null>(null);
   const [projectName,setProjectName]=useState('');
-  const [inspector,setInspector]=useState(()=>!matchMedia('(max-width:680px)').matches);
+  const [inspector,setInspector]=useState(false);
   const [threadByProject,setThreadByProject]=useState<Record<string,string>>({});
   const [threadRows,setThreadRows]=useState<{project:string;rows:Awaited<ReturnType<typeof attachments.threads>>}|null>(null);
   const [threadRevision,setThreadRevision]=useState(0);
@@ -190,9 +190,9 @@ export function ConnectedWorkspace() {
   const available=viewed?.state==='ACCEPTED'&&viewed.report_available;
   const staticPage=source&&inspection?.token===source.entry_token&&inspection.page.session_id===session?inspection.page:null;
   const showingFindings=!!staticPage&&!assisted;
-  const note=viewed?.analysis_scope==='local-inspection-excerpts-v1'&&viewed.state==='ACCEPTED'?'El comentario del Director está guardado con los extractos que recibió.':viewed?workNote(viewed,!!connectionError):null;
+  const note=viewed?.analysis_scope==='local-inspection-excerpts-v1'&&viewed.state==='ACCEPTED'?'Se recibió una opinión del modelo. La decisión sigue en el hilo de revisión.':viewed?workNote(viewed,!!connectionError):null;
   const selectedModel=models.find(m=>m.model_digest===modelDigest);
-  const status=viewed?stateLabels[viewed.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
+  const status=viewed?.analysis_scope==='local-inspection-excerpts-v1'&&viewed.state==='ACCEPTED'?'Comentario recibido':viewed?stateLabels[viewed.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
   const epoch=()=>generation.current;
   function noteError(error:unknown){
     if(!mounted.current)return;
@@ -495,7 +495,7 @@ export function ConnectedWorkspace() {
     const next=await request<Attempt>('attempt.start',{approval_token:reviewed.value.approval_token,idempotency_key:identity.idempotency_key,expected_revision:reviewed.value.expected_revision});
     if(!mounted.current)return;
     if(next.project_id!==identity.project_id||next.request_key!==identity.idempotency_key)throw Error('ATTEMPT_IDENTITY_CHANGED');
-    drafts.current.delete(identity.project_id);setProjectId(identity.project_id);setBrowsedProject(null);setDeskPage('attempt');
+    drafts.current.delete(identity.project_id);setProjectId(identity.project_id);setBrowsedProject(null);setDeskPage(bound?'thread':'attempt');
     putAttempt(next);setSource(null);setObjective('');await refreshSnapshot();
   }
   function retainDraft() {
@@ -533,6 +533,8 @@ export function ConnectedWorkspace() {
     setThreadByProject(old=>({...old,[project]:id}));setDeskPage('thread');setNavOpen(false);
   }
   function newTask(newProject=false) {
+    if(newProject&&unconfirmedActive)return;
+    setInspector(false);
     openThread(newProject?makeProject():navProject,crypto.randomUUID());
   }
   function chooseProject(id:string) {
@@ -619,7 +621,7 @@ export function ConnectedWorkspace() {
     previousFocus.current=fragmentOrigin.current;dismissProposal();setApproval({value:result,excerpts:result,expiresAt:expires});
   }
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.13-Polished</span></div>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.14</span></div>
     <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa una entrega con el Director</h1><p>Abre Neural Office en Windows para adjuntar documentos, comprobar sus fuentes y consultar a tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
@@ -634,10 +636,9 @@ export function ConnectedWorkspace() {
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo hilo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>{if(deskPage==='html'){newTask(true);setDeskPage('html');}else{setProjectName('');setNavOpen(false);setPanel('project');}}}>＋</button></div>
-        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(!!unconfirmedActive&&p.id!==attempt?.project_id)||(!active&&(!!pending||storageBlocked))} onClick={()=>chooseProject(p.id)} title={p.id}><span>{short(p.id)}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span>Proyecto actual</span><small>{project?.id===projectId&&!budgetPending?remainingLabel(project.attempts_consumed):'Cuota por confirmar'}</small></div>}</div>
-        <div className="nav-threads">{currentThreads.map(t=><button key={t.id} className={t.id===threadId&&deskPage==='thread'?'chosen':''} aria-current={t.id===threadId&&deskPage==='thread'?'page':undefined} onClick={()=>openThread(navProject,t.id)}><Icon name="thread"/><span>{t.objective||'Hilo de revisión'}</span></button>)}</div>
-        <div className="connected-nav-heading connected-history-heading">Consultas al modelo{navProject!==projectId&&<span>{navProject}</span>}</div>
-        <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} snapshot={snapshot} current={attempt} selected={viewed?.id}
+        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(!!unconfirmedActive&&p.id!==attempt?.project_id)||(!active&&(!!pending||storageBlocked))} onClick={()=>chooseProject(p.id)} title={p.id}><span>{p.id}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span title={projectId}>{projectId}</span>{project?.id===projectId&&!budgetPending&&<small>{remainingLabel(project.attempts_consumed)}</small>}</div>}</div>
+        <div className="nav-threads">{currentThreads.map(t=><button key={t.id} className={t.id===threadId&&deskPage==='thread'?'chosen':''} title={t.objective||'Hilo de revisión'} aria-current={t.id===threadId&&deskPage==='thread'?'page':undefined} onClick={()=>openThread(navProject,t.id)}><Icon name="thread"/><span>{t.objective||'Hilo de revisión'}</span></button>)}</div>
+        <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} showProjectName={navProject!==projectId} snapshot={snapshot} current={attempt} selected={viewed?.id}
           offline={!!connectionError||initializing} disabled={initializing||!!connectionError||!!doing||(!active&&!!pending)} onOpen={a=>void act('Abriendo encargo',()=>chooseAttempt(a))}
           onRefresh={()=>act('Actualizando historial',refreshAll)}/>
         {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',nextProjects)}>Siguientes proyectos →</button>}
@@ -658,11 +659,23 @@ export function ConnectedWorkspace() {
         {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><button className="inline-link" onClick={()=>{setInspected(null);setBrowsedProject(null);setDeskPage('attempt');}}><Icon name="activity"/><span>{attempt.project_id} · {stateLabels[attempt.state]}</span><small>{attempt.objective}</small></button>{stopControl}</div>}
         {localStops}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>void act('Revisando la petición pendiente',async()=>{try{const other=await releasePending(localStorage,pending);setPending(other);setPendingMissing(false);setNotice(other?'Hay otra petición pendiente en esta oficina.':'Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}})}>Descartar petición sin reserva</button>}</div>}
-        {deskPage==='thread'?<ReviewDesk key={JSON.stringify([officeId,session,navProject,threadId])} office={officeId} session={session} project={navProject} thread={threadId} online={!!session&&!initializing&&!connectionError}
+        {deskPage==='thread'?<ReviewDesk renderConsultation={reportId=>{
+          const attached=viewed?.inspection_id===reportId&&viewed.thread_id===threadId&&viewed.project_id===navProject?viewed:null;
+          if(!attached){
+            const archived=snapshot?.attempts.filter(a=>a.inspection_id===reportId&&a.project_id===navProject&&a.thread_id===threadId)??[];
+            return archived.map(a=><button key={a.id} className="history-entry" onClick={()=>void act('Abriendo consulta',()=>chooseAttempt(a))}>Consulta {a.ordinal} · {a.model}<span>{stateLabels[a.state]}</span></button>);
+          }
+          return <section className="thread-consult" aria-label="Consulta de este hilo">
+            <div className="source-label">Consulta {attached.ordinal} · {attached.model}</div>
+            <AttemptActivity key={session+attached.id} office={officeId} session={session} attempt={attached.id} revision={attached.cursor??attached.revision}/>
+            {report?.report.inspection_id===reportId?<ReportView report={report.report}/>:<p role="status">{attached.state==='ACCEPTED'?'Recuperando el comentario':stateLabels[attached.state]}</p>}
+            <button className="inline-link" onClick={()=>{setDeskPage('attempt');setTabChoice({attempt:attached.id,tab:'evidence'});}}>Ver recibo de la consulta</button>
+          </section>;
+        }} key={JSON.stringify([officeId,session,navProject,threadId])} office={officeId} session={session} project={navProject} thread={threadId} online={!!session&&!initializing&&!connectionError}
           job={inspectionJobs.jobs.find(j=>j.project===navProject&&j.thread===threadId)} inspectFiles={inspectionJobs.inspect} onDraft={value=>{
             const key=JSON.stringify([officeId,navProject,threadId]);setDraftThreads(old=>{
               if(!value.trim()){const next={...old};delete next[key];return next;}
-              const title=value.trim().slice(0,90);if(old[key]?.title===title)return old;
+              const title=value.trim();if(old[key]?.title===title)return old;
               return {...old,[key]:{project:navProject,thread:threadId,title}};
             });
           }} inspector={inspector} showInspector={()=>setInspector(true)} onUpdate={()=>{setThreadRevision(v=>v+1);void refreshSnapshot().catch(noteError);}} modelBlocked={busy||!!doing||exhausted||budgetPending}
@@ -751,7 +764,7 @@ export function ConnectedWorkspace() {
                 {note&&<div className="connected-work-status"><p>{note}</p></div>}
                 {viewed.state==='FAILED'&&viewed.execution_error_code&&<p className="execution-code">Código de ejecución <code>{viewed.execution_error_code}</code></p>}
                 {active&&!inspected&&(viewed.state==='QUEUED'||viewed.state==='RECOVERY_REQUIRED')&&<div className="connected-action-row"><button className="quiet-button" disabled={initializing||!!connectionError||!!doing} onClick={()=>void act('Comprobando recuperación',async()=>{putAttempt(await request<Attempt>('attempt.recover',{attempt_id:viewed.id,expected_revision:viewed.revision}));await refreshSnapshot();})}>Comprobar recuperación</button></div>}
-                {!active&&!connectionError&&terminal(viewed.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>openDraft(viewed.project_id)}>{drafts.current.has(viewed.project_id)?'Volver al borrador':'Preparar otro encargo →'}{(inspected||navProject!==viewed.project_id)&&` · ${viewed.project_id}`}</button>}
+                {!active&&!connectionError&&terminal(viewed.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>viewed.thread_id?openThread(viewed.project_id,viewed.thread_id):openDraft(viewed.project_id)}>{viewed.thread_id?'Revisar la decisión del hilo':drafts.current.has(viewed.project_id)?'Volver al borrador':'Preparar otro encargo →'}{(inspected||navProject!==viewed.project_id)&&` · ${viewed.project_id}`}</button>}
                 {!inspected&&(active||drafts.current.get(viewed.project_id)?.afterAttempt===viewed.id)&&<details key={officeId+':'+viewed.id} className="next-draft">
                   <summary>Preparar el siguiente encargo</summary>
                   <label htmlFor="next-objective">Borrador en esta ventana</label>
@@ -809,7 +822,7 @@ export function ConnectedWorkspace() {
       <label htmlFor="fragment-model">Modelo local</label><select id="fragment-model" disabled={catalog!=='ready'||!!doing} value={modelDigest} onChange={e=>setModelDigest(e.target.value)}>{!models.length&&<option value="">{catalog==='loading'?'Consultando Ollama…':'Sin modelos disponibles'}</option>}{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
       {catalog==='error'&&<p role="alert">No se pudo leer el catálogo de Ollama. La inspección local sigue disponible.</p>}
       <div className="approval-actions"><button className="desk-secondary" disabled={catalog==='loading'||!!doing} onClick={()=>void loadModels()}>Actualizar modelos</button><button className="desk-primary" disabled={!!doing||!selectedModel||catalog!=='ready'||busy} onClick={()=>void act('Preparando permiso',previewFragments)}>Revisar permiso</button></div></div></DeskDialog>}
-    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">Este es el encargo.</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Proyecto</dt><dd>{approval.value.project_id}</dd><dt>Fuente capturada</dt><dd>{approval.excerpts?'Extractos de la entrega':source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Con la reserva, el saldo pasará a {approval.value.attempts_remaining-1} de 3.</dd></dl>{approval.excerpts&&<div className="permission-excerpts"><h3>Fragmentos que recibirá el modelo</h3>{approval.excerpts.fragments.map((f,i)=><blockquote key={i}><strong>{f.name}</strong><p>{f.quote}</p></blockquote>)}</div>}<p>El modelo recibe una copia de las entradas autorizadas. Los comentarios se guardan junto a la entrega.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
+    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">{approval.excerpts?'Autorizar una consulta':'Este es el encargo.'}</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Proyecto</dt><dd>{approval.value.project_id}</dd><dt>Fuente capturada</dt><dd>{approval.excerpts?'Extractos de la entrega':source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Con la reserva, el saldo pasará a {approval.value.attempts_remaining-1} de 3.</dd></dl>{approval.excerpts&&<div className="permission-excerpts"><h3>Fragmentos que recibirá el modelo</h3>{approval.excerpts.fragments.map((f,i)=><blockquote key={i}><strong>{f.name}</strong> <small>{f.page?'pág. '+f.page:f.line?'línea '+f.line:''}</small><p>{f.quote}{f.unit&&typeof f.value==='number'?' · '+f.value+' '+f.unit:''}</p></blockquote>)}</div>}<p>El modelo recibe una copia de las entradas autorizadas. Los comentarios se guardan junto a la entrega.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
   </div>;
 }
 const findingLabels:Record<string,string>={HTML_LANGUAGE_MISSING:'El documento no declara su idioma',HTML_ELEMENT_MISSING:'No se encontró el elemento HTML',DOCUMENT_TITLE_MISSING:'Falta un título de documento no vacío',IMAGE_ALT_MISSING:'Una imagen no tiene atributo alt',CONTROL_LABEL_CANDIDATE:'Un control podría necesitar una etiqueta'};
@@ -845,9 +858,21 @@ function FindingList({findings,offset=0}:{findings:Finding[];offset?:number}) {
   })}</ol>;
 }
 function ReportView({report}:{report:Report}) {
-  if(report.scope==='local-inspection-excerpts-v1')return <article className="connected-report excerpt-delivery"><span className="brief-byline">Director · Modelo local</span><h3>Comentario sobre la entrega</h3>
-    {report.role_outputs.map((output,i)=><p className="model-answer" key={i}>{output.content}</p>)}
-    <details><summary>Fuentes que recibió el modelo</summary>{report.authorized_fragments?.map((f,i)=><blockquote key={i}><strong>{f.name}</strong> {f.page?'· pág. '+f.page:f.line?'· línea '+f.line:''}<p>{f.quote}</p></blockquote>)}</details></article>;
+  const hours=(report.authorized_fragments??[]).flatMap(f=>f.unit==='h'&&typeof f.value==='number'?[{...f,value:f.value}]:[]);
+  const pdf=hours.filter(f=>f.page),json=hours.filter(f=>f.pointer==='/response_sla_hours');
+  const measured=pdf.length===1&&json.length===1;
+  const hasHour=(output:string,value:number)=>new RegExp('(?:^|[^0-9.,])'+value+'(?![0-9]|[.,][0-9])').test(output);
+  const omitted=measured&&hours.some(f=>!report.role_outputs.some(o=>hasHour(o.content,f.value)));
+  if(report.scope==='local-inspection-excerpts-v1')return <article className="connected-report excerpt-delivery">
+    {measured?<><h3>{pdf[0].value===json[0].value?'Las dos fuentes coinciden':'Las dos fuentes discrepan'}</h3>
+      <p className="report-scope">Comparación local de los extractos autorizados.</p>
+      <div className="source-hour-list" aria-label="Valores en las fuentes">{hours.map((f,i)=><p key={i}><strong>{f.value} h</strong> · {f.name} · {f.page?'pág. '+f.page:'línea '+f.line}</p>)}</div>
+      <details className="model-notes"><summary>Opinión del modelo · por contrastar</summary>
+        {omitted&&<p className="report-scope">El comentario omite al menos una de las cifras citadas.</p>}
+        {report.role_outputs.map((out,i)=><p className="model-answer" key={i}>{out.content}</p>)}</details></>:
+      <><h3>Opinión del modelo</h3><p className="report-scope">Contrasta el comentario con sus fuentes.</p>
+      {report.role_outputs.map((out,i)=><p className="model-answer" key={i}>{out.content}</p>)}</>}
+    <details><summary>Fuentes que recibió el modelo</summary>{report.authorized_fragments?.map((f,i)=><blockquote key={i}><strong>{f.name}</strong> {f.page?'· pág. '+f.page:f.line?'· línea '+f.line:''}<p>{f.quote}{f.unit&&typeof f.value==='number'?' · '+f.value+' '+f.unit:''}</p></blockquote>)}</details></article>;
   return <article className="connected-report"><span className="eyebrow">Comprobaciones estáticas</span>
     <h3>{findingTitle(report.findings.length)}</h3><p className="report-scope">{report.findings.length?'Ubicaciones de la captura. Comprueba los candidatos en el navegador.':'Comprueba en el navegador el nombre de los controles y la función de las imágenes.'}</p>
     <FindingList findings={report.findings}/>

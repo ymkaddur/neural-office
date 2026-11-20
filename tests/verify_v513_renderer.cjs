@@ -184,6 +184,14 @@ async function main(){
   const btn=(s)=>page.getByRole('button',{name:s,exact:true});
   const heading=(s)=>page.getByRole('heading',{name:s,exact:true});
   const save=(name)=>page.screenshot({path:path.join(out,name+'.png')});
+  async function compareState(name){
+    const previous=await page.locator('.desk513').evaluate(el=>el.classList.contains('theme-dark'));
+    for(const [scheme,code] of [['dark','noche'],['light','arena']]){
+      await page.emulateMedia({colorScheme:scheme});await themeIs(scheme==='dark');
+      await save('514-'+name+'-'+code);
+    }
+    await page.emulateMedia({colorScheme:previous?'dark':'light'});
+  }
   const box=page.getByRole('textbox',{name:'Instrucción para el Director'});
   const themeIs=async dark=>page.waitForFunction(flag=>document.querySelector('.desk513')?.classList.contains('theme-dark')===flag,dark);
   const measures={contrast:[],contrast_scope:{
@@ -218,12 +226,16 @@ async function main(){
   async function ready(){await page.locator('.engine-state i.ready').waitFor();await page.locator('.desk-fault').count().then(n=>assert.equal(n,0));}
   try {
     await page.goto('http://127.0.0.1:52371');await ready();
+    assert.equal(await page.locator('.file-inspector').count(),0,'Una oficina nueva no debe mostrar el inspector vacío.');
+    await btn('Elegir archivos de la entrega').waitFor();
     await btn('Crear otro proyecto').click();
     await page.getByRole('textbox',{name:'Nombre del proyecto',exact:true}).fill('Portal de soporte');
     await btn('Abrir proyecto').click();
     await page.locator('.breadcrumbs').getByText('Portal de soporte',{exact:true}).waitFor();
     await btn('Adjuntar archivos').click();
     await page.getByRole('checkbox',{name:'Incluir movil.jpg',exact:true}).waitFor();
+    assert.equal(await page.locator('.connected-history-heading').count(),0);
+    assert(await page.locator('.connected-projects .selected>span').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
     await page.keyboard.press('Control+,');
     assert.equal(await btn('Sistema').getAttribute('aria-pressed'),'true');
     await btn('Volver al hilo').click();
@@ -236,7 +248,7 @@ async function main(){
     await page.emulateMedia({colorScheme:'dark'});await themeIs(true);
     measures.system_theme='dark → light → dark';writeMeasures();
     await box.fill(goal);
-    await save('01-hilo-adjuntos');
+    await compareState('adjuntos');await save('01-hilo-adjuntos');
     const idleStart=await resourceSnapshot(cdp);
     await new Promise(resolve=>setTimeout(resolve,2000));
     const idleEnd=await resourceSnapshot(cdp);
@@ -244,6 +256,55 @@ async function main(){
     await btn('Inspeccionar · 0 intentos').click(); await page.locator('.citation-row').first().waitFor();
     const untilFindingMs=performance.now()-clickAt;
     const inspected=await resourceSnapshot(cdp);
+    await compareState('entrega');
+    const beforeRepeat=calls.filter(method=>method==='attachments.inspect').length;
+    await box.press('Control+Enter');
+    assert.equal(calls.filter(method=>method==='attachments.inspect').length,beforeRepeat);
+    assert.equal(await btn('Inspeccionar · 0 intentos').count(),0);
+    await btn('Elegir 48 h · JSON').click();
+    await heading('Plazo elegido: 48 h · manifiesto.json').waitFor();
+    await compareState('decision');
+    measures.decision={saved:'48 h · manifiesto.json',repeat_did_not_resubmit:true};
+    if(process.env.NEURAL_OFFICE_TEST_MODEL){
+      const model=process.env.NEURAL_OFFICE_TEST_MODEL;
+      await btn('Consultar al modelo').click();
+      const modelSelect=page.getByLabel('Modelo local',{exact:true});
+      await modelSelect.selectOption({label:model},{timeout:50000});
+      await btn('Revisar permiso').click();
+      const approval=page.getByRole('dialog',{name:'Autorizar una consulta'});
+      await approval.waitFor();
+      assert.match(await approval.innerText(),/48 h/);
+      await compareState('permiso');
+      await approval.getByRole('button',{name:/Autorizar y ejecutar/}).click();
+      const control=page.getByRole('region',{name:'Control del trabajo en curso'});
+      await control.waitFor({timeout:35000});
+      await compareState('consulta');
+      const consultation=page.getByRole('region',{name:'Consulta de este hilo'});
+      await consultation.getByRole('heading',{name:'Las dos fuentes discrepan'}).waitFor({timeout:180000});
+      await heading('Plazo elegido: 48 h · manifiesto.json').waitFor();
+      assert.match(await page.locator('#project-balance').innerText(),/2 intentos disponibles/);
+      await page.locator('.connected-history-heading').filter({hasText:'Consultas al modelo'}).waitFor();
+      await consultation.locator('.model-notes summary').click();
+      const raw=await consultation.locator('.model-answer').innerText();
+      assert(raw.trim().length>0);
+      await compareState('opinion');
+      assert.equal(calls.filter(m=>m==='attempt.start').length,1);
+      assert.deepEqual(errors,[]);
+      fs.writeFileSync(path.join(out,'paid-ui.json'),JSON.stringify({model,choices:measures.decision,raw,displayed:await consultation.innerText(),starts:1,balance:await page.locator('#project-balance').innerText(),errors},null,2));
+      console.log('PASS model consultation returned to its thread with the saved decision.');return;
+    }
+    measures.breakpoints=[];
+    for(const width of [1001,1000,900,850,700,681]){
+      await page.setViewportSize({width,height:820});
+      await page.waitForFunction(w=>innerWidth===w,width);
+      const [a,b]=await page.evaluate(async()=>{
+        await new Promise(done=>requestAnimationFrame(()=>requestAnimationFrame(done)));
+        return ['.desk-thread','.file-inspector'].map(q=>document.querySelector(q).getBoundingClientRect().toJSON());
+      });
+      measures.breakpoints.push({width,thread:a?.width,inspector:b?.width});
+      assert(a&&b&&a.width>220&&b.width>160&&b.x>=a.x+a.width-1,'Paneles a '+width+': '+JSON.stringify([a,b]));
+    }
+    await page.setViewportSize({width:1440,height:900});
     measures.resources={
       surface:'Edge headless con bundle de producción y sidecar Python real por stdio. Selector y puente nativo sustituidos.',
       scope:'Edge según los procesos del navegador publicados por CDP. Sidecar Python y descendientes presentes al muestrear. Excluye el proceso Node de pruebas, consulta a modelos y núcleo Tauri.',
@@ -256,7 +317,7 @@ async function main(){
     assert.match(await page.locator('.thread-document').innerText(),/24/);assert.match(await page.locator('.thread-document').innerText(),/48/);
     await page.locator('.citation-row').filter({hasText:'especificacion.pdf'}).click();await page.locator('.image-stage img').waitFor();
     assert.match(await page.locator('.viewer-toolbar').innerText(),/2\s*\/\s*2/);
-    await page.keyboard.press('Control+,');await btn('Claro').click();await btn('Volver al hilo').click();
+    await compareState('evidencia');await page.keyboard.press('Control+,');await btn('Claro').click();await btn('Volver al hilo').click();
     assert(!await page.locator('.desk513').evaluate(el=>el.classList.contains('theme-dark')));await save('02-evidencia-arena');
     await page.locator('.citation-row').filter({hasText:'manifiesto.json'}).click();await page.locator('.line-target').waitFor();
     assert.match(await page.locator('.line-target').innerText(),/48/);
@@ -271,6 +332,9 @@ async function main(){
     assert.equal(await receipts.isVisible(),false);
     await activityButton.click();
     await receipts.waitFor({state:'visible'});await save('03-actividad-real');
+    await page.keyboard.press('Control+,');await btn('Sistema').click();await btn('Volver al hilo').click();
+    await compareState('actividad');
+    await page.keyboard.press('Control+,');await compareState('ajustes');await btn('Volver al hilo').click();
     await page.keyboard.press('Control+,');await btn('Oscuro').click();await btn('Compacta').click();await btn('115 %').click();
     await page.getByLabel('Alto contraste',{exact:true}).check();await save('04-apariencia');await btn('Volver al hilo').click();
     measures.fonts[115]=await fontSizes(page);
@@ -288,6 +352,8 @@ async function main(){
     await btn('visual/movil.jpg').click();await page.locator('.image-stage img').waitFor();
     assert((await page.locator('.image-stage img').evaluate(el=>el.naturalHeight))>0);
     await page.getByRole('navigation',{name:'Árbol del paquete'}).waitFor();
+    await page.keyboard.press('Control+,');await btn('Sistema').click();await btn('Volver al hilo').click();
+    await compareState('paquete');
     assert.equal(await page.locator('.package-context.has-member').evaluate(el=>getComputedStyle(el).display),'grid');
     await btn('Ampliar zoom').click();assert.match(await page.locator('.image-tools').innerText(),/125/);
     await btn('Reducir zoom').click();await btn('Reducir zoom').click();
@@ -301,6 +367,14 @@ async function main(){
     await page.locator('.command-results button').first().click();await page.getByRole('dialog',{name:'Apariencia'}).waitFor();await page.keyboard.press('Escape');
     await page.reload();await ready();await page.locator('.nav-threads button').filter({hasText:goal}).first().click();
     await page.locator('.citation-row').first().waitFor();
+    await heading('Plazo elegido: 48 h · manifiesto.json').waitFor();
+    measures.decision.reopened=true;
+    await box.fill('¿Qué decidimos?');
+    await btn('Inspeccionar · 0 intentos').click();
+    await heading('Se eligieron 48 h').waitFor();
+    await btn('Abrir la decisión original').click();
+    await heading('Plazo elegido: 48 h · manifiesto.json').waitFor();
+    measures.decision.followup_restored_original=true;
     assert.equal(await page.locator('.desk513').getAttribute('data-density'),'compact');assert.equal(await page.locator('.desk513').getAttribute('data-contrast'),'true');
     const pdf=page.locator('.citation-row').filter({hasText:'especificacion.pdf'});await pdf.click();await page.locator('.image-stage img').waitFor();
     await page.setViewportSize({width:390,height:740});await page.getByRole('button',{name:'Inspector',exact:true}).click();
@@ -318,6 +392,12 @@ async function main(){
     const callsBefore=calls.filter(name=>name==='models.list'||name==='attachments.preview').length;
     await permit.dispatchEvent('click');
     assert.equal(calls.filter(name=>name==='models.list'||name==='attachments.preview').length,callsBefore);
+    await page.locator('.file-list button').filter({hasText:'especificacion.pdf'}).click();
+    await page.locator('.image-stage img').waitFor();
+    assert(await permit.isDisabled());
+    await btn('Ver adjuntos').click();
+    assert.equal(await includePdf.isChecked(),false);
+    measures.selection.reading_excluded_did_not_authorize=true;
     await includePdf.check();
     assert(await permit.isEnabled());
     measures.selection.exclusion_blocks_model=true;
@@ -341,9 +421,10 @@ async function main(){
     measures.selection.after_trying_ninth=await checked();
     if(measures.selection.after_trying_ninth===9)await inputsOnScreen.last().uncheck();
     await btn('Inspeccionar · 0 intentos').click();
-    await page.getByText('8 adjuntos en esta entrega',{exact:false}).waitFor();
+    await page.getByText('8 archivos en esta entrega',{exact:false}).waitFor();
     measures.selection.inspected=8;writeMeasures();
-    const draftA='Borrador de lectura alfa',draftB='Borrador de lectura beta';
+    const prefix='Revisar los requisitos del portal y comparar el plazo de primera respuesta con el valor publicado en el manifiesto';
+    const draftA=prefix+' · alfa',draftB=prefix+' · beta';
     const navTo=async title=>{await page.locator('.nav-threads button').filter({hasText:title}).click();};
     const stored=()=>page.locator('.file-list input[type=checkbox]').count();
     const mutators=()=>calls.filter(m=>['attachments.pick','attachments.inspect','attachments.preview','attempt.start'].includes(m)).length;
@@ -353,10 +434,21 @@ async function main(){
     await page.locator('.new-task').click();await page.waitForFunction(()=>document.querySelector('.desk-composer textarea')?.value==='');
     await box.fill(draftB);await page.locator('.nav-threads button').filter({hasText:draftB}).waitFor();
     assert.equal(await stored(),0);
+    const draftRow=page.locator('.nav-threads button').filter({hasText:draftB});
+    await draftRow.focus();await draftRow.press('Tab');await page.keyboard.press('Shift+Tab');
+    assert(await draftRow.evaluate(b=>b.matches(':focus-visible')&&getComputedStyle(b.querySelector('span')).whiteSpace==='normal'));
+    measures.different_threads_readable_on_focus=true;
     await navTo(draftA);await page.waitForFunction(txt=>document.querySelector('.desk-composer textarea')?.value===txt,draftA);
     await navTo(draftB);await page.waitForFunction(txt=>document.querySelector('.desk-composer textarea')?.value===txt,draftB);
     assert.equal(mutators(),beforeDrafts);
     measures.drafts={threads:2,attachments:0,same_window_restored:true,mutations:0};writeMeasures();
+    await page.setViewportSize({width:390,height:740});
+    pickerFiles=inputs;
+    await btn('Elegir archivos de la entrega').click();
+    await page.getByText('5 archivos en la selección.',{exact:false}).waitFor();
+    assert.equal(await page.locator('.file-inspector').count(),0);
+    assert(await btn('Inspeccionar · 0 intentos').isVisible());
+    measures.selection.narrow_attachment_keeps_composer=true;writeMeasures();
     assert(measures.selection.initial_included<=8&&measures.selection.after_trying_ninth<=8,'La selección visible excede ocho archivos.');
     assert.deepEqual(measures.contrast.filter(row=>!row.passed),[],'Contraste medido bajo el mínimo de la muestra.');
     for(const [theme,row] of Object.entries(measures.high_contrast)){

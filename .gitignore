@@ -343,3 +343,8 @@
 !docs/evidence/V5_13_RENDERER.json
 !docs/images/v5.13-evidencia.png
 !docs/images/v5.13-paquete.png
+
+!neural_office/inspection_intent.py
+!tests/test_v514_decisions.py
+!docs/V5_14_LOCAL.md
+!docs/evidence/V5_14_LOCAL.json

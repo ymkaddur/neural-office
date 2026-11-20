@@ -21,6 +21,8 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "attachments.history",
     "attachments.report",
     "attachments.preview",
+    "attachments.decide",
+    "attachments.activity",
     "attempt.preview",
     "attempt.start",
     "attempt.cancel",

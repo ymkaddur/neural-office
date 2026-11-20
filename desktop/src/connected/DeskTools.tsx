@@ -55,12 +55,15 @@ function Choices<T extends string|number>({label,value,options,onChange}:{label:
   return <div className="desk-segment" role="group" aria-label={label}>{options.map(([v,text])=><button key={v} aria-pressed={v===value} onClick={()=>onChange(v)}>{text}</button>)}</div>;
 }
 function PaletteSample({night}:{night:boolean}){
-  return <div className={'palette-sample '+(night?'night':'sand')} aria-hidden="true"><div className="sample-bar"><Icon name="mark"/> Neural Office</div><div className="sample-layout"><div><i/><i/><i/></div><div><span>Director</span><strong>Revisar entrega</strong><i/><i/></div><div><span>Adjuntos</span><i/><i/></div></div></div>;
+  return <div className={'palette-sample reading-sample '+(night?'night':'sand')} aria-hidden="true">
+    <small>Ejemplo de lectura</small><strong>Plazo de primera respuesta</strong>
+    <div><span>Especificación</span><b>24 h</b></div><div><span>Manifiesto</span><b>48 h</b></div>
+  </div>;
 }
 export function AppearancePanel({appearance,close,control}:{appearance:ReturnType<typeof useAppearance>;close:()=>void;control?:ReactNode}){
   const {prefs,update,dark,saved}=appearance;
   return <DeskDialog wide label="Apariencia" close={close}><div className="prefs-body">{control}
-    <div className="pref-row"><div><strong>Tema</strong><p>{prefs.theme==='system'?'Siguiendo al sistema · ':''}{dark?'Azul noche':'Arena'}</p></div>
+    <div className="pref-row"><div><strong>Tema</strong><p>{prefs.theme==='system'?'Siguiendo al sistema · ':''}{dark?'Oscuro · Azul noche':'Claro · Arena'}</p></div>
       <Choices label="Tema" value={prefs.theme} options={[['system','Sistema'],['light','Claro'],['dark','Oscuro']]} onChange={theme=>update({...prefs,theme})}/></div>
     <div className="palette-samples">{[false,true].map(night=><button key={String(night)} aria-pressed={dark===night} onClick={()=>update({...prefs,theme:night?'dark':'light'})}><PaletteSample night={night}/><strong>{night?'Azul noche':'Arena'}</strong>{dark===night&&<Icon name="check"/>}</button>)}</div>
     <h3>Lectura y teclado</h3>
@@ -80,6 +83,15 @@ export function CommandSearch({items,close,control}:{items:DeskAction[];close:()
   const choices=items.filter(item=>norm(item.name+' '+(item.detail??'')).includes(norm(query.trim())));
   return <DeskDialog label="Buscar hilo o acción" close={close}><div className="command-body">{control}
     <input aria-label="Buscar por nombre o proyecto" autoFocus value={query} placeholder="Nombre del hilo, proyecto o acción…" onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='ArrowDown'){e.preventDefault();e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.command-results button')?.focus();}}}/>
-    <div className="command-results">{choices.map(item=><button key={item.id} onClick={()=>{close();item.run();}}><span>{item.name}</span><small>{item.detail}</small></button>)}{!choices.length&&<p>Sin coincidencias.</p>}</div>
+    <div className="command-results" onKeyDown={e=>{
+      if(!['ArrowDown','ArrowUp'].includes(e.key))return;
+      const nodes=[...e.currentTarget.querySelectorAll('button')];
+      const index=nodes.indexOf(document.activeElement as HTMLButtonElement);
+      if(index<0)return;
+      e.preventDefault();nodes[(index+(e.key==='ArrowDown'?1:-1)+nodes.length)%nodes.length]?.focus();
+    }}>{(['Acciones','Proyectos','Hilos','Consultas'] as const).map(group=>{
+      const rows=choices.filter(item=>(item.id.startsWith('p-')?'Proyectos':item.id.startsWith('t-')?'Hilos':item.id.startsWith('a-')?'Consultas':'Acciones')===group);
+      return rows.length>0&&<section key={group} aria-label={group}><h3>{group}</h3>{rows.map(item=><button key={item.id} onClick={()=>{close();item.run();}}><span>{item.name}</span><small>{item.detail}</small></button>)}</section>;
+    })}{!choices.length&&<p>Sin coincidencias.</p>}</div>
   </div></DeskDialog>;
 }

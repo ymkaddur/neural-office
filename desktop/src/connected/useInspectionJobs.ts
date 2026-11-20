@@ -3,7 +3,7 @@ import {attachmentApi} from './attachments.ts';
 import {request} from './client.ts';
 
 const api=attachmentApi(request);
-export type InspectionJob={key:string;project:string;thread:string;session:string;office:string;state:'reading'|'stopping'|'complete'|'error';reportId?:string;error?:string};
+export type InspectionJob={objective:string;ids:string[];key:string;project:string;thread:string;session:string;office:string;state:'reading'|'stopping'|'complete'|'error';reportId?:string;error?:string};
 export function useInspectionJobs(office:string,session:string){
   const [jobs,setJobs]=useState<InspectionJob[]>([]);
   const flights=useRef(new Set<string>());
@@ -15,7 +15,7 @@ export function useInspectionJobs(office:string,session:string){
   async function inspect(project:string,thread:string,ids:string[],objective:string){
     const key=identity(project,thread);
     if(flights.current.has(key))throw Error('ATTACHMENT_READER_BUSY');
-    flights.current.add(key);const item={key,project,thread,office,session};
+    flights.current.add(key);const item={key,project,thread,office,session,objective,ids:[...ids]};
     record({...item,state:'reading'});
     try{
       const result=await api.inspect(project,thread,ids,objective);

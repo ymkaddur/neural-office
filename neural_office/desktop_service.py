@@ -483,7 +483,7 @@ class DesktopService:
                 attachment_commands = {'attachments.list': store.list, 'attachments.view': self.attachment_view,
                                        'attachments.inspect': store.inspect, 'attachments.threads': store.threads,
                                        'attachments.history': store.history, 'attachments.report': store.report,
-                                       'attachments.preview': self.preview_excerpts, 'attachments.cancel': self.cancel_attachment_reads}
+                                       'attachments.activity': store.activity, 'attachments.decide': store.decide, 'attachments.preview': self.preview_excerpts, 'attachments.cancel': self.cancel_attachment_reads}
                 return attachment_commands[method](**params)
             handlers = {'source.check': self.check_source, 'attempt.preview': self.preview, 'attempt.start': self.start,
                         'attempt.cancel': self.cancel, 'attempt.recover': self.recover,

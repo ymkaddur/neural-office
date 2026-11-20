@@ -5,11 +5,12 @@ import type {Attempt, Snapshot} from './model.ts';
 
 type Props = {
   project: string; snapshot: Snapshot | null; current: Attempt | null; selected?: string; disabled: boolean;
+  showProjectName: boolean;
   offline: boolean; onOpen: (item: Attempt) => void; onRefresh: () => Promise<void>;
 };
 type Page = Pick<Snapshot, 'session_id' | 'office_id' | 'revision' | 'attempts'> & {project_id: string};
 
-export function ProjectHistory({project, snapshot, current, selected, disabled, offline, onOpen, onRefresh}: Props) {
+export function ProjectHistory({project, snapshot, current, selected, disabled, offline, onOpen, onRefresh, showProjectName}: Props) {
   const [page, setPage] = useState<Page | null>(null);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -40,7 +41,9 @@ export function ProjectHistory({project, snapshot, current, selected, disabled, 
   const rows = scoped ? (page && page.project_id === project && page.office_id === office && page.session_id === session &&
     revision !== undefined && page.revision >= revision ? page.attempts : undefined)
     : snapshot?.attempts.filter(a => a.project_id === project).sort((a,b) => b.ordinal-a.ordinal);
-  return <div className="connected-history">
+  const showHeading=failed||!rows||rows.length>0;
+  return <>{showHeading&&<div className="connected-nav-heading connected-history-heading">Consultas al modelo{showProjectName&&<span>{project}</span>}</div>}
+  <div className="connected-history">
     {failed && <p role="status">No se pudo confirmar el historial. <button className="nav-secondary" disabled={offline||disabled} onClick={() => void onRefresh().then(() => setRetry(n => n+1))}>Reintentar lectura</button></p>}
     {rows?.map(a => {
       const state = current && current.session_id === session && current.project_id === project &&
@@ -50,6 +53,6 @@ export function ProjectHistory({project, snapshot, current, selected, disabled, 
       </button>;
     })}
     {!failed && !rows && <p className="history-empty">{offline ? 'Historial pendiente de conexión.' : 'Leyendo historial…'}</p>}
-    {!failed && rows?.length === 0 && <p className="history-empty">Todavía no hay consultas al modelo.</p>}
-  </div>;
+
+  </div></>;
 }

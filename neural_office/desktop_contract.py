@@ -25,6 +25,8 @@ METHODS = {
                          'page': 'page', 'member': 'member'},
     'attachments.history': {'project_id': 'project', 'thread_id': 'id'},
     'attachments.report': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id'},
+    'attachments.activity': {'project_id':'project','thread_id':'id'},
+    'attachments.decide': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id', 'choice':'decision', 'expected_revision':'revision'},
     'attachments.preview': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id',
                             'model_digest': 'digest', 'objective': 'objective'},
     'source.check': {'project_id': 'project', 'entry_token': 'id', 'offset': 'revision'},
@@ -42,6 +44,7 @@ METHODS = {
 
 
 def valid(kind, value):
+    if kind == 'decision': return type(value) is str and value in ('pdf','json','defer')
     if kind == 'project':
         # Existing ledger identifiers are user text, not opaque capability IDs.
         if type(value) is not str or not 1 <= len(value) <= 80: return False

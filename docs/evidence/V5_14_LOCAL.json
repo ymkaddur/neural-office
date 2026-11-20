@@ -1,0 +1,189 @@
+{
+  "version": "5.14.0-alpha.1",
+  "observed_utc_date": "2026-11-20",
+  "base_commit": "c2cfa246ee7b085c9e5c1f16964e890e554ec144",
+  "test_data": "Cinco archivos sintéticos creados por examples/multiformat/build_example.py",
+  "suites": {
+    "python": 248,
+    "desktop_node": 77,
+    "production_typescript_vite": "passed"
+  },
+  "renderer": {
+    "surface": "Microsoft Edge + production React + actual stdio Python. Picker and Tauri bridge substituted only in this test.",
+    "browser_version": "157.0.4341.60",
+    "bundle_sha256": {
+      "index.html": "8655e22705662af3cc6460c7150862faf638df0d98811e83944dc729b042ba82",
+      "assets/index-D6DhNxNR.js": "f1161c058667db7349687647058db0ca0f07b13736f1c0a17a7f1874ad790edc",
+      "assets/index-DSM7Bdca.css": "93f8023c192abb740b92d9c4402d59500488623d70b4201f36d61880580f9997"
+    },
+    "inputs_sha256": {
+      "especificacion.pdf": "1971b67678268bf5fa1b9eff201a1779809f2c54769e698ef2bcd9923e103ea0",
+      "entrega.zip": "c11ae3658a14b4177b91759d0e8bcfc46d160708768746f781cf7a0273250645",
+      "manifiesto.json": "f09570bdae4023698ae1770b26788dde6ff0e6a60b95fbe6028dfd7f4d094b30",
+      "portada.png": "aed85e3f1f1b9d0fe5aae943725091d3ab0ee4145c703520ed4b498087457190",
+      "movil.jpg": "9b0ee2ca5d52f39aa671801b1e854d1870c6db0e190c4aac94d1cd7297c4999b"
+    },
+    "errors": [],
+    "decision": {
+      "saved": "48 h · manifiesto.json",
+      "repeat_did_not_resubmit": true,
+      "reopened": true,
+      "followup_restored_original": true
+    },
+    "selection": {
+      "reading_excluded_did_not_authorize": true,
+      "exclusion_blocks_model": true,
+      "initial_included": 8,
+      "after_trying_ninth": 8,
+      "inspected": 8,
+      "narrow_attachment_keeps_composer": true
+    },
+    "long_thread_titles_on_keyboard_focus": true,
+    "contrast": [
+      {
+        "theme": "Azul noche",
+        "samples": 15,
+        "normal_text_min": 8.042,
+        "large_text_min": 13.63,
+        "keyboard_focus_min": 8.753
+      },
+      {
+        "theme": "Arena",
+        "samples": 15,
+        "normal_text_min": 5.924,
+        "large_text_min": 14.25,
+        "keyboard_focus_min": 5.73
+      }
+    ],
+    "widths": [
+      {
+        "width": 1001,
+        "thread": 459,
+        "inspector": 320
+      },
+      {
+        "width": 1000,
+        "thread": 631.046875,
+        "inspector": 354.96875
+      },
+      {
+        "width": 900,
+        "thread": 566.015625,
+        "inspector": 320
+      },
+      {
+        "width": 850,
+        "thread": 521,
+        "inspector": 320
+      },
+      {
+        "width": 700,
+        "thread": 371,
+        "inspector": 320
+      },
+      {
+        "width": 681,
+        "thread": 352,
+        "inspector": 320
+      }
+    ],
+    "resources": {
+      "surface": "Edge headless con bundle de producción y sidecar Python real por stdio. Selector y puente nativo sustituidos.",
+      "scope": "Edge según los procesos del navegador publicados por CDP. Sidecar Python y descendientes presentes al muestrear. Excluye el proceso Node de pruebas, consulta a modelos y núcleo Tauri.",
+      "limits": "Dos muestras por ventana. CPU acumulada sólo de procesos presentes en ambos extremos. La suma de working sets puede repetir páginas compartidas. Los lectores fugaces y los picos entre muestras no se cuantifican. El intervalo incluye el coste temporal de muestrear desde PowerShell.",
+      "logical_cpus": 20,
+      "cpu_base": "100% = un núcleo lógico",
+      "memory_unit": "MiB = 1048576 bytes",
+      "idle_with_five_sources": {
+        "from_utc": "2026-11-20T01:04:58.2887237Z",
+        "to_utc": "2026-11-20T01:05:01.7409486Z",
+        "seconds": 3.452,
+        "groups": {
+          "edge": {
+            "processes_start": 9,
+            "processes_end": 9,
+            "processes_common": 9,
+            "cpu_ms_common": 125,
+            "cpu_pct_one_core": 3.62,
+            "working_set_mib_start": 666.33,
+            "working_set_mib_end": 666.18,
+            "private_mib_start": 347.12,
+            "private_mib_end": 346.22
+          },
+          "sidecar": {
+            "processes_start": 3,
+            "processes_end": 3,
+            "processes_common": 3,
+            "cpu_ms_common": 0,
+            "cpu_pct_one_core": 0,
+            "working_set_mib_start": 39.79,
+            "working_set_mib_end": 39.79,
+            "private_mib_start": 18.44,
+            "private_mib_end": 18.44
+          }
+        }
+      },
+      "five_source_local_inspection": {
+        "from_utc": "2026-11-20T01:05:01.7409486Z",
+        "to_utc": "2026-11-20T01:05:04.4684091Z",
+        "seconds": 2.728,
+        "groups": {
+          "edge": {
+            "processes_start": 9,
+            "processes_end": 9,
+            "processes_common": 9,
+            "cpu_ms_common": 140.63,
+            "cpu_pct_one_core": 5.15,
+            "working_set_mib_start": 666.18,
+            "working_set_mib_end": 674.38,
+            "private_mib_start": 346.22,
+            "private_mib_end": 351.18
+          },
+          "sidecar": {
+            "processes_start": 3,
+            "processes_end": 3,
+            "processes_common": 3,
+            "cpu_ms_common": 46.88,
+            "cpu_pct_one_core": 1.72,
+            "working_set_mib_start": 39.79,
+            "working_set_mib_end": 40.14,
+            "private_mib_start": 18.44,
+            "private_mib_end": 18.44
+          }
+        }
+      },
+      "action_to_first_visible_finding_ms": 1373.7
+    }
+  },
+  "local_model": {
+    "name": "qwen2.5:0.5b",
+    "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "real_reservations_in_final_office": 1,
+    "balance_after": 2,
+    "human_choice": "48 h · manifiesto.json",
+    "data_grounded": [
+      "especificacion.pdf / página 2 / 24 h",
+      "manifiesto.json / línea 4 / 48 h"
+    ],
+    "observed_raw_output_final": "La primera respuesta en 24 horas coincide con la fuentes proporcionadas, ya que la especificación PDF fija 24 horas. Sin embargo, la fuentes proporcionadas no coinciden con la respuesta en 48 horas, ya que la fuentes proporcionadas indican 48 horas, no 24 horas.",
+    "observed_raw_output_earlier_run": "La primera respuesta coincide con la segunda, pero la segunda no menciona la fuentes de los datos. No puedo decidir qué falta.",
+    "interpretation": "Las dos frases son observaciones del modelo local. La discrepancia de valores y la decisión humana se conservan separadas."
+  },
+  "native": {
+    "compile": "blocked",
+    "executable_generated": false,
+    "native_picker_exercised": false,
+    "cargo_exit_code": 101,
+    "windows_error": 4551,
+    "event": 3077,
+    "time_utc": "2026-11-20T00:26:22.7555567Z",
+    "policy": "VerifiedAndReputableDesktop",
+    "component": "serde_json build_script_build.exe",
+    "flat_sha256_of_blocked_helper": "09d4d40fb62c0e8b48748dc335bbd0b1a413fd7b407348d83ab9f66421fd2100"
+  },
+  "limits": [
+    "Prueba en Edge con el transporte y el selector Tauri sustituidos",
+    "Muestras de contraste y rendimiento acotadas",
+    "Pendiente verificación nativa del candidato y pruebas con personas."
+  ]
+}

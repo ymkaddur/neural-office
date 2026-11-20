@@ -11,14 +11,16 @@ export type Citation = {
   member?: string; pdf_rect?: number[]; region?: number[]; context?: string; value?: number | string; unit?: string;
 };
 export type InspectionFinding = {
-  rule: string; status: 'match' | 'mismatch' | 'insufficient' | 'observed'; total?: number;
+  rule: string; origin_report?: string; status: 'match' | 'mismatch' | 'insufficient' | 'observed'; total?: number;
   title: string; detail: string; sources: Citation[];
 };
 export type InspectionStep = {
   at: number; duration_ms: number; actor: string; action: string;
   detail: string; status: string; attachment_id?: string;
 };
+export type ReviewDecision = {revision: number; choice: 'pdf'|'json'|'defer'; at: number};
 export type Inspection = {
+  completed_at?: number; decision?: ReviewDecision;
   id: string; project_id: string; thread_id: string; created_at: number; objective: string;
   attachments: Attachment[]; findings: InspectionFinding[]; steps: InspectionStep[];
   reservations: number; model_calls: number;
@@ -103,6 +105,8 @@ export function attachmentApi(send: Requester) {
     history: (project: string, thread: string) => read<InspectionSummary[]>('attachments.history', target(project, thread)),
     report: (project: string, thread: string, report_id: string) =>
       read<Inspection>('attachments.report', { ...target(project, thread), report_id }),
+    decide: (project: string, thread: string, report_id: string, choice: ReviewDecision['choice'], expected_revision: number) =>
+      send<ReviewDecision>('attachments.decide', {...target(project, thread), report_id, choice, expected_revision}),
     preview: (project: string, thread: string, report_id: string, model_digest: string, objective: string) =>
       send<ExcerptApproval>('attachments.preview', { ...target(project, thread), report_id, model_digest, objective }),
   };

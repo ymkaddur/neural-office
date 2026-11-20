@@ -1,9 +1,10 @@
 # Neural Office
 
-**V5.13-Polished · escritorio de revisión multiformato para Windows, en rama de pruebas.** Adjunta la entrega de un proyecto y escribe qué quieres comprobar. El hilo conserva los resultados de la inspección local y enlaza cada hallazgo con su fuente. Puedes pedir al Director que comente los extractos autorizados con un modelo de Ollama.
+**V5.14 · revisión local del candidato para Windows.** El Director contrasta las fuentes seleccionadas con el encargo. En el ejemplo del portal puedes elegir qué plazo rige la entrega, aplazar la decisión o revisarla al volver al hilo. Cada decisión se guarda junto a la identidad de esa inspección. El modelo local requiere una autorización aparte.
 
-[![Pruebas de V5.13-Polished en Windows](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml/badge.svg?branch=feat%2Fv5.13-polished)](https://github.com/ymkaddur/neural-office/actions/workflows/windows-tests.yml?query=branch%3Afeat%2Fv5.13-polished)
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+
+La comprobación de V5.14 en Windows cubre el núcleo Python, el frontend en Edge y una consulta a Ollama. El Control de aplicaciones bloqueó un auxiliar de Rust antes de generar el ejecutable. Las capturas históricas que aparecen abajo pertenecen a V5.13. [Pruebas de V5.14 y límites de la entrega](docs/V5_14_LOCAL.md)
 
 ## Probar una entrega
 
