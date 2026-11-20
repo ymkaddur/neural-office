@@ -98,6 +98,16 @@ def words(text):
     return ' '.join(text.split())
 
 
+def window_titles(screen):
+    import win32gui
+    expected = 'Neural Office · V' + VERSION
+    host_title = win32gui.GetWindowText(screen.window.handle)
+    documents = [item.element_info.name for item in screen.window.descendants(control_type='Document') if item.is_visible()]
+    verify(host_title == expected, 'Unexpected Win32 title: ' + host_title)
+    verify(documents == [expected], 'Unexpected WebView2 document titles: ' + repr(documents))
+    return {'title': host_title, 'webview2_document_title': documents[0]}
+
+
 @contextmanager
 def desktop(exe, work, out, phase):
     with window(exe, ROOT, work, VERSION) as (screen, host, job, ready):
@@ -115,11 +125,8 @@ def local(exe, work, state, out, receipt):
     files = fixtures(work / 'entrega de prueba')
     hashes = {p.name: sha(p) for p in files}
     with desktop(exe, work, out, 'local') as (screen, host, ready):
-        import win32gui
-        title = win32gui.GetWindowText(screen.window.handle)
-        verify(title == 'Neural Office · V' + VERSION, 'Window title differs from the release')
         verify(screen.control('Instrucción para el Director', 'Edit').is_visible(), 'Missing composer')
-        receipt.update(title=title, ready_seconds=round(ready, 2), pid=host.pid)
+        receipt.update(window_titles(screen), ready_seconds=round(ready, 2), pid=host.pid)
         screen.screenshot(out / '01-ventana.png')
         choose_files(screen, host, files, title='Adjuntar archivos al hilo', button='^Adjuntar archivos$')
         wanted = {'Incluir ' + p.name for p in files}
@@ -194,22 +201,86 @@ def accepted(state, inspection):
             'mode': profile['mode'], 'state': attempt['state']}
 
 
+def resize_to_minimum(screen):
+    import win32con
+    import win32gui
+    if screen.geometry()['maximized']:
+        screen.maximize(False)
+    geom = screen.geometry()
+    handle = screen.window.handle
+    left, top, right, bottom = win32gui.GetWindowRect(handle)
+    _, _, old_width, old_height = win32gui.GetClientRect(handle)
+    width, height = (round(size * geom['dpi'] / 96) for size in (760, 540))
+    x, y = geom['monitor_work_area_px'][:2]
+    win32gui.SetWindowPos(handle, 0, x + 8, y + 8, width + right - left - old_width,
+                          height + bottom - top - old_height, win32con.SWP_NOZORDER | win32con.SWP_NOACTIVATE)
+    wait(lambda: win32gui.GetClientRect(handle)[2:] == (width, height), description='minimum native client size')
+
+
+def open_permission(screen, state):
+    screen.button('Consultar al modelo')
+    wait(lambda: screen.control('Modelo local', 'ComboBox').selected_text() == MODEL, description='real model in catalog')
+    screen.button('Revisar permiso')
+    wait(lambda: 'Autorizar una consulta' in screen.names(), description='visible approval before charging')
+    verify(ASK in screen.names(visible_only=False) and PDF_QUOTE in screen.names(visible_only=False),
+           'Approval lacks request or excerpt')
+    verify(readonly_counts(state)['attempts'] == 0, 'Opening permission charged a reservation')
+
+
+def check_first_frame(screen, screenshot):
+    from pywinauto import Desktop
+    # Observe without focusing, scrolling, invoking, or bringing the button into view.
+    button = screen.control(r'^Autorizar y ejecutar.*', regex=True)
+    dialog = screen.control('Autorizar una consulta', 'Window')
+    screen.window.capture_as_image().save(screenshot)
+    geom = screen.geometry()
+    x, y = geom['client_origin_screen_px']
+    width, height = geom['client_rectangle_px'][2:]
+    rect = button.rectangle()
+    bounds = [rect.left, rect.top, rect.right, rect.bottom]
+    frame = dialog.rectangle()
+    for area in ([x, y, x + width, y + height], geom['monitor_work_area_px'], [frame.left, frame.top, frame.right, frame.bottom]):
+        verify(area[0] <= rect.left < rect.right <= area[2] and area[1] <= rect.top < rect.bottom <= area[3],
+               f'Button outside the visible area: {bounds} / {area}')
+    verify(rect.width() >= 70 and rect.height() >= 24 and button.is_enabled(), 'Inactive or clipped action')
+    center = ((rect.left + rect.right) // 2, (rect.top + rect.bottom) // 2)
+    points = [center] + [(px, py) for px in (rect.left + 6, rect.right - 7) for py in (rect.top + 6, rect.bottom - 7)]
+    desktop_ui = Desktop(backend='uia')
+    for point in points:
+        hit = desktop_ui.from_point(*point)
+        ancestor = hit
+        while ancestor is not None and ancestor != button and ancestor != dialog:
+            ancestor = ancestor.parent()
+        verify(ancestor == button, f'Point {point} hits {hit.element_info.name!r} instead of the action')
+    return {'client_px': [width, height], 'button_screen_px': bounds, 'hit_points': points}
+
+
 def model(exe, work, state, out, receipt):
+    from pywinauto import keyboard, mouse
+    from pywinauto.uia_defines import IUIA
     baseline = json.loads((out / 'local.json').read_bytes())
     verify(baseline['status'] == 'passed' and baseline['exe_sha256'] == sha(exe), 'Different app or failed baseline')
     with real_model(work), desktop(exe, work, out, 'modelo') as (screen, host, ready):
         wait(lambda: DETAIL in screen.names(), description='native restart reopened the named-source answer')
+        receipt.update(window_titles(screen))
         edit(screen, ASK)
-        screen.button('Consultar al modelo')
-        wait(lambda: screen.control('Modelo local', 'ComboBox').selected_text() == MODEL, description='real model in catalog')
-        screen.button('Revisar permiso')
-        wait(lambda: 'Autorizar una consulta' in screen.names(), description='visible approval before charging')
-        verify(ASK in screen.names() and PDF_QUOTE in screen.names(), 'Approval lacks request or excerpt')
-        verify(readonly_counts(state)['attempts'] == 0, 'Opening permission charged a reservation')
-        screen.screenshot(out / '05-permiso.png')
-        confirm = screen.reveal_button(r'^Autorizar y ejecutar.*', regex=True)
-        screen.screenshot(out / '05-confirmacion.png')
-        screen.press_space(confirm)
+        open_permission(screen, state)
+        receipt['initial_permission'] = check_first_frame(screen, out / '05-permiso.png')
+        focus = lambda: IUIA().iuia.GetFocusedElement().CurrentName
+        wait(lambda: focus() == 'Cerrar revisión', description='initial focus on the close button')
+        keyboard.send_keys('{TAB}')
+        wait(lambda: focus() == 'Detalles del permiso', description='scope and excerpts reachable by keyboard')
+        keyboard.send_keys('+{TAB}')
+        wait(lambda: focus() == 'Cerrar revisión', description='reverse keyboard navigation')
+        keyboard.send_keys('{ESC}')
+        wait(lambda: focus() == 'Consultar al modelo' and 'Autorizar una consulta' not in screen.names(),
+             description='Escape returns focus to the thread')
+        verify(readonly_counts(state)['attempts'] == 0, 'Dismissing the first permission charged work')
+        receipt['escape_before_reservation'] = True
+        resize_to_minimum(screen)
+        open_permission(screen, state)
+        receipt['minimum_permission'] = check_first_frame(screen, out / '05-permiso-minimo.png')
+        mouse.click(coords=receipt['minimum_permission']['hit_points'][0])
         terminal = {'ACCEPTED', 'FAILED', 'CANCELLED', 'REJECTED', 'RECOVERY_REQUIRED'}
         def final_state():
             counts = readonly_counts(state)

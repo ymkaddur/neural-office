@@ -4,13 +4,12 @@ on:
     branches: [ci/v5.35-polished-windows]
 permissions:
   contents: read
-  actions: read
 jobs:
   native:
     runs-on: windows-latest
     timeout-minutes: 45
     env:
-      PRODUCT_SHA: 12f6c04c7fc3ce297d08a01826a82c873936380b
+      PRODUCT_SHA: 89cffcb50e1537d0d74ef8619ee32eb05e82d766
       PYTHONUTF8: 1
     steps:
       - name: Check out test harness
@@ -32,39 +31,7 @@ jobs:
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: '3.12'
-      - name: Restore the exact executable from the successful two-file test while it is retained
-        id: verified_binary
-        if: github.repository == 'ymkaddur/neural-office'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $api = 'https://api.github.com/repos/ymkaddur/neural-office/actions/artifacts/14668301288'
-          $headers = @{Authorization="Bearer $env:GH_TOKEN"; Accept='application/vnd.github+json'}
-          $response = Invoke-WebRequest -Uri $api -Headers $headers -SkipHttpErrorCheck
-          if ($response.StatusCode -eq 404 -or $response.StatusCode -eq 410) { Write-Host 'Previous artifact unavailable; building from source.'; exit 0 }
-          if ($response.StatusCode -ne 200) { throw "Artifact lookup failed ($($response.StatusCode))" }
-          $metadata = $response.Content | ConvertFrom-Json
-          if ($metadata.expired) { Write-Host 'Previous artifact expired; building from source.'; exit 0 }
-          $archiveHash = '11f6aef44114c87414b7f33047f5d039bd719b63643606436365bf87a0bb7d82'
-          $exeHash = 'ecf418b1b9e2ab127007ade1fce4f53f3c99dffdded6ff72e03eed180736417d'
-          if ($metadata.workflow_run.id -ne 44812217437 -or $metadata.digest -ne "sha256:$archiveHash") { throw 'Artifact provenance mismatch' }
-          $archive = Join-Path $env:RUNNER_TEMP 'v535-pinned-binary.zip'
-          Invoke-WebRequest -Uri "$api/zip" -Headers $headers -OutFile $archive
-          if ((Get-FileHash -LiteralPath $archive).Hash -ne $archiveHash) { throw 'Downloaded archive digest differs' }
-          $restored = Join-Path $env:RUNNER_TEMP 'v535-pinned-binary'
-          Expand-Archive -LiteralPath $archive -DestinationPath $restored
-          $releaseDir = 'product/desktop/src-tauri/target/release'
-          $exe = Get-Item -LiteralPath (Join-Path $restored "$releaseDir/neural-office-desktop.exe")
-          if ($exe.VersionInfo.ProductVersion -ne '5.35.1' -or (Get-FileHash -LiteralPath $exe.FullName).Hash -ne $exeHash) { throw 'Executable identity differs' }
-          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-          Copy-Item -LiteralPath $exe.FullName -Destination $releaseDir
-          Copy-Item -LiteralPath (Join-Path $restored "$releaseDir/SHA256SUMS") -Destination $releaseDir
-          Copy-Item -LiteralPath (Join-Path $restored 'binary-notices') -Destination 'binary-notices' -Recurse
-          'restored=true' | Out-File -Append -Encoding utf8 $env:GITHUB_OUTPUT
       - name: Build the production Tauri executable
-        if: steps.verified_binary.outputs.restored != 'true'
         working-directory: product/desktop
         shell: pwsh
         run: |
@@ -100,11 +67,11 @@ jobs:
           retention-days: 14
       - name: Collect notices for the tested binary
         id: notices
-        if: ${{ !cancelled() && steps.local_gui.outcome == 'success' && steps.verified_binary.outputs.restored != 'true' }}
+        if: success()
         working-directory: product
         run: python -B tools/collect_native_notices.py --output ../binary-notices
       - name: Upload the tested executable and its hash
-        if: ${{ !cancelled() && steps.local_gui.outcome == 'success' && (steps.notices.outcome == 'success' || steps.verified_binary.outputs.restored == 'true') }}
+        if: success()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: v535-polished-windows-exe
