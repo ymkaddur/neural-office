@@ -18,7 +18,8 @@ RUNTIME_FILES = ('Start-NeuralOffice-Desktop.ps1', 'requirements-readers-windows
 
 def package(exe, notices, output):
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
-    archive = subprocess.check_output(['git', 'archive', '--format=zip', commit, '--',
+    archive = subprocess.check_output(['git', '-c', 'core.autocrlf=false', '-c', 'core.eol=lf',
+                                       'archive', '--format=zip', commit, '--',
                                        'neural_office', *RUNTIME_FILES], cwd=ROOT)
     with ZipFile(io.BytesIO(archive)) as sources:
         files = {name: sources.read(name) for name in sources.namelist()

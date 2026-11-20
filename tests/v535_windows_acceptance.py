@@ -194,7 +194,7 @@ def local(exe, work, state, out, receipt):
 @contextmanager
 def real_model(work):
     tools = Path(os.environ['NO_E2E_TOOLS'])
-    distribution = prepare_ollama(tools)
+    distribution = prepare_ollama(tools, destination=work / 'ollama-distribution')
     with socket.socket() as unused:
         unused.bind(('127.0.0.1', 11434))
     os.environ.update(PATH=str(distribution) + os.pathsep + os.environ['PATH'], OLLAMA_HOST='127.0.0.1:11434',

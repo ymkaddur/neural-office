@@ -160,13 +160,19 @@ class Samples:
         self.worker.join(5)
 
 
-def prepare_ollama(tools):
+def prepare_ollama(tools, *, destination=None):
     archive = tools / 'ollama.zip'
-    urllib.request.urlretrieve(
-        f'https://github.com/ollama/ollama/releases/download/v{OLLAMA_VERSION}/ollama-windows-amd64.zip', archive)
-    if sha(archive) != OLLAMA_SHA256:
+    if not archive.exists():
+        with tempfile.TemporaryDirectory(dir=tools) as scratch:
+            download = Path(scratch) / archive.name
+            urllib.request.urlretrieve(
+                f'https://github.com/ollama/ollama/releases/download/v{OLLAMA_VERSION}/ollama-windows-amd64.zip', download)
+            if sha(download) != OLLAMA_SHA256:
+                raise AssertionError('OLLAMA_ARCHIVE_HASH_CHANGED')
+            download.replace(archive)
+    elif sha(archive) != OLLAMA_SHA256:
         raise AssertionError('OLLAMA_ARCHIVE_HASH_CHANGED')
-    root = tools / 'ollama'
+    root = tools / 'ollama' if destination is None else destination
     root.mkdir()
     # The pinned distribution places CPU backends directly in lib/ollama.
     # GPU subdirectories and the tray application are deliberately not loaded.

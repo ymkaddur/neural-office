@@ -63,12 +63,13 @@ def run(exe, out):
                 screen.press_space(screen.reveal_button('Inspector'))
                 screen.button(r'^(?:↑\s*)?Enviar\s*·\s*0 intentos$', regex=True)
                 wait(lambda: ANSWER in screen.names(), description='both expected values in the Director answer')
-                screen.press_space(screen.reveal_button(r'(?s).*especificacion\.pdf.*Pág\. 2.*', regex=True))
+                screen.reveal_button(r'(?s).*especificacion\.pdf.*Pág\. 2.*', regex=True).invoke()
                 wait(lambda: 'Página 2 de especificacion.pdf' in screen.names(), description='rendered PDF page 2')
                 screen.screenshot(out/'02-evidencia-pdf.png')
-                screen.press_space(screen.reveal_button(r'(?s).*manifiesto\.json.*Línea 4.*', regex=True))
-                wait(lambda: 'Campos del JSON' in screen.names() and 'response_sla_hours' in screen.names(),
-                     description='JSON source line inspected')
+                screen.reveal_button(r'(?s).*manifiesto\.json.*Línea 4.*', regex=True).invoke()
+                wait(lambda: 'Campos del JSON' in screen.names(visible_only=False)
+                     and re.search(r'"response_sla_hours"\s*:\s*48\b', screen.names()),
+                     description='the visible fourth line contains the actual JSON field and value')
                 screen.screenshot(out/'03-evidencia-json.png')
                 receipt = 'Comparar el plazo de primera respuesta'
                 require(receipt not in screen.names(visible_only=False), 'local activity must start collapsed')
@@ -83,8 +84,8 @@ def run(exe, out):
                 wait(lambda: receipt not in screen.names(visible_only=False),
                      description='closing activity also removes receipt from the accessibility tree')
                 screen.button('Ver adjuntos')
-                screen.press_space(screen.reveal_button(r'(?s)entrega\.zip.*Inventario del paquete.*', regex=True))
-                screen.press_space(screen.reveal_button(r'(?s).*visual/\s*movil\.jpg.*', regex=True))
+                screen.reveal_button(r'(?s)entrega\.zip.*Inventario del paquete.*', regex=True).invoke()
+                screen.reveal_button('visual/movil.jpg').invoke()
                 wait(lambda: screen.window.child_window(title='visual/movil.jpg', control_type='Image').is_visible()
                      and re.search(r'\b360\s*×\s*720\b', screen.names()) and 'entrega.zip · Inventario' in screen.names(),
                      description='real image decoded inside the ZIP')
