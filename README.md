@@ -1,6 +1,8 @@
 # Neural Office
 
-**V5.20 · núcleo local en desarrollo.** El Director puede recuperar una decisión del mismo hilo, comprobar la identidad de sus fuentes y contestar varias operaciones locales en un encargo. El escritorio de esta rama corresponde a V5.14. La nueva orden `python -m neural_office office-plan --objective "Revisar la entrega"` imprime el plan de un Director y seis especialistas durante tres rondas. La orden solo describe el plan. [Alcance comprobado de V5.20](docs/V5_20_LOCAL.md).
+**V5.30 · ejecución durable en Windows.** Desde la CLI se puede autorizar una revisión local de HTML, consultar cada salida y retomar el encargo después de un corte. La obtención de hallazgos, su verificación y la entrega dejan tres recibos vinculados a los mismos bytes. El protocolo reserva un intento de proyecto. La comprobación simple de HTML sigue siendo gratuita. La ingeniería de esta rama se concentra en el núcleo y el escritorio conserva la interfaz de V5.14. [Ejemplo ejecutable, pruebas de cortes y medidas de V5.30](docs/V5_30_LOCAL.md).
+
+El Director conserva las decisiones del hilo y sus fuentes en la inspección multiformato. La orden `office-plan` describe la topología prevista del Director y seis especialistas. La conexión de esa topología con el modelo local corresponde a V5.40. [Inspección y referencia de Ollama de V5.20](docs/V5_20_LOCAL.md) · [Hoja de ruta](ROADMAP.md).
 
 [![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 

@@ -1,0 +1,349 @@
+{
+  "core_version": "5.30.0",
+  "protocol": 2,
+  "python": "3.12.10",
+  "machine": "AMD64",
+  "windows_build": "10.0.26200",
+  "logical_cpus": 20,
+  "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+  "component_sha256": {
+    "audit.py": "c3a06f34427ae2fea042c7469d72486e78b1682eb95cc6f034a26da05aa38bc8",
+    "ledger.py": "604a1728ec4a94dd41e3c8a9f57aa06ffadfe060e863a7f926377ce2592b609b",
+    "continuity.py": "c716f6bd4130bce7861a6b3b7a019a5abf08a0492cc0e0ac91752b70c1141fe6",
+    "office_protocol.py": "9b72e95c691a954c58197556fab186c5ee35325f78b524ee923fd6ebfd123ee2",
+    "office_receiver.py": "f237898cdc0f98266374d6cdd589e5825ffc1f1e4136abbf0a1c9b2529fc8434",
+    "windows_job.py": "8f9502da224542cc7e564359bbde413ad5b0df4857c162254f7b5147aa6f7950"
+  },
+  "scope": "owned Windows Job: controller and its nested receiver groups after joining; sampler outside",
+  "sample_interval_ms": 50,
+  "warmup": {
+    "elapsed_ms": 1499.71,
+    "cpu_s": 1.328125,
+    "peak_commit_bytes": 56000512,
+    "peak_sampled_ws_bytes": 126435328,
+    "samples": 25,
+    "incomplete_samples": 0,
+    "sample_errors": [],
+    "dispatch_intents": 3,
+    "findings": [
+      [
+        "DOCUMENT_TITLE_MISSING",
+        1,
+        1
+      ],
+      [
+        "HTML_LANGUAGE_MISSING",
+        2,
+        1
+      ],
+      [
+        "IMAGE_ALT_MISSING",
+        6,
+        3
+      ],
+      [
+        "CONTROL_LABEL_CANDIDATE",
+        7,
+        3
+      ]
+    ],
+    "model_calls": 0,
+    "project_attempts": 1,
+    "receiver_receipts": 3,
+    "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+    "steps_ms": [
+      303.56,
+      388.82,
+      448.45
+    ]
+  },
+  "runs": [
+    {
+      "elapsed_ms": 1704.28,
+      "cpu_s": 1.46875,
+      "peak_commit_bytes": 56008704,
+      "peak_sampled_ws_bytes": 126279680,
+      "samples": 29,
+      "incomplete_samples": 0,
+      "sample_errors": [],
+      "dispatch_intents": 3,
+      "findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "model_calls": 0,
+      "project_attempts": 1,
+      "receiver_receipts": 3,
+      "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+      "steps_ms": [
+        424.93,
+        423.7,
+        411.14
+      ]
+    },
+    {
+      "elapsed_ms": 1656.12,
+      "cpu_s": 1.453125,
+      "peak_commit_bytes": 56254464,
+      "peak_sampled_ws_bytes": 125796352,
+      "samples": 28,
+      "incomplete_samples": 0,
+      "sample_errors": [],
+      "dispatch_intents": 3,
+      "findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "model_calls": 0,
+      "project_attempts": 1,
+      "receiver_receipts": 3,
+      "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+      "steps_ms": [
+        420.55,
+        414.97,
+        425.22
+      ]
+    },
+    {
+      "elapsed_ms": 1241.11,
+      "cpu_s": 0.953125,
+      "peak_commit_bytes": 55975936,
+      "peak_sampled_ws_bytes": 124309504,
+      "samples": 21,
+      "incomplete_samples": 0,
+      "sample_errors": [],
+      "dispatch_intents": 3,
+      "findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "model_calls": 0,
+      "project_attempts": 1,
+      "receiver_receipts": 3,
+      "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+      "steps_ms": [
+        304.99,
+        261.92,
+        303.62
+      ]
+    },
+    {
+      "elapsed_ms": 1839.0,
+      "cpu_s": 1.21875,
+      "peak_commit_bytes": 56197120,
+      "peak_sampled_ws_bytes": 124928000,
+      "samples": 31,
+      "incomplete_samples": 0,
+      "sample_errors": [],
+      "dispatch_intents": 3,
+      "findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "model_calls": 0,
+      "project_attempts": 1,
+      "receiver_receipts": 3,
+      "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+      "steps_ms": [
+        373.68,
+        390.22,
+        462.92
+      ]
+    },
+    {
+      "elapsed_ms": 1711.04,
+      "cpu_s": 1.515625,
+      "peak_commit_bytes": 56512512,
+      "peak_sampled_ws_bytes": 126709760,
+      "samples": 29,
+      "incomplete_samples": 0,
+      "sample_errors": [],
+      "dispatch_intents": 3,
+      "findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "model_calls": 0,
+      "project_attempts": 1,
+      "receiver_receipts": 3,
+      "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+      "steps_ms": [
+        425.12,
+        423.68,
+        443.35
+      ]
+    },
+    {
+      "elapsed_ms": 1470.62,
+      "cpu_s": 1.171875,
+      "peak_commit_bytes": 56057856,
+      "peak_sampled_ws_bytes": 127102976,
+      "samples": 25,
+      "incomplete_samples": 0,
+      "sample_errors": [],
+      "dispatch_intents": 3,
+      "findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "model_calls": 0,
+      "project_attempts": 1,
+      "receiver_receipts": 3,
+      "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+      "steps_ms": [
+        413.28,
+        372.78,
+        275.81
+      ]
+    },
+    {
+      "elapsed_ms": 1335.23,
+      "cpu_s": 0.859375,
+      "peak_commit_bytes": 56020992,
+      "peak_sampled_ws_bytes": 126226432,
+      "samples": 23,
+      "incomplete_samples": 1,
+      "sample_errors": [],
+      "dispatch_intents": 3,
+      "findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "model_calls": 0,
+      "project_attempts": 1,
+      "receiver_receipts": 3,
+      "report_sha256": "9bf868dab6398b69b55c63f2357d17745b611ce3832f5bc74bd71b6d37089ef9",
+      "steps_ms": [
+        250.04,
+        532.39,
+        263.52
+      ]
+    }
+  ]
+}

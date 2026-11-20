@@ -16,7 +16,7 @@ from . import continuity, excerpt_review
 from .audit import audit_html
 from .desktop_contract import MAX_SAFE_INTEGER, decode_command, valid
 from .files import capture_html, local_path
-from .ledger import Denied, TERMINAL, canonical, digest
+from .ledger import Denied, OFFICE_MODE, TERMINAL, canonical, digest
 from .ollama import OwnedOllama, local_metadata, select_model
 from .runner import MAX_MODEL_FINDINGS, _recover_owned, check_first_prompt, make_attempt_report, run
 
@@ -24,6 +24,14 @@ GRANT_TTL_SECONDS = 120
 MAX_GRANTS = 32
 MAX_MODELS = 64
 ATTEMPT_COLUMNS = 'id,project,ordinal,state,revision,snapshot_sha,profile,objective,request_key'
+OFFICE_EVENT_FIELDS = {'step', 'transport', 'receiver', 'request_sha', 'output_sha', 'outcome'}
+
+
+def _public_event(row, fields):
+    if row['kind'].startswith('OFFICE_'):
+        fields = fields | OFFICE_EVENT_FIELDS
+    return dict(seq=row['seq'], stamp_ns=str(row['stamp_ns']), kind=row['kind'],
+                payload={k: v for k, v in json.loads(row['payload']).items() if k in fields})
 
 
 def discover_models():
@@ -92,7 +100,7 @@ class DesktopService:
 
     def _summary(self, row):
         profile = json.loads(row['profile']) if type(row['profile']) is str else row['profile']
-        inspection = {key: profile[key] for key in ('analysis_scope', 'thread_id', 'inspection_id') if key in profile}
+        inspection = {key: profile[key] for key in ('analysis_scope', 'thread_id', 'inspection_id', 'protocol', 'receiver') if key in profile}
         return {'id': row['id'], 'project_id': row['project'], 'ordinal': row['ordinal'],
                 'state': row['state'], 'revision': row['revision'],
                 'source_sha256': row['snapshot_sha'], 'model': profile['model'],
@@ -355,12 +363,18 @@ class DesktopService:
                         field = 'started_ms' if receipt['kind'] == 'MODEL_CALL_ADMITTED' else 'completed_ms'
                         call[field] = receipt['stamp_ns'] // 1_000_000
             code = self._errors.get(attempt_id)
-            if row['state'] == 'FAILED':
+            execution = {}
+            if json.loads(row['profile']).get('mode') == OFFICE_MODE:
+                from .office_protocol import transports_for
+                execution['transports'] = transports_for(con, attempt_id)
+                if row['state'] == 'FAILED' and row['verdict']:
+                    code = json.loads(row['verdict']).get('reason')
+            elif row['state'] == 'FAILED':
                 terminal_receipt = con.execute(
                     "SELECT json_extract(payload,'$.error_code') FROM events WHERE kind='OWNED_JOB_TERMINATED' "
                     "AND json_extract(payload,'$.attempt')=? ORDER BY seq DESC LIMIT 1", (attempt_id,)).fetchone()
                 code = terminal_receipt[0] if terminal_receipt else None
-            return {**self._summary(row), 'session_id': self.session_id, 'global_revision': meta['revision'],
+            return {**self._summary(row), **execution, 'session_id': self.session_id, 'global_revision': meta['revision'],
                     'cursor': meta['cursor'], 'calls': calls, 'outputs': outputs,
                     'artifact_sha256': row['artifact_sha'], 'report_available': row['state'] == 'ACCEPTED' and row['artifact'] is not None,
                     'observed_ms': time.time_ns() // 1_000_000,
@@ -383,6 +397,11 @@ class DesktopService:
             row = self.ledger._row(con, attempt_id)
             if row['state'] in TERMINAL:
                 return self.attempt(attempt_id)
+            office_protocol = json.loads(row['profile']).get('mode') == OFFICE_MODE
+        if office_protocol:
+            from .office_protocol import reconcile
+            reconcile(self.ledger, attempt_id, expected_revision=expected_revision)
+            return self.attempt(attempt_id)
         if self._worker is not None and self._worker.is_alive():
             raise Denied('OFFICE_RUNNER_STILL_ACTIVE')
         with continuity.run_guard(self.ledger.path):
@@ -414,9 +433,7 @@ class DesktopService:
             visible = rows[:limit]
             return {**meta, 'attempt_id': attempt_id, 'has_more': len(rows)>limit,
                     'next_before': visible[-1]['seq'] if visible else 0,
-                    'events': [{'seq': r['seq'], 'stamp_ns': str(r['stamp_ns']), 'kind': r['kind'],
-                                'payload': {key: value for key, value in json.loads(r['payload']).items()
-                                            if key in ('attempt', 'role', 'state', 'ordinal')}} for r in reversed(visible)]}
+                    'events': [_public_event(r, {'attempt', 'role', 'state', 'ordinal'}) for r in reversed(visible)]}
 
     def events(self, after, limit):
         with self.ledger.connection() as con:
@@ -425,9 +442,7 @@ class DesktopService:
             rows = con.execute('SELECT seq,stamp_ns,kind,payload FROM events WHERE seq>? ORDER BY seq LIMIT ?', (after, limit+1)).fetchall()
             safe_keys = {'attempt', 'project', 'ordinal', 'generation', 'call', 'role', 'state',
                          'payload_sha', 'content_sha', 'artifact_sha', 'receipt_sha'}
-            events = [{'seq': row['seq'], 'stamp_ns': str(row['stamp_ns']), 'kind': row['kind'],
-                       'payload': {key: value for key, value in json.loads(row['payload']).items() if key in safe_keys}}
-                      for row in rows[:limit]]
+            events = [_public_event(row, safe_keys) for row in rows[:limit]]
             return {**meta, 'events': events, 'next_after': events[-1]['seq'] if events else after,
                     'has_more': len(rows) > limit}
 

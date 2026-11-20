@@ -8,7 +8,7 @@ import sqlite3
 import threading
 import uuid
 
-from .ledger import APPLICATION_ID, Denied, canonical, digest
+from .ledger import APPLICATION_ID, READABLE_SCHEMAS, Denied, canonical, digest
 
 WITNESS_ID = 0x4E4F4354
 MAX_IMAGE = 64 * 1024 * 1024
@@ -100,7 +100,7 @@ def attach(con, path):
 
 
 def validate(con):
-    if con.execute('PRAGMA main.user_version').fetchone()[0] != 2:
+    if con.execute('PRAGMA main.user_version').fetchone()[0] not in READABLE_SCHEMAS:
         raise Denied('CONTINUITY_UPGRADE_REQUIRED_RUN_PROTECT')
     own = con.execute('SELECT office,revision FROM continuity_meta WHERE id=1').fetchone()
     last = con.execute('SELECT office,revision,logical_sha FROM continuity.latest WHERE id=1').fetchone()
@@ -134,7 +134,7 @@ def protect(ledger):
         try:
             if con.execute('PRAGMA application_id').fetchone()[0] != APPLICATION_ID:
                 raise Denied('FOREIGN_STATE')
-            if con.execute('PRAGMA user_version').fetchone()[0] == 2:
+            if con.execute('PRAGMA user_version').fetchone()[0] in READABLE_SCHEMAS:
                 with ledger.connection(): pass
                 return {'protected': True, 'already_protected': True}
             if con.execute('PRAGMA user_version').fetchone()[0] != 1:

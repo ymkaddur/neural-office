@@ -358,3 +358,9 @@
 !tools/measure_v520_inspection.py
 !docs/evidence/V5_20_INSPECTION.json
 !docs/evidence/V5_20_TERMINAL_9B.json
+!neural_office/office_protocol.py
+!neural_office/office_receiver.py
+!tests/test_v530_protocol.py
+!docs/V5_30_LOCAL.md
+!tools/measure_v530_protocol.py
+!docs/evidence/V5_30_PROTOCOL.json

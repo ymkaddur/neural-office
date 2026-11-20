@@ -4,7 +4,7 @@ import time
 import uuid
 from .audit import audit_html,make_report
 from . import excerpt_review
-from .ledger import Denied,canonical,digest,TERMINAL
+from .ledger import Denied,canonical,digest,OFFICE_MODE,TERMINAL
 from .ollama import OwnedOllama
 
 ROLES=('director','planner','researcher','implementer','skeptic','verifier','integrator')
@@ -76,8 +76,10 @@ def make_attempt_report(row):
 
 def run(ledger,attempt,roles=7,backend_factory=OwnedOllama,progress=lambda *_:None):
     # Terminal replays are reads, even while another attempt owns execution.
-    role_order(roles)
     row=ledger.attempt(attempt)
+    if row['profile'].get('mode') == OFFICE_MODE:
+        raise Denied('OFFICE_EXPLICIT_STEP_REQUIRED')
+    role_order(roles)
     if row['profile'].get('roles')!=roles: raise Denied('ROLE_PROFILE_CHANGED')
     if row['state'] in TERMINAL: return row['state']
     from .continuity import run_guard
@@ -157,6 +159,9 @@ def _run_owned(ledger,attempt,roles,backend_factory,progress):
 
 def recover(ledger,attempt):
     """Only reconcile a job that no longer has any active owned processes."""
+    if ledger.attempt(attempt)['profile'].get('mode') == OFFICE_MODE:
+        from .office_protocol import reconcile
+        return reconcile(ledger, attempt)['state']
     from .continuity import run_guard
     with run_guard(ledger.path):
         return _recover_owned(ledger,attempt)
