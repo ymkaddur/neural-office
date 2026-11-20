@@ -207,7 +207,9 @@ def model(exe, work, state, out, receipt):
         verify(ASK in screen.names() and PDF_QUOTE in screen.names(), 'Approval lacks request or excerpt')
         verify(readonly_counts(state)['attempts'] == 0, 'Opening permission charged a reservation')
         screen.screenshot(out / '05-permiso.png')
-        screen.button(r'^Autorizar y ejecutar.*', regex=True)
+        confirm = screen.reveal_button(r'^Autorizar y ejecutar.*', regex=True)
+        screen.screenshot(out / '05-confirmacion.png')
+        screen.press_space(confirm)
         terminal = {'ACCEPTED', 'FAILED', 'CANCELLED', 'REJECTED', 'RECOVERY_REQUIRED'}
         def final_state():
             counts = readonly_counts(state)
