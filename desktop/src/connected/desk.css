@@ -191,6 +191,38 @@
 .desk513 .reading-sample.night { background:#222631; color:#f1f3fa; }.desk513 .reading-sample.sand { background:#faf7f1; color:#2b2422; }
 .desk513 .permission-excerpts { max-height:none; overflow:visible; }.desk513 .connected-approval dl { display:grid; grid-template-columns:auto minmax(0,1fr); gap:4px 12px; }
 .desk513 .connected-approval dd { margin:0; overflow-wrap:anywhere; }
+.desk513 .connected-approval[open] {
+  --approval-inset:clamp(12px,3vw,24px);
+  box-sizing:border-box;
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  max-block-size:calc(100dvh - 28px);
+  padding:0;
+  overflow:hidden;
+}
+.connected-approval .approval-header { padding:12px var(--approval-inset) 10px; }
+.connected-approval .approval-header h2 { margin:4px 0 0; line-height:1.25; }
+.connected-approval .approval-body {
+  min-block-size:0;
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding:0 var(--approval-inset) 8px;
+}
+.connected-approval .approval-body:focus-visible { outline:2px solid var(--accent); outline-offset:-3px; }
+.connected-approval .approval-body dl { margin:14px 0; padding:12px 0; align-items:baseline; }
+.connected-approval .approval-body dt { margin:0; }
+.connected-approval .approval-body > p:not(.approval-objective) { color:var(--muted); font-size:.9em; line-height:1.5; }
+.connected-approval .approval-footer {
+  border-top:1px solid var(--line);
+  background:var(--surface);
+  padding:12px var(--approval-inset);
+}
+.connected-approval .approval-cost { margin:0 0 8px; font-size:.9em; line-height:1.4; }
+.connected-approval .approval-actions { margin:0; flex-wrap:wrap; align-items:center; }
+@media (max-height:480px) {
+  .connected-approval .approval-header,.connected-approval .approval-footer { padding-block:6px; }
+  .connected-approval .approval-header h2 { font-size:1.2em; }
+}
 @media(min-width:681px) {
   .desk513 .review-desk.has-inspector>.desk-thread { grid-column:1; grid-row:1; }
   .desk513 .review-desk.has-inspector>.inspection-divider { display:block; grid-column:2; grid-row:1; }

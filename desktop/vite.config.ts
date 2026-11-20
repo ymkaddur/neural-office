@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
+import desktopConfig from './src-tauri/tauri.conf.json' with { type: 'json' };
 
 // A production-only CSP: dev mode needs Vite's stylesheet injection/HMR.
 // The distributed preview makes no provider, telemetry or backend connections.
 export default defineConfig(({command,mode})=>({
+  define: { 'import.meta.env.VITE_DESKTOP_VERSION': JSON.stringify(desktopConfig.version) },
   // Native builds receive the stricter IPC-aware policy from Tauri. Keeping
   // the offline preview's connect-src 'none' there would disable native IPC.
   plugins: command==='build' && mode!=='native' ? [{

@@ -873,7 +873,43 @@ export function ConnectedWorkspace() {
       <label htmlFor="fragment-model">Modelo local</label><select id="fragment-model" disabled={catalog!=='ready'||!!doing} value={modelDigest} onChange={e=>setModelDigest(e.target.value)}>{!models.length&&<option value="">{catalog==='loading'?'Consultando Ollama…':'Sin modelos disponibles'}</option>}{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
       {catalog==='error'&&<p role="alert">No se pudo leer el catálogo de Ollama. La inspección local sigue disponible.</p>}
       <div className="approval-actions"><button className="desk-secondary" disabled={catalog==='loading'||!!doing} onClick={()=>void loadModels()}>Actualizar modelos</button><button className="desk-primary" disabled={!!doing||!selectedModel||catalog!=='ready'||busy} onClick={()=>void act('Preparando permiso',previewFragments)}>Revisar permiso</button></div></div></DeskDialog>}
-    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title" onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>{approval&&<><div className="approval-heading"><span className="eyebrow">Antes de empezar</span><button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button></div><h2 id="approval-title">{approval.excerpts?'Autorizar una consulta':'Este es el encargo.'}</h2><p className="approval-objective">{approval.value.objective}</p><dl><dt>Proyecto</dt><dd>{approval.value.project_id}</dd><dt>Fuente capturada</dt><dd>{approval.excerpts?'Extractos de la entrega':source?.filename}</dd><dt>Modelo</dt><dd>{approval.value.model}</dd><dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd><dt>Presupuesto</dt><dd>Consumirá 1 intento. Con la reserva, el saldo pasará a {approval.value.attempts_remaining-1} de 3.</dd></dl>{approval.excerpts&&<div className="permission-excerpts"><h3>Fragmentos que recibirá el modelo</h3>{approval.excerpts.fragments.map((f,i)=><blockquote key={i}><strong>{f.name}</strong> <small>{f.page?'pág. '+f.page:f.line?'línea '+f.line:''}</small><p>{f.quote}{f.unit&&typeof f.value==='number'?' · '+f.value+' '+f.unit:''}</p></blockquote>)}</div>}<p>El modelo recibe una copia de las entradas autorizadas. Los comentarios se guardan junto a la entrega.</p><p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p><div className="approval-actions"><button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button><button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button></div></>}</dialog>
+    <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title"
+      onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>
+      {approval&&<>
+        <header className="approval-header">
+          <div className="approval-heading">
+            <span className="eyebrow">Antes de empezar</span>
+            <button aria-label="Cerrar revisión" onClick={()=>setApproval(null)}>×</button>
+          </div>
+          <h2 id="approval-title">{approval.excerpts?'Autorizar una consulta':'Este es el encargo.'}</h2>
+        </header>
+        <div className="approval-body" role="region" aria-label="Detalles del permiso" tabIndex={0}>
+          <p className="approval-objective">{approval.value.objective}</p>
+          <dl>
+            <dt>Proyecto</dt><dd>{approval.value.project_id}</dd>
+            <dt>Fuente capturada</dt><dd>{approval.excerpts?'Extractos de la entrega':source?.filename}</dd>
+            <dt>Modelo</dt><dd>{approval.value.model}</dd>
+            <dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd>
+          </dl>
+          {approval.excerpts&&<div className="permission-excerpts">
+            <h3>Fragmentos que recibirá el modelo</h3>
+            {approval.excerpts.fragments.map((f,i)=><blockquote key={i}>
+              <strong>{f.name}</strong> <small>{f.page?'pág. '+f.page:f.line?'línea '+f.line:''}</small>
+              <p>{f.quote}{f.unit&&typeof f.value==='number'?' · '+f.value+' '+f.unit:''}</p>
+            </blockquote>)}
+          </div>}
+          <p>El modelo recibe una copia de las entradas autorizadas. Los comentarios se guardan junto a la entrega.</p>
+          <p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p>
+        </div>
+        <footer className="approval-footer">
+          <p className="approval-cost">Consumirá 1 intento. Con la reserva, el saldo pasará a {approval.value.attempts_remaining-1} de 3.</p>
+          <div className="approval-actions">
+            <button className="quiet-button" onClick={()=>setApproval(null)}>Volver al encargo</button>
+            <button className="solid-button" disabled={!!doing} onClick={()=>void act('Registrando encargo',start)}>Autorizar y ejecutar →</button>
+          </div>
+        </footer>
+      </>}
+    </dialog>
   </div>;
 }
 const findingLabels:Record<string,string>={HTML_LANGUAGE_MISSING:'El documento no declara su idioma',HTML_ELEMENT_MISSING:'No se encontró el elemento HTML',DOCUMENT_TITLE_MISSING:'Falta un título de documento no vacío',IMAGE_ALT_MISSING:'Una imagen no tiene atributo alt',CONTROL_LABEL_CANDIDATE:'Un control podría necesitar una etiqueta'};
