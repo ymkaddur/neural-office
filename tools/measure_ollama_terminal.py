@@ -30,7 +30,9 @@ PROMPT = ('Fuentes locales. PDF: Primera respuesta en 24 horas. JSON: response_s
 QUERY = ("$ErrorActionPreference = 'Stop'; "
          "if ($PSVersionTable.PSVersion -lt [version]'7.4') { "
          "[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); $OutputEncoding = [Console]::OutputEncoding }; "
-         "'' | & $env:NEURAL_BENCH_OLLAMA run $env:NEURAL_BENCH_MODEL $env:NEURAL_BENCH_PROMPT "
+         "$modelOptions = @(); if ($env:NEURAL_BENCH_DISABLE_THINKING -eq '1') "
+         "{ $modelOptions = @('--think=false', '--hidethinking') }; "
+         "'' | & $env:NEURAL_BENCH_OLLAMA run @modelOptions $env:NEURAL_BENCH_MODEL $env:NEURAL_BENCH_PROMPT "
          "> $env:NEURAL_BENCH_OUTPUT; exit $LASTEXITCODE")
 
 
@@ -130,6 +132,8 @@ def measure(job, shell, env, output, port, server_pid, expected_digest, phase):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', default='qwen2.5:0.5b')
+    parser.add_argument('--no-thinking', action='store_true',
+                        help='Request answer-only generation on a model that supports --think=false')
     parser.add_argument('--warm', type=int, choices=range(0, 21), default=3)
     parser.add_argument('--output', type=Path, help='Write a new JSON file after all runs succeed')
     args = parser.parse_args()
@@ -146,7 +150,7 @@ def main():
     env = {**os.environ, 'OLLAMA_HOST': f'127.0.0.1:{port}', 'OLLAMA_NO_CLOUD': '1',
            'OLLAMA_MAX_LOADED_MODELS': '1', 'OLLAMA_NUM_PARALLEL': '1', 'OLLAMA_CONTEXT_LENGTH': '4096',
            'OLLAMA_KEEP_ALIVE': '5m', 'NEURAL_BENCH_MODEL': args.model, 'NEURAL_BENCH_OLLAMA': ollama,
-           'NEURAL_BENCH_PROMPT': PROMPT}
+           'NEURAL_BENCH_PROMPT': PROMPT, 'NEURAL_BENCH_DISABLE_THINKING': '1' if args.no_thinking else '0'}
     with tempfile.TemporaryDirectory() as folder, Job('NeuralOffice-Terminal-' + uuid.uuid4().hex) as job:
         server, pid = launch(job, [ollama, 'serve'], env)
         try:
@@ -177,6 +181,7 @@ def main():
                   system=platform.platform(), logical_cpus=os.cpu_count(), powershell=Path(shell).name,
                   powershell_version=shell_version, cpu_model=cpu_model, host_ram_bytes=psutil.virtual_memory().total,
                   ollama=version, model=args.model, model_digest=model['model_digest'], prompt=PROMPT,
+                  generation_mode='thinking_disabled' if args.no_thinking else 'model_default',
                   prompt_sha256=hashlib.sha256(PROMPT.encode()).hexdigest(), sample_interval_s=0.1,
                   scope='private ready server, runner, PowerShell and CLI; OS file cache not purged',
                   runs=rows)

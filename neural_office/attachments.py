@@ -1,5 +1,6 @@
 """Durable, project- and thread-scoped capture of locally selected review inputs."""
 from contextlib import contextmanager
+import hashlib
 import json
 from pathlib import Path
 import sqlite3
@@ -10,14 +11,14 @@ import time
 
 from .attachment_formats import MAX_FILE, classify, result
 from .desktop_contract import valid
-from .inspection_intent import requested_checks, reader_findings
+from .inspection_intent import reader_findings, reader_modes, requested_checks
 from .files import capture_local, local_path
 from .ledger import Denied, canonical, digest
 
 
 SCHEMA = 2
 APPLICATION_ID = 0x4E4F4154
-RULE_VERSION = 'local-inspection-3'
+RULE_VERSION = 'local-inspection-4'
 MAX_CAPTURE_BATCH = 8
 MAX_REPORT = 300_000
 READERS = threading.BoundedSemaphore(2)
@@ -121,6 +122,39 @@ def metadata(row):
     return {key: row[key] for key in CAPTURE_FIELDS.split(',')} | {'origin': 'native_picker'}
 
 
+def verified_content(db, project, thread, identity, *, need_bytes, cancelled):
+    if not valid('digest', identity):
+        raise Denied('ATTACHMENT_NOT_FOUND')
+    row = db.execute(f'''SELECT rowid AS blob_id,typeof(content) AS storage_type,{CAPTURE_FIELDS}
+                         FROM captures WHERE id=? AND project=? AND thread=?''',
+                     (identity, project, thread)).fetchone()
+    if not row:
+        raise Denied('ATTACHMENT_NOT_FOUND')
+    expected_id = digest(canonical([row['source_id'], thread, row['sha256'], row['name']]))
+    if expected_id != identity or row['storage_type'] != 'blob':
+        raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+    with db.blobopen('captures', 'content', row['blob_id'], readonly=True) as blob:
+        if len(blob) != row['bytes'] or len(blob) > MAX_FILE:
+            raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+        if need_bytes:
+            data = blob.read()
+            prefix, sha = data[:8], digest(data)
+        else:
+            # An unneeded source still has to match its original bytes. Bound
+            # memory for this check and keep cancellation responsive between chunks.
+            data = None
+            prefix = blob.read(8)
+            hasher = hashlib.sha256(prefix)
+            while chunk := blob.read(256 * 1024):
+                if cancelled():
+                    raise Denied('ATTACHMENT_READ_CANCELLED')
+                hasher.update(chunk)
+            sha = hasher.hexdigest()
+    if sha != row['sha256'] or classify(row['name'], prefix) != row['kind']:
+        raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+    return metadata(row), data
+
+
 def report_identity(version, project_id, thread_id, objective, inputs, findings):
     return digest(canonical([version, project_id, thread_id, objective, inputs, findings]))[:32]
 
@@ -142,6 +176,34 @@ def recover_report(db, project_id, thread_id, identity):
                            (item['id'], project_id, thread_id)).fetchone()
         if owner is None or owner[0] != item['sha256']:
             raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+    return record
+
+
+def matching_legacy_report(db, project, thread, objective, inputs, findings):
+    # Older readers persisted parser status for every file. Compare the facts
+    # just verified, then return the original immutable report and its decision.
+    candidates = db.execute('''SELECT r.id FROM reports r WHERE project=? AND thread=? AND objective=?
+        AND attachment_count=? AND finding_count=? ORDER BY
+        (SELECT MAX(d.at) FROM decisions d WHERE d.project=r.project AND d.thread=r.thread AND d.report=r.id) DESC,
+        r.created_at DESC,r.id''', (project, thread, objective, len(inputs), len(findings)))
+    for row in candidates:
+        old = recover_report(db, project, thread, row['id'])
+        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3')
+                or old['objective'] != objective or old['findings'] != findings
+                or len(old['attachments']) != len(inputs)):
+            continue
+        if all(all(saved.get(key) == value for key, value in current.items())
+               for saved, current in zip(old['attachments'], inputs)):
+            return old
+    return None
+
+
+def with_decision(db, record):
+    note = db.execute('''SELECT revision,choice,at FROM decisions WHERE project=? AND thread=?
+        AND report=? ORDER BY revision DESC LIMIT 1''',
+                      (record['project_id'], record['thread_id'], record['id'])).fetchone()
+    if note:
+        record['decision'] = dict(note)
     return record
 
 
@@ -259,21 +321,6 @@ class AttachmentStore:
                 f'SELECT {CAPTURE_FIELDS} FROM captures WHERE project=? AND thread=? ORDER BY created_at,id',
                 (project_id, thread_id))]
 
-    def _content(self, office, project_id, thread_id, identity):
-        if not valid('digest', identity):
-            raise Denied('ATTACHMENT_NOT_FOUND')
-        with self._db(office) as db:
-            row = db.execute(f'SELECT {CAPTURE_FIELDS},content FROM captures WHERE id=? AND project=? AND thread=?',
-                             (identity, project_id, thread_id)).fetchone()
-        if not row:
-            raise Denied('ATTACHMENT_NOT_FOUND')
-        data = row['content']
-        expected_id = digest(canonical([row['source_id'], thread_id, row['sha256'], row['name']]))
-        if (len(data) != row['bytes'] or len(data) > MAX_FILE or digest(data) != row['sha256']
-                or identity != expected_id or classify(row['name'], data) != row['kind']):
-            raise Denied('ATTACHMENT_INTEGRITY_FAILED')
-        return metadata(row), data
-
     @contextmanager
     def _reading(self, project_id, thread_id):
         key = (project_id, thread_id)
@@ -335,8 +382,10 @@ class AttachmentStore:
         if type(page) is not int or not 1 <= page <= 10000 or not isinstance(member, str) or len(member) > 512:
             raise Denied('DESKTOP_PARAMETER_INVALID')
         office, _ = self._authority(project_id)
-        info, content = self._content(office, project_id, thread_id, attachment_id)
         with self._reading(project_id, thread_id) as cancelled:
+            with self._db(office) as db:
+                info, content = verified_content(db, project_id, thread_id, attachment_id,
+                                                 need_bytes=True, cancelled=cancelled)
             view = decode(info['kind'], content, page=page, member=member, mode='preview', cancelled=cancelled,
                           deadline=time.monotonic() + 8)
         return dict(view, attachment_id=attachment_id, name=info['name'], sha256=info['sha256'])
@@ -353,19 +402,30 @@ class AttachmentStore:
         steps = []
         findings = []
         html_results = []
-        recall_only = requested_checks(objective, set()) == ['decision']
         created = time.time()
         deadline = time.monotonic() + 26
-        with self._observed_inspection(project_id, thread_id, attachment_ids, objective) as note, self._reading(project_id, thread_id) as cancelled:
+        with (self._observed_inspection(project_id, thread_id, attachment_ids, objective) as note,
+              self._reading(project_id, thread_id) as cancelled, self._db(office) as db):
+            slots = ','.join('?' for _ in attachment_ids)
+            kinds = dict(db.execute(f'SELECT id,kind FROM captures WHERE project=? AND thread=? AND id IN ({slots})',
+                                    (project_id, thread_id, *attachment_ids)))
+            if len(kinds) != len(attachment_ids):
+                raise Denied('ATTACHMENT_NOT_FOUND')
+            checks = requested_checks(objective, set(kinds.values()))
+            modes = reader_modes(checks, list(kinds.values()))
             for identity in attachment_ids:
+                if cancelled():
+                    raise Denied('ATTACHMENT_READ_CANCELLED')
                 started = time.monotonic()
-                info, data = self._content(office, project_id, thread_id, identity)
+                mode = modes.get(kinds[identity])
+                info, data = verified_content(db, project_id, thread_id, identity,
+                                              need_bytes=mode is not None, cancelled=cancelled)
                 kind = info['kind']
-                if recall_only:
+                if kind != kinds[identity]:
+                    raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+                if mode is None:
                     if cancelled():
                         raise Denied('ATTACHMENT_READ_CANCELLED')
-                    # _content rechecks ownership, signature and bytes. The decision
-                    # belongs to those immutable captures, independent of their format.
                     inputs.append(info)
                     action = 'Comprobar la identidad de la captura'
                     note(action+' · '+info['name'], len(inputs))
@@ -373,15 +433,16 @@ class AttachmentStore:
                                       actor='Lector local', action=action, detail=info['name'],
                                       status='ok', attachment_id=identity))
                     continue
-                note(ACTIONS[kind]+' · '+info['name'], len(inputs))
-                view = decode(kind, data, page=1, member='', mode='inspect', cancelled=cancelled,
+                action = 'Contar las páginas del PDF' if mode == 'page_count' else ACTIONS[kind]
+                note(action+' · '+info['name'], len(inputs))
+                view = decode(kind, data, page=1, member='', mode=mode, cancelled=cancelled,
                               deadline=min(deadline, time.monotonic() + 7))
                 if cancelled():
                     raise Denied('ATTACHMENT_READ_CANCELLED')
                 inputs.append(dict(info, status=view['status'], detail=view['detail']))
                 views[identity] = view
                 steps.append(dict(at=time.time(), duration_ms=round((time.monotonic()-started)*1000),
-                                  actor='Lector local', action=ACTIONS[kind], detail=view['detail'],
+                                  actor='Lector local', action=action, detail=view['detail'],
                                   status=view['status'], attachment_id=identity))
                 if kind == 'html' and view['status'] == 'ok':
                     lines = data.decode('utf-8-sig').replace('\r\n', '\n').replace('\r', '\n').split('\n')
@@ -391,13 +452,18 @@ class AttachmentStore:
                                                        kind=kind, line=row['line'], column=row['column'], code=row['code'],
                                                        quote=lines[row['line']-1][max(0, row['column']-25):row['column']+130])
                                                   for row in view['findings'][:24]], total=view['findings_total']))
+                    del lines
+                del data
             note('Contrastando las lecturas con el encargo', len(inputs))
-            for task in requested_checks(objective, {item['kind'] for item in inputs}):
+            # Freeze the current human revision only after native readers have
+            # finished. No decoder or network operation runs inside the write transaction.
+            db.execute('BEGIN IMMEDIATE')
+            for task in checks:
                 started = time.monotonic()
                 if task == 'hours':
                     answers = [comparison(inputs, views)]
                 elif task == 'decision':
-                    answers = [self._decision_answer(office, project_id, thread_id, inputs)]
+                    answers = [self._decision_answer(db, project_id, thread_id, inputs)]
                 elif task == 'html' and html_results:
                     answers = html_results
                 else:
@@ -412,52 +478,46 @@ class AttachmentStore:
             # A retry that reproduces the facts reopens the same report. A
             # previously unavailable reader can still record a corrected result.
             identity = report_identity(RULE_VERSION, project_id, thread_id, objective, inputs, findings)
+            old = recover_report(db, project_id, thread_id, identity)
+            if old is None:
+                old = matching_legacy_report(db, project_id, thread_id, objective, inputs, findings)
+            if cancelled():
+                raise Denied('ATTACHMENT_READ_CANCELLED')
+            if old:
+                record = with_decision(db, old)
+                db.commit()
+                return record
+            if db.execute('SELECT COUNT(*) FROM reports WHERE project=?', (project_id,)).fetchone()[0] >= 300:
+                raise Denied('ATTACHMENT_STORAGE_LIMIT')
             report = dict(id=identity, project_id=project_id, thread_id=thread_id, objective=objective,
-                          created_at=created, completed_at=time.time(), rule_version=RULE_VERSION, attachments=inputs, findings=findings,
-                          steps=steps, reservations=0, model_calls=0)
+                          created_at=created, completed_at=time.time(), rule_version=RULE_VERSION, attachments=inputs,
+                          findings=findings, steps=steps, reservations=0, model_calls=0)
             payload = canonical(report)
             if len(payload.encode('utf-8')) > MAX_REPORT:
                 raise Denied('ATTACHMENT_REPORT_LIMIT')
-            with self._db(office) as db:
-                db.execute('BEGIN IMMEDIATE')
-                old = recover_report(db, project_id, thread_id, identity)
-                if not old and RULE_VERSION != 'local-inspection-2':
-                    # Reopening an unchanged V5.14 finding must preserve its human
-                    # decision. A changed scope, source or answer has a different key.
-                    legacy_id = report_identity('local-inspection-2', project_id, thread_id,
-                                                objective, inputs, findings)
-                    old = recover_report(db, project_id, thread_id, legacy_id)
-                if old:
-                    db.commit()
-                    return self.report(project_id, old['id'], thread_id=thread_id)
-                if db.execute('SELECT COUNT(*) FROM reports WHERE project=?', (project_id,)).fetchone()[0] >= 300:
-                    raise Denied('ATTACHMENT_STORAGE_LIMIT')
-                if cancelled():
-                    raise Denied('ATTACHMENT_READ_CANCELLED')
-                db.execute('INSERT INTO reports VALUES(?,?,?,?,?,?,?,?,?)',
-                           (identity, project_id, thread_id, created, objective, len(inputs), len(findings), payload, digest(payload)))
-                db.commit()
+            db.execute('INSERT INTO reports VALUES(?,?,?,?,?,?,?,?,?)',
+                       (identity, project_id, thread_id, created, objective, len(inputs), len(findings), payload, digest(payload)))
+            db.commit()
             return report
 
-    def _decision_answer(self, office, project, thread, inputs):
+    def _decision_answer(self, db, project, thread, inputs):
         sources = {item['id'] for item in inputs}
-        with self._db(office) as db:
-            # Each report is immutable. Use the most recent decision belonging to the selected sources.
-            rows = db.execute("""SELECT d.report,d.revision,d.choice FROM decisions d
-                WHERE d.project=? AND d.thread=? AND d.revision=(
-                SELECT MAX(r.revision) FROM decisions r WHERE r.project=d.project AND r.thread=d.thread AND r.report=d.report)
-                ORDER BY d.at DESC,d.report""",(project,thread))
-            for row in rows:
-                record = recover_report(db, project, thread, row['report'])
-                if not record or {i['id'] for i in record['attachments']} != sources:
-                    continue
-                finding = next(f for f in record['findings'] if f['rule']=='first_response_hours' and f['status']=='mismatch')
-                selected = next((s for s in finding['sources'] if s['kind']==row['choice']), None)
-                return dict(rule='thread_decision', status='observed', origin_report=row['report'],
-                            title=(f"Se eligieron {selected['value']} h" if selected else 'La decisión se aplazó'),
-                            detail=(f"Elección guardada en este hilo · revisión {row['revision']}. "
-                                    + (f"Fuente elegida: {selected['name']}." if selected else 'El plazo queda pendiente.')),
-                            sources=[selected] if selected else [])
+        # Each report is immutable. Use the most recent decision belonging to the selected sources.
+        rows = db.execute("""SELECT d.report,d.revision,d.choice FROM decisions d
+            WHERE d.project=? AND d.thread=? AND d.revision=(
+            SELECT MAX(r.revision) FROM decisions r WHERE r.project=d.project AND r.thread=d.thread AND r.report=d.report)
+            ORDER BY d.at DESC,d.report""",(project,thread))
+        for row in rows:
+            record = recover_report(db, project, thread, row['report'])
+            if not record or {i['id'] for i in record['attachments']} != sources:
+                continue
+            finding = next(f for f in record['findings'] if f['rule']=='first_response_hours' and f['status']=='mismatch')
+            selected = next((s for s in finding['sources'] if s['kind']==row['choice']), None)
+            return dict(rule='thread_decision', status='observed', origin_report=row['report'],
+                        title=(f"Se eligieron {selected['value']} h" if selected else 'La decisión se aplazó'),
+                        detail=(f"Elección guardada en este hilo · revisión {row['revision']}. "
+                                + (f"Fuente elegida: {selected['name']}." if selected else 'El plazo queda pendiente.')),
+                        sources=[selected] if selected else [])
         return dict(rule='thread_decision',status='insufficient',title='Todavía no hay una decisión para esta selección',
                     detail='Abre el hallazgo del hilo para elegir una fuente o aplazar la decisión.',sources=[])
 
@@ -502,14 +562,9 @@ class AttachmentStore:
         office, _ = self._authority(project_id)
         with self._db(office) as db:
             record = recover_report(db, project_id, thread_id, report_id)
-            if record:
-                note = db.execute('''SELECT revision,choice,at FROM decisions WHERE project=? AND thread=?
-                    AND report=? ORDER BY revision DESC LIMIT 1''',(project_id, thread_id, report_id)).fetchone()
-                if note:
-                    record['decision'] = dict(note)
-        if record is None:
-            raise Denied('ATTACHMENT_REPORT_NOT_FOUND')
-        return record
+            if record is None:
+                raise Denied('ATTACHMENT_REPORT_NOT_FOUND')
+            return with_decision(db, record)
 
     def threads(self, project_id):
         scope(project_id, 'main')

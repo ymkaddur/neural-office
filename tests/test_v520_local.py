@@ -1,6 +1,7 @@
 """Local planning, scoped answers and recovery using a real attachment store."""
 import json
 from contextlib import closing
+from io import BytesIO
 from pathlib import Path
 import sqlite3
 import subprocess
@@ -9,14 +10,102 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from examples.multiformat.build_example import example_files
+from examples.multiformat.build_example import example_files, pdf_bytes
 from neural_office import attachments
+from neural_office.attachment_formats import read
 from neural_office.attachments import AttachmentStore
 from neural_office.inspection_intent import requested_checks
 from neural_office.ledger import Denied, Ledger
 
 
 class DirectorScope(unittest.TestCase):
+    def test_count_pages_without_extracting_text_or_opening_pages(self):
+        import pypdfium2 as pdf
+
+        data = pdf_bytes([[], [], []])
+        with patch.object(pdf.PdfDocument, '__getitem__', side_effect=AssertionError('opened a page')):
+            count = read('pdf', data, mode='page_count')
+        self.assertEqual((count['status'], count['pages']), ('ok', 3))
+        self.assertNotIn('candidates', count)
+        self.assertNotIn('image', count)
+        self.assertEqual(read('pdf', b'truncated', mode='page_count')['status'], 'invalid')
+
+    def test_dimensions_verify_pixels_without_copying_the_oriented_frame(self):
+        from PIL import Image, ImageOps
+
+        for orientation in range(1, 9):
+            with self.subTest(orientation=orientation), BytesIO() as stream:
+                exif = Image.Exif()
+                exif[274] = orientation
+                with Image.new('RGB', (64, 32)) as frame:
+                    frame.save(stream, format='JPEG', exif=exif)
+                data = stream.getvalue()
+                with patch.object(ImageOps, 'exif_transpose', side_effect=AssertionError('copied a frame')):
+                    view = read('jpeg', data, mode='inspect')
+                    self.assertEqual(view['status'], 'ok')
+                    self.assertEqual((view['width'], view['height']), (32, 64) if orientation >= 5 else (64, 32))
+                    self.assertNotIn('image', view)
+                    self.assertEqual(read('jpeg', data[:-10], mode='inspect')['status'], 'invalid')
+
+    def test_streamed_identity_stops_mid_file_and_detects_changes_at_the_end(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            ledger = Ledger(base / 'office.db')
+            ledger.initialize()
+            store = AttachmentStore(ledger)
+            source = base / 'respaldo.bin'
+            source.write_bytes(b'x' * 1_000_000)
+            identity = store.capture('Portal', [source], thread_id='review')[0]['id']
+            with closing(sqlite3.connect(store.path)) as db:
+                db.row_factory = sqlite3.Row
+                checks = iter([False, True])
+                with self.assertRaisesRegex(Denied, 'ATTACHMENT_READ_CANCELLED'):
+                    attachments.verified_content(db, 'Portal', 'review', identity,
+                                                 need_bytes=False, cancelled=lambda: next(checks))
+                rowid = db.execute('SELECT rowid FROM captures WHERE id=?', (identity,)).fetchone()[0]
+                with db.blobopen('captures', 'content', rowid) as blob:
+                    blob.seek(len(blob) - 1)
+                    blob.write(b'y')
+            with self.assertRaisesRegex(Denied, 'ATTACHMENT_INTEGRITY_FAILED'):
+                store.inspect('Portal', [identity], '¿Qué decidimos?', thread_id='review')
+            self.assertEqual(store.history('Portal', thread_id='review'), [])
+
+    def test_only_required_readers_run_and_each_source_remains_verified(self):
+        with tempfile.TemporaryDirectory() as folder:
+            base = Path(folder)
+            ledger = Ledger(base / 'office.db')
+            ledger.initialize()
+            store = AttachmentStore(ledger)
+            files = store.capture('Portal', example_files(base / 'inputs'), thread_id='review')
+            ids = [item['id'] for item in files]
+            cases = [
+                ('', [('pdf', 'inspect'), ('json', 'inspect')], ['first_response_hours']),
+                ('¿Qué decidimos y cuántas páginas tiene el PDF?',
+                 [('pdf', 'page_count')], ['thread_decision', 'pages']),
+                ('Compara el plazo y cuántas páginas tiene el PDF.',
+                 [('pdf', 'inspect'), ('json', 'inspect')], ['first_response_hours', 'pages']),
+                ('¿Qué hay dentro del ZIP?', [('zip', 'inspect')], ['zip']),
+                ('¿Cuál es el plazo de devolución?', [], ['scope']),
+            ]
+            for objective, expected, rules in cases:
+                with self.subTest(objective=objective), patch.object(attachments, 'decode', wraps=attachments.decode) as decoder:
+                    report = store.inspect('Portal', ids, objective, thread_id='review')
+                    self.assertEqual([(c.args[0], c.kwargs['mode']) for c in decoder.call_args_list], expected)
+                    self.assertEqual([f['rule'] for f in report['findings']], rules)
+                    self.assertEqual([a['id'] for a in report['attachments']], ids)
+                    self.assertEqual((report['model_calls'], report['reservations']), (0, 0))
+                    self.assertEqual({a['kind'] for a in report['attachments'] if 'status' in a},
+                                     {kind for kind, mode in expected})
+            with patch.object(attachments, 'decode', side_effect=AssertionError('missing second source')):
+                one = store.inspect('Portal', [ids[0]], 'Compara el plazo.', thread_id='review')
+                self.assertEqual(one['findings'][0]['status'], 'insufficient')
+            with closing(sqlite3.connect(store.path)) as db:
+                original = db.execute('SELECT content FROM captures WHERE id=?', (ids[-1],)).fetchone()[0]
+                db.execute('UPDATE captures SET content=? WHERE id=?', (original[:-1] + bytes([original[-1] ^ 1]), ids[-1]))
+                db.commit()
+            with self.assertRaisesRegex(Denied, 'ATTACHMENT_INTEGRITY_FAILED'):
+                store.inspect('Portal', ids, '¿Qué hay dentro del ZIP?', thread_id='review')
+
     def test_scoped_requests_and_compound_questions(self):
         cases = {
             '¿Cuál es el plazo de devolución?': ['clarify'],

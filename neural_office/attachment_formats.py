@@ -71,11 +71,13 @@ def image_view(kind, data, mode):
             return result(kind, 'limit', 'La imagen supera los 12 megapíxeles admitidos.')
         orientation = image.getexif().get(274, 1)
         image.load()  # verify pixel decoding even for an inspection without preview
-        frame = ImageOps.exif_transpose(image)
-        values = dict(width=frame.width, height=frame.height, original_width=width,
-                      original_height=height, orientation=orientation if orientation in range(1, 9) else 1)
+        orientation = orientation if orientation in range(1, 9) else 1
+        displayed_width, displayed_height = (height, width) if orientation >= 5 else (width, height)
+        values = dict(width=displayed_width, height=displayed_height, original_width=width,
+                      original_height=height, orientation=orientation)
         if mode == 'preview':
-            values['image'] = raster(frame)
+            with ImageOps.exif_transpose(image) as frame:
+                values['image'] = raster(frame)
         return result(kind, 'ok', 'Vista de la primera imagen, con su orientación de lectura.', **values)
 
 
@@ -216,6 +218,8 @@ def pdf_view(data, page_number, mode):
             return result('pdf', 'out_of_range', 'Esa página no existe en la captura.', pages=pages)
         if raw.FPDF_GetSecurityHandlerRevision(doc) >= 0 and not raw.FPDF_GetDocUserPermissions(doc) & 16:
             return result('pdf', 'protected', 'El documento restringe la extracción. Selecciona una copia autorizada.', pages=pages)
+        if mode == 'page_count':
+            return result('pdf', 'ok', 'Páginas contadas en el índice del PDF.', pages=pages)
         candidates = []
         complete = True
         count_scanned = 0

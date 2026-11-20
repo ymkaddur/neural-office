@@ -355,3 +355,6 @@
 !tools/measure_ollama_terminal.py
 !docs/V5_20_LOCAL.md
 !docs/evidence/V5_20_TERMINAL.json
+!tools/measure_v520_inspection.py
+!docs/evidence/V5_20_INSPECTION.json
+!docs/evidence/V5_20_TERMINAL_9B.json

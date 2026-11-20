@@ -26,6 +26,20 @@ HOURS = re.compile(
 OTHER_DEADLINE = re.compile(
     r'\bplazos?\s+(?:de|del|para)\s+(?!(?:la\s+)?(?:primera respuesta|respuesta)\b)\S+'
 )
+READER_FORMATS = {
+    'syntax': {'json'}, 'pages': {'pdf'}, 'dimensions': {'png', 'jpeg'},
+    'visual': {'png', 'jpeg'}, 'zip': {'zip'}, 'html': {'html'},
+}
+
+
+def reader_modes(checks, kinds):
+    """Plan at most one native read per source, retaining the strongest required operation."""
+    modes = {kind: 'inspect' for check in checks for kind in READER_FORMATS.get(check, ())}
+    if 'pages' in checks:
+        modes['pdf'] = 'page_count'
+    if 'hours' in checks and kinds.count('pdf') == 1 and kinds.count('json') == 1:
+        modes.update(pdf='inspect', json='inspect')
+    return modes
 
 
 def _clause_checks(text, kinds):
@@ -79,8 +93,6 @@ def requested_checks(objective, kinds):
 
 
 def reader_findings(check, inputs, views):
-    formats = {'syntax': {'json'}, 'pages': {'pdf'}, 'dimensions': {'png','jpeg'},
-               'visual': {'png','jpeg'}, 'zip': {'zip'}, 'html': {'html'}}
     titles = {'syntax':'Validar la sintaxis JSON', 'pages':'Contar páginas del PDF',
               'dimensions':'Comprobar las dimensiones', 'visual':'Revisar la legibilidad',
               'zip':'Inventariar el paquete', 'html':'Comprobar HTML'}
@@ -90,7 +102,7 @@ def reader_findings(check, inputs, views):
     if check == 'clarify':
         return [dict(rule='scope', status='insufficient', title='Hace falta concretar la comprobación',
                      detail='Puedo comparar el plazo PDF/JSON, validar JSON, contar páginas, inventariar un ZIP, medir una imagen o comprobar HTML. Elige la tarea que corresponde a tu pregunta.', sources=[])]
-    files = [item for item in inputs if item['kind'] in formats[check]]
+    files = [item for item in inputs if item['kind'] in READER_FORMATS[check]]
     if not files:
         return [dict(rule=check, status='insufficient', title=titles[check], detail='Falta una fuente compatible con esta comprobación.', sources=[])]
     results = []
