@@ -123,7 +123,10 @@ def local(exe, work, state, out, receipt):
             verify(screen.control(label, 'CheckBox').get_toggle_state() == 1, 'Attachment is not selected: ' + label)
         screen.screenshot(out / '02-adjuntos.png')
         receipt.update(picker_dialogs=1, selected_files=hashes)
-        screen.button('Inspector')
+        inspector = screen.reveal_button('Inspector')
+        screen.press_space(inspector)
+        wait(lambda: not wanted.intersection(screen.names(visible_only=False).splitlines()),
+             description='closing the inspector returns the thread to its full width')
         receipt['answers'] = []
         for index, (question, answer) in enumerate(((COMPARE, TITLE), (LITERAL, DETAIL)), 3):
             verify(answer not in screen.names(), 'Answer visible before sending the request')
