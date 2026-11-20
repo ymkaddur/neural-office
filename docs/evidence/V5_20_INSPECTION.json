@@ -1,0 +1,3412 @@
+{
+  "schema": 1,
+  "captured_utc": "2026-11-20T10:16:38.027929+00:00",
+  "system": "Windows-11-10.0.26200-SP0",
+  "logical_cpus": 20,
+  "commits": {
+    "before": "89baf2e54121cd62a59a796431a2c1e4995dbaaa",
+    "after": "5656bc98cd485ff175f1ab910a8a05e15918770b"
+  },
+  "modified_source": {
+    "before": false,
+    "after": false
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "sqlite": "3.49.1",
+    "pillow": "13.0.0",
+    "pypdfium2": "5.15.2"
+  },
+  "pairs": 10,
+  "scope": "fresh Windows service process and descendants per task, 50 ms samples",
+  "prompts": {
+    "comparison": "Compara el plazo de primera respuesta.",
+    "decision_and_pages": "¿Qué decidimos y cuántas páginas tiene el PDF?",
+    "zip": "¿Qué hay dentro del ZIP?",
+    "unknown": "¿Cuál es el plazo de devolución?",
+    "recall": "¿Con cuál nos quedamos?",
+    "large_image": "¿Qué dimensiones tiene la imagen?",
+    "large_identity": "¿Qué decidimos?"
+  },
+  "source_sha256": {
+    "entrega.zip": "c11ae3658a14b4177b91759d0e8bcfc46d160708768746f781cf7a0273250645",
+    "especificacion.pdf": "1971b67678268bf5fa1b9eff201a1779809f2c54769e698ef2bcd9923e103ea0",
+    "manifiesto.json": "f09570bdae4023698ae1770b26788dde6ff0e6a60b95fbe6028dfd7f4d094b30",
+    "movil.jpg": "9b0ee2ca5d52f39aa671801b1e854d1870c6db0e190c4aac94d1cd7297c4999b",
+    "orientada.jpg": "333e331ffded2386c5737494e2aee2c7564416c562753f63abca43b6cd648632",
+    "portada.png": "aed85e3f1f1b9d0fe5aae943725091d3ab0ee4145c703520ed4b498087457190",
+    "respaldo.bin": "0c77bc0a0795a93612d45256897456d0fcb24f151c44c150d07ecd03f4ef5168"
+  },
+  "runs": [
+    {
+      "pair": 1,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 934.51,
+      "cpu_s": 0.875,
+      "sampled_peak_ws": 90992640,
+      "sampled_peak_private": 39788544,
+      "lifetime_peak_job_commit": 45195264,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 935.78,
+      "cpu_s": 0.734375,
+      "sampled_peak_ws": 89587712,
+      "sampled_peak_private": 37740544,
+      "lifetime_peak_job_commit": 44941312,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 999.85,
+      "cpu_s": 0.734375,
+      "sampled_peak_ws": 90292224,
+      "sampled_peak_private": 40951808,
+      "lifetime_peak_job_commit": 44826624,
+      "samples": 18,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 921.69,
+      "cpu_s": 0.859375,
+      "sampled_peak_ws": 90873856,
+      "sampled_peak_private": 44126208,
+      "lifetime_peak_job_commit": 44441600,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 13.18,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42967040,
+      "sampled_peak_private": 20447232,
+      "lifetime_peak_job_commit": 21237760,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 186.26,
+      "cpu_s": 0.140625,
+      "sampled_peak_ws": 80904192,
+      "sampled_peak_private": 38240256,
+      "lifetime_peak_job_commit": 87519232,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 22.85,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42606592,
+      "sampled_peak_private": 20029440,
+      "lifetime_peak_job_commit": 36929536,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 476.86,
+      "cpu_s": 0.4375,
+      "sampled_peak_ws": 90091520,
+      "sampled_peak_private": 38780928,
+      "lifetime_peak_job_commit": 44232704,
+      "samples": 9,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 437.52,
+      "cpu_s": 0.390625,
+      "sampled_peak_ws": 91680768,
+      "sampled_peak_private": 40169472,
+      "lifetime_peak_job_commit": 44773376,
+      "samples": 9,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 112.65,
+      "cpu_s": 0.109375,
+      "sampled_peak_ws": 72781824,
+      "sampled_peak_private": 30298112,
+      "lifetime_peak_job_commit": 44511232,
+      "samples": 3,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 9.91,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42848256,
+      "sampled_peak_private": 21000192,
+      "lifetime_peak_job_commit": 21598208,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 10.88,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42700800,
+      "sampled_peak_private": 20340736,
+      "lifetime_peak_job_commit": 20598784,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 150.07,
+      "cpu_s": 0.140625,
+      "sampled_peak_ws": 81530880,
+      "sampled_peak_private": 37908480,
+      "lifetime_peak_job_commit": 63242240,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 1,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 16.68,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 43089920,
+      "sampled_peak_private": 21233664,
+      "lifetime_peak_job_commit": 21282816,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 461.49,
+      "cpu_s": 0.421875,
+      "sampled_peak_ws": 90873856,
+      "sampled_peak_private": 40595456,
+      "lifetime_peak_job_commit": 44908544,
+      "samples": 9,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 119.07,
+      "cpu_s": 0.125,
+      "sampled_peak_ws": 66809856,
+      "sampled_peak_private": 27955200,
+      "lifetime_peak_job_commit": 45174784,
+      "samples": 3,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 7.74,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42758144,
+      "sampled_peak_private": 20455424,
+      "lifetime_peak_job_commit": 21258240,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 11.28,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 43069440,
+      "sampled_peak_private": 20635648,
+      "lifetime_peak_job_commit": 21041152,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 166.11,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 80093184,
+      "sampled_peak_private": 44326912,
+      "lifetime_peak_job_commit": 63250432,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 17.23,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42790912,
+      "sampled_peak_private": 20709376,
+      "lifetime_peak_job_commit": 21110784,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 491.32,
+      "cpu_s": 0.421875,
+      "sampled_peak_ws": 89620480,
+      "sampled_peak_private": 38490112,
+      "lifetime_peak_job_commit": 44548096,
+      "samples": 9,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 886.5,
+      "cpu_s": 0.765625,
+      "sampled_peak_ws": 90120192,
+      "sampled_peak_private": 38543360,
+      "lifetime_peak_job_commit": 44511232,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 962.38,
+      "cpu_s": 0.9375,
+      "sampled_peak_ws": 90116096,
+      "sampled_peak_private": 41037824,
+      "lifetime_peak_job_commit": 45613056,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 872.77,
+      "cpu_s": 0.828125,
+      "sampled_peak_ws": 89989120,
+      "sampled_peak_private": 38260736,
+      "lifetime_peak_job_commit": 44986368,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 14.28,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42508288,
+      "sampled_peak_private": 20332544,
+      "lifetime_peak_job_commit": 21188608,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 175.38,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 80596992,
+      "sampled_peak_private": 37679104,
+      "lifetime_peak_job_commit": 87457792,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 23.18,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42799104,
+      "sampled_peak_private": 20557824,
+      "lifetime_peak_job_commit": 37462016,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 2,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 966.1,
+      "cpu_s": 0.78125,
+      "sampled_peak_ws": 91553792,
+      "sampled_peak_private": 39694336,
+      "lifetime_peak_job_commit": 44527616,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 1092.51,
+      "cpu_s": 0.859375,
+      "sampled_peak_ws": 90181632,
+      "sampled_peak_private": 42647552,
+      "lifetime_peak_job_commit": 45256704,
+      "samples": 19,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 955.79,
+      "cpu_s": 0.859375,
+      "sampled_peak_ws": 90112000,
+      "sampled_peak_private": 43823104,
+      "lifetime_peak_job_commit": 44036096,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 13.49,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42721280,
+      "sampled_peak_private": 20279296,
+      "lifetime_peak_job_commit": 21012480,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 164.02,
+      "cpu_s": 0.125,
+      "sampled_peak_ws": 81432576,
+      "sampled_peak_private": 37982208,
+      "lifetime_peak_job_commit": 87453696,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 24.0,
+      "cpu_s": 0.03125,
+      "sampled_peak_ws": 42618880,
+      "sampled_peak_private": 19922944,
+      "lifetime_peak_job_commit": 36839424,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 934.45,
+      "cpu_s": 0.84375,
+      "sampled_peak_ws": 90730496,
+      "sampled_peak_private": 45068288,
+      "lifetime_peak_job_commit": 45105152,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 1156.93,
+      "cpu_s": 1.03125,
+      "sampled_peak_ws": 89223168,
+      "sampled_peak_private": 37863424,
+      "lifetime_peak_job_commit": 43814912,
+      "samples": 20,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 167.32,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 76582912,
+      "sampled_peak_private": 35225600,
+      "lifetime_peak_job_commit": 45293568,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 10.56,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42975232,
+      "sampled_peak_private": 20893696,
+      "lifetime_peak_job_commit": 21413888,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 10.54,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 43048960,
+      "sampled_peak_private": 21614592,
+      "lifetime_peak_job_commit": 21667840,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 188.85,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 76587008,
+      "sampled_peak_private": 34492416,
+      "lifetime_peak_job_commit": 63660032,
+      "samples": 5,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 20.02,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42840064,
+      "sampled_peak_private": 20967424,
+      "lifetime_peak_job_commit": 21196800,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 584.54,
+      "cpu_s": 0.515625,
+      "sampled_peak_ws": 89686016,
+      "sampled_peak_private": 38584320,
+      "lifetime_peak_job_commit": 45522944,
+      "samples": 11,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 3,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 492.47,
+      "cpu_s": 0.4375,
+      "sampled_peak_ws": 89419776,
+      "sampled_peak_private": 38162432,
+      "lifetime_peak_job_commit": 44949504,
+      "samples": 9,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 11.66,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42745856,
+      "sampled_peak_private": 20713472,
+      "lifetime_peak_job_commit": 20762624,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 13.05,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42577920,
+      "sampled_peak_private": 20652032,
+      "lifetime_peak_job_commit": 20705280,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 171.61,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 78917632,
+      "sampled_peak_private": 36057088,
+      "lifetime_peak_job_commit": 63713280,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 21.44,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42803200,
+      "sampled_peak_private": 20701184,
+      "lifetime_peak_job_commit": 20905984,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 676.77,
+      "cpu_s": 0.59375,
+      "sampled_peak_ws": 90034176,
+      "sampled_peak_private": 44658688,
+      "lifetime_peak_job_commit": 44670976,
+      "samples": 13,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 544.46,
+      "cpu_s": 0.484375,
+      "sampled_peak_ws": 90894336,
+      "sampled_peak_private": 40267776,
+      "lifetime_peak_job_commit": 44584960,
+      "samples": 10,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 151.46,
+      "cpu_s": 0.109375,
+      "sampled_peak_ws": 76607488,
+      "sampled_peak_private": 34189312,
+      "lifetime_peak_job_commit": 43872256,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 1389.45,
+      "cpu_s": 1.265625,
+      "sampled_peak_ws": 91746304,
+      "sampled_peak_private": 40464384,
+      "lifetime_peak_job_commit": 44982272,
+      "samples": 24,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 49.31,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42741760,
+      "sampled_peak_private": 20508672,
+      "lifetime_peak_job_commit": 21110784,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 242.13,
+      "cpu_s": 0.203125,
+      "sampled_peak_ws": 80551936,
+      "sampled_peak_private": 38252544,
+      "lifetime_peak_job_commit": 87523328,
+      "samples": 5,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 24.7,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42151936,
+      "sampled_peak_private": 20389888,
+      "lifetime_peak_job_commit": 37007360,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 947.36,
+      "cpu_s": 0.8125,
+      "sampled_peak_ws": 92254208,
+      "sampled_peak_private": 44396544,
+      "lifetime_peak_job_commit": 44670976,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 892.22,
+      "cpu_s": 0.84375,
+      "sampled_peak_ws": 92274688,
+      "sampled_peak_private": 40685568,
+      "lifetime_peak_job_commit": 45215744,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 4,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 915.62,
+      "cpu_s": 0.859375,
+      "sampled_peak_ws": 91729920,
+      "sampled_peak_private": 39964672,
+      "lifetime_peak_job_commit": 45002752,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 11.58,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42942464,
+      "sampled_peak_private": 20766720,
+      "lifetime_peak_job_commit": 21213184,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 173.17,
+      "cpu_s": 0.171875,
+      "sampled_peak_ws": 79900672,
+      "sampled_peak_private": 37257216,
+      "lifetime_peak_job_commit": 88031232,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 24.58,
+      "cpu_s": 0.03125,
+      "sampled_peak_ws": 42921984,
+      "sampled_peak_private": 20643840,
+      "lifetime_peak_job_commit": 37568512,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 955.55,
+      "cpu_s": 0.78125,
+      "sampled_peak_ws": 91914240,
+      "sampled_peak_private": 40992768,
+      "lifetime_peak_job_commit": 45875200,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 890.91,
+      "cpu_s": 0.859375,
+      "sampled_peak_ws": 92274688,
+      "sampled_peak_private": 40615936,
+      "lifetime_peak_job_commit": 45203456,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 883.96,
+      "cpu_s": 0.84375,
+      "sampled_peak_ws": 90071040,
+      "sampled_peak_private": 38805504,
+      "lifetime_peak_job_commit": 44761088,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 870.97,
+      "cpu_s": 0.78125,
+      "sampled_peak_ws": 91815936,
+      "sampled_peak_private": 39923712,
+      "lifetime_peak_job_commit": 44421120,
+      "samples": 15,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 14.66,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 43028480,
+      "sampled_peak_private": 21237760,
+      "lifetime_peak_job_commit": 21291008,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 236.85,
+      "cpu_s": 0.25,
+      "sampled_peak_ws": 80633856,
+      "sampled_peak_private": 38371328,
+      "lifetime_peak_job_commit": 63586304,
+      "samples": 5,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 26.25,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42856448,
+      "sampled_peak_private": 21340160,
+      "lifetime_peak_job_commit": 21639168,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 839.71,
+      "cpu_s": 0.71875,
+      "sampled_peak_ws": 89952256,
+      "sampled_peak_private": 40931328,
+      "lifetime_peak_job_commit": 45182976,
+      "samples": 15,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 521.62,
+      "cpu_s": 0.484375,
+      "sampled_peak_ws": 91586560,
+      "sampled_peak_private": 40931328,
+      "lifetime_peak_job_commit": 45658112,
+      "samples": 10,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 125.94,
+      "cpu_s": 0.09375,
+      "sampled_peak_ws": 66383872,
+      "sampled_peak_private": 26923008,
+      "lifetime_peak_job_commit": 44552192,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 5,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 11.14,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 43077632,
+      "sampled_peak_private": 20787200,
+      "lifetime_peak_job_commit": 21413888,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 175.23,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 82276352,
+      "sampled_peak_private": 44281856,
+      "lifetime_peak_job_commit": 63004672,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 17.72,
+      "cpu_s": 0.03125,
+      "sampled_peak_ws": 42614784,
+      "sampled_peak_private": 20144128,
+      "lifetime_peak_job_commit": 21155840,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 632.56,
+      "cpu_s": 0.578125,
+      "sampled_peak_ws": 90271744,
+      "sampled_peak_private": 39202816,
+      "lifetime_peak_job_commit": 44531712,
+      "samples": 12,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 530.36,
+      "cpu_s": 0.4375,
+      "sampled_peak_ws": 89985024,
+      "sampled_peak_private": 39878656,
+      "lifetime_peak_job_commit": 44818432,
+      "samples": 10,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 205.12,
+      "cpu_s": 0.171875,
+      "sampled_peak_ws": 78258176,
+      "sampled_peak_private": 35700736,
+      "lifetime_peak_job_commit": 44179456,
+      "samples": 5,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 12.88,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42754048,
+      "sampled_peak_private": 20942848,
+      "lifetime_peak_job_commit": 20992000,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 13.37,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42999808,
+      "sampled_peak_private": 21090304,
+      "lifetime_peak_job_commit": 21139456,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 175.74,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 79757312,
+      "sampled_peak_private": 37019648,
+      "lifetime_peak_job_commit": 87805952,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 22.62,
+      "cpu_s": 0.03125,
+      "sampled_peak_ws": 42737664,
+      "sampled_peak_private": 21086208,
+      "lifetime_peak_job_commit": 37957632,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 1338.2,
+      "cpu_s": 1.1875,
+      "sampled_peak_ws": 91820032,
+      "sampled_peak_private": 39968768,
+      "lifetime_peak_job_commit": 44396544,
+      "samples": 23,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 1102.82,
+      "cpu_s": 0.875,
+      "sampled_peak_ws": 89935872,
+      "sampled_peak_private": 38461440,
+      "lifetime_peak_job_commit": 44376064,
+      "samples": 19,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 938.77,
+      "cpu_s": 0.890625,
+      "sampled_peak_ws": 91398144,
+      "sampled_peak_private": 42385408,
+      "lifetime_peak_job_commit": 46030848,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 949.35,
+      "cpu_s": 0.875,
+      "sampled_peak_ws": 91795456,
+      "sampled_peak_private": 40116224,
+      "lifetime_peak_job_commit": 44908544,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 6,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 12.31,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 43024384,
+      "sampled_peak_private": 21086208,
+      "lifetime_peak_job_commit": 21135360,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 23.0,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 43167744,
+      "sampled_peak_private": 20897792,
+      "lifetime_peak_job_commit": 37797888,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 866.67,
+      "cpu_s": 0.75,
+      "sampled_peak_ws": 91971584,
+      "sampled_peak_private": 40574976,
+      "lifetime_peak_job_commit": 45072384,
+      "samples": 15,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 977.89,
+      "cpu_s": 0.875,
+      "sampled_peak_ws": 92176384,
+      "sampled_peak_private": 44806144,
+      "lifetime_peak_job_commit": 44937216,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 896.21,
+      "cpu_s": 0.828125,
+      "sampled_peak_ws": 91578368,
+      "sampled_peak_private": 40591360,
+      "lifetime_peak_job_commit": 45117440,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 939.36,
+      "cpu_s": 0.75,
+      "sampled_peak_ws": 90271744,
+      "sampled_peak_private": 40546304,
+      "lifetime_peak_job_commit": 45031424,
+      "samples": 17,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 13.05,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42807296,
+      "sampled_peak_private": 21049344,
+      "lifetime_peak_job_commit": 21098496,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 156.1,
+      "cpu_s": 0.140625,
+      "sampled_peak_ws": 118022144,
+      "sampled_peak_private": 87957504,
+      "lifetime_peak_job_commit": 87994368,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 21.13,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42651648,
+      "sampled_peak_private": 20570112,
+      "lifetime_peak_job_commit": 21065728,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 516.48,
+      "cpu_s": 0.46875,
+      "sampled_peak_ws": 92102656,
+      "sampled_peak_private": 41189376,
+      "lifetime_peak_job_commit": 45154304,
+      "samples": 10,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 465.58,
+      "cpu_s": 0.40625,
+      "sampled_peak_ws": 89628672,
+      "sampled_peak_private": 38653952,
+      "lifetime_peak_job_commit": 44814336,
+      "samples": 9,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 159.49,
+      "cpu_s": 0.109375,
+      "sampled_peak_ws": 76558336,
+      "sampled_peak_private": 34635776,
+      "lifetime_peak_job_commit": 44740608,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 9.29,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42954752,
+      "sampled_peak_private": 20480000,
+      "lifetime_peak_job_commit": 21090304,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 10.76,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42737664,
+      "sampled_peak_private": 20074496,
+      "lifetime_peak_job_commit": 21024768,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 7,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 159.27,
+      "cpu_s": 0.171875,
+      "sampled_peak_ws": 87805952,
+      "sampled_peak_private": 63299584,
+      "lifetime_peak_job_commit": 63332352,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 744.74,
+      "cpu_s": 0.71875,
+      "sampled_peak_ws": 91910144,
+      "sampled_peak_private": 40398848,
+      "lifetime_peak_job_commit": 44281856,
+      "samples": 14,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 396.81,
+      "cpu_s": 0.40625,
+      "sampled_peak_ws": 89522176,
+      "sampled_peak_private": 38064128,
+      "lifetime_peak_job_commit": 44122112,
+      "samples": 8,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 153.85,
+      "cpu_s": 0.140625,
+      "sampled_peak_ws": 76034048,
+      "sampled_peak_private": 34299904,
+      "lifetime_peak_job_commit": 44187648,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 10.69,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42790912,
+      "sampled_peak_private": 20295680,
+      "lifetime_peak_job_commit": 20529152,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 11.49,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42541056,
+      "sampled_peak_private": 20729856,
+      "lifetime_peak_job_commit": 20779008,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 149.99,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 84299776,
+      "sampled_peak_private": 63541248,
+      "lifetime_peak_job_commit": 63574016,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 15.28,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42618880,
+      "sampled_peak_private": 20754432,
+      "lifetime_peak_job_commit": 20803584,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 1148.54,
+      "cpu_s": 1.0625,
+      "sampled_peak_ws": 90382336,
+      "sampled_peak_private": 38916096,
+      "lifetime_peak_job_commit": 45416448,
+      "samples": 20,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 1496.0,
+      "cpu_s": 1.328125,
+      "sampled_peak_ws": 90279936,
+      "sampled_peak_private": 40452096,
+      "lifetime_peak_job_commit": 45105152,
+      "samples": 26,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 1027.93,
+      "cpu_s": 0.921875,
+      "sampled_peak_ws": 91676672,
+      "sampled_peak_private": 39804928,
+      "lifetime_peak_job_commit": 44191744,
+      "samples": 18,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 1026.81,
+      "cpu_s": 0.84375,
+      "sampled_peak_ws": 92098560,
+      "sampled_peak_private": 44761088,
+      "lifetime_peak_job_commit": 45449216,
+      "samples": 18,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 11.36,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42770432,
+      "sampled_peak_private": 20492288,
+      "lifetime_peak_job_commit": 21233664,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 172.7,
+      "cpu_s": 0.171875,
+      "sampled_peak_ws": 79298560,
+      "sampled_peak_private": 36777984,
+      "lifetime_peak_job_commit": 87257088,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 8,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 24.92,
+      "cpu_s": 0.03125,
+      "sampled_peak_ws": 42917888,
+      "sampled_peak_private": 21176320,
+      "lifetime_peak_job_commit": 38084608,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 1589.79,
+      "cpu_s": 1.359375,
+      "sampled_peak_ws": 91750400,
+      "sampled_peak_private": 40108032,
+      "lifetime_peak_job_commit": 44589056,
+      "samples": 27,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 1316.18,
+      "cpu_s": 1.25,
+      "sampled_peak_ws": 91721728,
+      "sampled_peak_private": 44736512,
+      "lifetime_peak_job_commit": 45477888,
+      "samples": 23,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 1606.48,
+      "cpu_s": 1.328125,
+      "sampled_peak_ws": 91975680,
+      "sampled_peak_private": 40738816,
+      "lifetime_peak_job_commit": 44974080,
+      "samples": 27,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 18.04,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42504192,
+      "sampled_peak_private": 19959808,
+      "lifetime_peak_job_commit": 20332544,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 340.25,
+      "cpu_s": 0.296875,
+      "sampled_peak_ws": 121016320,
+      "sampled_peak_private": 88186880,
+      "lifetime_peak_job_commit": 88236032,
+      "samples": 7,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 32.63,
+      "cpu_s": 0.03125,
+      "sampled_peak_ws": 42500096,
+      "sampled_peak_private": 20103168,
+      "lifetime_peak_job_commit": 36990976,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 1472.51,
+      "cpu_s": 1.359375,
+      "sampled_peak_ws": 91430912,
+      "sampled_peak_private": 39493632,
+      "lifetime_peak_job_commit": 44576768,
+      "samples": 25,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 434.33,
+      "cpu_s": 0.359375,
+      "sampled_peak_ws": 90935296,
+      "sampled_peak_private": 40550400,
+      "lifetime_peak_job_commit": 45371392,
+      "samples": 9,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 135.02,
+      "cpu_s": 0.109375,
+      "sampled_peak_ws": 77291520,
+      "sampled_peak_private": 34828288,
+      "lifetime_peak_job_commit": 44945408,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 8.45,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42921984,
+      "sampled_peak_private": 20520960,
+      "lifetime_peak_job_commit": 21073920,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 7.95,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42893312,
+      "sampled_peak_private": 20840448,
+      "lifetime_peak_job_commit": 21331968,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 254.73,
+      "cpu_s": 0.25,
+      "sampled_peak_ws": 78843904,
+      "sampled_peak_private": 35909632,
+      "lifetime_peak_job_commit": 62992384,
+      "samples": 6,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 26.99,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42946560,
+      "sampled_peak_private": 20983808,
+      "lifetime_peak_job_commit": 21151744,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 9,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 898.24,
+      "cpu_s": 0.796875,
+      "sampled_peak_ws": 89714688,
+      "sampled_peak_private": 39604224,
+      "lifetime_peak_job_commit": 43905024,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "after",
+      "case": "zip",
+      "wall_ms": 190.54,
+      "cpu_s": 0.21875,
+      "sampled_peak_ws": 74899456,
+      "sampled_peak_private": 32620544,
+      "lifetime_peak_job_commit": 44478464,
+      "samples": 5,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "zip",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "after",
+      "case": "unknown",
+      "wall_ms": 11.1,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42635264,
+      "sampled_peak_private": 20119552,
+      "lifetime_peak_job_commit": 21262336,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "after",
+      "case": "recall",
+      "wall_ms": 12.48,
+      "cpu_s": 0.0,
+      "sampled_peak_ws": 42901504,
+      "sampled_peak_private": 20889600,
+      "lifetime_peak_job_commit": 20975616,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "after",
+      "case": "large_image",
+      "wall_ms": 239.31,
+      "cpu_s": 0.25,
+      "sampled_peak_ws": 79196160,
+      "sampled_peak_private": 36261888,
+      "lifetime_peak_job_commit": 63504384,
+      "samples": 5,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "after",
+      "case": "large_identity",
+      "wall_ms": 19.09,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42582016,
+      "sampled_peak_private": 19968000,
+      "lifetime_peak_job_commit": 20787200,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "after",
+      "case": "comparison",
+      "wall_ms": 899.01,
+      "cpu_s": 0.875,
+      "sampled_peak_ws": 92139520,
+      "sampled_peak_private": 41541632,
+      "lifetime_peak_job_commit": 44687360,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "after",
+      "case": "decision_and_pages",
+      "wall_ms": 646.44,
+      "cpu_s": 0.625,
+      "sampled_peak_ws": 90255360,
+      "sampled_peak_private": 39931904,
+      "lifetime_peak_job_commit": 44404736,
+      "samples": 12,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "page_count"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "before",
+      "case": "zip",
+      "wall_ms": 1379.25,
+      "cpu_s": 1.265625,
+      "sampled_peak_ws": 91578368,
+      "sampled_peak_private": 39772160,
+      "lifetime_peak_job_commit": 44888064,
+      "samples": 24,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "before",
+      "case": "unknown",
+      "wall_ms": 889.91,
+      "cpu_s": 0.90625,
+      "sampled_peak_ws": 90013696,
+      "sampled_peak_private": 37801984,
+      "lifetime_peak_job_commit": 44507136,
+      "samples": 16,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "before",
+      "case": "recall",
+      "wall_ms": 14.0,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42594304,
+      "sampled_peak_private": 20099072,
+      "lifetime_peak_job_commit": 21315584,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "before",
+      "case": "large_image",
+      "wall_ms": 177.72,
+      "cpu_s": 0.15625,
+      "sampled_peak_ws": 79695872,
+      "sampled_peak_private": 37191680,
+      "lifetime_peak_job_commit": 87887872,
+      "samples": 4,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "before",
+      "case": "large_identity",
+      "wall_ms": 19.2,
+      "cpu_s": 0.015625,
+      "sampled_peak_ws": 42799104,
+      "sampled_peak_private": 20619264,
+      "lifetime_peak_job_commit": 37498880,
+      "samples": 2,
+      "incomplete_samples": 0,
+      "readers": [],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "before",
+      "case": "comparison",
+      "wall_ms": 1132.17,
+      "cpu_s": 1.046875,
+      "sampled_peak_ws": 92078080,
+      "sampled_peak_private": 40218624,
+      "lifetime_peak_job_commit": 45023232,
+      "samples": 20,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    },
+    {
+      "pair": 10,
+      "version": "before",
+      "case": "decision_and_pages",
+      "wall_ms": 1628.17,
+      "cpu_s": 1.53125,
+      "sampled_peak_ws": 90439680,
+      "sampled_peak_private": 39333888,
+      "lifetime_peak_job_commit": 44826624,
+      "samples": 28,
+      "incomplete_samples": 0,
+      "readers": [
+        [
+          "pdf",
+          "inspect"
+        ],
+        [
+          "zip",
+          "inspect"
+        ],
+        [
+          "json",
+          "inspect"
+        ],
+        [
+          "png",
+          "inspect"
+        ],
+        [
+          "jpeg",
+          "inspect"
+        ]
+      ],
+      "acceptable": true,
+      "attempts": 0,
+      "model_calls": 0
+    }
+  ]
+}
