@@ -9,6 +9,8 @@ import {Icon} from './DeskTools.tsx';
 import type {SymbolName} from './DeskTools.tsx';
 
 type Files=ReturnType<typeof attachmentApi>;
+import {Bot, TeamDelivery, TeamRail, TeamOverlay, TeamTrail} from '../office/TeamView.tsx';
+import type {Specialist} from '../office/team.ts';
 export type Inspection=Awaited<ReturnType<Files['report']>>;
 type FileItem=Awaited<ReturnType<Files['list']>>[number];
 type Page=Awaited<ReturnType<Files['view']>>;
@@ -33,24 +35,28 @@ function PackageTree({entries,selected,onOpen}:{entries:Member[];selected?:strin
 type Target={id:string;page?:number;member?:string;citation?:Citation};
 type ThreadView={excluded?:string[];draft:string;expanded:boolean;scroll:number;target?:Target;reportId?:string};
 const views=new Map<string,ThreadView>();
-const kindIcon=(kind:string='other'):SymbolName=>kind==='zip'?'zip':kind==='png'||kind==='jpeg'?'png':kind==='json'||kind==='html'?'json':'pdf';
+const formatIcons:Record<string,SymbolName>={
+  pdf:'pdf',zip:'zip',json:'json',html:'json',png:'png',jpeg:'png',gif:'png',webp:'png',bmp:'png',tiff:'png',
+  xlsx:'table',ods:'table',pptx:'slide',odp:'slide',wav:'audio',isobmff:'media',identity:'binary',other:'binary',
+};
+const kindIcon=(kind:string='other'):SymbolName=>formatIcons[kind]??'note';
 const size=(n:number)=>n<1024?n+' B':new Intl.NumberFormat('es-ES',{maximumFractionDigits:1}).format(n/1024)+' KiB';
 const when=(s:number)=>new Date(s*1000).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 function fault(e:unknown){
   const code=e instanceof Error?e.message:'ATTACHMENT_READ_FAILED';
-  const message:Record<string,string>={DECISION_CHANGED:'Otra ventana cambió la decisión. Se ha solicitado la lectura vigente.',NO_CITED_EXCERPTS:'Esta entrega aún no tiene fragmentos que se puedan autorizar.',EXCERPT_BUDGET:'Los fragmentos superan el espacio disponible para esta consulta.',ATTACHMENT_NOT_FOUND:'El núcleo ya no encuentra esta captura.',HOST_REQUEST_TIMEOUT:'La respuesta está pendiente. Actualiza la lectura antes de repetir la operación.',PROJECT_ROOT_ALREADY_REGISTERED:'La carpeta pertenece a otro proyecto. Abre el hilo de ese proyecto.',PROJECT_ROOT_CHANGED:'Elige archivos de la carpeta de este proyecto.'};
+  const message:Record<string,string>={SNAPSHOT_SIZE:'Se admiten archivos de hasta 512 MiB y hasta 1 GiB por selección. Elige menos archivos si se supera el total.',ATTACHMENT_SELECTION_LIMIT:'Elige hasta ocho archivos. Las copias completas de esta selección admiten 24 MiB en total.',DECISION_CHANGED:'Otra ventana cambió la decisión. Se ha solicitado la lectura vigente.',NO_CITED_EXCERPTS:'Esta entrega aún no tiene fragmentos que se puedan autorizar.',EXCERPT_BUDGET:'Los fragmentos superan el espacio disponible para esta consulta.',ATTACHMENT_NOT_FOUND:'El núcleo ya no encuentra esta captura.',HOST_REQUEST_TIMEOUT:'La respuesta está pendiente. Actualiza la lectura antes de repetir la operación.',PROJECT_ROOT_ALREADY_REGISTERED:'La carpeta pertenece a otro proyecto. Abre el hilo de ese proyecto.',PROJECT_ROOT_CHANGED:'Elige archivos de la carpeta de este proyecto.'};
   return (message[code]??'No se pudo completar la lectura local.')+' ('+code+')';
 }
-function fileCapability(kind:string){return ({pdf:'Páginas y texto',zip:'Inventario del paquete',json:'Estructura y líneas',png:'Vista de imagen',jpeg:'Vista de imagen',html:'Comprobación HTML'} as Record<string,string>)[kind]??'Información del archivo';}
+function fileCapability(kind:string){return ({pdf:'Páginas y texto',zip:'Inventario del paquete',json:'Estructura y líneas',png:'Vista de imagen',jpeg:'Vista de imagen',html:'Texto y estructura',text:'Texto local',identity:'Identidad y huella',docx:'Texto del documento',xlsx:'Texto de las celdas',pptx:'Texto de diapositivas',wav:'Propiedades de audio',odt:'Texto del documento',ods:'Texto de las celdas',odp:'Texto de diapositivas'} as Record<string,string>)[kind]??'Información del archivo';}
 function coordinate(c:Citation){return [c.page?'Pág. '+c.page:'',c.line?'Línea '+c.line:'',c.pointer??''].filter(Boolean).join(' · ');}
-type Props={office:string;session:string;project:string;thread:string;online:boolean;inspector:boolean;showInspector:()=>void;onUpdate:()=>void;onLegacy:()=>void;
+type Props={consumeReturn:()=>void;returnTo:{report?:string;instruction?:string}|null;onReport:(report:Inspection|null)=>void;office:string;session:string;project:string;thread:string;online:boolean;inspector:boolean;showInspector:()=>void;onUpdate:()=>void;onLegacy:()=>void;
   renderConsultation:(reportId:string)=>ReactNode;
   inspectFiles:(project:string,thread:string,ids:string[],objective:string)=>Promise<Inspection>;job?:InspectionJob;onDraft:(value:string)=>void;modelBlocked:boolean;onConsult:(report:Inspection,objective:string,origin:HTMLElement)=>void};
-export function ReviewDesk({office,session,project,thread,online,inspector,showInspector,onUpdate,onLegacy,modelBlocked,onConsult,inspectFiles,job,onDraft,renderConsultation}:Props){
+export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,project,thread,online,inspector,showInspector,onUpdate,onLegacy,modelBlocked,onConsult,inspectFiles,job,onDraft,renderConsultation}:Props){
   const files=useMemo(()=>attachmentApi(request),[office,session]);
   const key=JSON.stringify([office,project,thread]);
   const [memo]=useState(()=>views.get(key)??{draft:'',expanded:false,scroll:0});
-  const [draft,setDraft]=useState(memo.draft);
+  const [draft,setDraft]=useState(()=>{const merged=[memo.draft,returnTo?.instruction].filter(Boolean).join('\n');return merged.length<=2000?merged:memo.draft;});
   const [excluded,setExcluded]=useState<string[]>(memo.excluded??[]);
   const inspecting=job?.state==='reading'||job?.state==='stopping';
   const [signal,setSignal]=useState<{action:string;finished:number;at:number}|null>(null);
@@ -85,12 +91,16 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
   const [inventory,setInventory]=useState<{id:string;entries:Member[]}|null>(null);
   const [history,setHistory]=useState<Awaited<ReturnType<typeof files.history>>>([]);
   const [report,setReport]=useState<Inspection|null>(null);
+  const [specialist,setSpecialist]=useState<{role:Specialist;round?:number}|null>(null);
+  const [mobileTeam,setMobileTeam]=useState(false);
+  useEffect(()=>{onReport(report);},[onReport,report]);
   const [working,setWorking]=useState('');
   const [problem,setProblem]=useState(''),[viewProblem,setViewProblem]=useState('');
   const [expanded,setExpanded]=useState(memo.expanded);
   const [editingDecision,setEditingDecision]=useState(false);
+  useEffect(()=>{if(returnTo){if(returnTo.instruction&&[memo.draft,returnTo.instruction].filter(Boolean).join('\n').length>2000)setProblem('La instrucción supera el espacio disponible en el borrador. El texto anterior se conserva.');consumeReturn();}},[consumeReturn,returnTo,memo]);
   const receiptsId=useId();
-  const preferredReport=useRef(memo.reportId);
+  const preferredReport=useRef(returnTo?.report??memo.reportId);
   const [zoom,setZoom]=useState(1);
   const [revision,setRevision]=useState(0);
   const alive=useRef(false),flight=useRef(false),read=useRef(0),scroll=useRef<HTMLDivElement>(null),inspectorRef=useRef<HTMLElement>(null);
@@ -176,8 +186,8 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
     {name:'Comparar el plazo',prompt:'Compara el plazo de primera respuesta.',ready:included.some(i=>i.kind==='pdf')&&included.some(i=>i.kind==='json')},
     {name:'Validar JSON',prompt:'Valida la sintaxis del JSON.',ready:included.some(i=>i.kind==='json')},
     {name:'Inventariar ZIP',prompt:'Muestra el inventario del ZIP.',ready:included.some(i=>i.kind==='zip')},
-    {name:'Medir imágenes',prompt:'Comprueba las dimensiones de las imágenes.',ready:included.some(i=>i.kind==='png'||i.kind==='jpeg')},
-    {name:'Comprobar HTML',prompt:'Comprueba el HTML.',ready:included.some(i=>i.kind==='html')},
+    {name:'Medir imágenes',prompt:'Comprueba las dimensiones de las imágenes.',ready:included.some(i=>['png','jpeg','gif','webp','bmp','tiff'].includes(i.kind))},
+    {name:'Leer los archivos',prompt:'Inspecciona el contenido de los archivos adjuntos.',ready:included.length>0},
     {name:'Contar páginas',prompt:'Cuenta las páginas del PDF.',ready:included.some(i=>i.kind==='pdf')},
   ].filter(p=>p.ready);
   const selectionMatches=!!report&&report.attachments.length===included.length&&included.every(i=>report.attachments.some(a=>a.id===i.id&&a.sha256===i.sha256));
@@ -190,28 +200,40 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
   const stepCount=(n:number)=>n===1?'1 paso':n+' pasos';
   const singlePlan=plan.map(item=><button className="plan-option" key={item.name} onClick={()=>{setDraft(item.prompt);onDraft(item.prompt);desk.current?.querySelector('textarea')?.focus();}}>{item.name}</button>);
 
+  const fileResults=report?.findings.filter(f=>f.rule==='file_content')??[];
+  const readable=fileResults.filter(f=>f.status==='observed');
+  const guidance=!!result&&['greeting','scope'].includes(result.rule)&&!report?.team;
+  const contentTitle=fileResults.length?(readable.length===fileResults.length?'He revisado '+fileCount(readable.length):'He leído '+readable.length+' de '+fileCount(fileResults.length)):null;
+  const contentLead=fileResults.length?(readable.length?readable[0].title+' · '+readable[0].detail:'Solo se pudo registrar la identidad de los archivos seleccionados.'):null;
   const citedCount=report?.findings.reduce((total,f)=>total+f.sources.filter(s=>s.quote).length,0)??0;
   const canConsult=selectionMatches&&!inspecting&&citedCount>0&&citedCount<=8&&!modelBlocked&&online&&!working;
-  const htmlReviewLink=(!items.length||items.some(item=>item.kind==='html'))&&<button className="legacy-link" onClick={onLegacy}><Icon name="json"/>Abrir revisión de HTML con roles <Icon name="arrow"/></button>;
-  return <section ref={desk} className={'review-desk'+(inspector?' has-inspector':'')} aria-label="Hilo de revisión">
+  const htmlReviewLink=items.some(item=>item.kind==='html')&&<button className="legacy-link" onClick={onLegacy}><Icon name="json"/>Abrir revisión de HTML con roles <Icon name="arrow"/></button>;
+  return <section ref={desk} className={'review-desk'+(inspector?' has-inspector':' with-team')+(mobileTeam?' show-team':'')} aria-label="Hilo de revisión">
+    {!inspector&&<button className="mobile-team-switch" aria-expanded={mobileTeam} onClick={()=>setMobileTeam(!mobileTeam)}>{mobileTeam?'Volver al Director':'Ver equipo'}</button>}
     <div className="desk-thread">
       <div className="thread-scroll" ref={scroll} onScroll={e=>{snapshot.current.scroll=e.currentTarget.scrollTop;}}>
         <article className="thread-document">
+          {report&&history.filter(h=>h.id!==report.id&&h.created_at<report.created_at).slice(0,4).reverse().map(h=><button key={h.id} className="earlier-turn" onClick={()=>reopen(h.id)}><Icon name="thread"/><span>{h.objective||'Inspección anterior'}</span><time>{when(h.created_at)}</time></button>)}
           {report?.objective&&<div className="user-turn"><div><strong>Tú</strong><time>{when(report.created_at)}</time></div><p>{report.objective}</p><small><Icon name="attach"/>{fileCount(report.attachments.length)} en esta entrega</small></div>}
-          <div className="director-byline"><span><Icon name="mark"/></span><strong>Director</strong>{report&&<><span className="source-label">Comprobación local</span><time>{when(report.completed_at??report.steps.at(-1)?.at??report.created_at)}</time></>}</div>
-          <h1>{report?(result?.status==='mismatch'&&hourSources.length===2?hourSources[0].value+' h en la especificación, '+hourSources[1].value+' h en la entrega':result?.title??(partial?'Archivos con lectura limitada':'Lectura local registrada')):items.length?'¿Qué quieres comprobar?':'¿Qué entrega quieres revisar?'}</h1>
-          <p className="desk-lede">{report?(result?.status==='mismatch'?(report.decision?'Puedes revisar la elección del equipo y consultar las dos fuentes.':'Decide qué plazo debe aplicar el equipo. Puedes revisar los dos originales antes de elegir.'):result?.detail??'Abre las fuentes para revisar lo que pudo leerse.'):items.length?fileCount(included.length)+' en la selección. Elige una comprobación o escribe tu pregunta.':'Adjunta la entrega. Podrás contrastar dos fuentes o revisar un solo archivo.'}</p>
-          {(items.length>0&&(!report||result?.rule==='scope'))&&<div className="inspection-plan" aria-label="Comprobaciones disponibles">{singlePlan}</div>}
+          {report?.team&&<div className="director-brief"><div className="director-byline"><Bot role="director"/><strong>Director</strong><time>{when(report.created_at)}</time></div>
+            <p>{report.findings.some(f=>f.rule==='literal')?'Busqué la expresión en las fuentes con texto y pedí al equipo que indicara la cobertura.':report.findings.some(f=>f.rule==='first_response_hours')?'Encargué contrastar el plazo entre las dos fuentes y conservar la ubicación de cada valor.':'Encargué identificar las fuentes, comprobar qué se podía leer y documentar los límites de la entrega.'}</p>
+            <TeamTrail team={report.team} onSelect={(role,round)=>setSpecialist({role,round})}/></div>}
+          <div className="director-byline"><Bot role="director"/><strong>Director</strong>{report&&<><span className="source-label">{guidance?'Orientación del Director':'Comprobación local'}</span><time>{when(report.completed_at??report.steps.at(-1)?.at??report.created_at)}</time></>}</div>
+          <h1>{contentTitle??(report?(result?.status==='mismatch'&&hourSources.length===2?hourSources[0].value+' h en la especificación, '+hourSources[1].value+' h en la entrega':result?.title??(partial?'Archivos con lectura limitada':'Lectura local registrada')):items.length?'¿Qué quieres comprobar?':'¿En qué trabajamos?')}</h1>
+          <p className="desk-lede">{contentLead??(report?(result?.status==='mismatch'?(report.decision?'Puedes revisar la elección del equipo y consultar las dos fuentes.':'Decide qué plazo debe aplicar el equipo. Puedes revisar los dos originales antes de elegir.'):result?.detail??'Abre las fuentes para revisar lo que pudo leerse.'):items.length?fileCount(included.length)+' en la selección. Elige una comprobación o escribe tu pregunta.':'Adjunta los archivos del proyecto y escribe qué quieres comprobar.')}</p>
+          {(items.length>0&&(!report||guidance||result?.rule==='scope'))&&<div className="inspection-plan" aria-label="Comprobaciones disponibles">{singlePlan}</div>}
           {!items.length&&!report&&<button className="welcome-attach" disabled={!online||!!working} onClick={pick}><Icon name="attach"/>Elegir archivos de la entrega</button>}
-          {!inspector&&htmlReviewLink}
           {selection?.member&&<p className="reading-context"><Icon name="zip"/> Estás revisando {selection.member} en {selected?.name}. <button className="inline-link" onClick={()=>setSelection(null)}>Volver al hallazgo</button></p>}
-          {partial&&<section className="evidence-block"><div className="evidence-heading"><Icon name="activity"/><strong>Archivos con lectura limitada</strong></div>{unavailable.map(a=><button className="citation-row" key={a.id} onClick={()=>open({id:a.id},true)}><Icon name={kindIcon(a.kind)}/><span><strong>{a.name}</strong><small>{a.detail}</small></span><Icon name="arrow"/></button>)}</section>}
-          {report?.findings.filter(finding=>finding.sources.length>0||finding!==result).map((finding,i)=><section className="evidence-block" key={finding.rule+i} data-rule={finding.rule}>
+          {report?.team&&<TeamDelivery report={report}/>}
+          {partial&&!fileResults.length&&<section className="evidence-block"><div className="evidence-heading"><Icon name="activity"/><strong>Archivos con lectura limitada</strong></div>{unavailable.map(a=><button className="citation-row" key={a.id} onClick={()=>open({id:a.id},true)}><Icon name={kindIcon(a.kind)}/><span><strong>{a.name}</strong><small>{a.detail}</small></span><Icon name="arrow"/></button>)}</section>}
+          {report&&!guidance&&<details className="evidence-drawer" open={report.findings.some(f=>f.status==='mismatch')}><summary>Fuentes y comprobaciones <small>{report.attachments.length} adjuntos</small></summary>
+          {report.findings.filter(finding=>finding.sources.length>0||finding!==result).map((finding,i)=><section className="evidence-block" key={finding.rule+i} data-rule={finding.rule}>
             <div className="evidence-heading"><Icon name={finding.status==='mismatch'?'activity':'note'}/><strong>{finding.rule==='first_response_hours'?'Plazo de primera respuesta':finding.title}</strong><small>{finding.status==='mismatch'?'Discrepancia':finding.status==='match'?'Coincidencia':finding.status==='insufficient'?'Evidencia insuficiente':'Regla local'}</small></div>
             {finding!==result&&<p>{finding.detail}</p>}
             {finding.sources.map((c,j)=><button key={c.attachment_id+j} className={'citation-row'+(selection?.citation===c?' chosen':'')} onClick={()=>open({id:c.attachment_id,page:c.page,citation:c},true)}>
               <Icon name={kindIcon(c.kind)}/><span><strong>{typeof c.value==='number'&&c.unit?<b className="source-value">{c.value} {c.unit}</b>:null}{c.name}</strong><small>{c.unit&&typeof c.value==='number'?(c.kind==='pdf'?'Especificación':'Manifiesto'):c.quote||'Abrir la fuente'}</small></span><code>{coordinate(c)}</code><Icon name="arrow"/></button>)}
           </section>)}
+          </details>}
           {result?.origin_report&&<button className="inline-link" onClick={()=>reopen(result.origin_report!)}>Abrir la decisión original</button>}
           {mismatch&&report&&<section className="human-decision" aria-label="Decisión del hilo">
             <div><Icon name="note"/><span>Decisión del hilo</span>{report.decision&&<time>{when(report.decision.at)}</time>}</div>
@@ -232,17 +254,19 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
         {problem&&<div className="desk-fault" role="alert">{problem} <button className="inline-link" disabled={!online||!!working} onClick={()=>{setProblem('');setRevision(v=>v+1);}}>Actualizar lectura</button></div>}
         {inspecting&&<div className="desk-progress" role="status"><Icon name="activity"/>{signal?signal.action+' · '+signal.finished+'/'+job?.ids.length+' fuentes leídas':'Esperando el primer registro de lectura…'}</div>}
         {working&&!inspecting&&<div className="desk-progress" role="status"><Icon name="clock"/>{working}</div>}
-        {citedCount>8&&selectionMatches?<p className="selection-note" role="status">Esta entrega tiene {citedCount} citas. Una consulta admite hasta ocho. Puedes abrir la revisión HTML con roles desde el inspector.</p>:report&&!selectionMatches?<p className="selection-note" role="status">La selección difiere de la entrega abierta. Vuelve a inspeccionar para consultar esos archivos.</p>:null}
+        {citedCount>8&&selectionMatches?<p className="selection-note" role="status">Esta entrega tiene {citedCount} citas. Una consulta admite hasta ocho. Selecciona menos fuentes para delimitar la consulta.</p>:report&&!selectionMatches?<p className="selection-note" role="status">La selección difiere de la entrega abierta. Vuelve a inspeccionar para consultar esos archivos.</p>:null}
         {job?.state==='error'&&!problem&&<p className="desk-fault" role="status">{job.error==='ATTACHMENT_READ_CANCELLED'?'Lectura detenida por el núcleo.':fault(Error(job.error))}</p>}
         <div className="desk-composer"><textarea aria-label="Instrucción para el Director" value={draft} maxLength={2000} rows={2}
-          placeholder={report?'Añade una instrucción para el Director…':'¿Qué quieres revisar en los archivos?'} onChange={e=>{setDraft(e.target.value);onDraft(e.target.value);}}
+          placeholder="Escribe al Director…" onChange={e=>{setDraft(e.target.value);onDraft(e.target.value);}}
           onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229&&mayInspect){e.preventDefault();inspect();}}}/>
           <div className="composer-actions"><button className="desk-attach" disabled={!online||!!working} onClick={pick}><Icon name="attach"/>Adjuntar archivos</button>
           {report&&<button className="desk-secondary" disabled={!canConsult} onClick={e=>report&&onConsult(report,draft.trim()||report.objective||'Revisa las fuentes citadas de la entrega.',e.currentTarget)}><Icon name="shield"/>Consultar al modelo</button>}
-          {availableAction&&<button className="desk-primary" disabled={!mayInspect} onClick={inspect}><Icon name="check"/>Inspeccionar · 0 intentos</button>}</div></div>
+          <button className="desk-primary" title="Enviar al Director · Ctrl+Intro" disabled={!availableAction||!mayInspect} onClick={inspect}><span aria-hidden="true">↑</span> Enviar · 0 intentos</button></div></div>
         <div className="desk-caption"><span><Icon name="folder"/>{project}</span><span>{report&&!changed?'Entrega guardada':'Lectura local'}</span></div>
       </div>
     </div>
+    {!inspector&&<TeamRail review={report?.team} active={!!inspecting} selected={specialist?.role??null} onSelect={role=>setSpecialist(role?{role}:null)}/>}
+    <TeamOverlay selected={specialist} review={report?.team} close={()=>setSpecialist(null)}/>
     {inspector&&<PaneDivider kind="inspection" container={desk} controls="desk-file-inspector" label="Ancho del hilo y el inspector"/>}
     {inspector&&<aside id="desk-file-inspector" ref={inspectorRef} tabIndex={-1} className="file-inspector" aria-label="Inspector de archivos">
       <header><Icon name={selection?kindIcon(selected?.kind??'pdf'):'attach'}/><h2>{selection?(selected?.name??'Evidencia'):'Adjuntos'}</h2>
@@ -261,6 +285,7 @@ export function ReviewDesk({office,session,project,thread,online,inspector,showI
           {preview.image&&<><div className="image-tools"><button aria-label="Reducir zoom" disabled={zoom<=0.75} onClick={()=>setZoom(z=>z-.25)}>−</button><span>{zoom*100} %</span><button aria-label="Ampliar zoom" disabled={zoom>=3} onClick={()=>setZoom(z=>z+.25)}>＋</button>{preview.width&&<small>{preview.width} × {preview.height}</small>}</div>
             <div className="image-stage"><div style={{width:preview.width&&preview.height&&preview.kind!=='pdf'?'min('+zoom*100+'%, calc((100dvh - 340px) * '+(preview.width/preview.height)*zoom+'))':(zoom*100)+'%'}}><img alt={preview.kind==='pdf'?'Página '+preview.page+' de '+preview.name:preview.name} src={preview.image}/>{selection.citation?.region?.length===4&&selection.citation.page===preview.page&&<mark className="pdf-hit" aria-label="Posición de la cita" style={{left:selection.citation.region[0]*100+'%',top:selection.citation.region[1]*100+'%',width:selection.citation.region[2]*100+'%',height:selection.citation.region[3]*100+'%'}}/>}</div></div></>}
           {preview.entries&&<PackageTree entries={preview.entries} onOpen={member=>open({id:selection.id,member})}/>}
+          {preview.signature&&<p className="viewer-note">Cabecera del archivo <code>{preview.signature}</code></p>}
           {preview.text&&preview.kind!=='pdf'&&<div className="source-text">{preview.text.split(/\r\n|\r|\n/).map((line,i)=><div className={selection.citation?.line===(preview.text_start_line??1)+i?'line-target':''} key={i}>{preview.kind==='json'&&<span>{(preview.text_start_line??1)+i}</span>}<code>{line||' '}</code></div>)}</div>}
           {selection.citation&&<blockquote><strong>{coordinate(selection.citation)}</strong><p>{selection.citation.quote}</p></blockquote>}
           {preview.kind==='pdf'&&preview.text&&<details className="viewer-details"><summary>Texto de la página</summary><div className="source-text">{preview.text}</div></details>}

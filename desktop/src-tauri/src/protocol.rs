@@ -7,6 +7,9 @@ pub const MAX_PENDING: usize = 8;
 pub const PUBLIC_METHODS: &[&str] = &[
     "describe",
     "models.list",
+    "library.list",
+    "library.history",
+    "library.change",
     "projects.list",
     "project.history",
     "snapshot.get",

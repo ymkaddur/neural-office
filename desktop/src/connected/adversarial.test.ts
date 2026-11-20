@@ -65,11 +65,12 @@ async function mount(send:(method:string,params:Record<string,unknown>)=>Promise
 }
 
 async function openHtml(app:Awaited<ReturnType<typeof mount>>){
-  await until(()=>!!app.document.querySelector('#connected-objective, .legacy-link'));
+  await until(()=>!!app.document.querySelector('#connected-objective, .review-desk'));
   if(app.document.querySelector('#connected-objective'))return;
-  const link=app.document.querySelector<HTMLButtonElement>('.legacy-link')!;
-  assert.match(link.textContent,/Abrir revisión de HTML con roles/);
-  link.click();
+  app.document.querySelector<HTMLButtonElement>('.arc-search')!.click();
+  const command=()=>[...app.document.querySelectorAll<HTMLButtonElement>('.command-results button')].find(b=>b.textContent.includes('Revisión especializada de HTML'));
+  await until(()=>!!command());
+  command()!.click();
   await until(()=>!!app.document.querySelector('#connected-objective'));
 }
 
@@ -484,7 +485,7 @@ test('switching projects retains separate bounded in-memory drafts',async()=>{
   });
   const choose=async(id:string)=>{
     (app.document.querySelector(`.connected-projects button[title="${id}"]`) as any).click();
-    await until(()=>!!app.document.querySelector(`.connected-projects .selected[title="${id}"]`)&&!!app.document.querySelector('.legacy-link'));
+    await until(()=>!!app.document.querySelector(`.connected-projects .selected[title="${id}"]`)&&!!app.document.querySelector('.review-desk'));
     await openHtml(app);
   };
   try{

@@ -20,6 +20,7 @@ export type InspectionStep = {
 };
 export type ReviewDecision = {revision: number; choice: 'pdf'|'json'|'defer'; at: number};
 export type Inspection = {
+  team?: import('../office/team.ts').TeamReview;
   completed_at?: number; decision?: ReviewDecision;
   id: string; project_id: string; thread_id: string; created_at: number; objective: string;
   attachments: Attachment[]; findings: InspectionFinding[]; steps: InspectionStep[];
@@ -30,7 +31,7 @@ export type InspectionSummary = Pick<Inspection, 'id' | 'project_id' | 'thread_i
   { attachment_count: number; finding_count: number };
 export type AttachmentView = {
   attachment_id: string; name: string; sha256: string; kind: string; status: string; detail: string;
-  page?: number; pages?: number; text?: string; image?: string; width?: number; height?: number;
+  page?: number; pages?: number; signature?:string; text?: string; image?: string; width?: number; height?: number;
   entries?: { path: string; bytes: number; kind: string; readable: boolean; detail: string }[];
   fields?: { pointer: string; line: number; column?: number; value: unknown; quote?: string }[];
   candidates?: {page: number; value: number; quote: string; context?: string; pdf_rect?: number[]; region?: number[]}[];

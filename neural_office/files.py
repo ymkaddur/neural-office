@@ -1,5 +1,7 @@
 """Capture one explicitly selected local file, locking writes on Windows."""
 import ctypes
+from dataclasses import dataclass
+import hashlib
 from ctypes import wintypes as w
 import os
 from pathlib import Path
@@ -19,7 +21,14 @@ def local_path(value, reason='NETWORK_INPUT_EXCLUDED'):
     return path
 
 
-def capture_local(file, root, *, maximum, extensions=None, allow_empty=False):
+@dataclass(frozen=True)
+class FileStamp:
+    size: int
+    sha256: str
+    header: bytes
+
+
+def capture_local(file, root, *, maximum, extensions=None, allow_empty=False, metadata_above=None):
     if os.name!='nt': raise Denied('V52_FILE_CAPTURE_REQUIRES_WINDOWS')
     import msvcrt
     root=local_path(root)
@@ -62,8 +71,21 @@ def capture_local(file, root, *, maximum, extensions=None, allow_empty=False):
             stat=os.fstat(source.fileno())
             size=stat.st_size
             if size>maximum or (not size and not allow_empty): raise Denied('SNAPSHOT_SIZE')
-            data=source.read(maximum+1)
-            if len(data)!=size: raise Denied('INPUT_CHANGED_DURING_CAPTURE')
+            if metadata_above is not None and size > metadata_above:
+                header = source.read(32)
+                hasher = hashlib.sha256(header)
+                seen = len(header)
+                while block := source.read(256 * 1024):
+                    seen += len(block)
+                    if seen > size:
+                        raise Denied('INPUT_CHANGED_DURING_CAPTURE')
+                    hasher.update(block)
+                if seen != size:
+                    raise Denied('INPUT_CHANGED_DURING_CAPTURE')
+                data = FileStamp(size, hasher.hexdigest(), header)
+            else:
+                data=source.read(size+1)
+                if len(data)!=size: raise Denied('INPUT_CHANGED_DURING_CAPTURE')
         # Associate the bytes with the open handle. Resolving the picker path
         # again after closing it would describe a different file after a rename.
         relative = os.path.normcase(str(Path(actual).relative_to(root)))

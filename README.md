@@ -1,34 +1,21 @@
 # Neural Office
 
-**V5.30 · ejecución durable en Windows.** Desde la CLI se puede autorizar una revisión local de HTML, consultar cada salida y retomar el encargo después de un corte. La obtención de hallazgos, su verificación y la entrega dejan tres recibos vinculados a los mismos bytes. El protocolo reserva un intento de proyecto. La comprobación simple de HTML sigue siendo gratuita. La ingeniería de esta rama se concentra en el núcleo y el escritorio conserva la interfaz de V5.14. [Ejemplo ejecutable, pruebas de cortes y medidas de V5.30](docs/V5_30_LOCAL.md).
+**V5.35 · oficina local de archivos para Windows.** Adjunta documentos, datos, imágenes o archivos de una aplicación propia y escribe qué necesitas averiguar. El Director reúne la entrega, las fuentes y las preguntas pendientes en un hilo. Puedes abrir las tres rondas de cada uno de los seis especialistas y descargar el informe y la evidencia. [Funcionamiento y pruebas de V5.35](docs/V5_35_LOCAL.md)
 
-El Director conserva las decisiones del hilo y sus fuentes en la inspección multiformato. La orden `office-plan` describe la topología prevista del Director y seis especialistas. La conexión de esa topología con el modelo local corresponde a V5.40. [Inspección y referencia de Ollama de V5.20](docs/V5_20_LOCAL.md) · [Hoja de ruta](ROADMAP.md).
+En Windows se verificaron el núcleo y la interfaz de producción en Edge. El ejecutable Tauri final compiló. Control de aplicaciones bloqueó su arranque con el error 4551. La validación de ese ejecutable queda pendiente.
 
-[![Licencia MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+![Director de la oficina con dos fuentes leídas y una medición pendiente. Captura de Edge y el núcleo local de Windows.](docs/images/v5.35-director.png)
 
-La comprobación de V5.14 en Windows cubre el núcleo Python, el frontend en Edge y una consulta a Ollama. El Control de aplicaciones bloqueó un auxiliar de Rust antes de generar el ejecutable. Las capturas históricas que aparecen abajo pertenecen a V5.13. [Pruebas de V5.14 y límites de la entrega](docs/V5_14_LOCAL.md)
+## Probar un encargo
 
-## Probar una entrega
+1. Abre el escritorio, crea un proyecto y usa **Adjuntar archivos** para elegir tus fuentes en Windows.
+2. Escribe **Inspecciona los archivos** para obtener un inventario con los datos recuperados, o **Busca «24 horas» en los archivos** para obtener una cita con su página o línea cuando exista. Ejecuta la inspección local. Consume cero intentos.
+3. Lee la entrega del Director. Abre un especialista, cambia de iteración y consulta la instrucción recibida, la operación realizada y su resultado. Desde la entrega puedes descargar **informe.pdf** y **evidencia.json**.
+4. En **Memoria y skills**, guarda una nota o propone una instrucción a partir de esa entrega. Puedes revisar su historial, aceptar el cambio e insertarlo en el borrador de un nuevo encargo. **Ajustes** controla el tema claro, oscuro o del sistema, el tamaño del texto y el movimiento.
 
-El ejemplo contiene la especificación PDF de un portal, su manifiesto JSON, dos imágenes y un ZIP. Pulsa **Adjuntar archivos**, selecciona los cinco y elige **Inspeccionar · 0 intentos**. Abre el hallazgo para comparar la página del PDF que exige una respuesta en 24 horas con la línea del manifiesto que declara 48. Los archivos, el informe y los recibos se pueden volver a abrir por proyecto e hilo. [Ejemplo, puesta en marcha y verificación](docs/V5_13_POLISHED.md)
+El selector admite cualquier extensión, incluidos archivos sin extensión. La lectura depende de la estructura y del tamaño. Un binario desconocido conserva tamaño y huella. El trabajo de las tres rondas se ejecuta con lectores y reglas locales. La consulta opcional a Ollama conserva su autorización y su presupuesto propio. [Diferencias entre inspección, consulta e inferencia autónoma](docs/V5_35_LOCAL.md)
 
-La consulta al modelo consume **un intento al autorizar la reserva**. Cada proyecto dispone de tres. El permiso identifica los fragmentos, el modelo y el saldo. Un fallo después de la reserva y una cancelación también consumen ese intento. Abre **Actividad del encargo** para seguir los hechos registrados.
-
-En **Apariencia** puedes cambiar entre Arena, Azul noche y el tema del sistema. Los ajustes de densidad, tamaño de texto y contraste se aplican al hilo y al inspector.
-
-![Hilo del portal con la discrepancia entre su manifiesto y la página citada del PDF, capturado en Edge con el núcleo local](docs/images/v5.13-evidencia.png)
-
-[Vista del paquete en Azul noche](docs/images/v5.13-paquete.png) · [Mediciones de tipografía, contraste y recursos](docs/evidence/V5_13_RENDERER.json)
-
-## Revisión de HTML
-
-Desde el inspector, **Abrir revisión de HTML con roles** conserva el flujo de revisión estática y la consulta opcional con 1, 3 o 7 roles secuenciales. También puedes comprobar la muestra desde Python 3.12. [Alcance de las reglas](docs/HTML_REVIEW.md)
-
-```powershell
-py -3.12 -B -m neural_office check --root examples --file examples/audit-sample.html
-```
-
-Para ejecutar la aplicación necesitas Windows x64, WebView2, Python 3.12 y el código del mismo commit que el ejecutable de prueba. El lanzador prepara los lectores PDF e imagen. Ollama se utiliza al pedir comentarios del modelo. [Instalación y compilación](desktop/README.md) · [Coste, datos y recuperación](docs/README.md)
+Para compilar y abrir el escritorio se necesita Windows x64 con WebView2 y Python 3.12. El lanzador usa los lectores locales fijados para PDF e imágenes. [Instalación y compilación](desktop/README.md) · [Licencia MIT](LICENSE) · [Pruebas anteriores](docs/V5_30_LOCAL.md)
 
 ## Hacia la oficina local V6.0
 

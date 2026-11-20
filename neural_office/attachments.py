@@ -9,18 +9,21 @@ import sys
 import threading
 import time
 
-from .attachment_formats import MAX_FILE, classify, result
+from .attachment_formats import MAX_FILE, classify, legacy_kind, result
 from .desktop_contract import valid
-from .inspection_intent import reader_findings, reader_modes, requested_checks
-from .files import capture_local, local_path
+from .inspection_intent import literal_findings, literal_query, reader_findings, reader_modes, requested_checks
+from .files import FileStamp, capture_local, local_path
 from .ledger import Denied, canonical, digest
+from .team_review import review as review_with_team, verify_saved
 
 
 SCHEMA = 2
 APPLICATION_ID = 0x4E4F4154
-RULE_VERSION = 'local-inspection-4'
+RULE_VERSION = 'local-inspection-6'
 MAX_CAPTURE_BATCH = 8
 MAX_REPORT = 300_000
+MAX_IDENTIFIED_FILE = 512 * 1024 * 1024
+MAX_IDENTIFIED_BATCH = 1024 * 1024 * 1024
 READERS = threading.BoundedSemaphore(2)
 CAPTURE_FIELDS = 'id,source_id,name,kind,bytes,sha256,created_at'
 ACTIONS = {'pdf': 'Leer páginas y localizar el requisito', 'json': 'Validar JSON y localizar el campo',
@@ -122,6 +125,15 @@ def metadata(row):
     return {key: row[key] for key in CAPTURE_FIELDS.split(',')} | {'origin': 'native_picker'}
 
 
+def stamp_id(source, thread, sha, name, size, header):
+    return digest(canonical(['file-stamp-1', source, thread, sha, name, size, header.hex()]))
+
+
+def stamp_view(info, header):
+    return result('identity', 'metadata', 'Se recorrió el archivo completo para obtener su huella. Por tamaño se conserva solo su identidad.',
+                  bytes=info['bytes'], signature=header.hex(' '))
+
+
 def verified_content(db, project, thread, identity, *, need_bytes, cancelled):
     if not valid('digest', identity):
         raise Denied('ATTACHMENT_NOT_FOUND')
@@ -130,6 +142,13 @@ def verified_content(db, project, thread, identity, *, need_bytes, cancelled):
                      (identity, project, thread)).fetchone()
     if not row:
         raise Denied('ATTACHMENT_NOT_FOUND')
+    if row['kind'] == 'identity':
+        with db.blobopen('captures', 'content', row['blob_id'], readonly=True) as blob:
+            header = blob.read(33)
+        if (row['storage_type'] != 'blob' or len(header) != 32 or not MAX_FILE < row['bytes'] <= MAX_IDENTIFIED_FILE
+                or stamp_id(row['source_id'], thread, row['sha256'], row['name'], row['bytes'], header) != identity):
+            raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+        return metadata(row), header
     expected_id = digest(canonical([row['source_id'], thread, row['sha256'], row['name']]))
     if expected_id != identity or row['storage_type'] != 'blob':
         raise Denied('ATTACHMENT_INTEGRITY_FAILED')
@@ -138,19 +157,19 @@ def verified_content(db, project, thread, identity, *, need_bytes, cancelled):
             raise Denied('ATTACHMENT_INTEGRITY_FAILED')
         if need_bytes:
             data = blob.read()
-            prefix, sha = data[:8], digest(data)
+            prefix, sha = data[:16], digest(data)
         else:
             # An unneeded source still has to match its original bytes. Bound
             # memory for this check and keep cancellation responsive between chunks.
             data = None
-            prefix = blob.read(8)
+            prefix = blob.read(16)
             hasher = hashlib.sha256(prefix)
             while chunk := blob.read(256 * 1024):
                 if cancelled():
                     raise Denied('ATTACHMENT_READ_CANCELLED')
                 hasher.update(chunk)
             sha = hasher.hexdigest()
-    if sha != row['sha256'] or classify(row['name'], prefix) != row['kind']:
+    if sha != row['sha256'] or row['kind'] not in (classify(row['name'], prefix), legacy_kind(row['name'], prefix)):
         raise Denied('ATTACHMENT_INTEGRITY_FAILED')
     return metadata(row), data
 
@@ -176,6 +195,13 @@ def recover_report(db, project_id, thread_id, identity):
                            (item['id'], project_id, thread_id)).fetchone()
         if owner is None or owner[0] != item['sha256']:
             raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+    if record['rule_version'] in ('local-inspection-5', RULE_VERSION):
+        only_guidance = all(f['rule'] in ('scope', 'greeting') for f in record['findings'])
+        if record['rule_version'] == RULE_VERSION and only_guidance:
+            if 'team' in record:
+                raise Denied('ATTACHMENT_INTEGRITY_FAILED')
+        else:
+            verify_saved(record)
     return record
 
 
@@ -188,7 +214,8 @@ def matching_legacy_report(db, project, thread, objective, inputs, findings):
         r.created_at DESC,r.id''', (project, thread, objective, len(inputs), len(findings)))
     for row in candidates:
         old = recover_report(db, project, thread, row['id'])
-        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3')
+        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3', 'local-inspection-4', 'local-inspection-5')
+                or (old['rule_version'] == 'local-inspection-5' and all(f['rule'] in ('scope', 'greeting') for f in findings))
                 or old['objective'] != objective or old['findings'] != findings
                 or len(old['attachments']) != len(inputs)):
             continue
@@ -282,18 +309,25 @@ class AttachmentStore:
         root = existing or choices[0].parent.absolute()
         rows = {}
         total = 0
+        scanned = 0
         for candidate in choices:
             if len(candidate.name) > 240:
                 raise Denied('ATTACHMENT_NAME_LIMIT')
-            data, file_identity = capture_local(candidate, root, maximum=MAX_FILE, allow_empty=True)
-            total += len(data)
+            data, file_identity = capture_local(candidate, root, maximum=min(MAX_IDENTIFIED_FILE, MAX_IDENTIFIED_BATCH-scanned),
+                                                metadata_above=MAX_FILE, allow_empty=True)
+            source_id = digest(canonical([office, project_id, file_identity]))
+            if isinstance(data, FileStamp):
+                size, sha, body, kind = data.size, data.sha256, data.header, 'identity'
+                capture_id = stamp_id(source_id, thread_id, sha, candidate.name, size, body)
+            else:
+                size, sha, body, kind = len(data), digest(data), data, classify(candidate.name, data)
+                capture_id = digest(canonical([source_id, thread_id, sha, candidate.name]))
+            scanned += size
+            total += len(body)
             if total > 24 * 1024 * 1024:
                 raise Denied('ATTACHMENT_SELECTION_LIMIT')
-            sha = digest(data)
-            source_id = digest(canonical([office, project_id, file_identity]))
-            capture_id = digest(canonical([source_id, thread_id, sha, candidate.name]))
-            rows[capture_id] = (capture_id, project_id, thread_id, source_id, candidate.name, classify(candidate.name, data),
-                                len(data), sha, time.time(), data)
+            rows[capture_id] = (capture_id, project_id, thread_id, source_id, candidate.name, kind,
+                                size, sha, time.time(), body)
         if existing is None:
             try:
                 self.ledger.register(project_id, root)
@@ -303,8 +337,8 @@ class AttachmentStore:
             db.execute('BEGIN IMMEDIATE')
             for row in rows.values():
                 db.execute('INSERT OR IGNORE INTO captures VALUES(?,?,?,?,?,?,?,?,?,?)', row)
-            count, size = db.execute('SELECT COUNT(*),SUM(bytes) FROM captures WHERE project=?', (project_id,)).fetchone()
-            total_bytes = db.execute('SELECT SUM(bytes) FROM captures').fetchone()[0] or 0
+            count, size = db.execute('SELECT COUNT(*),SUM(length(content)) FROM captures WHERE project=?', (project_id,)).fetchone()
+            total_bytes = db.execute('SELECT SUM(length(content)) FROM captures').fetchone()[0] or 0
             if count > 160 or size > 64 * 1024 * 1024 or total_bytes > 256 * 1024 * 1024:
                 raise Denied('ATTACHMENT_STORAGE_LIMIT')
             db.commit()
@@ -386,8 +420,9 @@ class AttachmentStore:
             with self._db(office) as db:
                 info, content = verified_content(db, project_id, thread_id, attachment_id,
                                                  need_bytes=True, cancelled=cancelled)
-            view = decode(info['kind'], content, page=page, member=member, mode='preview', cancelled=cancelled,
-                          deadline=time.monotonic() + 8)
+            view = (stamp_view(info, content) if info['kind'] == 'identity' else
+                    decode(info['kind'], content, page=page, member=member, mode='preview', cancelled=cancelled,
+                           deadline=time.monotonic() + 8))
         return dict(view, attachment_id=attachment_id, name=info['name'], sha256=info['sha256'])
 
     def inspect(self, project_id, attachment_ids, objective='', *, thread_id='main'):
@@ -433,10 +468,11 @@ class AttachmentStore:
                                       actor='Lector local', action=action, detail=info['name'],
                                       status='ok', attachment_id=identity))
                     continue
-                action = 'Contar las páginas del PDF' if mode == 'page_count' else ACTIONS[kind]
+                action = 'Contar las páginas del PDF' if mode == 'page_count' else ACTIONS.get(kind, 'Inspeccionar el archivo local')
                 note(action+' · '+info['name'], len(inputs))
-                view = decode(kind, data, page=1, member='', mode=mode, cancelled=cancelled,
-                              deadline=min(deadline, time.monotonic() + 7))
+                view = (stamp_view(info, data) if kind == 'identity' else
+                        decode(kind, data, page=1, member='', mode=mode, cancelled=cancelled,
+                               deadline=min(deadline, time.monotonic() + 7)))
                 if cancelled():
                     raise Denied('ATTACHMENT_READ_CANCELLED')
                 inputs.append(dict(info, status=view['status'], detail=view['detail']))
@@ -460,7 +496,9 @@ class AttachmentStore:
             db.execute('BEGIN IMMEDIATE')
             for task in checks:
                 started = time.monotonic()
-                if task == 'hours':
+                if task == 'literal':
+                    answers = literal_findings(literal_query(objective), inputs, views)
+                elif task == 'hours':
                     answers = [comparison(inputs, views)]
                 elif task == 'decision':
                     answers = [self._decision_answer(db, project_id, thread_id, inputs)]
@@ -492,9 +530,14 @@ class AttachmentStore:
             report = dict(id=identity, project_id=project_id, thread_id=thread_id, objective=objective,
                           created_at=created, completed_at=time.time(), rule_version=RULE_VERSION, attachments=inputs,
                           findings=findings, steps=steps, reservations=0, model_calls=0)
+            if any(f['rule'] not in ('scope', 'greeting') for f in findings):
+                report['team'] = review_with_team(objective, inputs, findings, checks, cancelled, note)
+            report['completed_at'] = time.time()
             payload = canonical(report)
             if len(payload.encode('utf-8')) > MAX_REPORT:
                 raise Denied('ATTACHMENT_REPORT_LIMIT')
+            if cancelled():
+                raise Denied('ATTACHMENT_READ_CANCELLED')
             db.execute('INSERT INTO reports VALUES(?,?,?,?,?,?,?,?,?)',
                        (identity, project_id, thread_id, created, objective, len(inputs), len(findings), payload, digest(payload)))
             db.commit()

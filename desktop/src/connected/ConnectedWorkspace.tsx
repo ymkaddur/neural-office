@@ -1,4 +1,4 @@
-import {useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
+import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {AttemptActivity} from './AttemptActivity.tsx';
 import {ProjectHistory} from './ProjectHistory.tsx';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
@@ -13,6 +13,10 @@ import {AppearancePanel, CommandSearch, DeskDialog, Icon, useAppearance} from '.
 import type {DeskAction} from './DeskTools.tsx';
 import './connected.css';
 import './desk.css';
+import '../office/office.css';
+import {Bot} from '../office/TeamView.tsx';
+import {Library} from '../office/Library.tsx';
+import {Settings} from '../office/Settings.tsx';
 import {useInspectionJobs} from './useInspectionJobs.ts';
 
 type AttachmentAPI=ReturnType<typeof attachmentApi>;
@@ -153,6 +157,10 @@ export function ConnectedWorkspace() {
   const [problem,setProblem]=useState<ReturnType<typeof errorInfo>|null>(null);
   const [notice,setNotice]=useState('');
   const appearance=useAppearance(),dark=appearance.dark;
+  const [section,setSection]=useState<'projects'|'library'|'settings'>('projects');
+  const [openedReport,setOpenedReport]=useState<Inspection|null>(null);
+  const [returnTo,setReturnTo]=useState<{report?:string;instruction?:string}|null>(null);
+  const consumeReturn=useCallback(()=>setReturnTo(null),[]);
   const [deskPage,setDeskPage]=useState<'thread'|'html'|'attempt'>('thread');
   const [panel,setPanel]=useState<'appearance'|'search'|'project'|null>(null);
   const [projectName,setProjectName]=useState('');
@@ -353,7 +361,7 @@ export function ConnectedWorkspace() {
     const shortcut=(e:KeyboardEvent)=>{
       if(e.defaultPrevented||e.isComposing||e.keyCode===229||e.altKey||!(e.ctrlKey||e.metaKey)||document.querySelector('dialog[open]'))return;
       const next=e.key.toLowerCase()==='k'?'search':e.key===','?'appearance':null;
-      if(next){e.preventDefault();setNavOpen(false);setPanel(next);}
+      if(next){e.preventDefault();setNavOpen(false);if(next==='appearance'){setPanel(null);setSection('settings');}else setPanel(next);}
     };
     window.addEventListener('keydown',shortcut);return ()=>window.removeEventListener('keydown',shortcut);
   },[]);
@@ -528,6 +536,7 @@ export function ConnectedWorkspace() {
   }
   function openThread(project:string,id:string){
     if(unconfirmedActive&&project!==currentAttempt.current?.project_id)return;
+    setSection('projects');setReturnTo(null);setOpenedReport(null);
     invalidate();
     if(active){setBrowsedProject(project);setInspected(null);}else openDraft(project);
     setThreadByProject(old=>({...old,[project]:id}));setDeskPage('thread');setNavOpen(false);
@@ -603,7 +612,9 @@ export function ConnectedWorkspace() {
   const localStops=inspectionJobs.jobs.filter(j=>j.state==='reading'||j.state==='stopping').map(j=><div className="local-read-control" key={j.key}><span><Icon name="clock"/> {j.project} · Inspección local</span><button className="stop-button" disabled={j.state==='stopping'} onClick={()=>void inspectionJobs.stop(j).catch(noteError)}>{j.state==='stopping'?'Parada solicitada':'Detener lectura'} · {j.project}</button></div>);
   const allStops=<>{stopControl}{localStops}</>;
   const commands:DeskAction[]=[
-    {id:'appearance',name:'Apariencia y lectura',run:()=>setPanel('appearance')},
+    {id:'appearance',name:'Apariencia y lectura',run:()=>setSection('settings')},
+    {id:'library',name:'Memoria y skills del proyecto',run:()=>setSection('library')},
+    {id:'legacy-review',name:'Revisión especializada de HTML',run:()=>{setSection('projects');if(!active)openDraft(navProject);setDeskPage(active?'attempt':'html');}},
     {id:'inspector',name:inspector?'Ocultar inspector':'Abrir inspector',run:()=>setInspector(v=>!v)},
     ...(!busy&&!doing?[{id:'new',name:'Nuevo hilo',run:()=>newTask()}]:[]),
     ...(snapshot?.projects??[]).filter(p=>!unconfirmedActive||p.id===attempt?.project_id).map(p=>({id:'p-'+p.id,name:p.id,detail:'Proyecto',run:()=>chooseProject(p.id)})),
@@ -621,14 +632,15 @@ export function ConnectedWorkspace() {
     previousFocus.current=fragmentOrigin.current;dismissProposal();setApproval({value:result,excerpts:result,expiresAt:expires});
   }
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.14</span></div>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.35</span></div>
     <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa una entrega con el Director</h1><p>Abre Neural Office en Windows para adjuntar documentos, comprobar sus fuentes y consultar a tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
 
-  return <div className={`v541 connected desk513 ${dark?'theme-dark':''}`} data-density={appearance.prefs.density} data-contrast={appearance.prefs.contrast} data-motion={appearance.prefs.motion} style={{'--desk-scale':appearance.prefs.scale/100} as React.CSSProperties}>
-    <header className="desk-titlebar"><div className="desk-brand"><Icon name="mark"/><strong>Neural Office</strong></div>
-      <button className="desk-search" onClick={()=>setPanel('search')}><Icon name="search"/><span>Buscar hilo o acción</span><kbd>Ctrl K</kbd></button>
+  return <div className={`v541 connected desk513 arcade535 ${dark?'theme-dark':''}`} data-density={appearance.prefs.density} data-contrast={appearance.prefs.contrast} data-motion={appearance.prefs.motion} style={{'--desk-scale':appearance.prefs.scale/100} as React.CSSProperties}>
+    <header className="desk-titlebar"><div className="desk-brand"><Bot role="director"/><strong>Neural Office</strong></div>
+      <nav className="arc-global" aria-label="Navegación principal">{([['projects','Proyectos'],['library','Memoria y skills'],['settings','Ajustes']] as const).map(([id,label])=><button key={id} aria-current={section===id?'page':undefined} onClick={()=>{setSection(id);setNavOpen(false);}}>{label}</button>)}</nav>
+      <button className="arc-search" aria-label="Buscar hilo o acción" title="Buscar · Ctrl K" onClick={()=>setPanel('search')}><Icon name="search"/></button>
       <div className="engine-state"><i className={session&&!connectionError&&!initializing?'ready':''}/>{initializing?'Conectando':connectionError?'Sin conexión':session?'Núcleo local':'Conexión pendiente'}</div></header>
     <div ref={shell} className={`office-shell connected-shell ${navOpen?'nav-open':''}`}>
       <nav className="office-nav connected-nav" aria-label="Proyectos y encargos">
@@ -636,21 +648,21 @@ export function ConnectedWorkspace() {
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo hilo</button>
         <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>{if(deskPage==='html'){newTask(true);setDeskPage('html');}else{setProjectName('');setNavOpen(false);setPanel('project');}}}>＋</button></div>
-        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(!!unconfirmedActive&&p.id!==attempt?.project_id)||(!active&&(!!pending||storageBlocked))} onClick={()=>chooseProject(p.id)} title={p.id}><span>{p.id}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span title={projectId}>{projectId}</span>{project?.id===projectId&&!budgetPending&&<small>{remainingLabel(project.attempts_consumed)}</small>}</div>}</div>
+        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(!!unconfirmedActive&&p.id!==attempt?.project_id)||(!active&&(!!pending||storageBlocked))} onClick={()=>chooseProject(p.id)} title={p.id}><Icon name="folder"/><span>{p.id}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span title={projectId}>{projectId}</span>{project?.id===projectId&&!budgetPending&&<small>{remainingLabel(project.attempts_consumed)}</small>}</div>}</div>
         <div className="nav-threads">{currentThreads.map(t=><button key={t.id} className={t.id===threadId&&deskPage==='thread'?'chosen':''} title={t.objective||'Hilo de revisión'} aria-current={t.id===threadId&&deskPage==='thread'?'page':undefined} onClick={()=>openThread(navProject,t.id)}><Icon name="thread"/><span>{t.objective||'Hilo de revisión'}</span></button>)}</div>
         <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} showProjectName={navProject!==projectId} snapshot={snapshot} current={attempt} selected={viewed?.id}
           offline={!!connectionError||initializing} disabled={initializing||!!connectionError||!!doing||(!active&&!!pending)} onOpen={a=>void act('Abriendo encargo',()=>chooseAttempt(a))}
           onRefresh={()=>act('Actualizando historial',refreshAll)}/>
         {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',nextProjects)}>Siguientes proyectos →</button>}
         {snapshot&&snapshot.next.project_after>100&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',refreshAll)}>Primeros proyectos</button>}
-        <div className="nav-bottom"><button className="nav-setting" onClick={()=>{setNavOpen(false);setPanel('appearance');}}><Icon name="settings"/> Apariencia <kbd>Ctrl ,</kbd></button></div>
+        <div className="nav-bottom"><button className="nav-setting" onClick={()=>{setNavOpen(false);setSection('settings');}}><Icon name="settings"/> Ajustes <kbd>Ctrl ,</kbd></button></div>
       </nav>
       <PaneDivider kind="navigation" container={shell} controls="connected-main" label="Ancho de navegación"/>
       {navOpen&&<button className="connected-nav-backdrop" aria-label="Cerrar navegación" onClick={()=>setNavOpen(false)}/>}
       <main id="connected-main" className="office-workspace" tabIndex={-1} inert={navOpen||undefined}>
         <header className="workspace-header connected-header">
-          <div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><Icon name="folder"/><span>{navProject}</span><Icon name="arrow"/><strong>{deskPage==='thread'?threadTitle:sourceLabel}</strong></div>
-          <div className="header-actions"><span className="connected-quota" id="project-balance" role="group" aria-label="Saldo del proyecto"><span className="balance-owner">{navProject}</span><span>{budgetPending?'Cuota pendiente de actualizar':project?`${remainingLabel(project.attempts_consumed)}${connectionError?' · última lectura':''}`:'Cuota por confirmar'}</span></span>
+          <div className="breadcrumbs"><button className="connected-menu" aria-expanded={navOpen} aria-label="Mostrar proyectos" onClick={()=>setNavOpen(!navOpen)}>☰</button><Icon name="folder"/><span>{navProject}</span><Icon name="arrow"/><strong>{section==='settings'?'Ajustes':section==='library'?'Memoria y skills':deskPage==='thread'?threadTitle:sourceLabel}</strong></div>
+          <div className="header-actions" hidden={section!=='projects'}><span className="connected-quota" id="project-balance" role="group" aria-label="Saldo del proyecto"><span className="balance-owner">{navProject}</span><span>{budgetPending?'Cuota pendiente de actualizar':project?`${remainingLabel(project.attempts_consumed)}${connectionError?' · última lectura':''}`:'Cuota por confirmar'}</span></span>
             {deskPage==='thread'?<button className="desk-inspect-toggle" aria-pressed={inspector} onClick={()=>setInspector(v=>!v)}><Icon name="panel"/> Inspector</button>:<button className="quiet-button" onClick={()=>openThread(navProject,viewed?.thread_id??threadId)}>Volver al hilo</button>}
             <button className="quiet-button refresh-core" disabled={initializing||!!doing} onClick={()=>connectionError||!session?retryConnection():void act('Actualizando estado',refreshAll)}>{initializing?'Conectando…':connectionError||!session?'Reconectar':'Actualizar'}</button>
           </div>
@@ -659,7 +671,8 @@ export function ConnectedWorkspace() {
         {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><button className="inline-link" onClick={()=>{setInspected(null);setBrowsedProject(null);setDeskPage('attempt');}}><Icon name="activity"/><span>{attempt.project_id} · {stateLabels[attempt.state]}</span><small>{attempt.objective}</small></button>{stopControl}</div>}
         {localStops}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>void act('Revisando la petición pendiente',async()=>{try{const other=await releasePending(localStorage,pending);setPending(other);setPendingMissing(false);setNotice(other?'Hay otra petición pendiente en esta oficina.':'Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}})}>Descartar petición sin reserva</button>}</div>}
-        {deskPage==='thread'?<ReviewDesk renderConsultation={reportId=>{
+        {section==='settings'?<Settings appearance={appearance} models={models} model={modelDigest} choose={setModelDigest} load={()=>void loadModels()} catalog={catalog} project={navProject} online={!!session&&!connectionError} quota={project&&!budgetPending?remainingLabel(project.attempts_consumed):'Por confirmar'}/>:section==='library'?<Library key={officeId+':'+navProject} project={navProject} online={!!session&&!connectionError} source={openedReport?.project_id===navProject?openedReport:null}
+          openSource={(thread,id)=>{openThread(navProject,thread);setReturnTo({report:id});}} useSkill={instruction=>{setReturnTo({instruction});setSection('projects');setDeskPage('thread');}}/>:deskPage==='thread'?<ReviewDesk consumeReturn={consumeReturn} onReport={setOpenedReport} returnTo={returnTo} renderConsultation={reportId=>{
           const attached=viewed?.inspection_id===reportId&&viewed.thread_id===threadId&&viewed.project_id===navProject?viewed:null;
           if(!attached){
             const archived=snapshot?.attempts.filter(a=>a.inspection_id===reportId&&a.project_id===navProject&&a.thread_id===threadId)??[];

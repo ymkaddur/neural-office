@@ -16,6 +16,11 @@ const shapes = {
   arrow:<path d="m9 5 7 7-7 7"/>, settings:<><path d="M3 7h18M3 17h18"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></>,
   shield:<><path d="m12 2 8 4v6c0 5-5 8-8 10-3-2-8-5-8-10V6z"/><path d="m8 12 3 3 5-6"/></>,
   clock:<><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></>,
+  table:<><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M10 9v11"/></>,
+  slide:<><path d="M3 4h18v13H3zM12 17v4m-4 0 4-3 4 3"/></>,
+  audio:<path d="M3 10v4m4-8v12m5-15v18m5-15v12m4-8v4"/>,
+  media:<><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m10 8 6 4-6 4z"/></>,
+  binary:<><path d="m9 5-3 14m12-14-3 14M4 10h16M3 15h16"/></>,
   note:<path d="M5 3h14v18H5zM8 8h8m-8 4h8m-8 4h5"/>,
 };
 export type SymbolName=keyof typeof shapes;

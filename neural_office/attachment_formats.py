@@ -11,6 +11,7 @@ import re
 import stat
 import struct
 import unicodedata
+import wave
 import zipfile
 
 from .audit import audit_html
@@ -28,13 +29,18 @@ EXTENSIONS = {'.pdf': 'pdf', '.json': 'json', '.zip': 'zip', '.png': 'png',
               '.jpg': 'jpeg', '.jpeg': 'jpeg', '.html': 'html', '.htm': 'html'}
 
 
-def classify(name, data):
+def legacy_kind(name, data):
     for signature, kind in ((b'%PDF-', 'pdf'), (b'PK\x03\x04', 'zip'),
                             (b'PK\x05\x06', 'zip'), (b'\x89PNG\r\n\x1a\n', 'png'),
                             (b'\xff\xd8\xff', 'jpeg')):
         if data.startswith(signature):
             return kind
     return EXTENSIONS.get(PurePosixPath(name).suffix.lower(), 'other')
+
+
+def classify(name, data):
+    from .general_files import detect
+    return detect(name, data[:16], legacy_kind(name, data))
 
 
 def result(kind, status, detail, **values):
@@ -59,12 +65,14 @@ def raster(image):
 
 def image_view(kind, data, mode):
     from PIL import Image, ImageOps
+    from .general_files import EXTRA_IMAGES
+    formats = {'jpeg': 'JPEG', 'png': 'PNG', **EXTRA_IMAGES}
     try:
-        opened = Image.open(BytesIO(data), formats=('PNG', 'JPEG'))
+        opened = Image.open(BytesIO(data), formats=(formats[kind],))
     except Image.DecompressionBombError:
         return result(kind, 'limit', 'La imagen supera los 12 megapíxeles admitidos.')
     with opened as image:
-        if image.format != {'jpeg': 'JPEG', 'png': 'PNG'}[kind]:
+        if image.format != formats[kind]:
             return result(kind, 'invalid', 'La cabecera y el formato de la imagen no coinciden.')
         width, height = image.size
         if width * height > MAX_PIXELS:
@@ -223,7 +231,10 @@ def pdf_view(data, page_number, mode):
         candidates = []
         complete = True
         count_scanned = 0
-        nums = range(1, min(pages, MAX_PAGES) + 1) if mode == 'inspect' else [page_number]
+        scan_pages = mode in ('inspect', 'text')
+        nums = range(1, min(pages, MAX_PAGES) + 1) if scan_pages else [page_number]
+        page_texts = []
+        remaining_text = MAX_TEXT
         values = dict(page=page_number, pages=pages)
         for number in nums:
             with closing(doc[number - 1]) as page:
@@ -240,6 +251,13 @@ def pdf_view(data, page_number, mode):
                     text = textpage.get_text_range(0, min(chars, 30_000)) if chars else ''
                     if not text.strip():
                         count_scanned += 1
+                    if mode == 'text':
+                        excerpt = text[:remaining_text]
+                        if len(excerpt) < len(text):
+                            complete = False
+                        if excerpt.strip():
+                            page_texts.append(dict(page=number, text=excerpt))
+                        remaining_text -= len(excerpt)
                     lines = text.splitlines()
                     search_from = 0
                     for index, line in enumerate(lines):
@@ -273,7 +291,10 @@ def pdf_view(data, page_number, mode):
                             values['image'] = raster(bitmap.to_pil().copy())
                         values.update(text=text[:MAX_TEXT], text_truncated=chars > MAX_TEXT,
                                       width=width, height=height)
-        complete = complete and (mode != 'inspect' or pages <= MAX_PAGES) and count_scanned == 0
+        complete = complete and (not scan_pages or pages <= MAX_PAGES) and count_scanned == 0
+        if mode == 'text':
+            first = page_texts[0] if page_texts else dict(page=page_number,text='')
+            values.update(text=first['text'],page=first['page'],text_truncated=not complete,page_texts=page_texts)
         status = 'no_text' if count_scanned == len(nums) else 'ok'
         detail = ('No se detectó texto seleccionable. Puedes revisar la imagen de la página.'
                   if status == 'no_text' else 'Texto localizado en las páginas de la captura.')
@@ -282,7 +303,9 @@ def pdf_view(data, page_number, mode):
 
 
 def member_kind(name):
-    return EXTENSIONS.get(PurePosixPath(name).suffix.lower(), 'other')
+    from .general_files import TEXT_SUFFIXES
+    suffix = PurePosixPath(name).suffix.lower()
+    return EXTENSIONS.get(suffix, 'text' if suffix in TEXT_SUFFIXES else 'other')
 
 
 def path_key(name):
@@ -365,7 +388,7 @@ def read(kind, data, *, page=1, member='', mode='preview'):
             return json_view(data)
         if kind == 'zip':
             return zip_view(data, page, member, mode)
-        if kind in ('png', 'jpeg'):
+        if kind in ('png', 'jpeg', 'gif', 'webp', 'bmp', 'tiff'):
             return image_view(kind, data, mode)
         if kind == 'html':
             if len(data) > 262144:
@@ -375,10 +398,11 @@ def read(kind, data, *, page=1, member='', mode='preview'):
             return result(kind, 'ok', 'Se ejecutaron las cuatro comprobaciones HTML locales.',
                           text=text[:MAX_TEXT], text_truncated=len(text) > MAX_TEXT,
                           findings=findings[:100], findings_total=len(findings))
-        return result(kind, 'unsupported', 'Identidad y huella registradas. Este formato carece de lector local.')
+        from .general_files import general_view
+        return general_view(kind, data)
     except ImportError:
         return result(kind, 'unavailable', 'El lector local requiere las dependencias de escritorio de esta versión.')
-    except (ValueError, OSError, KeyError, SyntaxError, OverflowError, RuntimeError, zipfile.BadZipFile) as exc:
+    except (ValueError, OSError, KeyError, EOFError, SyntaxError, OverflowError, RuntimeError, zipfile.BadZipFile, wave.Error) as exc:
         # Only actionable domain errors cross the IPC; native parser messages can include paths.
         if kind == 'pdf' and getattr(exc, 'err_code', None) == 4:
             return result(kind, 'protected', 'El PDF requiere contraseña. Selecciona una copia autorizada.')

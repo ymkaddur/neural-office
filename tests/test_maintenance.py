@@ -195,6 +195,7 @@ class NativeDeliveryDiagnostics(unittest.TestCase):
 class Launcher(unittest.TestCase):
     def test_spaces_unicode_and_different_working_directory(self):
         source=Path(__file__).resolve().parents[1]
+        desktop_version = json.loads((source/'desktop/src-tauri/tauri.conf.json').read_text(encoding='utf-8'))['version']
         with tempfile.TemporaryDirectory() as tmp:
             folder=Path(tmp)/'Neural Office prueba ñ';folder.mkdir()
             shutil.copyfile(source/'run.bat',folder/'run.bat')
@@ -202,5 +203,6 @@ class Launcher(unittest.TestCase):
             for args,expected in [('--version',0),('--invalid-option',2)]:
                 result=subprocess.run(['cmd.exe','/d','/c',str(folder/'run.bat'),args],cwd=tmp,capture_output=True,text=True,timeout=15)
                 self.assertEqual(result.returncode,expected,result.stdout+result.stderr)
-                if expected==0:self.assertEqual(result.stdout.strip(),'5.30.0')
+                if expected == 0:
+                    self.assertEqual(result.stdout.strip(), desktop_version)
             self.assertFalse(list(folder.glob('*.sqlite3')))

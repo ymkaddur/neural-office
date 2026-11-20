@@ -493,6 +493,11 @@ class DesktopService:
             if method == 'project.history': return self.project_history(**params)
             if method == 'snapshot.get': return self.snapshot(**params)
             if method in ('source.pick', 'attachments.pick'): raise Denied('NATIVE_PICKER_REQUIRED')
+            if method.startswith('library.'):
+                from .project_library import ProjectLibrary
+                library = ProjectLibrary(self.attachments)
+                return {'library.list': library.read, 'library.history': library.history,
+                        'library.change': library.change}[method](**params)
             if method.startswith('attachments.'):
                 store = self.attachments
                 attachment_commands = {'attachments.list': store.list, 'attachments.view': self.attachment_view,

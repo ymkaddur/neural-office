@@ -15,6 +15,11 @@ METHODS = {
     'project.history': {'project_id': 'project'},
     'snapshot.get': {'project_after': 'revision', 'attempt_after': 'revision', 'limit': 'limit'},
     'source.pick': {'project_id': 'project'},
+    'library.list': {'project_id': 'project'},
+    'library.history': {'project_id': 'project', 'entry_id': 'id'},
+    'library.change': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id', 'entry_id': 'id',
+                       'kind': 'library_kind', 'title': 'objective', 'body': 'inspection_objective',
+                       'operation': 'library_op', 'expected_revision': 'revision'},
     'attachments.pick': {'project_id': 'project', 'thread_id': 'id'},
     'attachments.list': {'project_id': 'project', 'thread_id': 'id'},
     'attachments.cancel': {'project_id': 'project', 'thread_id': 'id'},
@@ -44,6 +49,10 @@ METHODS = {
 
 
 def valid(kind, value):
+    if kind == 'library_kind':
+        return value in ('memory', 'skill') if type(value) is str else False
+    if kind == 'library_op':
+        return value in ('create', 'edit', 'propose', 'accept', 'discard', 'retire') if type(value) is str else False
     if kind == 'decision': return type(value) is str and value in ('pdf','json','defer')
     if kind == 'project':
         # Existing ledger identifiers are user text, not opaque capability IDs.

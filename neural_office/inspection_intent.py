@@ -27,18 +27,22 @@ OTHER_DEADLINE = re.compile(
     r'\bplazos?\s+(?:de|del|para)\s+(?!(?:la\s+)?(?:primera respuesta|respuesta)\b)\S+'
 )
 READER_FORMATS = {
-    'syntax': {'json'}, 'pages': {'pdf'}, 'dimensions': {'png', 'jpeg'},
-    'visual': {'png', 'jpeg'}, 'zip': {'zip'}, 'html': {'html'},
+    'syntax': {'json'}, 'pages': {'pdf'}, 'dimensions': {'png', 'jpeg', 'gif', 'webp', 'tiff', 'bmp'},
+    'visual': {'png', 'jpeg', 'gif', 'webp', 'tiff', 'bmp'}, 'zip': {'zip'}, 'html': {'html'},
 }
 
 
 def reader_modes(checks, kinds):
     """Plan at most one native read per source, retaining the strongest required operation."""
     modes = {kind: 'inspect' for check in checks for kind in READER_FORMATS.get(check, ())}
+    if 'general' in checks or 'literal' in checks:
+        modes.update(dict.fromkeys(kinds, 'inspect'))
     if 'pages' in checks:
         modes['pdf'] = 'page_count'
     if 'hours' in checks and kinds.count('pdf') == 1 and kinds.count('json') == 1:
         modes.update(pdf='inspect', json='inspect')
+    if ('general' in checks or 'literal' in checks) and 'pdf' in kinds:
+        modes['pdf'] = 'text'
     return modes
 
 
@@ -65,12 +69,56 @@ def _clause_checks(text, kinds):
     requested = [name for name, pattern in rules if re.search(pattern, text)]
     if 'html' in kinds and not requested and re.search(r'\b(titulo del documento|idioma del documento|evidencia de esta revision|comprobacion estatica)\b', text):
         return ['html']
+    if not requested and re.search(r'\b(inspecciona|identifica|describe|muestra|lee|extrae|resume|revisa|comprueba)\s+(?:(?:el|la|los|las|este|estos|esta|estas|mi|mis)\s+)?(?:texto|contenido|archivos?|adjuntos?|documentos?|fichero|entrega|hoja de calculo|presentacion|audio|video|capturas?)\b', text):
+        return ['general']
     return requested or ['clarify']
 
 
-def requested_checks(objective, kinds):
+def literal_query(objective):
+    match = re.fullmatch(r'\s*(?:busca|buscar|encuentra|localiza)\s+[«"]([^»"\r\n]{1,120})[»"]'
+                         r'(?:\s+en\s+(?:los\s+|todos\s+los\s+)?(?:archivos|adjuntos|documentos)(?:\s+adjuntos)?)?[.!]?\s*',
+                         objective, flags=re.I)
+    return match.group(1) if match else None
+
+
+def literal_findings(phrase, inputs, views):
+    rows = []
+    for item in inputs:
+        view = views[item['id']]
+        name = item['name']
+        text = view.get('text')
+        status = 'insufficient'
+        detail = 'El lector no recuperó texto en el que buscar la expresión.'
+        citation = dict(attachment_id=item['id'], name=name, sha256=item['sha256'], kind=item['kind'], quote='')
+        if isinstance(text, str):
+            slices = view.get('page_texts', [dict(page=view.get('page'), text=text)])
+            found = next(((part.get('page'), number, line, match)
+                         for part in slices
+                         for number, line in enumerate(part['text'].splitlines(), start=view.get('text_start_line', 1))
+                         if (match := re.search(re.escape(phrase),line,re.I))), None)
+            if found:
+                page, number, line, match = found
+                status='observed'
+                detail=f'«{phrase}» aparece en el texto recuperado de {name}.'
+                citation.update(quote=line[max(0,match.start()-50):match.end()+80], line=number)
+                if page:
+                    citation['page']=page
+            else:
+                partial = (view.get('text_truncated') or item['kind'] not in ('text','other','json','html','pdf'))
+                status='insufficient' if partial else 'observed'
+                detail=('La expresión no aparece en el extracto recuperado.' if partial else
+                        'La expresión no aparece en el texto completo del archivo.')
+        rows.append(dict(rule='literal',status=status,title=name,detail=detail,sources=[citation]))
+    return rows
+
+
+def requested_checks(objective, kinds, *, allow_dialogue=True):
+    if literal_query(objective):
+        return ['literal']
     normalized = unicodedata.normalize('NFKD', objective.casefold())
     text = ''.join(char for char in normalized if not unicodedata.combining(char))
+    if allow_dialogue and re.fullmatch(r'\s*[¡!¿?]*\s*(?:hola(?:,?\s+director)?|buen[oa]s(?: dias| tardes| noches)?|que puedes hacer|ayuda)\s*[!.¿?¡]*\s*', text):
+        return ['greeting']
     if text.strip():
         text = re.sub(r'\b(?:si no (?:coinciden|concuerdan)|o no)\b', ' ', text)
         clauses = [part.strip() for part in CLAUSES.split(' '.join(text.split())) if part.strip()]
@@ -89,19 +137,49 @@ def requested_checks(objective, kinds):
     if {'pdf', 'json'} <= kinds:
         return ['hours']
     return [action for action, applies in [('syntax','json' in kinds), ('html','html' in kinds),
-            ('zip','zip' in kinds), ('dimensions',bool(kinds & {'jpeg','png'})), ('pages','pdf' in kinds)] if applies] or ['clarify']
+            ('zip','zip' in kinds), ('dimensions',bool(kinds & READER_FORMATS['dimensions'])), ('pages','pdf' in kinds),
+            ('general',bool(kinds - {'json','html','zip','pdf'} - READER_FORMATS['dimensions']))] if applies] or ['general']
 
 
 def reader_findings(check, inputs, views):
     titles = {'syntax':'Validar la sintaxis JSON', 'pages':'Contar páginas del PDF',
               'dimensions':'Comprobar las dimensiones', 'visual':'Revisar la legibilidad',
               'zip':'Inventariar el paquete', 'html':'Comprobar HTML'}
+    if check == 'general':
+        results = []
+        for item in inputs:
+            view = views[item['id']]
+            text = (view.get('text') or '').strip()
+            preview = text[:220]
+            detail = view['detail']
+            if preview:
+                detail = preview + ('…' if len(text)>len(preview) or view.get('text_truncated') else '')
+            elif view.get('width') and view.get('height'):
+                detail = f"{view['width']} × {view['height']} px. {detail}"
+            elif view.get('entries') is not None:
+                detail = f"{len(view['entries'])} entradas en el paquete. {detail}"
+            elif view.get('pages'):
+                detail = f"{view['pages']} páginas. {detail}"
+            title = item['name']
+            status = 'observed' if view['status']=='ok' else 'insufficient'
+            citation = dict(attachment_id=item['id'], name=title, sha256=item['sha256'],
+                            kind=item['kind'], quote=preview)
+            if view.get('page'):
+                citation['page'] = view['page']
+            results.append(dict(rule='file_content', status=status, title=title, detail=detail, sources=[citation]))
+        return results
     if check == 'contract':
         return [dict(rule='contract', status='insufficient', title='Hace falta revisar el criterio contractual',
                      detail='Puedo comparar el valor de las dos fuentes. La lectura local no determina si la condición del contrato es válida.', sources=[])]
+    if check == 'greeting':
+        count = len(inputs)
+        selected = 'un archivo seleccionado' if count == 1 else f'{count} archivos seleccionados'
+        return [dict(rule='greeting', status='observed', title='Hola. ¿Qué quieres revisar?',
+                     detail=f'Hay {selected}. Puedo leer su contenido o buscar una frase concreta. Tú eliges el encargo.',
+                     sources=[])]
     if check == 'clarify':
         return [dict(rule='scope', status='insufficient', title='Hace falta concretar la comprobación',
-                     detail='Puedo comparar el plazo PDF/JSON, validar JSON, contar páginas, inventariar un ZIP, medir una imagen o comprobar HTML. Elige la tarea que corresponde a tu pregunta.', sources=[])]
+                     detail='Puedo identificar los adjuntos, recuperar texto y contrastar datos que tengan una fuente. Indica qué archivo y qué dato quieres comprobar.', sources=[])]
     files = [item for item in inputs if item['kind'] in READER_FORMATS[check]]
     if not files:
         return [dict(rule=check, status='insufficient', title=titles[check], detail='Falta una fuente compatible con esta comprobación.', sources=[])]

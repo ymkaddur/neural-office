@@ -283,14 +283,14 @@ class AttachmentStoreTests(unittest.TestCase):
         self.assertEqual(protected['status'], 'protected')
         self.assertNotIn('image', protected)
 
-    def test_unsupported_zip_member_and_no_implicit_nested_read(self):
+    def test_explicit_text_member_and_no_implicit_nested_read(self):
         zipped = BytesIO()
         with zipfile.ZipFile(zipped, 'w') as archive:
             archive.writestr('notas.txt', b'Notas')
             archive.writestr('otro.zip', self.paths[1].read_bytes())
-        for name in ('notas.txt', 'otro.zip'):
-            view = read('zip', zipped.getvalue(), member=name)
-            self.assertEqual(view['status'], 'unsupported')
+        view = read('zip', zipped.getvalue(), member='notas.txt')
+        self.assertEqual((view['status'], view['text']), ('ok', 'Notas'))
+        self.assertEqual(read('zip', zipped.getvalue(), member='otro.zip')['status'], 'unsupported')
 
 
 def wait_for(check):
