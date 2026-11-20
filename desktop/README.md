@@ -6,6 +6,8 @@ El Director, los hilos de seis especialistas, la biblioteca del proyecto y los a
 
 La comprobación estática requiere Windows x64, Python 3.12 y WebView2. Para consultar al Director instala también Ollama y descarga un modelo local. El host no descarga modelos ni configura proveedores cloud. Para compilar hacen falta Node 24, el toolchain Rust fijado y las herramientas MSVC/SDK de Windows; son requisitos de desarrollo, no el onboarding prometido para V10.
 
+El paquete de validación incluye el host compilado, el núcleo Python, el lanzador, las huellas por archivo y los avisos de dependencias. Puede probarse desde una carpeta extraída independiente. La publicación del binario espera a la firma. [Abrir el piloto empaquetado](../docs/PILOTO_WINDOWS.md)
+
 Desde esta carpeta, compila los assets y el host de producción:
 
 ```powershell

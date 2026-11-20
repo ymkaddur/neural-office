@@ -16,6 +16,7 @@ from tools.verify_v512_desktop import stored
 
 
 OBJECTIVE = 'Comprueba el plazo de primera respuesta en la entrega seleccionada.'
+ANSWER = '24 h en la especificación, 48 h en la entrega'
 
 
 def fingerprint(path):
@@ -56,11 +57,12 @@ def run(exe, out):
                 wait(lambda: editor.get_value() == OBJECTIVE, description='objective read back via UI Automation')
                 choose_files(screen, host, inputs, title='Adjuntar archivos al hilo', button='Adjuntar archivos')
                 expected_names = {'Incluir '+file for file in before}
-                wait(lambda: expected_names.issubset(screen.names().splitlines()),
-                     description='five selected native files visible')
+                wait(lambda: expected_names.issubset(screen.names(visible_only=False).splitlines()),
+                     description='five native files in the attachment inspector')
                 screen.screenshot(out/'01-adjuntos.png')
-                screen.button('Inspeccionar · 0 intentos')
-                wait(lambda: 'Hay un plazo que no coincide' in screen.names(), description='local finding')
+                screen.press_space(screen.reveal_button('Inspector'))
+                screen.button(r'^(?:↑\s*)?Enviar\s*·\s*0 intentos$', regex=True)
+                wait(lambda: ANSWER in screen.names(), description='both expected values in the Director answer')
                 screen.press_space(screen.reveal_button(r'(?s).*especificacion\.pdf.*Pág\. 2.*', regex=True))
                 wait(lambda: 'Página 2 de especificacion.pdf' in screen.names(), description='rendered PDF page 2')
                 screen.screenshot(out/'02-evidencia-pdf.png')
@@ -95,8 +97,7 @@ def run(exe, out):
         record = frozen_report(folder, before)
         require(stored(folder) == ([],0,[]), 'local inspection consumed a model call or reservation')
         with window(exe, ROOT, folder, version) as (screen, host, _, _):
-            screen.button(re.escape(OBJECTIVE)+'.*', regex=True)
-            wait(lambda: 'Hay un plazo que no coincide' in screen.names(), description='report restored after restarting Tauri')
+            wait(lambda: ANSWER in screen.names(), description='report restored after restarting Tauri')
         require(frozen_report(folder,before)['id'] == record['id'], 'report identity changed on restart')
         require(stored(folder) == ([],0,[]), 'reopen admitted unexpected work')
         require({path.name:fingerprint(path) for path in inputs} == before, 'source files changed')

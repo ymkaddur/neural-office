@@ -169,16 +169,16 @@ class Screen:
         return bool(names.intersection({'Núcleo local', 'Última conexión confirmada', 'Núcleo local conectado'}))
 
     def open_html(self):
-        # Older clients opened directly on HTML. V5.13 keeps it in the
-        # attachment inspector, including when that inspector is collapsed.
         if 'Instrucción para el Director' not in self.names().splitlines():
             return
-        if 'Abrir revisión de HTML con roles' not in self.names():
-            if 'Ver adjuntos' in self.names().splitlines():
-                self.button('Ver adjuntos')
-            else:
-                self.button('Inspector')
-        self.button('Abrir revisión de HTML con roles')
+        # The command also works on an empty thread, before attaching an HTML file.
+        if self.window.child_window(title='Buscar hilo o acción', control_type='Button').exists(timeout=.3):
+            self.button('Buscar hilo o acción')
+            self.press_space(self.reveal_button(r'^Revisión especializada de HTML.*', regex=True))
+        else:
+            if 'Abrir revisión de HTML con roles' not in self.names():
+                self.button('Ver adjuntos' if 'Ver adjuntos' in self.names().splitlines() else 'Inspector')
+            self.button('Abrir revisión de HTML con roles')
         wait(lambda: 'Instrucción para el Director' not in self.names().splitlines(), description='HTML review opened')
 
     def new_html(self):

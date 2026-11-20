@@ -2,7 +2,7 @@
 
 **V5.35-POLISHED · oficina local de archivos para Windows.** Adjunta los archivos de un proyecto y escribe qué necesitas averiguar. El Director devuelve cada comprobación con su fuente o explica qué queda pendiente. Puedes abrir las tres rondas de los seis especialistas y descargar el informe con sus citas. La inspección de archivos ejecuta reglas locales y registra cero llamadas al modelo. [Cambios y verificación de 5.35.1](docs/V5_35_POLISHED.md)
 
-En Windows se probaron el núcleo Python y la interfaz de producción en Edge. Tauri compiló el ejecutable 5.35.1. Al abrirlo, Control de aplicaciones lo bloqueó con el error 4551 antes de crear el proceso. Queda pendiente verificar la ventana nativa y su selector de archivos.
+El ejecutable 5.35.1 abrió en Windows de GitHub Actions. El selector nativo capturó dos archivos en una sola operación y el Director respondió «31 horas» al consultar el extracto autorizado del PDF. WebView2 anunció la versión correcta y el botón de autorización estuvo visible a 760 × 540. El mismo ejecutable fue bloqueado con el error 4551 en un equipo que exigía firma de confianza. La publicación del binario espera a la firma. [Prueba del ejecutable](https://github.com/ymkaddur/neural-office/actions/runs/44818201923)
 
 ![Director en el tema oscuro. Dos archivos con contenido leído y una medición con identidad registrada, en Edge con el núcleo local de Windows.](docs/images/v5.35-polished-oscuro.png)
 

@@ -75,31 +75,44 @@ jobs:
       - name: Collect notices for the compiled dependency set
         run: python -B tools/collect_native_notices.py --output native-notices
       - name: Prepare isolated native UI test tools
+        id: native_tools
         shell: pwsh
         run: ./tests/Prepare-V55NativeCI.ps1 -UIAutomationOnly
+      - name: Package the compiled host, Python core, launcher and notices outside the checkout
+        id: package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $bundle = Join-Path $env:RUNNER_TEMP 'Neural-Office-Windows.zip'
+          $pilot = Join-Path $env:RUNNER_TEMP 'Neural Office piloto'
+          python -B tools/package_windows_pilot.py --exe desktop/src-tauri/target/release/neural-office-desktop.exe --notices native-notices --output $bundle
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Expand-Archive -LiteralPath $bundle -DestinationPath $pilot
+          & (Join-Path $pilot 'Start-NeuralOffice-Desktop.ps1') -Check -Python (Get-Command python).Source -State (Join-Path $env:RUNNER_TEMP 'v535-check.sqlite3')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "NO_PILOT_DIR=$pilot" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+      - name: Open the extracted pilot, attach two files and read the Director answers
+        run: python -B tests/v535_windows_acceptance.py local
+      - name: Test consent, keyboard, minimum window and one real model call after restart
+        timeout-minutes: 17
+        run: python -B tests/v535_windows_acceptance.py model
       - name: Verify the five real attachments, citations, ZIP image and reopening through Windows UI Automation
+        if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
         run: python -B -m tools.verify_v513_desktop --exe desktop/src-tauri/target/release/neural-office-desktop.exe --output v513-multiformat
       - name: Verify offline HTML, free review during delayed discovery and Stop during a retained report
+        if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
         run: python -B -m tools.verify_v512_desktop --exe desktop/src-tauri/target/release/neural-office-desktop.exe --output v513-controls
       - name: Exercise packaged UI, native picker, real model and restart
+        if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
         timeout-minutes: 15
         run: python -B tests/e2e_v55_native_uia.py --output native-e2e-evidence --profile-work
-      - name: Upload the tested Windows binary
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: neural-office-v513-windows-test-host
-          path: |
-            desktop/src-tauri/target/release/neural-office-desktop.exe
-            desktop/src-tauri/target/release/SHA256SUMS
-            native-notices/**
-          if-no-files-found: error
-          retention-days: 14
       - name: Upload synthetic native UI evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: neural-office-v513-native-ui-evidence
+          name: neural-office-windows-acceptance
           path: |
+            v535-package-evidence/
             native-e2e-evidence/
             v513-controls/
             v513-multiformat/
