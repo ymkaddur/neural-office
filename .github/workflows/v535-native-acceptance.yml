@@ -50,6 +50,7 @@ jobs:
         shell: pwsh
         run: ./tests/Prepare-V55NativeCI.ps1 -UIAutomationOnly
       - name: Open the native window, attach both files and check two Director answers
+        id: local_gui
         working-directory: product
         run: python -B ../tests/v535_windows_acceptance.py local
       - name: Authorize one real Ollama call and read its answer in the native window
@@ -65,11 +66,12 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
       - name: Collect notices for the tested binary
-        if: success()
+        id: notices
+        if: ${{ !cancelled() && steps.local_gui.outcome == 'success' }}
         working-directory: product
         run: python -B tools/collect_native_notices.py --output ../binary-notices
       - name: Upload the tested executable and its hash
-        if: success()
+        if: ${{ !cancelled() && steps.notices.outcome == 'success' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: v535-polished-windows-exe

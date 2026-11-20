@@ -93,6 +93,11 @@ def edit(screen, text):
     wait(lambda: field.get_value() == text, description='the composer acknowledges the exact new objective')
 
 
+def words(text):
+    # WebView2 exposes interpolated React numbers and their adjacent labels as separate UIA text nodes.
+    return ' '.join(text.split())
+
+
 @contextmanager
 def desktop(exe, work, out, phase):
     with window(exe, ROOT, work, VERSION) as (screen, host, job, ready):
@@ -133,7 +138,8 @@ def local(exe, work, state, out, receipt):
             edit(screen, question)
             screen.button(SEND, regex=True)
             wait(lambda: answer in screen.names(), description='visible Director answer: ' + answer)
-            wait(lambda: '0 llamadas al modelo' in screen.names(), description='zero-model disclosure')
+            wait(lambda: 'Comprobación local · 0 llamadas al modelo' in words(screen.names()),
+                 description='zero-model disclosure next to the Director')
             saved = inspect_report(state, question, hashes)
             receipt['answers'].append({**saved, 'visible_answer': answer})
             screen.screenshot(out / (str(index).zfill(2) + '-director.png'))
