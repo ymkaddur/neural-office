@@ -1,5 +1,6 @@
 import {useEffect,useId,useLayoutEffect,useRef,useState} from 'react';
 import {request} from '../connected/client.ts';
+import {nameForProject} from '../connected/model.ts';
 import {readSessionDraft} from '../connected/sessionDraft.ts';
 import type {Inspection} from '../connected/attachments.ts';
 import {DeskDialog,Icon} from '../connected/DeskTools.tsx';
@@ -121,7 +122,7 @@ export function Library({project,session,thread,copyAvailable,source,online,open
     }catch(e){if(mounted.current){setFault(e instanceof Error?e.message:'Error de lectura');setRefresh(v=>v+1);}}
     finally{flight.current=false;if(mounted.current)setBusy(false);}
   }
-  return <section className="office-library"><header><h1>Memoria del proyecto</h1><p>{project}</p></header>
+  return <section className="office-library"><header><h1>Memoria del proyecto</h1><p>{nameForProject(project)}</p></header>
     <nav className="office-tabs" aria-label="Biblioteca del proyecto">{([['memory','Memoria'],['skill','Skills'],['history','Historial']] as const).map(([id,name])=><button key={id} aria-current={tab===id?'page':undefined} onClick={()=>{setSelected(current?.id??'');setTab(id);setQuery('');setNotice('');}}>{name}</button>)}</nav>
     {fault&&!form&&<p role="alert">No se pudo completar el cambio. <span>{limitExplanation[fault]??fault}</span></p>}
     <div className="library-columns"><section className="library-index"><label><Icon name="search"/><input ref={search} value={query} aria-label="Buscar en la biblioteca" placeholder={tab==='skill'?'Buscar una skill…':'Buscar en la memoria…'} onChange={e=>setQuery(e.target.value)}/></label>
@@ -130,7 +131,7 @@ export function Library({project,session,thread,copyAvailable,source,online,open
       {!source&&tab!=='history'&&<small>Abre una entrega de este proyecto para registrar el origen.</small>}
     </section>
     <section className="library-detail"><p className="visually-hidden" role="status">{loading?'Cargando la biblioteca.':notice||(query?(filtered.length?filtered.length+' coincidencias.':'Sin coincidencias.'):'')}</p>{!current&&loading?<p>Cargando la biblioteca…</p>:!current&&!loaded?<p>{online?'No se pudo leer la biblioteca.':'Núcleo desconectado. La biblioteca volverá a estar disponible al reconectar.'}</p>:!current?<><h2>{query?'Sin coincidencias':tab==='skill'?'Todavía no hay skills':tab==='history'?'Sin revisiones':'Todavía no hay notas'}</h2><p>{query?'Prueba con otro nombre.':'Las entradas se vinculan al hilo y a la entrega de origen.'}</p></>:<>
-      <h2>{current.title}</h2><p className="library-meta">{project} · Revisión {current.revision}</p>
+      <h2>{current.title}</h2><p className="library-meta">{nameForProject(project)} · Revisión {current.revision}</p>
       {tab==='history'?<ol className="version-log">{versions.map(v=><li key={v.revision}><strong>r{v.revision} · {labels[v.operation]}</strong><time dateTime={new Date(v.at*1000).toISOString()}>{new Date(v.at*1000).toLocaleString('es-ES')}</time><span>{v.title}</span><p>{v.proposal??v.body}</p></li>)}</ol>:<>
         {current.body&&<><h3>{current.kind==='skill'?'Instrucción activa':'Nota del proyecto'}</h3>
           <p className={current.proposal?'library-copy replacing':'library-copy'}>{current.body}</p></>}

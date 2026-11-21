@@ -1,5 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
+import {nameForProject} from './model.ts';
 
 const shapes = {
   mark:<><path d="M4 19V4l16 15V5M4 11h15"/><circle cx="4" cy="4" r="2"/><circle cx="20" cy="19" r="2"/></>,
@@ -112,7 +113,7 @@ export function CommandSearch({items,close,control,project,openReport,search}:{i
   },[query,project,search,before,retry]);
   const norm=(s:string)=>s.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
   const choices=items.filter(item=>norm([item.name,item.detail,item.aliases].filter(Boolean).join(' ')).includes(norm(query.trim())));
-  if(history?.query===query.trim())choices.push(...history.rows.map(r=>({id:'r-'+r.id,name:r.objective||'Inspección local',detail:project+' · '+r.id.slice(0,8),run:()=>openReport(r.thread_id,r.id)})));
+  if(history?.query===query.trim())choices.push(...history.rows.map(r=>({id:'r-'+r.id,name:r.objective||'Inspección local',detail:nameForProject(project)+' · '+r.id.slice(0,8),run:()=>openReport(r.thread_id,r.id)})));
   return <DeskDialog label="Buscar hilo o acción" close={close}><div className="command-body">{control}
     <input aria-label="Buscar por nombre o proyecto" data-initial-focus maxLength={2000} value={query} placeholder="Hilo, entrega, proyecto o acción…" onChange={e=>{setBefore('');setHistory(null);setQuery(e.target.value);}} onKeyDown={e=>{if(e.key==='ArrowDown'||(e.key==='Enter'&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229)){e.preventDefault();const first=e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.command-results button');if(e.key==='Enter')first?.click();else first?.focus();}}}/>
     <div className="command-results" onKeyDown={e=>{

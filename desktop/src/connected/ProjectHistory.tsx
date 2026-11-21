@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {request} from './client.ts';
-import {acceptAttempt, stateLabels, terminal} from './model.ts';
+import {acceptAttempt, nameForProject, stateLabels, terminal} from './model.ts';
 import type {Attempt, Snapshot} from './model.ts';
 
 type Props = {
@@ -46,7 +46,7 @@ export function useProjectHistory(project:string,snapshot:Snapshot|null,offline:
 export function ProjectHistory({project,snapshot,current,selected,disabled,offline,onOpen,onRefresh,showProjectName,history}: Props){
   const {rows,failed,retry}=history,session=snapshot?.session_id;
   const showHeading=failed||!rows||rows.length>0;
-  return <>{showHeading&&<div className="connected-nav-heading connected-history-heading">Consultas al modelo{showProjectName&&<span>{project}</span>}</div>}
+  return <>{showHeading&&<div className="connected-nav-heading connected-history-heading">Consultas al modelo{showProjectName&&<span>{nameForProject(project)}</span>}</div>}
   <div className="connected-history">
     {failed && <p role="status">No se pudo confirmar el historial. <button className="nav-secondary" disabled={offline||disabled} onClick={() => void onRefresh().then(retry)}>Reintentar lectura</button></p>}
     {rows?.map(a => {

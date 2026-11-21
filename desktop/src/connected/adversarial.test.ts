@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {Window} from 'happy-dom';
-import {acceptAttempt,readPending,validateSnapshot,writePending} from './model.ts';
+import {acceptAttempt,nameForProject,readPending,validateSnapshot,writePending} from './model.ts';
 
 // Execute the actual React component with a synthetic DOM and RPC peer.
 // This exercises effect timing, not native rendering or assistive technology.
@@ -301,6 +301,32 @@ test('drafting during live work preserves the next objective without submitting 
     await until(()=>(app.document.querySelector('#connected-objective') as any)?.value===field.value);
     assert.match(app.document.querySelector('.connected-quota')!.textContent,/2 intentos disponibles/);
     assert.ok(!methods.some(m=>['attempt.preview','attempt.start','attempt.cancel','attempt.recover'].includes(m)));
+  }finally{await app.close();}
+});
+
+test('project labels distinguish historical typography across the active account surfaces',async()=>{
+  const ids=['Química','Qui\u0301mica','Química ','Química\t','Química\u00a0','Equipo  local','Equipo local','Equipo␠local'];
+  const labels=ids.map(nameForProject);
+  assert.equal(new Set(labels).size,ids.length);
+  assert.notEqual(nameForProject('가'),nameForProject('가'));
+  assert.notEqual(nameForProject('Equipo  '),nameForProject('Equipo␠␠'));
+  for(const id of ['Química','Equipo local','आशा','Equipo 👩‍🔬'])assert.equal(nameForProject(id),id);
+  const app=await mount(async method=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],ids.map((id,i)=>project(id,i%3)));
+    throw Error('Unexpected operation '+method);
+  });
+  try{
+    await until(()=>app.document.querySelectorAll('.connected-projects button').length===ids.length);
+    const buttons=[...app.document.querySelectorAll<HTMLButtonElement>('.connected-projects button')];
+    for(const i of [1,2,3,4,5,6]){
+      buttons[i].click();
+      await until(()=>app.document.querySelector('.balance-owner')?.textContent===labels[i]);
+      assert.equal(buttons[i].title,labels[i]);
+      assert.equal(app.document.querySelector('.breadcrumbs > span')?.textContent,labels[i]);
+      assert.equal(app.document.querySelector('#project-balance')?.getAttribute('aria-label'),'Saldo del proyecto '+labels[i]);
+      assert.equal(app.document.querySelector('.desk-caption > span')?.textContent,labels[i]);
+    }
   }finally{await app.close();}
 });
 

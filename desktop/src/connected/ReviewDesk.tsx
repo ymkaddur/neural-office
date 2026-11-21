@@ -1,5 +1,6 @@
 import {useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {request} from './client.ts';
+import {nameForProject} from './model.ts';
 import {draftWriter,readSessionDraft} from './sessionDraft.ts';
 import type {ReactNode} from 'react';
 import type {InspectionJob} from './useInspectionJobs.ts';
@@ -470,7 +471,7 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,sessi
           {missingExcerpts&&<small id="scope-without-excerpts">La consulta necesita un fragmento de texto citado. Esta entrega solo conserva información de las fuentes.</small>}
           <button className="desk-primary" title="Enviar al Director · Ctrl+Intro" aria-keyshortcuts="Control+Enter Meta+Enter" disabled={!availableAction||!mayInspect} onClick={inspect}><span aria-hidden="true">↑</span> Enviar · 0 intentos</button></div></div>
         {draftLength>=1900&&<small id="desk-objective-limit">{draftLength} / {objectiveLimit} caracteres{overLimit?' · Acorta el encargo para enviarlo.':''}</small>}
-        <div className="desk-caption"><span><Icon name="folder"/>{project}</span>
+        <div className="desk-caption"><span><Icon name="folder"/>{nameForProject(project)}</span>
           {(draft||savedDraft)&&<button type="button" className="inline-link" disabled={overLimit} title="Conservar el texto en esta pestaña hasta 8 horas" onClick={keepDraft}>{savedDraft&&(!draft||draft===savedDraft)?'Retirar borrador guardado':'Guardar borrador en esta pestaña'}</button>}
           <span>{draft?savedDraft===draft?'Borrador guardado':'Borrador en el editor':report?'Entrega guardada':'Encargo local'}</span></div>
       </div>

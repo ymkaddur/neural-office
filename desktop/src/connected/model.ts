@@ -16,6 +16,25 @@ export function pendingKey(officeId:string){if(!id(officeId))throw Error('OFFICE
 const id=(value:unknown):value is string=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value);
 const projectId=(value:unknown):value is string=>typeof value==='string'&&value.length>0&&[...value].length<=80&&!/[\uD800-\uDFFF]/u.test(value);
 const counter=(value:unknown):value is number=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0;
+// Display-only. Requests, receipts and exports keep the exact project identifier.
+export function nameForProject(id: string): string {
+  const decomposed = id !== id.normalize('NFC');
+  const visible = id.replace(/ +|[\p{Cc}\p{Z}\p{M}␠〔〕\u00ad\u200b\u2060\ufeff]/gu, (part, offset: number) => {
+    if (part.startsWith(' ')) {
+      const singleInteriorSpace = part.length === 1 && offset > 0 && offset + 1 < id.length;
+      return singleInteriorSpace ? part : '␠'.repeat(part.length);
+    }
+    if (!decomposed && /\p{M}/u.test(part)) return part;
+    return '〔U+' + part.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0') + '〕';
+  });
+  // Some sequences that compose, such as Korean jamo, have no combining-mark code point.
+  if (decomposed && visible !== visible.normalize('NFC')) {
+    const original = Array.from(id, char => char.codePointAt(0)!.toString(16).toUpperCase());
+    return visible.normalize('NFC') + ' 〔' + original.join(' ') + '〕';
+  }
+  return visible;
+}
+
 export function remainingLabel(consumed:number) {
   const left=Math.max(0,3-consumed);
   return left===1?'1 intento disponible':`${left} intentos disponibles`;
