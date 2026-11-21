@@ -353,8 +353,16 @@ def team(exe, work, state, out, receipt):
     from neural_office.runner import ROLES
     work.mkdir()
     source = work / 'prueba-equipo.html'
-    source.write_bytes(b'<html lang="es"><title>Prueba</title>\n<img src="foto.png">\n</html>')
-    objective = 'Indica el código y la línea de la imagen sin descripción.'
+    browser_check = receipt['phase'] == 'team-browser'
+    if browser_check:
+        source.write_bytes(b'<html lang="es">\n<title>Demo</title>\n<body>\n  <img src="primera.jpg">\n'
+                           b'  <img src="decorativa.jpg" alt="">\n  <img src="ultima.jpg">\n</body></html>')
+        objective = 'Indica el código y todas las líneas de la imagen sin descripción. Añade cómo contrastarlas en el navegador.'
+        positions = [(4,3),(6,3)]
+    else:
+        source.write_bytes(b'<html lang="es"><title>Prueba</title>\n<img src="foto.png">\n</html>')
+        objective = 'Indica el código y la línea de la imagen sin descripción.'
+        positions = [(2,1)]
     with real_model(work), desktop(exe, work, out, 'equipo') as (screen, host, _):
         receipt.update(window_titles(screen))
         screen.open_html()
@@ -403,9 +411,15 @@ def team(exe, work, state, out, receipt):
         artifact = json.loads(attempt['artifact'])
         receipt['integrator_answer'] = json.loads(rows[-1]['response'])['message']['content']
         receipt['model_digest'] = MODEL_DIGEST
-        verify(artifact['requested_rule']=='IMAGE_ALT_MISSING' and artifact['findings']==[
-            {'code':'IMAGE_ALT_MISSING','line':2,'column':1}], 'Incorrect delivered location')
-        screen.screenshot(out/'07-equipo.png')
+        expected = [{'code':'IMAGE_ALT_MISSING','line':line,'column':column} for line,column in positions]
+        verify(artifact['requested_rule']=='IMAGE_ALT_MISSING' and artifact['findings']==expected, 'Incorrect delivered location')
+        answer = json.loads(receipt['integrator_answer'])
+        if browser_check:
+            verify(answer.startswith('IMAGE_ALT_MISSING, líneas 4, 6. ') and 'dom' in answer.casefold()
+                   and 'accesibilidad' in answer.casefold(), 'The real team omitted a source location or the browser check')
+        else:
+            verify(answer=='IMAGE_ALT_MISSING, línea 2, columna 1', 'The actual model cited a different location')
+        screen.screenshot(out/('08-equipo-navegador.png' if browser_check else '07-equipo.png'))
         receipt.update(objective=objective, source_sha256=sha(source), findings=artifact['findings'], status='passed')
 
 
@@ -413,10 +427,10 @@ def main():
     if sys.platform != 'win32' or os.environ.get('GITHUB_ACTIONS') != 'true' or os.environ.get('RUNNER_OS') != 'Windows':
         raise SystemExit('This acceptance test requires an isolated Windows Actions runner')
     phase, = sys.argv[1:]
-    functions = {'local': local, 'model': model, 'team': team}
+    functions = {'local': local, 'model': model, 'team': team, 'team-browser': team}
     out = ROOT / 'v535-package-evidence'
     out.mkdir(exist_ok=True)
-    work = Path(os.environ['RUNNER_TEMP']) / ('v535-native-team' if phase == 'team' else 'v535-native-office')
+    work = Path(os.environ['RUNNER_TEMP']) / ('v535-native-' + (phase if phase in ('team','team-browser') else 'office'))
     package = Path(os.environ['NO_PILOT_DIR']).resolve(strict=True)
     verify(not package.is_relative_to(ROOT), 'Package test must run outside the checkout')
     exe = (package / HOST).resolve(strict=True)

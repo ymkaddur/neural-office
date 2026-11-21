@@ -189,6 +189,21 @@ def citation_only(objective, code):
     return set(words[1:]) <= set(allowed.split())
 
 
+def location_and_browser_language(objective, code):
+    """Recognize a location query followed only by a request for a browser check."""
+    if code not in ('IMAGE_ALT_MISSING', 'CONTROL_LABEL_CANDIDATE'):
+        return None
+    parts = re.split(r'[.;!?]\s+', ' '.join(objective.casefold().split()))
+    if len(parts) != 2 or not citation_only(re.sub(r'\b(?:all|todas|todos)\b', '', parts[0]), code):
+        return None
+    method = parts[1].rstrip('.!?')
+    if re.fullmatch(r'(?:añade|explica|indica) c[óo]mo (?:contrastar|comprobar|verificar)(?:las|los) en el navegador', method):
+        return 'es'
+    if re.fullmatch(r'(?:explain|describe|show) how to (?:check|inspect|verify) (?:them|these elements) in (?:the|a) browser', method):
+        return 'en'
+    return None
+
+
 def make_report(source, outputs, rule=None):
     report = {'schema':1,'scope':SCOPE,'source_sha256':digest(source),
         'findings':audit_html(source),'model_commentary_status':'UNVERIFIED_ASSISTANCE',

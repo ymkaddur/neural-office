@@ -21,21 +21,32 @@ MODEL = 'qwen2.5:0.5b'
 SAMPLE = (ROOT / 'examples/audit-sample.html').read_bytes()
 FORM = b'<html lang="es">\n<title>Ficha</title>\n<body>\n<p>Contacto</p>\n<input id="mail">\n</body></html>'
 CLEAN = b'<html lang="es"><title>Ficha</title><body><label>Nombre<input></label></body></html>'
+GALLERY = (b'<html lang="es">\n<title>Demo</title>\n<body>\n  <img src="primera.jpg">\n'
+           b'  <img src="decorativa.jpg" alt="">\n  <img src="ultima.jpg">\n</body></html>')
 CASES = {
     'imagen': (SAMPLE, 'Indica el código exacto de la imagen sin descripción y su línea en el archivo.'),
     'control': (FORM, 'Indica el código y la línea del control sin etiqueta en este archivo.'),
     'limpio': (CLEAN, 'Indica si encontraste hallazgos en estas comprobaciones y qué queda fuera de la revisión.'),
     'abierto': (SAMPLE, 'Recomienda cómo corregir la imagen y el control de formulario. Indica un límite de esta revisión.'),
+    'varias': (GALLERY, 'Indica el código y todas las líneas de la imagen sin descripción. Añade cómo contrastarlas en el navegador.'),
 }
-LOCATIONS = {'imagen': ('IMAGE_ALT_MISSING', 6), 'control': ('CONTROL_LABEL_CANDIDATE', 5)}
+LOCATIONS = {'imagen': ('IMAGE_ALT_MISSING', 6), 'control': ('CONTROL_LABEL_CANDIDATE', 5),
+             'varias': ('IMAGE_ALT_MISSING', 4)}
 SAMPLE_LOCATIONS = [('DOCUMENT_TITLE_MISSING',1,1),('HTML_LANGUAGE_MISSING',2,1),
                     ('IMAGE_ALT_MISSING',6,3),('CONTROL_LABEL_CANDIDATE',7,3)]
 EXPECTED_FINDINGS = {'imagen':SAMPLE_LOCATIONS,'abierto':SAMPLE_LOCATIONS,
-                     'control':[('CONTROL_LABEL_CANDIDATE',5,1)],'limpio':[]}
+                     'control':[('CONTROL_LABEL_CANDIDATE',5,1)],'limpio':[],
+                     'varias':[('IMAGE_ALT_MISSING',4,3),('IMAGE_ALT_MISSING',6,3)]}
 
 
 def grade(case, answer):
     text = answer.casefold()
+    if case == 'varias':
+        mentions = re.findall(r'\b(?:l[ií]neas?|lines?)\s*[:=#]?\s*(\d+(?:\s*(?:,|y|and)\s*\d+)*)', text)
+        lines = {int(n) for phrase in mentions for n in re.findall(r'\d+',phrase)}
+        return {'code':'image_alt_missing' in text,
+                'cited_lines':lines=={line for _,line,_ in EXPECTED_FINDINGS[case]},
+                'browser_check':bool(re.search(r'navegador|browser',text) and re.search(r'\bdom\b|accesibili|accessibili',text))}
     if case in LOCATIONS:
         code, line = LOCATIONS[case]
         matches = re.findall(r'\b([A-Z][A-Z_0-9]+)\b\s*[,·:]\s*(?:línea|line)\s+([0-9]+)'
@@ -273,7 +284,13 @@ def capture(repo, arm, case, dest):
             finally:
                 stats = sampler.stop()
         if code:
-            raise RuntimeError((folder / 'worker.log').read_text(encoding='utf-8', errors='replace')[-3000:])
+            failure = folder / 'worker-failure.json'
+            record = {'arm':arm, 'case':case, 'worker_exit_code':code,
+                      'worker_failure':json.loads(failure.read_bytes()) if failure.exists() else None,
+                      'worker_log_tail':(folder / 'worker.log').read_text(encoding='utf-8',errors='replace')[-3000:]}
+            rejected = dest.with_suffix('.rejected.json')
+            rejected.write_text(json.dumps(record,ensure_ascii=False),encoding='utf-8')
+            raise RuntimeError(f'{case}/{arm}: worker exited {code}; see {rejected}')
         receipt_end = job_sample(job)
         if (receipt_end['active_processes'] or stats['observation_errors']
                 or stats['cpu_seconds'] != receipt_end['cpu_seconds']):
@@ -299,7 +316,12 @@ def main():
     p.add_argument('--repeats', type=int, choices=range(1, 6), default=2)
     args = p.parse_args()
     if args.job:
-        worker(args)
+        try:
+            worker(args)
+        except Exception as error:
+            detail = {'type':type(error).__name__, 'message':str(error)}
+            (args.output/'worker-failure.json').write_text(json.dumps(detail),encoding='utf-8')
+            raise
         return
     sys.path.insert(0, str(ROOT))
     args.output.mkdir(exist_ok=False)

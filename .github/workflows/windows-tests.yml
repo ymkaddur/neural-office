@@ -102,6 +102,10 @@ jobs:
         if: ${{ !cancelled() && steps.package.outcome == 'success' }}
         timeout-minutes: 12
         run: python -B tests/v535_windows_acceptance.py team
+      - name: Verify the actual seven-role answer includes both source lines and a browser inspection step
+        if: ${{ !cancelled() && steps.package.outcome == 'success' }}
+        timeout-minutes: 12
+        run: python -B tests/v535_windows_acceptance.py team-browser
       - name: Verify the five real attachments, citations, ZIP image and reopening through Windows UI Automation
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
         run: python -B -m tools.verify_v513_desktop --exe desktop/src-tauri/target/release/neural-office-desktop.exe --output v513-multiformat

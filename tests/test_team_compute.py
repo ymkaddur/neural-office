@@ -115,6 +115,27 @@ class TeamCompute(unittest.TestCase):
                 self.assertEqual(current['messages'],prior['messages'])
                 self.assertNotIn('format',current)
 
+    def test_multiple_citations_keep_the_browser_question_and_the_admitted_format(self):
+        goal = 'Indica el código y todas las líneas de la imagen sin descripción. Añade cómo contrastarlas en el navegador.'
+        source = b'<html lang="es">\n<title>Prueba</title>\n<img><img>\n<img alt="">\n<img>\n</html>'
+        row = dict(profile=review_profile(MODEL,7), snapshot=source, objective=goal,
+                   outputs=[dict(role='verifier',content='Notas de la revisión.',content_sha='a'*64)])
+        reply = prompt(row,'integrator')
+        message = reply['messages'][-1]['content']
+        self.assertIn(goal, message)
+        self.assertIn('Notas de la revisión.', message)
+        self.assertTrue(message.endswith('IMAGE_ALT_MISSING, líneas 3, 5'))
+        pattern = reply['format']['pattern']
+        self.assertRegex('CONTROL_LABEL_CANDIDATE, líneas 10, 17. En el inspector del navegador comprueba el DOM.',pattern)
+        self.assertIsNone(re.fullmatch(pattern,'IMAGE_ALT_MISSING, líneas 3, 5, 7. En el inspector del navegador comprueba el DOM.'))
+        old = dict(row['profile'])
+        old.pop('citation_format')
+        self.assertNotIn('format', prompt({**row,'profile':old},'integrator'))
+        for extra in (' Añade una captura.', ' y proporciona un ejemplo', ' sin usar el navegador'):
+            self.assertNotIn('format',prompt({**row,'objective':goal.rstrip('.')+extra},'integrator'))
+        self.assertNotIn('format',prompt({**row,'snapshot':b'<html lang="es"><title>T</title><img><img></html>'},'integrator'))
+        self.assertNotIn('format',prompt(row,'researcher'))
+
     def test_unit_contract_depends_on_authorized_fragment_and_explicit_request(self):
         goal = '¿Cuántas horas dura? Devuelve la cifra y su unidad.'
         for number in ('31', '67', '2,5'):

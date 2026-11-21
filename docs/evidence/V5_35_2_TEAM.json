@@ -947,5 +947,684 @@
     },
     "one_server_startup_cpu_s": 5.125,
     "model_receipts_using_pinned_tag_and_config": 56
+  },
+  "measurement_source_commit": "afc52642a22d1875b521cb2381b382f4526ca786",
+  "already_resident_team_diagnostic": {
+    "commit": "afc52642a22d1875b521cb2381b382f4526ca786",
+    "kind": "diagnostic only, both teams resident, outside deployment lifecycle",
+    "readout": "One measured Office run per case compared with its two recorded, real, resident CLI queries.",
+    "rows": [
+      {
+        "case": "imagen",
+        "cpu_s_after_model_preload": 2.546875,
+        "ratios": [
+          1.8111,
+          1.2164
+        ]
+      },
+      {
+        "case": "control",
+        "cpu_s_after_model_preload": 1.984375,
+        "ratios": [
+          1.6933,
+          1.0855
+        ]
+      },
+      {
+        "case": "limpio",
+        "cpu_s_after_model_preload": 1.78125,
+        "ratios": [
+          0.912,
+          0.8976
+        ]
+      },
+      {
+        "case": "abierto",
+        "cpu_s_after_model_preload": 1.96875,
+        "ratios": [
+          0.6332,
+          0.5185
+        ]
+      }
+    ]
+  },
+  "follow_up": {
+    "measured_utc": "2026-11-21T12:03:02.192171+00:00",
+    "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+    "source_sha256": {
+      "neural_office/ollama.py": "1a63a97c1a5ecb85534b1c9c00e4d5f4f75a29601306818c8d1631c031d979cc",
+      "neural_office/audit.py": "25fdff383a1ff0146c1e45404fbc25e320f786fd3b3ca150012a6039bb870af7",
+      "neural_office/runner.py": "d8dc3beab6d10030d7372d1619ffea11c801306388c56961005617e17e0f1476",
+      "tools/measure_v5352_team.py": "51c9e359147c0b0c646c1af380c22f8f4d662dd98d5772340182de16d8e4d708"
+    },
+    "original_requests_replayed": 56,
+    "measured_requests_replayed": 35,
+    "pairs": [
+      {
+        "case": "imagen",
+        "objective": "Indica el código exacto de la imagen sin descripción y su línea en el archivo.",
+        "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+        "cpu_s": {
+          "office": 14.671875,
+          "cold": 13.703125,
+          "ready": 3.296875,
+          "warm": 1.609375
+        },
+        "ratios": {
+          "cold": 1.0707,
+          "ready": 4.4502,
+          "warm": 9.1165
+        },
+        "office_answer": "\"IMAGE_ALT_MISSING, línea 6, columna 3\"",
+        "office_grade": {
+          "code": true,
+          "line": true,
+          "cited_location": true
+        },
+        "cold_cli_answer": "La imagen está en la línea 7, columna 3 del archivo. La línea estándar es:\n\n```plaintext\nDOCUMENT_TITLE_MISSING · línea 1 · columna 1\nHTML_LANGUAGE_MISSING · línea 2 · columna 1\nIMAGE_ALT_MISSING · línea 6 · columna 3\nCONTROL_LABEL_CANDIDATE · línea 7 · columna 3\n```\n\nPuedes ver el código exacto y la línea en la imagen a continuación:\n\n[Imágen del código del archivo](https://es.1.8.1/2.png)",
+        "warm_cli_answer": "El código exacto de la imagen sin descripción y su línea en el archivo es:\n\nLecturas estáticas locales:\nDOCUMENT_TITLE_MISSING · línea 1 · columna 1\nHTML_LANGUAGE_MISSING · línea 2 · columna 1\nIMAGE_ALT_MISSING · línea 6 · columna 3\nCONTROL_LABEL_CANDIDATE · línea 7 · columna 3",
+        "full_second_peak_ratio": 1.6832,
+        "memory_sample_gaps": {
+          "team": 0,
+          "terminal": 0,
+          "warm": 0
+        },
+        "role_receipts": [
+          {
+            "role": "director",
+            "request_sha256": "c924c184b642b7b759c5848e263c2e5ac572e67712801ebd9354fb12ed277fd3",
+            "tokens": 23
+          },
+          {
+            "role": "planner",
+            "request_sha256": "a36fec3f187f7c25740c59df019e3f1840684399a88737e480c6fd9acf9e435f",
+            "tokens": 23
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "054a49d7c3a081507c2714092f494c0a9db8a57cf3dfd03e903d8dfb0238f9af",
+            "tokens": 44
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "c911b7c9424b303554d8f82b4b641aba0f066075d108b349df0b5533e65106a4",
+            "tokens": 56
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "52616b49a1e2394c4df56ba9de7cc9cfb8c701f6fedfde823cbe356ebd9320a3",
+            "tokens": 36
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "c8d62fbf1633441f4a96031adeaf9979a998f48503dc29ee58df4d0f3ca9cbce",
+            "tokens": 56
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "ea0ad287058a02a27f6eb3d47f2b442d14230efd175cc4b135784af587414698",
+            "tokens": 17
+          }
+        ],
+        "raw_sha256": {
+          "team": "5881505b0a42fa9bd3db6aa8ffa325e256d1f17f36b75508417903dfc7d41d51",
+          "terminal": "e3dec05c977b8db45f164fdb1db76eeb950f424b7a3be2486c5f4e0b10db6c6f",
+          "warm": "a5b799f2aa6dd91526c39ce34a0dcbd52e08c7b4be8ad117c7873ec69486312f"
+        }
+      },
+      {
+        "case": "control",
+        "objective": "Indica el código y la línea del control sin etiqueta en este archivo.",
+        "source_sha256": "766e0f6f5b81ece8bbab5280672f246649541949b1b6efb5c01b197446c6ba69",
+        "cpu_s": {
+          "office": 12.46875,
+          "cold": 13.609375,
+          "ready": 4.515625,
+          "warm": 0.828125
+        },
+        "ratios": {
+          "cold": 0.9162,
+          "ready": 2.7612,
+          "warm": 15.0566
+        },
+        "office_answer": "\"CONTROL_LABEL_CANDIDATE, línea 5, columna 1\"",
+        "office_grade": {
+          "code": true,
+          "line": true,
+          "cited_location": true
+        },
+        "cold_cli_answer": "En este archivo, no hay ningún código o línea de control sin etiqueta. Solo se menciona la línea 5, en la que se establece la etiqueta \"CONTROL_LABEL_CANDIDATE\". No hay ninguna línea de código sin etiqueta en este archivo.",
+        "warm_cli_answer": "El código y la línea del control sin etiqueta en este archivo estándar es:\n\n```python\nCONTROL_LABEL_CANDIDATE\n```\n\nEn este ejemplo, la línea `CONTROL_LABEL_CANDIDATE` se considera como una línea del control sin etiqueta.",
+        "full_second_peak_ratio": null,
+        "memory_sample_gaps": {
+          "team": 0,
+          "terminal": 0,
+          "warm": 0
+        },
+        "role_receipts": [
+          {
+            "role": "director",
+            "request_sha256": "2aa07b25627eb1b8b009a3a5e683ad59004339207c00858eb1bdd46e76aa0f6f",
+            "tokens": 24
+          },
+          {
+            "role": "planner",
+            "request_sha256": "015b6a2ae36c03a9caf5d07a562e256729857c6a92bf8f9d281d6d27f65a08b0",
+            "tokens": 24
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "b385c7355c47a110852fa2089497865d9df7a025960238075b4e86213278b430",
+            "tokens": 34
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "f120e2af0408f1faad937aeed26961b3519bc9f1f6ec57891fc108f04b25557e",
+            "tokens": 24
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "67c46aaa2c5571183b3be3d7995bdab9dc41da49a88a3a7a1fb89635b7ec9cde",
+            "tokens": 24
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "ecedd8c3a2652c7136342dc37adc5afca8791521f4c894ba1608ebba6b96eef9",
+            "tokens": 27
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "ae299ea5254bd1a1a6afbe4cda59a79c6e250ab05a6289547a0c8703f5d16aa0",
+            "tokens": 17
+          }
+        ],
+        "raw_sha256": {
+          "team": "65b17e66730e458cd7e0cdb2d06894b3da10f882e32a5cafc60235b57cd683e6",
+          "terminal": "a30e166f5810ee1ce6ac749c5a5c5c1ee59fa485c001059557007c71ac9d8635",
+          "warm": "b1e4a9f84ecf7c630aef95eab86cec8f82369a5118d9d5d0b0d7dee5c000f4c2"
+        }
+      },
+      {
+        "case": "limpio",
+        "objective": "Indica si encontraste hallazgos en estas comprobaciones y qué queda fuera de la revisión.",
+        "source_sha256": "6d407c5aa88f74f70d97abc8a9db261fface7599238a3a6102cf8314b1c26a00",
+        "cpu_s": {
+          "office": 13.0625,
+          "cold": 13.890625,
+          "ready": 5.359375,
+          "warm": 2.296875
+        },
+        "ratios": {
+          "cold": 0.9404,
+          "ready": 2.4373,
+          "warm": 5.6871
+        },
+        "office_answer": "This static HTML audit identifies no issues and does not involve code execution, browsing, deployment, permission changes, or self-certification.",
+        "office_grade": {
+          "no_findings": true,
+          "scope_limit": true
+        },
+        "cold_cli_answer": "En las cuatro comprobaciones estáticas que mencionas, no se detectaron hallazgos. Las comprobaciones estáticas son una forma de análisis de datos que se realizan todos los días en el mismo momento, y en esta ocasión, no hay ningún hallazgo que parezca relevante o relevante en los datos que se han analizado. Además, la frase \"no se detectaron hallazgos\" sugiere que se han realizado todas las comprobaciones estáticas y no se han encontrado ningún hallazgo. Si te gustaría que se revisen los datos para asegurarte de que todos se han verificados, estaríamos a favor de que lo hagas.",
+        "warm_cli_answer": "Entiendo que no hay hallazgos en las cuatro comprobaciones estáticas. Es importante tener en cuenta que estas comprobaciones estáticas son únicas y no pueden contener ningún hallazgo o observación, ya que se basan en un sistema de evaluación y análisis que se ajusta a un solo conjunto de datos. Si tienes comprobaciones estáticas y necesitas hallazgos o observaciones en ellas, podrías considerar explorar estas comprobaciones en detalle o adquirir nuevos datos para que puedas encontrar hallazgos.",
+        "full_second_peak_ratio": 1.2189,
+        "memory_sample_gaps": {
+          "team": 0,
+          "terminal": 0,
+          "warm": 0
+        },
+        "role_receipts": [
+          {
+            "role": "director",
+            "request_sha256": "9eab5285eb941d07ceb2157858b965edce774392f9340200711f016e167456d3",
+            "tokens": 27
+          },
+          {
+            "role": "planner",
+            "request_sha256": "d1434debdb4882fcc8f91da1f6780c2f32987ab4f8a71d07a5b4794b31312dff",
+            "tokens": 27
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "aae9a7130b685b1384cf40b24415106eb6d07bc617c6a986da8867689597fd87",
+            "tokens": 27
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "4a01acc96714a7727454a228a3b08631578b235827d987d7aa738b63ed9a04a6",
+            "tokens": 27
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "180014c19df81e99723e81e2a3b392f85778fa2b88b3a43ae27223dee188fb97",
+            "tokens": 27
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "7d92eb32f387ae9fa2653af9f8bab0b8a8c9e6753baac0f6a080e4ae61f31c04",
+            "tokens": 27
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "7a74d624ea4853d40ad656291a85caa081bd8832cd384a83b64266714ed89013",
+            "tokens": 27
+          }
+        ],
+        "raw_sha256": {
+          "team": "53403f542b1e1f037020d8cf5c5758420a67e0ff73d0d277c325a3958afa546d",
+          "terminal": "e8fd12c69bd2ab1419c08df1f455f6222db7f16f0fbc0a4b63d70e1c4d84ed3e",
+          "warm": "2daccde1f2e1da76a82f19f35f1697c40e0c6673d9fd5ff801cc63e24f337cb5"
+        }
+      },
+      {
+        "case": "abierto",
+        "objective": "Recomienda cómo corregir la imagen y el control de formulario. Indica un límite de esta revisión.",
+        "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+        "cpu_s": {
+          "office": 14.640625,
+          "cold": 11.5,
+          "ready": 3.65625,
+          "warm": 2.859375
+        },
+        "ratios": {
+          "cold": 1.2731,
+          "ready": 4.0043,
+          "warm": 5.1202
+        },
+        "office_answer": "The static HTML heuristics identified missing evidence and prior role text, focusing on image and form control issues. Prioritize the findings and define a bounded review plan.",
+        "office_grade": {
+          "image_remedy": false,
+          "control_remedy": false,
+          "scope_limit": false
+        },
+        "cold_cli_answer": "Para corregir estas líneas de código, necesitaré los datos de los HTML, CSS, y JavaScript que estén en la variable \"variables\" del editor anterior. Sin embargo, no tengo acceso a esa información, y no me siento a gusto en recomendar cambios que no afecten el código original. Si tienes estos datos, por favor, me explico cómo puedo ayudarte con la corrección.",
+        "warm_cli_answer": "Aunque no he revisado la documentación específica o el código, aquí te dejo algunas recomendaciones generales sobre cómo corregir estas líneas:\n\n1. **Documentations Missing**: Asegúrate de que los archivos de documentación estén actualizados y que las líneas de documentación estén correctamente etiquetadas.\n\n2. **HTML Language Missing**: Asegúrate de tener los archivos HTML correctamente etiquetados y de que las etiquetas de <title> y <meta> estén correctamente.\n\n3. **Image Alt Text Missing**: Asegúrate de tener los archivos de imágenes correctamente etiquetadas con el atributo `alt`.\n\n4. **Control Label Candiate**: Asegúrate de que el campo de control `Candidate` esté correctamente marcado y que tenga un texto al que se pueda agregar un valor.\n\nEs importante tener en cuenta que, sin embargo, no he revisado específicamente estas líneas en tu documento de código. Si estas secciones no están siendo revisadas correctamente, o si las líneas de documentación están llena de errores, podría ser útil proporcionar la información específica para que pueda corregirlas.",
+        "full_second_peak_ratio": 1.1273,
+        "memory_sample_gaps": {
+          "team": 0,
+          "terminal": 0,
+          "warm": 0
+        },
+        "role_receipts": [
+          {
+            "role": "director",
+            "request_sha256": "eecd60323e3df4395d8c8ba317bbbf6da2d65ea5ab9ade2f2a5b60f127a46c44",
+            "tokens": 21
+          },
+          {
+            "role": "planner",
+            "request_sha256": "37182d34d274b8ea1de4c482c0a1786cbf7406fb74f75c56cfda8649142c1cd9",
+            "tokens": 38
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "cfc6391da157e884596e2e96b30e1e6ad76d78db4ff18f900a671c212b35e8fa",
+            "tokens": 32
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "ef6789059b3b8e22167553f6948fa6fe35a449d5f903e0dbcc9aa11ced4e4393",
+            "tokens": 34
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "4778633cbdaded7a31e7ed6c3b3acee55cdf9abc8f7b8456e3a177db0ca322a0",
+            "tokens": 24
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "ef9a226b5e19c2ac1fe580948c503f76393ec36ca32973225991318ee502c80b",
+            "tokens": 34
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "03c297c6a4d4b08bb32b1109767d22df0b4fdac29b680b442159d80f203306bb",
+            "tokens": 34
+          }
+        ],
+        "raw_sha256": {
+          "team": "54a245a084d1071943ec9757859c35142c2ef70bbb7a10395e5803b7719cbdd6",
+          "terminal": "f89b5c06ed672f04c011b85507730c449f139ee9d429d53b72b91a3c03e5ae10",
+          "warm": "29129fe37c06d0f9613076a3333c36004866acaf9d824ab8453fe78d3ed544c2"
+        }
+      },
+      {
+        "case": "varias",
+        "objective": "Indica el código y todas las líneas de la imagen sin descripción. Añade cómo contrastarlas en el navegador.",
+        "source_sha256": "99f60026f3493c938fad5ef40147fb3d1a53b879ac952852aa08d4b1dd3c6c4c",
+        "cpu_s": {
+          "office": 9.3125,
+          "cold": 10.703125,
+          "ready": 3.0,
+          "warm": 1.15625
+        },
+        "ratios": {
+          "cold": 0.8701,
+          "ready": 3.1042,
+          "warm": 8.0541
+        },
+        "office_answer": "\"IMAGE_ALT_MISSING, líneas 4, 6. En el inspector del navegador localiza cada elemento en el DOM y comprueba su nombre en el árbol de accesibilidad.\"",
+        "office_grade": {
+          "code": true,
+          "cited_lines": true,
+          "browser_check": true
+        },
+        "cold_cli_answer": "No hay imágenes proporcionadas en la pregunta. Por favor, proporciona la imagen para que pueda ayudarte a identificar y contar con los códigos y líneas de texto.",
+        "warm_cli_answer": "Lo siento, pero no puedo capturar ni manipular imágenes. Me siento como un \"assistant\" que no puede interactuar con las imágenes. ¿Podrías proporcionar un código o la descripción de la imagen en lugar de eso? Esto me permitiría darle más contexto y ayudar a entender su solicitud.",
+        "full_second_peak_ratio": null,
+        "memory_sample_gaps": {
+          "team": 0,
+          "terminal": 1,
+          "warm": 0
+        },
+        "role_receipts": [
+          {
+            "role": "director",
+            "request_sha256": "20a81b642ccbf3af66e5ae13f24f60ce6ea3fd9df5279c7d5e7d0b8ce075745b",
+            "tokens": 39
+          },
+          {
+            "role": "planner",
+            "request_sha256": "6f8694e58708b9b1b0e327836c4b3bd388ebd84a4a39c2ca943f97611e3a9bd9",
+            "tokens": 39
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "940ae5bcb938ff7a5940457e72e0fabd9bad1113ff389c52ad6cd97cd8af8cf0",
+            "tokens": 39
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "33114ea373853465654ed3fdfdb794ad509e6afaa6fe89dd3056b915be09ece3",
+            "tokens": 39
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "9d934bfebff6a7914881e3cf34aedf391d394202650ddb77724f4c2a12f66ce7",
+            "tokens": 39
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "b607968bfd8845e2a5514156b25121f3ce77bab894b4b61c8fd66118317f7b73",
+            "tokens": 38
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "ddb9e0eb3297373b33df82e8a9afb7f3ac79ca0ca4d6a75e095cee02fa1baffa",
+            "tokens": 40
+          }
+        ],
+        "raw_sha256": {
+          "team": "f17c395807b3e9bd28bd3215a1bd48944397e17e8fe4033cd7dec62bbc0e0712",
+          "terminal": "a8fbc5d19374bd7b0f35a1e299c4c07c8a133c53da132d6d6127b37ba4ec03d4",
+          "warm": "9caea8307fbc1cb85b7c8ad9c211fb7102700f254fb3eead4ca4a982aa3ea035"
+        }
+      }
+    ],
+    "interrupted_references": [
+      {
+        "case": "abierto",
+        "arm": "terminal",
+        "cause": "TimeoutExpired",
+        "timeout_s": 180,
+        "worker_exit_code": 1,
+        "paired_cpu_ratio": null,
+        "observed_partial_answer_bytes": 139264
+      }
+    ],
+    "additional_quality_outputs": [
+      {
+        "case": "single-en",
+        "source_sha256": "d1b5b6e49cf53b94e051276479e473cd776065e0219b0cd3d65a6e70cc5ea8d2",
+        "objective": "Give the code and line of the missing image alt.",
+        "expected_findings": [
+          [
+            "IMAGE_ALT_MISSING",
+            5,
+            5
+          ]
+        ],
+        "answer": "\"IMAGE_ALT_MISSING, line 5, column 5\"",
+        "matched": true,
+        "calls": [
+          {
+            "role": "director",
+            "request_sha256": "267ae6e4f048f15906ea9d4f99eb725e1ac9a793b7230094c16a4bb15311ac1d",
+            "output_tokens": 12
+          },
+          {
+            "role": "planner",
+            "request_sha256": "93bc2c58c92521882070f80f067b71f63000532594c1142007b01e6c37555a95",
+            "output_tokens": 27
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "60f187ddc83fde6355a66f8b1676b64a9727afacea65663c9a89897c6a27080b",
+            "output_tokens": 27
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "b3db14a045083d6ed1f37a0c81f64a7f05121e077fe9104ece7148046d86fcb5",
+            "output_tokens": 27
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "55d5b7d2ecd82a42eba950752ef2aa6ae1eda1ea630b53a3ddf967d6bad48acd",
+            "output_tokens": 27
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "575b689ee40034b5b8e3d41dffeb30a43a42fda75b9be6189a80484a6c0752dc",
+            "output_tokens": 27
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "f6aa627607a01942ec79db8b89012f30e37ec046342724a7e0ed196e33f995bf",
+            "output_tokens": 14
+          }
+        ]
+      },
+      {
+        "case": "two-images",
+        "source_sha256": "99f60026f3493c938fad5ef40147fb3d1a53b879ac952852aa08d4b1dd3c6c4c",
+        "objective": "Indica el código y todas las líneas de la imagen sin descripción. Añade cómo contrastarlas en el navegador.",
+        "expected_findings": [
+          [
+            "IMAGE_ALT_MISSING",
+            4,
+            3
+          ],
+          [
+            "IMAGE_ALT_MISSING",
+            6,
+            3
+          ]
+        ],
+        "answer": "\"IMAGE_ALT_MISSING, líneas 4, 6. En el inspector del navegador localiza cada elemento en el DOM y comprueba su nombre en el árbol de accesibilidad.\"",
+        "matched": true,
+        "calls": [
+          {
+            "role": "director",
+            "request_sha256": "20a81b642ccbf3af66e5ae13f24f60ce6ea3fd9df5279c7d5e7d0b8ce075745b",
+            "output_tokens": 39
+          },
+          {
+            "role": "planner",
+            "request_sha256": "6f8694e58708b9b1b0e327836c4b3bd388ebd84a4a39c2ca943f97611e3a9bd9",
+            "output_tokens": 39
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "940ae5bcb938ff7a5940457e72e0fabd9bad1113ff389c52ad6cd97cd8af8cf0",
+            "output_tokens": 39
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "33114ea373853465654ed3fdfdb794ad509e6afaa6fe89dd3056b915be09ece3",
+            "output_tokens": 39
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "9d934bfebff6a7914881e3cf34aedf391d394202650ddb77724f4c2a12f66ce7",
+            "output_tokens": 39
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "b607968bfd8845e2a5514156b25121f3ce77bab894b4b61c8fd66118317f7b73",
+            "output_tokens": 38
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "ddb9e0eb3297373b33df82e8a9afb7f3ac79ca0ca4d6a75e095cee02fa1baffa",
+            "output_tokens": 40
+          }
+        ]
+      },
+      {
+        "case": "three-controls",
+        "source_sha256": "be9338c628eb1f1e15bf80e9fa856add2ce0e44d22e72b3d223e1315ae929150",
+        "objective": "Give the code and all lines of the unlabeled control. Explain how to check them in the browser.",
+        "expected_findings": [
+          [
+            "CONTROL_LABEL_CANDIDATE",
+            6,
+            2
+          ],
+          [
+            "CONTROL_LABEL_CANDIDATE",
+            7,
+            2
+          ],
+          [
+            "CONTROL_LABEL_CANDIDATE",
+            9,
+            2
+          ]
+        ],
+        "answer": "\"CONTROL_LABEL_CANDIDATE, lines 6, 7, 9. In the browser inspector, locate each element in the DOM and check its name in the accessibility tree.\"",
+        "matched": true,
+        "calls": [
+          {
+            "role": "director",
+            "request_sha256": "81f28ddabfe66a898957fb5d3372ee87ed23e785ec7aca828c76b23faaacb9e9",
+            "output_tokens": 21
+          },
+          {
+            "role": "planner",
+            "request_sha256": "5ef5bb82a667078fa05ce339c10bc15af726943c7da1ebb82af3edf10d39e86b",
+            "output_tokens": 19
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "34b1d41a8941dcf721cf283cee9c5b71bd4861a7b471fefe0ab9b2adfaee498b",
+            "output_tokens": 19
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "5122d6bb32d8033ac026f250b9bcfbc1232f7e12c116936f9aaddf0537e170b8",
+            "output_tokens": 51
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "4998d54b134534e1d91d882cec3118a9227d6a69908945b10225c9278562ad6d",
+            "output_tokens": 52
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "ebc5c12e43872574c58a21339815da498079a6476f6271ac6d8967ab987aff41",
+            "output_tokens": 52
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "24941ce973ca273cfb4086c83a0deff838e09b4d0262fe6c83c4dc5c18140f1b",
+            "output_tokens": 40
+          }
+        ]
+      },
+      {
+        "case": "shifted-images",
+        "source_sha256": "20f87239710955af6680eba97a179d95b0ef248234bd166d780ededc6ed34d62",
+        "objective": "Give the code and all lines of the missing image alt. Explain how to check them in the browser.",
+        "expected_findings": [
+          [
+            "IMAGE_ALT_MISSING",
+            6,
+            2
+          ],
+          [
+            "IMAGE_ALT_MISSING",
+            8,
+            2
+          ]
+        ],
+        "answer": "\"IMAGE_ALT_MISSING, lines 6, 8. In the browser inspector, locate each element in the DOM and check its name in the accessibility tree.\"",
+        "matched": true,
+        "calls": [
+          {
+            "role": "director",
+            "request_sha256": "77a0faad63257675ac8a6588b431fd7938ab577c4c87ab389887a59f5a160db0",
+            "output_tokens": 33
+          },
+          {
+            "role": "planner",
+            "request_sha256": "0fc1762c5fc7b5327e6b478b754abbf9e5252cc17efc6e7c41e960faf53e26dd",
+            "output_tokens": 33
+          },
+          {
+            "role": "researcher",
+            "request_sha256": "56eec280ff17d4feea08ae0497677d84344a453d38a58b2a81dc5c063a4ed7db",
+            "output_tokens": 33
+          },
+          {
+            "role": "implementer",
+            "request_sha256": "9c322470e5df5d90eee97c3a401b3827f9dbb0eb6fc941ec890fda5337b503ff",
+            "output_tokens": 33
+          },
+          {
+            "role": "skeptic",
+            "request_sha256": "fffaa0152d3c42b1bf8cb78adf0aabe40ceaf9381d85e5dd9587a45ee0050a62",
+            "output_tokens": 33
+          },
+          {
+            "role": "verifier",
+            "request_sha256": "1599bab3c96425e7357ccc0a2d5147fef77d5fcc84df6d90b6117282402b4bb4",
+            "output_tokens": 33
+          },
+          {
+            "role": "integrator",
+            "request_sha256": "16dcee722be4509af89717f1581f75d7d15f78ef5c4c3a7a2c7c01aeb0e1ab1d",
+            "output_tokens": 34
+          }
+        ]
+      }
+    ],
+    "compound_before_correction": {
+      "6585b70829d24c0c548504e28324fe36f92170c3": "The static HTML audit identifies missing code and lines 4 and 6. Contrast these with the browser's rendering.",
+      "afc52642a22d1875b521cb2381b382f4526ca786": "The static HTML audit identifies missing alt text for images. It is static HTML heuristics only, with no code execution, browsing, deployment, permission changes, or self-certification."
+    },
+    "additional_quality_explanation": "Four separate executions checked the unedited model response against file positions. The Spanish two-image fixture also appears in the fifth CPU pair. For the compound requests, grammar encodes cardinality and a browser-check introduction. The verified identifiers, lines and an inspection method are supplied as context. Prior team notes are included.",
+    "rollup": {
+      "cold": {
+        "min": 0.8701,
+        "max": 1.2731,
+        "within": 5,
+        "measured": 5
+      },
+      "ready": {
+        "min": 2.4373,
+        "max": 4.4502,
+        "within": 0,
+        "measured": 5
+      },
+      "warm": {
+        "min": 5.1202,
+        "max": 15.0566,
+        "within": 0,
+        "measured": 5
+      },
+      "quality_passed": 4,
+      "office_mean_cpu_s_original_four": 13.7109375,
+      "quality_holdouts_passed": 4,
+      "gate_passed": false
+    }
   }
 }

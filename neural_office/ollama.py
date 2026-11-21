@@ -51,12 +51,13 @@ def select_model(name,models):
 
 
 TEAM_POLICY = 'local-team-v1'
+MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v1'
 
 
 def review_profile(model, roles):
     profile = {**model, 'roles': roles}
     if roles == 7 and model.get('mode') == 'ollama-owned':
-        profile.update(execution_policy=TEAM_POLICY, num_gpu=-1)
+        profile.update(execution_policy=TEAM_POLICY, num_gpu=-1, citation_format=MULTILINE_BROWSER_FORMAT)
     return profile
 
 
