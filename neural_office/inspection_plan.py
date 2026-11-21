@@ -18,7 +18,7 @@ class Task:
 
 
 SEPARATOR = re.compile(
-    r'[;!?¿¡\n]+|\.(?=\s|$)|\s+(?:y|e|and)\s+(?=(?:¿|qué\b|cuál|cuánt|dónde|cómo|quién|'
+    r'[;!?¿¡\n]+|\.(?=\s|$)|(?:,\s*|\s+y\s+)luego\s+|\s+(?:y|e|and)\s+(?=(?:¿|qué\b|cuál|cuánt|dónde|cómo|quién|'
     r'(?:valida|comprueba|revisa|compara|verifica|cuenta|busca|encuentra|localiza|muestra|inspecciona|'
     r'indica|identifica|redacta|escribe|genera|resume|haz|traduce|prop[oó]n|explica|extrae|crea|'
     r'adjunta|calcula|envía|clasifica|ordena|enumera|analiza|lee|dime|prepara|publica|guarda|diseña)\b))', re.I)
@@ -32,15 +32,18 @@ EXCLUDED = re.compile(r'(?<![\w.-])(?:excepto|salvo|excluye|excluyendo|omite|ign
                       r'\bno\s+(?:consultes|leas|incluyas|uses|abras|revises)\b', re.I)
 QUALIFIED_PAGES = re.compile(r'\bpaginas?\s+(?:que|donde|con|sin|anteriores|posteriores)\b|'
                              r'\b(?:paginas? .*?)?(?:contienen|mencionan)\b')
+SAME_FILE = re.compile(r'\b(?:ese|este|el)\s+mismo\s+(?:archivo|documento|fichero)\b', re.I)
 
 
 def fold(text):
     return ''.join(c for c in unicodedata.normalize('NFD', text.casefold()) if not unicodedata.combining(c))
 
 
-def clauses(objective):
-    # Match boundary positions without splitting inside the requested literal or a quoted filename.
+def clauses(objective, name_pattern):
+    # Keep offsets in the original text while protecting literals and selected filenames.
     masked = QUOTED.sub(lambda m: '\ufffc' * len(m[0]), objective)
+    if name_pattern is not None:
+        masked = name_pattern.sub(lambda m: '\ufffc' * len(m[0]), masked)
     start = 0
     for delimiter in SEPARATOR.finditer(masked):
         value = objective[start:delimiter.start()].strip()
@@ -131,7 +134,7 @@ def plan(objective, captures):
     if not objective.strip() or requested_checks(objective, kinds) == ['greeting']:
         return [Task(check, all_ids, objective) for check in requested_checks(objective, kinds)]
     tasks = []
-    parts = [item for clause in clauses(objective) for item in shared_searches(clause)]
+    parts = [item for clause in clauses(objective, name_pattern) for item in shared_searches(clause)]
     for part in parts:
         normalized = fold(part)
         if len(parts)>1 and (CONTEXT.fullmatch(normalized) or re.fullmatch(r'(?:hola(?:,?\s+director)?|buenos d[ií]as|buenas (?:tardes|noches)|gracias)',normalized)):
@@ -140,6 +143,15 @@ def plan(objective, captures):
             continue
         phrase, target = search_terms(part)
         sources, limit, explicit = scoped_sources(target, captures)
+        if not limit and SAME_FILE.search(QUOTED.sub(' ', instruction_words(target))):
+            antecedent = tasks[-1].sources if tasks else all_ids
+            if (len(antecedent) == 1 and (not tasks or (not tasks[-1].limit and tasks[-1].action != 'clarify'))
+                    and (not explicit or sources == antecedent)):
+                sources = antecedent
+            else:
+                sources = ()
+                limit = 'Indica a qué archivo te refieres para continuar.'
+            explicit = True
         words = instruction_words(part)
         checks = ['literal'] if phrase else requested_checks(words, kinds)
         request = fold(QUOTED.sub(' ', words))

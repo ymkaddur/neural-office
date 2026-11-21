@@ -105,6 +105,24 @@ class PolishedWorkflowTests(unittest.TestCase):
         explicit = self.inspect('Comprueba la validez legal de legal.json.', ['legal.json'])
         self.assertEqual(explicit['findings'][0]['status'], 'insufficient')
 
+    def test_same_file_refers_only_to_the_immediately_preceding_source(self):
+        files = ['valido.json', 'otro.json']
+        report = self.inspect('Lee el contenido de valido.json y busca «otra» en ese mismo archivo.', files)
+        result, = [f for f in report['findings'] if f['rule'] == 'literal']
+        self.assertEqual([s['name'] for s in result['sources']], ['valido.json'])
+        self.assertIn('no aparece', result['detail'])
+        ambiguous = self.inspect('Busca «otra» en ese mismo archivo.', files)
+        self.assertEqual([f['status'] for f in ambiguous['findings']], ['insufficient'])
+        self.assertFalse(any(f['sources'] for f in ambiguous['findings']))
+
+    def test_luego_keeps_unfulfilled_part_and_preserves_quoted_literal(self):
+        for separator in (', luego ', ' y luego '):
+            result = self.inspect('Lee el contenido de notas.md' + separator + 'tradúcelo al francés.', ['notas.md'])
+            self.assertEqual([f['status'] for f in result['findings']], ['observed', 'insufficient'])
+            self.assertIn('tradúcelo', result['findings'][1]['title'])
+        quoted = self.inspect('Busca «Inicio, luego fin» en notas.md.', ['notas.md'])
+        self.assertEqual([f['rule'] for f in quoted['findings']], ['literal'])
+
     def test_partial_pdf_reports_the_exact_unread_page(self):
         root = Path(self.store._authority('Portal')[1])
         name = 'cuarenta-y-una.pdf'
