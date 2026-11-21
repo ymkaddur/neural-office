@@ -426,19 +426,22 @@ def main():
         inspect = screen.control('Comprobar HTML')
         native_window = Application(backend='win32').connect(process=host.pid).window(handle=screen.window.handle)
         native_window.set_focus()
-        focus_receipt = evidence['static_keyboard'] = {'readings': [], 'space_sends': 0}
+        focus_receipt = evidence['static_keyboard'] = {'readings': [], 'tabs': 0, 'space_sends': 0}
         focus_started = time.monotonic_ns()
-
-        def inspection_focused():
-            foreground = win32gui.GetForegroundWindow() == native_window.handle
-            if foreground and not inspect.has_keyboard_focus():
-                inspect.set_focus()
+        editor = screen.control('Tu encargo al Director', 'Edit')
+        editor.set_focus()
+        wait(lambda: win32gui.GetForegroundWindow()==native_window.handle and editor.has_keyboard_focus(),
+             description='focus returned from the native picker to the objective')
+        for _ in range(16):
+            keyboard.send_keys('{TAB}', turn_off_numlock=False)
+            focus_receipt['tabs'] += 1
             focused = inspect.has_keyboard_focus()
-            focus_receipt['readings'].append({'elapsed_ns': time.monotonic_ns() - focus_started,
-                'foreground': foreground, 'control_focused': focused, 'enabled': inspect.is_enabled()})
-            return foreground and focused and focus_receipt['readings'][-1]['enabled']
-
-        wait(inspection_focused, timeout=10, description='foreground and HTML check button has UIA keyboard focus')
+            focus_receipt['readings'].append({'elapsed_ns':time.monotonic_ns()-focus_started,
+                'foreground':win32gui.GetForegroundWindow()==native_window.handle,
+                'control_focused':focused,'enabled':inspect.is_enabled()})
+            if focused: break
+        assert (inspect.has_keyboard_focus() and inspect.is_enabled()
+                and win32gui.GetForegroundWindow()==native_window.handle), 'HTML check unreachable from the editor with Tab'
         keyboard.send_keys('{SPACE}', turn_off_numlock=False)
         focus_receipt['space_sends'] += 1
         wait(lambda: '4 hallazgos para revisar' in screen.names(), description='keyboard static findings')

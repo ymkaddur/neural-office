@@ -141,7 +141,9 @@ class TeamCompute(unittest.TestCase):
         historical = dict(row['profile'])
         historical.pop('team_session')
         self.assertNotIn('format',prompt({**row,'profile':historical},'researcher'))
-        self.assertIn('IMAGE_ALT_MISSING, líneas 3, 5',prompt(row,'researcher')['format']['enum'])
+        research = prompt(row,'researcher')
+        self.assertIn('L3,5',research['format']['enum'])
+        self.assertIn('IMAGE_ALT_MISSING, líneas 3, 5',research['messages'][-1]['content'])
 
     def test_unit_contract_depends_on_authorized_fragment_and_explicit_request(self):
         goal = '¿Cuántas horas dura? Devuelve la cifra y su unidad.'

@@ -112,8 +112,9 @@ def prompt(row,role,*,checked_findings=None):
         repair = team_guidance.repair_language(row['objective'], findings) if modern else None
         narrow = any(f['code'] == focus for f in findings) and (
             citation_only(row['objective'], focus) or location_and_browser_language(row['objective'], focus))
+        scoped = [f for f in findings if f['code'] == focus] if narrow else findings
         if modern and role != 'integrator' and (repair or narrow):
-            candidate = team_guidance.handoff(payload, role, row['objective'], findings, prior, locations_only=bool(narrow))
+            candidate = team_guidance.handoff(payload, role, row['objective'], scoped, row['outputs'], locations_only=bool(narrow))
             if len(canonical(candidate).encode('utf-8')) <= 6144:
                 payload = candidate
         elif repair and role == 'integrator':
@@ -151,6 +152,10 @@ def prompt(row,role,*,checked_findings=None):
                 citation_format = row['profile'].get('citation_format')
                 if citation_format in (MULTILINE_BROWSER_FORMAT, LEGACY_MULTILINE_BROWSER_FORMAT):
                     payload = browser_location_reply(payload, row['objective'], focus, hits, prior, citation_format)
+        if modern and role == 'integrator' and (repair or narrow) and 'format' in payload and len(row['outputs'])==6:
+            candidate = team_guidance.handoff(payload, role, row['objective'], scoped, row['outputs'], locations_only=bool(narrow))
+            if len(canonical(candidate).encode('utf-8')) <= 6144:
+                payload = candidate
     if len(canonical(payload).encode('utf-8'))>6144: raise Denied('PROMPT_BYTE_BUDGET')
     return payload
 

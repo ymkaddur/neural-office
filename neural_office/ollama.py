@@ -30,14 +30,18 @@ def json_unique(raw):
     return json.loads(raw,object_pairs_hook=pairs,parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)))
 
 
+def _metadata_reply(con,route):
+    con.request('GET',route)
+    response=con.getresponse()
+    data=response.read(2_000_001)
+    if response.status!=200 or len(data)>2_000_000: raise Denied('METADATA_UNAVAILABLE')
+    return json_unique(data)
+
+
 def local_metadata(route='/api/tags',port=11434):
     con=http.client.HTTPConnection('127.0.0.1',port,timeout=5)
     try:
-        con.request('GET',route)
-        response=con.getresponse()
-        data=response.read(2_000_001)
-        if response.status!=200 or len(data)>2_000_000: raise Denied('METADATA_UNAVAILABLE')
-        return json_unique(data)
+        return _metadata_reply(con,route)
     finally: con.close()
 
 
@@ -168,6 +172,7 @@ class OwnedOllama:
         self._stop_requested=False
         self.reused = False
         self.resident_before_turn = False
+        self._turn_http = None
 
     def resume(self):
         with self._process_lock:
@@ -284,8 +289,13 @@ class OwnedOllama:
             raise Denied('MODEL_PROFILE_MISMATCH')
         data=canonical(payload).encode('utf-8')
         if len(data)>6144: raise Denied('PROMPT_BYTE_BUDGET')
-        con=http.client.HTTPConnection('127.0.0.1',self.port,timeout=300)
+        polished = self.profile.get('team_session') == POLISHED_TEAM
+        con = self._turn_http or http.client.HTTPConnection('127.0.0.1',self.port,timeout=300)
+        self._turn_http = None
         try:
+            con.timeout = 300
+            if con.sock is not None:
+                con.sock.settimeout(300)
             con.request('POST','/api/chat',data,{'Content-Type':'application/json'})
             response=con.getresponse()
             body=response.read(1_048_577)
@@ -293,7 +303,13 @@ class OwnedOllama:
             result=json_unique(body)
             if type(result) is not dict or result.get('done') is not True: raise Denied('BACKEND_COMPLETION_UNPROVEN')
             self.check_model()
-            running=local_metadata('/api/ps',self.port).get('models',[])
+            if polished:
+                con.timeout = 5
+                if con.sock is not None:
+                    con.sock.settimeout(5)
+                running = _metadata_reply(con,'/api/ps').get('models',[])
+            else:
+                running = local_metadata('/api/ps',self.port).get('models',[])
             rows=[r for r in running if r.get('digest')==self.profile['model_digest']]
             if len(rows)!=1 or type(rows[0].get('size_vram')) is not int or rows[0]['size_vram'] < 0:
                 raise Denied('MODEL_ALLOCATION_NOT_OBSERVED')
@@ -307,11 +323,14 @@ class OwnedOllama:
             result['_neural_office_execution']={**self.telemetry[-1],'model_digest':self.profile['model_digest'],
                                                 'model_identity_check':'manifest-and-config' if self._model_files else 'catalog',
                                                 'owned_job':True,'mode':'GPU allocation' if rows[0]['size_vram'] else 'CPU'}
-            if self.profile.get('team_session') == POLISHED_TEAM:
+            if polished:
                 result['_neural_office_execution'].update(runtime_instance=self.job.name, reused_runtime=self.reused,
                                                           resident_before_turn=self.resident_before_turn)
+                if len(self.telemetry) < self.profile['roles']:
+                    self._turn_http = con
             return result
-        finally: con.close()
+        finally:
+            if self._turn_http is not con: con.close()
 
     def request_stop(self):
         with self._process_lock:
@@ -326,4 +345,10 @@ class OwnedOllama:
         finally:
             if self.log: self.log.close(); self.log=None
 
-    def close(self): self.job.close()
+    def close(self):
+        try:
+            if self._turn_http is not None:
+                self._turn_http.close()
+                self._turn_http = None
+        finally:
+            self.job.close()

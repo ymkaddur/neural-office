@@ -155,5 +155,16 @@ class PolishedTeam(unittest.TestCase):
         self.assertNotIn('format',prompt({**row,'profile':legacy},'integrator'))
         for role in ROLES[:-1]:
             request=prompt({**row,'outputs':[{'role':'director','content':'prior decision','content_sha':'a'*64}]},role)
-            self.assertIn('prior decision',request['messages'][-1]['content'])
+            self.assertTrue(any('prior decision' in m['content'] for m in request['messages']))
             self.assertGreaterEqual(len(request['format']['enum']),2)
+
+    def test_seven_calls_extend_the_committed_conversation(self):
+        row=dict(profile=self.profile,snapshot=SOURCE,objective=GOAL,outputs=[])
+        previous=[]
+        for index,role in enumerate(ROLES):
+            messages=prompt(row,role)['messages']
+            self.assertEqual(messages[:len(previous)],previous)
+            if index:
+                self.assertEqual(messages[-2],{'role':'assistant','content':row['outputs'][-1]['content']})
+            row['outputs'].append({'role':role,'content':f'note {index}','content_sha':'a'*64})
+            previous=messages

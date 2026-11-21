@@ -396,6 +396,7 @@ def warm_turn(screen, host, work, state, out, previous_runtime, case, already_ch
     team_permission(screen, host, source, objective)
     verify(readonly_counts(state)['attempts']==already_charged, 'Warm preview charged before consent')
     before = job_cpu_seconds(screen.process_job)
+    started = time.monotonic()
     screen.button(r'^Autorizar y ejecutar.*', regex=True)
     def accepted_repair():
         with database(state) as db:
@@ -406,8 +407,7 @@ def warm_turn(screen, host, work, state, out, previous_runtime, case, already_ch
     if case == 'abierto':
         screen.control('Recomendaciones del modelo local','Text')
     else:
-        wait(lambda: 'Comentarios del modelo' in screen.names(visible_only=False),description='citation report rendered')
-        screen.disclosure('Comentarios del modelo', True)
+        screen.control('Respuesta del modelo local','Text')
     goal, model_digest, calls = completed_calls(state, accepted_turn['id'])
     verify(goal==objective and model_digest==MODEL_DIGEST and all(c['runtime']==previous_runtime and c['resident']
            and c['reused'] for c in calls), 'The second approval did not use the same already-loaded private model')
@@ -416,12 +416,12 @@ def warm_turn(screen, host, work, state, out, previous_runtime, case, already_ch
     verify(all(checks.values()), 'Incomplete literal integrated answer: '+answer)
     expected = list(json.loads(answer).values()) if case == 'abierto' else [json.loads(answer)]
     def displayed():
-        names = words(screen.names(visible_only=False))
+        names = words(screen.names())
         return all(text in names for text in expected)
     wait(displayed,description='the exact model answer in the native document')
     cpu = job_cpu_seconds(screen.process_job) - before
     screen.screenshot(out/('08-director-reparaciones.png' if case == 'abierto' else '09-director-formulario.png'))
-    return dict(cpu_s=cpu,attempt=accepted_turn['id'],model_digest=model_digest,source_sha256=sha(source),
+    return dict(cpu_s=cpu,wall_s=time.monotonic()-started,attempt=accepted_turn['id'],model_digest=model_digest,source_sha256=sha(source),
                 checks=checks,answer=answer,calls=calls,visible_in_report=True)
 
 

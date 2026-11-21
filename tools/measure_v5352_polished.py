@@ -51,7 +51,9 @@ def completed_calls(state, attempt):
                 or info['model_digest']!=profile['model_digest'] or not response['message']['content'].strip()):
             raise ValueError('Invalid actual model receipt')
         receipts.append(dict(role=role,request=request,answer=response['message']['content'],tokens=info['eval_count'],
-                             prompt_tokens=info['prompt_eval_count'],runtime=info['runtime_instance'],
+                             prompt_tokens=info['prompt_eval_count'],cached_prompt_tokens=response.get('prompt_eval_cached_count'),
+                             prompt_ns=response.get('prompt_eval_duration'),generation_ns=response.get('eval_duration'),
+                             runtime=info['runtime_instance'],
                              reused=info['reused_runtime'],resident=info['resident_before_turn'],vram=info['size_vram']))
     return attempts[1],profile['model_digest'],receipts
 
