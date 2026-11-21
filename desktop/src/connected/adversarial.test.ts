@@ -718,6 +718,41 @@ test('a draft precedes its attachment and survives a confirmed empty catalog and
   }finally{await app.close();}
 });
 
+test('opening the model controls cannot activate the review button in the same click',async()=>{
+  const previews:number[]=[];
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[project('project',0)]);
+    if(method==='source.pick')return {entry_token:'source',project_id:params.project_id,filename:'sample.html',sha256:'a'.repeat(64),bytes:50,session_id:'session'};
+    if(method==='models.list')return {session_id:'session',models:[{model:'synthetic',model_digest:'b'.repeat(64)}]};
+    if(method==='attempt.preview'){
+      previews.push(Number(params.roles));
+      return {session_id:'session',project_id:params.project_id,source_sha256:'a'.repeat(64),objective:params.objective,roles:params.roles,model_digest:'b'.repeat(64),expires_in_seconds:120,attempts_consumed:0,attempts_remaining:3};
+    }
+    throw Error(method);
+  });
+  try{
+    await openHtml(app);
+    writeObjective(app,'Revisa la etiqueta del formulario.');
+    const pick=app.document.querySelector<HTMLButtonElement>('#static-picker')!;
+    await until(()=>!pick.disabled);
+    pick.click();await until(()=>pick.textContent==='sample.html');
+    const configure=app.document.querySelector<HTMLButtonElement>('.brief-primary button')!;
+    await until(()=>!configure.disabled);
+    configure.click();
+    const review=()=>app.document.querySelector<HTMLButtonElement>('.brief-primary button[type="submit"]');
+    await until(()=>review()?.disabled===false);
+    assert.ok(!configure.isConnected,'The original click target must not become a submit button during activation');
+    assert.deepEqual(previews,[]);
+    const roles=app.document.querySelector<HTMLSelectElement>('#connected-roles')!;
+    roles.value='7';roles.dispatchEvent(new app.window.Event('change',{bubbles:true}));
+    await until(()=>app.document.querySelector('.connected-profile summary')?.textContent.includes('7 roles')===true);
+    review()!.click();
+    await until(()=>previews.length>0);
+    assert.deepEqual(previews,[7]);
+  }finally{await app.close();}
+});
+
 test('a pending catalog does not delay static findings or overwrite the finished check',async()=>{
   let release!:()=>void;
   const calls:string[]=[];

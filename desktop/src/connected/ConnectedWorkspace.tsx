@@ -921,8 +921,8 @@ export function ConnectedWorkspace() {
                 </section>}
                 {!showingFindings&&<div className="brief-actions">
                   <div className="brief-primary">
-                    {assisted?<button type="submit" className="solid-button" disabled={busy||exhausted||budgetPending||!!doing||catalog!=='ready'||!source||!selectedModel||!objectiveValid}>Revisar encargo <span aria-hidden="true">→</span></button>:
-                      <button type="button" className={source?'quiet-button':'solid-button'} disabled={busy||!!doing||!session} onClick={()=>changeMode(true)}>Consultar al Director</button>}
+                    {assisted?<button key="review" type="submit" className="solid-button" disabled={busy||exhausted||budgetPending||!!doing||catalog!=='ready'||!source||!selectedModel||!objectiveValid}>Revisar encargo <span aria-hidden="true">→</span></button>:
+                      <button key="configure" type="button" className={source?'quiet-button':'solid-button'} disabled={busy||!!doing||!session} onClick={()=>changeMode(true)}>Consultar al Director</button>}
                     <small>{exhausted?'3 intentos consumidos · cuota agotada':budgetPending?'Cuota pendiente de actualizar':assisted&&!catalogEmpty&&objectiveCount>0&&[...objective.trim()].length<12?'Escribe al menos 12 caracteres':'1 intento al autorizar'}</small>
                   </div>
                   <div className="brief-alternative">
