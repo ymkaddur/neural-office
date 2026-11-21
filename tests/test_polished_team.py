@@ -29,6 +29,7 @@ class CitationRubric(unittest.TestCase):
             block.replace('\n', '\r\n') + 'This code is located on line 5, column 1.',
             'CONTROL_LABEL_CANDIDATE\nLINE 5, COLUMN 1',
             'CONTROL_LABEL_CANDIDATE · línea 5 · columna 1',
+            'CONTROL_LABEL_CANDIDATE (línea 5, columna 1).',
         ):
             with self.subTest(answer=answer):
                 self.assertTrue(all(grade('control', answer).values()))
@@ -39,6 +40,7 @@ class CitationRubric(unittest.TestCase):
             block + 'IMAGE_ALT_MISSING, línea 5, columna 1.',
             'CONTROL_LABEL_CANDIDATE, línea 5, columna 1. ERROR, línea 9.',
             'CONTROL_LABEL_CANDIDATE, línea 5, columna 1.\n' + block + 'Este código aparece en la línea 6.',
+            'CONTROL_LABEL_CANDIDATE, línea 5, columna 1. Después, CONTROL_LABEL_CANDIDATE (línea 6, columna 1).',
             block + 'Examina el código fuente.',
         ):
             with self.subTest(answer=answer):

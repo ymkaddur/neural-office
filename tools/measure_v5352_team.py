@@ -43,7 +43,7 @@ EXPECTED_FINDINGS = {'imagen':SAMPLE_LOCATIONS,'abierto':SAMPLE_LOCATIONS,
 RULE_ID = r'[A-Z][A-Z_0-9]+'
 FENCED_RULE = re.compile(rf'^[ \t]*```[^`\r\n]*\r?\n[ \t]*({RULE_ID})[ \t]*\r?\n[ \t]*```[ \t]*\r?$', re.M)
 RULE_LOCATION = re.compile(
-    rf'\b({RULE_ID})\b[`*]*(?:\s*[,·:]\s*|[ \t]*\r?\n\s*)'
+    rf'\b({RULE_ID})\b[`*]*(?:\s*[,·:(]\s*|[ \t]*\r?\n\s*)'
     r'(?i:(?:(?:este c[oó]digo (?:se encuentra|está|aparece) en la|this code (?:is (?:located )?(?:on|at)|appears on))\s+)?'
     r'(?:l[ií]nea|line)\s*[:=#]?\s*([0-9]+)\b'
     r'(?:[ \t]*[,·][ \t]*(?:columna|column)\s*[:=#]?\s*([0-9]+)\b)?)')
