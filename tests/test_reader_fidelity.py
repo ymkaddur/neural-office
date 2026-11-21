@@ -80,6 +80,20 @@ class RequestSemantics(unittest.TestCase):
         self.assertEqual(ids(f'Busca X en {merged}.'),('café.md',))
         self.assertTrue(plan(f'Busca X en {merged}.',self.files+[dict(name=merged,kind='text',id='otro')])[0].limit)
 
+    def test_multiple_positions_select_and_exclude_only_the_requested_captures(self):
+        for objective in ('Lee el primer adjunto y el tercer adjunto.',
+                          'Lee el primer y tercer adjunto.'):
+            with self.subTest(objective=objective):
+                tasks = plan(objective, self.files)
+                self.assertEqual([(task.action, task.sources, task.limit) for task in tasks],
+                                 [('general', ('uno.txt', 'a.json'), '')])
+                self.assertEqual(read_plan(tasks, self.files), {'uno.txt':'inspect', 'a.json':'inspect'})
+        tasks = plan('Lee los archivos excepto el segundo y el cuarto adjunto.', self.files)
+        self.assertEqual(tasks[0].excluded, ('café.md', 'b.json'))
+        self.assertEqual(set(read_plan(tasks, self.files)), {'uno.txt', 'a.json', 'imagen.gif', 'libro.ods'})
+        for ambiguous in ('Lee el primer adjunto b.json.', 'Lee el primer y octavo adjunto.'):
+            self.assertFalse(read_plan(plan(ambiguous, self.files), self.files))
+
     def test_scope_and_literals_are_independent(self):
         neg=plan('Lee todos los archivos. No leas a.json.',self.files)
         self.assertNotIn('a.json',neg[0].sources)

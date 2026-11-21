@@ -36,7 +36,11 @@ QUALIFIED_PAGES = re.compile(r'\bpaginas?\s+(?:que|donde|con|sin|anteriores|post
                              r'\b(?:paginas? .*?)?(?:contienen|mencionan)\b')
 SAME_FILE = re.compile(r'\b(?:ese|este|el)\s+mismo\s+(?:archivo|documento|fichero)\b', re.I)
 EXAMPLE = re.compile(r'\bp\.\s*ej\.(?:\s*,)?', re.I)
-ORDINAL = re.compile(r'\b(primer[oa]?|segund[oa]|tercer[oa]?|cuart[oa]|quint[oa]|sext[oa]|s[eé]ptim[oa]|octav[oa]|[uú]ltim[oa])\s+(?:archivo|documento|adjunto|fichero)\b', re.I)
+ORDINAL_WORD = r'(?:primer[oa]?|segund[oa]|tercer[oa]?|cuart[oa]|quint[oa]|sext[oa]|s[eé]ptim[oa]|octav[oa]|[uú]ltim[oa])'
+ORDINAL_NOUN = r'(?:archivo|documento|adjunto|fichero)\b'
+ORDINAL_JOIN = r'(?:\s*,\s*|\s+[ye]\s+)(?:(?:el|la)\s+)?'
+ORDINAL = re.compile(
+    rf'\b({ORDINAL_WORD})(?:\s+{ORDINAL_NOUN}|(?=(?:{ORDINAL_JOIN}{ORDINAL_WORD})+\s+{ORDINAL_NOUN}))', re.I)
 POSITIONS = {'prim':0,'segu':1,'terc':2,'cuar':3,'quin':4,'sext':5,'sept':6,'octa':7,'ulti':-1}
 ARGUMENT = r'(?:«([^»]{1,120})»|“([^”]{1,120})”|"([^"]{1,120})")'
 FILTER_PAGES = re.compile(r'^(.*?\bp[aá]ginas?)\s+(?:que\s+(?:contienen|mencionan)|donde\s+(?:aparece|figura))\s+'+ARGUMENT+r'(.*)$',re.I)
@@ -125,13 +129,15 @@ def scoped_sources(text, captures):
     absent = SUFFIX.search(rest)
     if absent:
         return (), f'El archivo {absent[0]} no está en la selección.', True
+    positioned = set()
     for ordinal in ORDINAL.finditer(rest):
         position=POSITIONS[fold(ordinal[1])[:4]]
         if not captures or position>=len(captures):
             return (), 'La selección no contiene el adjunto en esa posición.', True
-        if ids and captures[position]['id'] not in ids:
-            return (), 'El nombre y la posición se refieren a archivos distintos.', True
-        ids.add(captures[position]['id'])
+        positioned.add(captures[position]['id'])
+    if ids and not positioned <= ids:
+        return (), 'El nombre y la posición se refieren a archivos distintos.', True
+    ids.update(positioned)
     formats = {ALIASES.get(t.lower(), t.lower()) for t in FORMAT.findall(rest)}
     if re.search(r'\bhojas? de calculo\b',fold(rest)):
         sheet_ids={f['id'] for f in captures if f['kind'] in ('xlsx','ods')}
@@ -166,9 +172,9 @@ def plan(objective, captures):
 
     def instruction_words(text):
         # A selected filename identifies the input. Its basename cannot supply an instruction.
-        if name_pattern is None:
-            return text
-        return name_pattern.sub(format_word, text)
+        if name_pattern is not None:
+            text = name_pattern.sub(format_word, text)
+        return ORDINAL.sub('archivo', text)
     if not objective.strip() or requested_checks(objective, kinds) == ['greeting']:
         return [Task(check, all_ids, objective) for check in requested_checks(objective, kinds)]
     tasks = []
