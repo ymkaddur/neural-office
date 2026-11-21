@@ -249,6 +249,8 @@ class DesktopService:
                   'sha256': digest(snapshot)}
         origin = {'analysis_scope': excerpt_review.TEXT_SCOPE if text_only else excerpt_review.SCOPE,
                   'inspection_id': report_id, 'thread_id': thread_id}
+        if not text_only and excerpt_review.hour_answer_requested(objective, fragments):
+            origin['answer_format'] = 'hour-quantity-v1'
         approval = self._prepare_approval(project_id, source, model_digest, 1, objective, origin=origin)
         return {**approval, **origin, 'report_id': report_id, 'fragments': fragments}
 

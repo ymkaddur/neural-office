@@ -11,6 +11,18 @@ SCOPES = (SCOPE, TEXT_SCOPE)
 COMMENTARY = 'UNVERIFIED_ASSISTANCE'
 
 
+def hour_answer_requested(objective, fragments):
+    """One quoted hour measurement and an explicit request to return its number and unit."""
+    if len(fragments) != 1 or not re.search(r'\b(?:horas?|hours?)\b', objective, re.I):
+        return False
+    if not re.search(r'\b(?:(?:cifra|número|numero|valor) y (?:su |la )?unidad|'
+                     r'(?:number|value) and (?:its |the )?unit)[.!?\s]*$', objective, re.I):
+        return False
+    values = re.findall(r'(?<![\w.,])\d+(?:[.,]\d+)?\s*(?:horas?|hours?|h)\b',
+                        fragments[0]['quote'], re.I)
+    return len(values) == 1
+
+
 def _disclosure(report, project_id, thread_id):
     """Build the server-owned disclosure once. A client cannot supply file text."""
     includes = {item['id']: item for item in report['attachments']}

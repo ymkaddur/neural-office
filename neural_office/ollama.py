@@ -72,7 +72,7 @@ def inference_options(profile):
 
 def listener_pids(port):
     """Read the local IPv4 listener table in process. Each OS row is six DWORDs."""
-    query = ctypes.WinDLL('iphlpapi').GetExtendedTcpTable
+    query = ctypes.WinDLL('iphlpapi', winmode=0x800).GetExtendedTcpTable  # LOAD_LIBRARY_SEARCH_SYSTEM32
     query.argtypes = [ctypes.c_void_p, ctypes.POINTER(wintypes.DWORD), wintypes.BOOL,
                       wintypes.ULONG, ctypes.c_int, wintypes.ULONG]
     query.restype = wintypes.DWORD
@@ -215,11 +215,13 @@ class OwnedOllama:
                 raise Denied('MODEL_ALLOCATION_NOT_OBSERVED')
             if options['num_gpu'] == 0 and rows[0]['size_vram'] != 0: raise Denied('CPU_ALLOCATION_NOT_OBSERVED')
             if rows[0].get('context_length')!=8192: raise Denied('CONTEXT_ALLOCATION_MISMATCH')
-            self.telemetry.append({'size_vram':rows[0]['size_vram'],'context_length':rows[0].get('context_length'),
+            self.telemetry.append({'size_vram':rows[0]['size_vram'],'model_size':rows[0].get('size'),
+                'num_gpu_requested':options['num_gpu'],'num_thread_requested':options.get('num_thread'),
+                'context_length':rows[0].get('context_length'),
                 'prompt_eval_count':result.get('prompt_eval_count'),'eval_count':result.get('eval_count'),
                 'total_duration':result.get('total_duration'),'done_reason':result.get('done_reason')})
             result['_neural_office_execution']={**self.telemetry[-1],'model_digest':self.profile['model_digest'],
-                                                'owned_job':True,'mode':'GPU' if rows[0]['size_vram'] else 'CPU'}
+                                                'owned_job':True,'mode':'GPU allocation' if rows[0]['size_vram'] else 'CPU'}
             return result
         finally: con.close()
 

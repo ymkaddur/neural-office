@@ -9,6 +9,7 @@ from pathlib import Path
 import platform
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -27,6 +28,10 @@ CASES = {
     'abierto': (SAMPLE, 'Recomienda cómo corregir la imagen y el control de formulario. Indica un límite de esta revisión.'),
 }
 LOCATIONS = {'imagen': ('IMAGE_ALT_MISSING', 6), 'control': ('CONTROL_LABEL_CANDIDATE', 5)}
+SAMPLE_LOCATIONS = [('DOCUMENT_TITLE_MISSING',1,1),('HTML_LANGUAGE_MISSING',2,1),
+                    ('IMAGE_ALT_MISSING',6,3),('CONTROL_LABEL_CANDIDATE',7,3)]
+EXPECTED_FINDINGS = {'imagen':SAMPLE_LOCATIONS,'abierto':SAMPLE_LOCATIONS,
+                     'control':[('CONTROL_LABEL_CANDIDATE',5,1)],'limpio':[]}
 
 
 def grade(case, answer):
@@ -35,9 +40,9 @@ def grade(case, answer):
         code, line = LOCATIONS[case]
         return {'code': code.casefold() in text, 'line': bool(re.search(
             rf'(?:l[ií]nea|line)\s*[:=#]?\s*{line}\b|{code}\s*[:·,]\s*{line}\b', answer, re.I))}
-    limit = bool(re.search(r'estátic|static|navegador|browser|render|manual|dinámic|interacci', text))
+    limit = bool(re.search(r'navegador|brows|render|manual|dinámic|interacci|code execution', text))
     if case == 'limpio':
-        return {'no_findings': bool(re.search(r'ning[uú]n|sin (?:hallazgos|problemas)|no (?:hay|se (?:encontr|detect|observ|identific)|encontr|identifi|detect)|no findings', text)),
+        return {'no_findings': bool(re.search(r'ning[uú]n|sin (?:hallazgos|problemas)|no (?:hay|he encontr|se (?:encontr|detect|observ|identific)|encontr|identifi|detect)|no (?:findings|issues)', text)),
                 'scope_limit': limit}
     return {'image_remedy': bool(re.search(r'\balt\b|texto alternativo|text alternative', text)),
             'control_remedy': bool(re.search(r'etiquet|\blabel\b|nombre accesible', text)), 'scope_limit': limit}
@@ -76,6 +81,17 @@ def run_team(folder, case, profile, outer, warm):
             super().start()
             preload(self, profile, ollama.inference_options(profile))
             checkpoints['ready_cpu_s'] = job_sample(outer)['cpu_seconds']
+            checkpoints['roles_cpu_s'] = []
+
+        def infer(self, payload):
+            before = job_sample(self.job)['cpu_seconds']
+            starting = time.perf_counter()
+            response = super().infer(payload)
+            checkpoints['roles_cpu_s'].append({'cpu_s': job_sample(self.job)['cpu_seconds']-before,
+                                               'wall_s':time.perf_counter()-starting,
+                                               'prompt_tokens':response['prompt_eval_count'],
+                                               'output_tokens':response['eval_count']})
+            return response
     if run(ledger, attempt, 7, backend_factory=Preloaded if warm else ollama.OwnedOllama) != 'ACCEPTED':
         raise ValueError('Real team did not deliver')
     row = ledger.attempt(attempt)
@@ -98,6 +114,10 @@ def run_team(folder, case, profile, outer, warm):
     product = json.loads(row['artifact'])
     if product['source_sha256'] != hashlib.sha256(source).hexdigest():
         raise ValueError('Delivery source mismatch')
+    if [(f['code'],f['line'],f['column']) for f in product['findings']] != EXPECTED_FINDINGS[case]:
+        raise ValueError('Delivery contradicts the independently specified file locations')
+    if product.get('requested_rule') != (LOCATIONS[case][0] if case in LOCATIONS else None):
+        raise ValueError('Delivery addresses the wrong rule')
     if warm:
         checkpoints['inference_cpu_s'] = job_sample(outer)['cpu_seconds'] - checkpoints['ready_cpu_s']
     return dict(answer=outputs[-1]['answer'], roles=outputs, findings=product['findings'],
@@ -112,7 +132,27 @@ def run_terminal(folder, case, profile, warm, outer):
     findings = audit_html(source)
     evidence = [f"{f['code']} · línea {f['line']} · columna {f['column']}" for f in findings]
     prompt = goal + '\nLecturas estáticas locales:\n' + ('\n'.join(evidence) or 'Ningún hallazgo en las cuatro comprobaciones estáticas.')
-    backend = OwnedOllama('Local\\NeuralReference_' + uuid.uuid4().hex, profile, folder / 'serve.log')
+    class TerminalServer(OwnedOllama):
+        def start(self):
+            with socket.socket() as reserved:
+                reserved.bind(('127.0.0.1',0))
+                self.port = reserved.getsockname()[1]
+            # Keep the operator's normal hardware, context and thread defaults.
+            env = {**os.environ,'OLLAMA_HOST':f'127.0.0.1:{self.port}','OLLAMA_NO_CLOUD':'1'}
+            self.log = self.log_path.open('wb')
+            server = self.job.start([shutil.which('ollama'),'serve'], env=env, log=self.log)
+            deadline = time.monotonic() + 60
+            while server.poll() is None and time.monotonic() < deadline:
+                try:
+                    local_metadata('/api/version', self.port)
+                except (OSError,http.client.HTTPException):
+                    time.sleep(.05)
+                    continue
+                self._assert_owned_listener()
+                self.check_model()
+                return
+            raise RuntimeError('The private terminal reference did not start')
+    backend = TerminalServer('Local\\NeuralReference_' + uuid.uuid4().hex, profile, folder / 'serve.log')
     try:
         before_boot = job_sample(outer)['cpu_seconds']
         backend.start()
@@ -128,19 +168,45 @@ def run_terminal(folder, case, profile, warm, outer):
                'NEURAL_PROMPT': prompt, 'NEURAL_OUT': str(out)}
         command = ("$ErrorActionPreference='Stop'; $OutputEncoding=[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); "
                    "'' | & $env:NEURAL_COMMAND run --nowordwrap $env:NEURAL_MODEL $env:NEURAL_PROMPT > $env:NEURAL_OUT; exit $LASTEXITCODE")
-        started_cpu = job_sample(outer)['cpu_seconds']
-        started = time.perf_counter()
-        subprocess.run([shell, '-NoLogo', '-NonInteractive', '-NoProfile', '-Command', command],
-                       env=env, stdin=subprocess.DEVNULL, check=True, timeout=180)
-        elapsed = time.perf_counter() - started
-        query_cpu = job_sample(outer)['cpu_seconds'] - started_cpu
+        preload_cpu = job_sample(outer)['cpu_seconds'] - after_boot
+        ready = folder / 'powershell-ready'
+        env['NEURAL_BENCH_READY'] = str(ready)
+        wait_for_input = ("[IO.File]::WriteAllText($env:NEURAL_BENCH_READY,'ready'); "
+                          "if ([Console]::ReadLine() -ne 'run') { exit 2 }; ")
+        shell_args = [shell, '-NoLogo', '-NonInteractive', '-NoProfile', '-Command', wait_for_input+command]
+        client = subprocess.Popen(shell_args, env=env, stdin=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            deadline = time.monotonic() + 30
+            while not ready.exists():
+                if client.poll() is not None or time.monotonic() >= deadline:
+                    raise RuntimeError('PowerShell did not reach its input prompt')
+                time.sleep(.01)
+            from neural_office.measurements import JobSampler
+            from measure_ollama_terminal import peak_cpu_cores
+            sampler = JobSampler(outer,.1)
+            sampler.start()
+            started_cpu = job_sample(outer)['cpu_seconds']
+            started = time.perf_counter()
+            try:
+                client.communicate(b'run\n',timeout=180)
+                if client.returncode:
+                    raise RuntimeError(f'PowerShell reference exited with {client.returncode}')
+                elapsed = time.perf_counter() - started
+                query_cpu = job_sample(outer)['cpu_seconds'] - started_cpu
+            finally:
+                sampler.stop()
+        finally:
+            if client.poll() is None:
+                client.kill()
+                client.wait(timeout=10)
         models = local_metadata('/api/ps', backend.port)['models']
         if [r['digest'] for r in models] != [profile['model_digest']]:
             raise ValueError('Reference model identity changed')
         raw = out.read_bytes()
         answer = raw.decode('utf-16' if raw.startswith(b'\xff\xfe') else 'utf-8-sig').strip()
         return dict(answer=answer, model_loaded_before_query=warm, query_cpu_s=query_cpu, query_wall_s=elapsed,
-                    startup_cpu_s=after_boot-before_boot, preload_cpu_s=started_cpu-after_boot,
+                    startup_cpu_s=after_boot-before_boot, preload_cpu_s=preload_cpu,
+                    query_peak_cores_1s=peak_cpu_cores(sampler.samples),
                     resident={k: models[0][k] for k in ('size_vram', 'size', 'context_length')})
     finally:
         try: backend.terminate()
@@ -231,6 +297,7 @@ def main():
             team = rows['team']['resources']['cpu_seconds']
             summary.append(dict(case=case, repetition=i+1, team_cpu=team,
                                 cold_ratio=team/rows['terminal']['resources']['cpu_seconds'],
+                                ready_server_ratio=team/rows['terminal']['query_cpu_s'],
                                 warm_ratio=team/rows['warm']['query_cpu_s'], grade=rows['team']['grade']))
     if args.arm:
         return

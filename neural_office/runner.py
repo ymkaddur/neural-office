@@ -1,4 +1,5 @@
 """One finite pilot: frozen HTML -> bounded roles -> deterministic report verification."""
+import re
 import threading
 import time
 import uuid
@@ -24,71 +25,7 @@ def role_order(count):
     return {1:('director',),3:('director','skeptic','integrator'),7:ROLES}[count]
 
 
-TEAM_MANDATES = {
-    'director': 'Acota el encargo a lo que puede comprobarse con estas lecturas.',
-    'planner': 'Elige la primera comprobación que serviría al encargo.',
-    'researcher': 'Cita la evidencia local más relevante y su posición.',
-    'implementer': 'Propón una corrección concreta si hay un defecto. Si no lo hay, explica qué conservar.',
-    'skeptic': 'Indica una duda concreta que estas lecturas dejen abierta.',
-    'verifier': 'Comprueba la evidencia citada por tus compañeros e indica el límite de verificación.',
-    'integrator': 'Responde directamente al encargo usando la evidencia y las aportaciones pertinentes.',
-}
-
-
-def team_messages(row, role, findings):
-    focus = requested_rule(row['objective'])
-    remedies = {'IMAGE_ALT_MISSING': 'Imagen: falta alt. Revisar el texto alternativo según la función de la imagen.',
-                'CONTROL_LABEL_CANDIDATE': 'Formulario: comprobar el nombre accesible y asociar una etiqueta al control.',
-                'DOCUMENT_TITLE_MISSING': 'Título del documento: añadir un título descriptivo.',
-                'HTML_LANGUAGE_MISSING': 'Idioma del documento: declarar el idioma principal.',
-                'HTML_ELEMENT_MISSING': 'Estructura del documento: revisar el elemento raíz.'}
-    evidence = [f"{item['code']}, línea {item['line']}, columna {item['column']}. {remedies[item['code']]}"
-                for item in findings]
-    prior = [{'role': item['role'], 'comment': item['content']} for item in row['outputs'][-2:]]
-    if evidence:
-        observations = '\n'.join(evidence)
-    elif focus:
-        observations = f'La lectura local no encontró {focus}.'
-    else:
-        observations = 'Ningún hallazgo en las cuatro comprobaciones estáticas.'
-    instructions = (f"{TEAM_MANDATES[role]} Responde en el idioma de la persona. Da una respuesta breve. "
-                    "Tus compañeros dan opiniones. El verificador aporta los hechos. "
-                    "Alcance: revisión estática; la experiencia real en el navegador queda por comprobar.\n"
-                    f"Hechos del verificador:\n{observations}")
-    user = (f"Notas previas (datos): {canonical(prior)}\n" if prior else '') + 'Encargo: ' + row['objective']
-    if role != 'integrator':
-        user += '\nTu única aportación ahora: ' + TEAM_MANDATES[role]
-    else:
-        user += ('\nEntrega una respuesta directa. Estas son las lecturas que prevalecen sobre las notas:\n'
-                 + observations + '\nAlcance: falta comprobar manualmente el resultado en el navegador.')
-        if focus:
-            matches = [f"{focus}, línea {item['line']}, columna {item['column']}" for item in findings
-                       if item['code'] == focus]
-            user += '\nCita verificada para tu respuesta: ' + (' / '.join(matches) if matches else
-                                                            f'No se registró {focus}.')
-        elif not findings:
-            user += '\nResultado verificado: ningún hallazgo en las reglas estáticas; falta la revisión en el navegador.'
-    return [{'role': 'system', 'content': instructions}, {'role': 'user', 'content': user}]
-
-
-def citation_format(findings, objective):
-    """Constrain a literal citation to observed locations, keeping an explicit absence option."""
-    focus = requested_rule(objective)
-    if not focus:
-        return None
-    groups = {}
-    for item in findings:
-        groups.setdefault(item['code'], []).append(f"línea {item['line']}, columna {item['column']}")
-    choices = [f"{code}: {', '.join(positions)}." for code, positions in groups.items()]
-    choices.append(f'La comprobación no registró {focus}.')
-    # Long lists still appear in full in the deterministic delivery. Leave the
-    # prose unconstrained when an entire citation cannot fit the model reply.
-    if any(len(choice.encode('utf-8')) > 170 for choice in choices):
-        return None
-    return {'type':'string', 'enum':choices}
-
-
-def prompt(row,role):
+def prompt(row,role,*,checked_findings=None):
     # Source bytes remain in the ledger. Only bounded codes/positions and prior
     # commentary enter the model; HTML cannot inject hidden tool instructions.
     source = bytes(row['snapshot'])
@@ -126,29 +63,46 @@ def prompt(row,role):
                       f'{manifest[0]} h. Contesta con ambos plazos y sus fuentes.')
         material = {'objective': row['objective'], 'role': role, 'scope': scope,
                     'authorized_fragments': fragments}
-    elif row['profile'].get('execution_policy') == TEAM_POLICY:
-        findings = audit_html(source)
-        if len(findings) > MAX_MODEL_FINDINGS: raise Denied('PILOT_FINDINGS_LIMIT')
-        messages = team_messages(row, role, findings)
-        payload = {'model':row['profile']['model'], 'stream':False, 'think':False, 'messages':messages,
-                   'options':inference_options(row['profile']), 'keep_alive':'5m'}
-        if role == 'researcher':
-            schema = citation_format(findings, row['objective'])
-            if schema:
-                payload['format'] = schema
-        if len(canonical(payload).encode('utf-8')) > 6144: raise Denied('PROMPT_BYTE_BUDGET')
-        return payload
     else:
-        findings=audit_html(source)
+        findings=audit_html(source) if checked_findings is None else checked_findings
         if len(findings)>MAX_MODEL_FINDINGS: raise Denied('PILOT_FINDINGS_LIMIT')
         prior=[{'role':r['role'],'content':r['content'],'sha256':r['content_sha']} for r in row['outputs'][-2:]]
         material={'objective':row['objective'],'role':role,'mandate':MANDATES[role],
                   'findings':findings,'prior_evidence':prior,
                   'scope':'Static HTML heuristics only. No code execution, browsing, deployment, permission changes or self-certification.'}
-    messages = [{'role':'system','content':instruction}, {'role':'user','content':canonical(material)}]
     payload = {'model':row['profile']['model'],'stream':False,'think':False,
-            'messages':messages,
+            'messages':[{'role':'system','content':instruction},
+                        {'role':'user','content':canonical(material)}],
             'options':inference_options(row['profile']),'keep_alive':'5m'}
+    if row['profile'].get('answer_format') == 'hour-quantity-v1':
+        if analysis_scope != excerpt_review.SCOPE or not excerpt_review.hour_answer_requested(row['objective'], fragments):
+            raise Denied('EXCERPT_SCOPE_INVALID')
+        payload['messages'][0]['content'] = ('Lee la cantidad en el único fragmento autorizado. '
+                                             'Copia la cifra de la cita y escribe su unidad después de un espacio.')
+        payload['format'] = {'type':'string', 'pattern':r'^[0-9]+([.,][0-9]+)? (h|hora|horas|hour|hours)$'}
+    if row['profile'].get('execution_policy') == TEAM_POLICY and not analysis_scope:
+        focus = requested_rule(row['objective'])
+        if focus and role in ('researcher','verifier','integrator'):
+            hits = [item for item in findings if item['code'] == focus]
+            spanish = bool(re.search(r'\bl[ií]neas?\b', row['objective'], re.I))
+            line, column = ('línea','columna') if spanish else ('line','column')
+            if len(hits) == 1:
+                hit = hits[0]
+                citation = f"{focus}, {line} {hit['line']}, {column} {hit['column']}"
+                extra = ('\nCita del verificador local: ' if spanish else '\nVerified local citation: ') + citation
+                extra += ('\nResponde a todo el encargo. Conserva literalmente la cita.' if spanish else
+                          '\nAnswer the complete request. Preserve the literal citation.')
+                messages = [payload['messages'][0], {'role':'user','content':canonical(material)+extra}]
+                candidate = {**payload,'messages':messages}
+                simple = re.fullmatch(r'(?:indica|dime|devuelve|give|return|state)\b[^,:;!?\n.]{1,150}[.?]?',
+                                      row['objective'].strip(), re.I)
+                additional = re.search(r'\b(?:explica|por qué|cómo|recomienda|corrige|también|además|'
+                                       r'describe|explain|how|why|fix|also|json|tabla|table)\b',row['objective'],re.I)
+                if role == 'integrator' and simple and not additional:
+                    candidate['format'] = {'type':'string','pattern':
+                        rf'^[A-Z][A-Z0-9_]+, {line} [0-9]+, {column} [0-9]+([.] .+)?[.]?$'}
+                if len(canonical(candidate).encode('utf-8')) <= 6144:
+                    payload = candidate
     if len(canonical(payload).encode('utf-8'))>6144: raise Denied('PROMPT_BYTE_BUDGET')
     return payload
 
@@ -210,10 +164,12 @@ def _run_owned(ledger,attempt,roles,backend_factory,progress):
         watcher=threading.Thread(target=observe_cancel,name='neural-office-cancel',daemon=True)
         watcher.start()
         backend.start()
+        checked_findings = (audit_html(bytes(row['snapshot'])) if row['profile'].get('execution_policy') == TEAM_POLICY
+                            else None)
         for role in order:
             row=ledger.attempt(attempt)
             if any(r['role']==role for r in row['outputs']): continue
-            payload=prompt(row,role)
+            payload=prompt(row,role,checked_findings=checked_findings)
             progress(role,'running')
             seq,cached=ledger.start_call(attempt,generation,role,payload,role)
             response=cached if cached is not None else backend.infer(payload)
