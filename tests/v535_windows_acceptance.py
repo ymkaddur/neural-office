@@ -366,12 +366,18 @@ def team(exe, work, state, out, receipt):
         wait(lambda: screen.control('Modelo local','ComboBox').selected_text() == MODEL, description='selected local model')
         screen.disclosure('Perfil acotado', True)
         selector = screen.control('Roles secuenciales','ComboBox')
-        selector.select('7 · Equipo completo')
-        wait(lambda: '7 · Equipo completo' == selector.selected_text(), description='seven roles selected')
+        from pywinauto import keyboard
+        import win32gui
+        screen.window.set_focus()
+        selector.set_focus()
+        wait(lambda: win32gui.GetForegroundWindow()==screen.window.handle and selector.has_keyboard_focus(),
+             timeout=5, description='team selector owns keyboard focus')
+        keyboard.send_keys('{END}{TAB}', turn_off_numlock=False)
+        wait(lambda: selector.selected_text()=='7 · Equipo completo', description='seven roles selected by keyboard')
         screen.press_space(screen.reveal_button(r'^Revisar encargo.*', regex=True))
         wait(lambda: '7 llamadas secuenciales' in words(screen.names()), description='seven calls in permission')
         verify(readonly_counts(state)['attempts']==0, 'Early team reservation')
-        screen.button('Autorizar y ejecutar.*', regex=True)
+        screen.press_space(screen.control(r'^Autorizar y ejecutar.*', regex=True))
         def terminal():
             states = readonly_counts(state)['states']
             return states if any(s in ('ACCEPTED','REJECTED','CANCELLED','FAILED','RECOVERY_REQUIRED') for s in states) else None
@@ -394,6 +400,8 @@ def team(exe, work, state, out, receipt):
             receipt['calls'].append({'role':row['role'],'request':row['payload_sha'],'tokens':stats['eval_count'],
                                      'mode':stats['mode'],'size_vram':stats['size_vram']})
         artifact = json.loads(attempt['artifact'])
+        receipt['integrator_answer'] = json.loads(rows[-1]['response'])['message']['content']
+        receipt['model_digest'] = MODEL_DIGEST
         verify(artifact['requested_rule']=='IMAGE_ALT_MISSING' and artifact['findings']==[
             {'code':'IMAGE_ALT_MISSING','line':2,'column':1}], 'Incorrect delivered location')
         screen.screenshot(out/'07-equipo.png')

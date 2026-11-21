@@ -38,8 +38,15 @@ def grade(case, answer):
     text = answer.casefold()
     if case in LOCATIONS:
         code, line = LOCATIONS[case]
+        matches = re.findall(r'\b([A-Z][A-Z_0-9]+)\b\s*[,·:]\s*(?:línea|line)\s+([0-9]+)'
+                             r'(?:\s*[,·]\s*(?:columna|column)\s+([0-9]+))?', answer)
+        verified = EXPECTED_FINDINGS[case]
+        locations_agree = bool(matches) and all(
+            any(cited == c and int(at) == ln and (not col or int(col) == column)
+                for c, ln, column in verified) for cited, at, col in matches)
         return {'code': code.casefold() in text, 'line': bool(re.search(
-            rf'(?:l[ií]nea|line)\s*[:=#]?\s*{line}\b|{code}\s*[:·,]\s*{line}\b', answer, re.I))}
+            rf'(?:l[ií]nea|line)\s*[:=#]?\s*{line}\b|{code}\s*[:·,]\s*{line}\b', answer, re.I)),
+            'cited_location': locations_agree and any(cited == code and int(at) == line for cited, at, _ in matches)}
     limit = bool(re.search(r'navegador|brows|render|manual|dinámic|interacci|code execution', text))
     if case == 'limpio':
         return {'no_findings': bool(re.search(r'ning[uú]n|sin (?:hallazgos|problemas)|no (?:hay|he encontr|se (?:encontr|detect|observ|identific)|encontr|identifi|detect)|no (?:findings|issues)', text)),
@@ -302,7 +309,8 @@ def main():
     if args.arm:
         return
     record = dict(utc=datetime.now(timezone.utc).isoformat(), samples=summary, limit=1.5,
-                  passed=all(r['cold_ratio']<=1.5 and r['warm_ratio']<=1.5 and all(r['grade'].values()) for r in summary))
+                  passed=all(max(r['cold_ratio'],r['ready_server_ratio'],r['warm_ratio'])<=1.5
+                             and all(r['grade'].values()) for r in summary))
     (args.output / 'summary.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
     raise SystemExit(0 if record['passed'] else 1)
 

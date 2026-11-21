@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import socket
 import tempfile
 import unittest
@@ -35,8 +36,15 @@ class TeamCompute(unittest.TestCase):
         shifted = prompt({**row, 'snapshot': b'\n\n'+SOURCE}, 'researcher')
         self.assertIn('IMAGE_ALT_MISSING, línea 2, columna 1', first['messages'][-1]['content'])
         self.assertIn('IMAGE_ALT_MISSING, línea 4, columna 1', shifted['messages'][-1]['content'])
-        self.assertNotIn('IMAGE_ALT_MISSING', str(prompt(row, 'integrator')['format']))
+        citation=prompt(row,'integrator')
+        self.assertEqual(citation['format'], prompt({**row,'snapshot':b'\n\n'+SOURCE},'integrator')['format'])
+        shape=citation['format']['pattern']
+        self.assertTrue(re.fullmatch(shape,'CONTROL_LABEL_CANDIDATE, línea 92, columna 15'))
+        self.assertTrue(re.fullmatch(shape,'IMAGE_ALT_MISSING, línea 2, columna 1'))
+        self.assertIsNone(re.fullmatch(shape,'OBSOLETURA, línea 2, columna 1'))
         self.assertNotIn('format', prompt({**row,'objective':row['objective']+' Además, explica cómo corregirla.'},'integrator'))
+        self.assertNotIn('format', prompt({**row,'objective':row['objective']+' Incluye un ejemplo.'},'integrator'))
+        self.assertNotIn('format', prompt({**row,'objective':row['objective'][:-1]+' y el título.'},'integrator'))
         self.assertNotIn('format', prompt({**row,'snapshot':SOURCE.replace(b'<img src="x">', b'')},'integrator'))
         self.assertNotIn('format', prompt({**row, 'objective':'Recomienda un plan de revisión.'}, 'integrator'))
         self.assertNotIn('format', prompt({**row, 'profile':{**MODEL,'roles':7}}, 'researcher'))

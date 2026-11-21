@@ -1,0 +1,806 @@
+{
+  "measured_utc": "2026-11-21T10:54:54.595511+00:00",
+  "host": {
+    "os": "Windows 11 build 26200",
+    "cpu": "Intel Core Ultra 7 255HX",
+    "logical_cpus": 20,
+    "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+    "ollama": "0.40.16",
+    "model": "qwen2.5:0.5b",
+    "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
+  },
+  "baseline_commit": "6585b70829d24c0c548504e28324fe36f92170c3",
+  "gate": {
+    "ceiling": 1.5,
+    "passed": false,
+    "unit": "cumulative user + kernel CPU seconds, Windows Job including terminated descendants"
+  },
+  "arms": {
+    "team": "Whole authorized attempt through verified teardown. 7 sequential real responses, one owned server, digest revalidated.",
+    "cold": "Whole private reference process tree including server, loading, shell and one CLI query.",
+    "ready": "PowerShell and private server ready, no loaded weights. CPU of the CLI query including loading.",
+    "warm": "Same single CLI query from ready PowerShell with weights resident. Bootstrap and preload are recorded separately.",
+    "ordering": "Two repetitions per task in opposite orders, terminal/team/warm then warm/team/terminal."
+  },
+  "scope": "Four static HTML tasks for the supported seven-call model path. The native multi-file workflow is assessed separately. The literal-answer checks cover specified text and source locations. Open-ended quality requires judgment.",
+  "source_sha256": {
+    "neural_office/ollama.py": "2c60600d730abee2966319d826c464c7c4db497103448d45b2bef3a341f8cdd5",
+    "neural_office/runner.py": "eda0a26ad395aa711f392e1f9584b53d0f6da4f235e840df4c10e5027f3b2727",
+    "neural_office/audit.py": "0987920e5a58f03597497b9a8804f7f752e66db0922551ef984a56e6bc77cd9c",
+    "tools/measure_v5352_team.py": "5950ed33d656294541733f0d36df80a3de26c5c6bf7d9fa9ff39401587a1143f"
+  },
+  "tasks": [
+    {
+      "case": "imagen",
+      "objective": "Indica el código exacto de la imagen sin descripción y su línea en el archivo.",
+      "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+      "expected_findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "previous": {
+        "cpu_s": 96.859375,
+        "raw_answer": "The static HTML heuristics identify missing code and line numbers, indicating the scope and limitations of the heuristics.",
+        "checks": {
+          "code": false,
+          "line": false,
+          "cited_location": false
+        }
+      },
+      "pairs": [
+        {
+          "repetition": 1,
+          "cpu_s": {
+            "office": 14.28125,
+            "cold": 13.140625,
+            "ready": 4.34375,
+            "warm": 1.453125
+          },
+          "ratio": {
+            "cold": 1.0868,
+            "ready": 3.2878,
+            "warm": 9.828
+          },
+          "office_raw_answer": "\"IMAGE_ALT_MISSING, línea 6, columna 3\"",
+          "office_checks": {
+            "code": true,
+            "line": true,
+            "cited_location": true
+          },
+          "terminal_raw_answers": {
+            "cold": "El código exacto de la imagen sin descripción y su línea en el archivo es:\n\n- **Document_TITLE_MISSING**: 1,1\n- **HTML_LANGUAGE_MISSING**: 2,1\n- **IMAGE_ALT_MISSING**: 6,3\n- **CONTROL_LABEL_CANDIDATE**: 7,3",
+            "warm": "Por supuesto, aquí está el código exacto de la imagen sin descripción y su línea en el archivo:\n\n- Document Title: Document_TITLE_MISSING\n- HTML Language: HTML_LANGUAGE_MISSING\n- IMAGE Alternate: IMAGE_ALT_MISSING\n- CONTROL Label: CONTROL_LABEL_CANDIDATE\n- LINE: 6"
+          },
+          "terminal_checks": {
+            "cold": {
+              "code": true,
+              "line": false,
+              "cited_location": false
+            },
+            "warm": {
+              "code": true,
+              "line": true,
+              "cited_location": false
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "c924c184b642b7b759c5848e263c2e5ac572e67712801ebd9354fb12ed277fd3",
+              "output_tokens": 23
+            },
+            {
+              "role": "planner",
+              "request_sha256": "a36fec3f187f7c25740c59df019e3f1840684399a88737e480c6fd9acf9e435f",
+              "output_tokens": 23
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "054a49d7c3a081507c2714092f494c0a9db8a57cf3dfd03e903d8dfb0238f9af",
+              "output_tokens": 44
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "c911b7c9424b303554d8f82b4b641aba0f066075d108b349df0b5533e65106a4",
+              "output_tokens": 56
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "52616b49a1e2394c4df56ba9de7cc9cfb8c701f6fedfde823cbe356ebd9320a3",
+              "output_tokens": 36
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "c8d62fbf1633441f4a96031adeaf9979a998f48503dc29ee58df4d0f3ca9cbce",
+              "output_tokens": 56
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "ea0ad287058a02a27f6eb3d47f2b442d14230efd175cc4b135784af587414698",
+              "output_tokens": 17
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "e524d851466765b09777907e3d00205a73e037abf28f620ec0a5f659e101ca88",
+            "terminal": "06433360d0e4bcc59cd2f0e7ebe546e9f4d921ace4a735718bd3336847dc20b2",
+            "warm": "5b6dad6431c5c210d1f6bcecd9b58e46380a6f93a3ed040c30b36a05fe26135d"
+          }
+        },
+        {
+          "repetition": 2,
+          "cpu_s": {
+            "office": 12.21875,
+            "cold": 13.09375,
+            "ready": 4.375,
+            "warm": 1.078125
+          },
+          "ratio": {
+            "cold": 0.9332,
+            "ready": 2.7929,
+            "warm": 11.3333
+          },
+          "office_raw_answer": "\"IMAGE_ALT_MISSING, línea 6, columna 3\"",
+          "office_checks": {
+            "code": true,
+            "line": true,
+            "cited_location": true
+          },
+          "terminal_raw_answers": {
+            "cold": "En la información proporcionada, no hay un código exacto para una imagen. La descripción de cada línea en el archivo se mantiene, pero no hay información sobre una imagen específica. Si quieres obtener un código para una imagen, necesitarías una imagen y su información detallada, por ejemplo, su título, lenguaje de lenguaje de lenguaje, y la ubicación en el archivo. Sin esa información, no puedo proporcionar un código exacto para una imagen.",
+            "warm": "Lecturas estáticas locales:\nDOCUMENT_TITLE_MISSING\nHTML_LANGUAGE_MISSING\nIMAGE_ALT_MISSING\nCONTROL_LABEL_CANDIDATE"
+          },
+          "terminal_checks": {
+            "cold": {
+              "code": false,
+              "line": false,
+              "cited_location": false
+            },
+            "warm": {
+              "code": true,
+              "line": false,
+              "cited_location": false
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "c924c184b642b7b759c5848e263c2e5ac572e67712801ebd9354fb12ed277fd3",
+              "output_tokens": 23
+            },
+            {
+              "role": "planner",
+              "request_sha256": "a36fec3f187f7c25740c59df019e3f1840684399a88737e480c6fd9acf9e435f",
+              "output_tokens": 23
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "054a49d7c3a081507c2714092f494c0a9db8a57cf3dfd03e903d8dfb0238f9af",
+              "output_tokens": 44
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "c911b7c9424b303554d8f82b4b641aba0f066075d108b349df0b5533e65106a4",
+              "output_tokens": 56
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "52616b49a1e2394c4df56ba9de7cc9cfb8c701f6fedfde823cbe356ebd9320a3",
+              "output_tokens": 36
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "c8d62fbf1633441f4a96031adeaf9979a998f48503dc29ee58df4d0f3ca9cbce",
+              "output_tokens": 56
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "ea0ad287058a02a27f6eb3d47f2b442d14230efd175cc4b135784af587414698",
+              "output_tokens": 17
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "ded32c38300f2782daebb7c0fce738bc7971bc67525fa8fb120d54ab65ab4f9b",
+            "terminal": "ed9d01281676173c0e0b9a51755e9a40a173303a60eb4aaae091148e02e1373f",
+            "warm": "51a208aa3464ebe4f8c097fe5aa81f341bbceb3261a257c83e929ea0465c8b62"
+          }
+        }
+      ]
+    },
+    {
+      "case": "control",
+      "objective": "Indica el código y la línea del control sin etiqueta en este archivo.",
+      "source_sha256": "766e0f6f5b81ece8bbab5280672f246649541949b1b6efb5c01b197446c6ba69",
+      "expected_findings": [
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          5,
+          1
+        ]
+      ],
+      "previous": {
+        "cpu_s": 91.84375,
+        "raw_answer": "The static HTML audit identifies the line where the code is missing and the line where the prior role text is untrusted data.",
+        "checks": {
+          "code": false,
+          "line": false,
+          "cited_location": false
+        }
+      },
+      "pairs": [
+        {
+          "repetition": 1,
+          "cpu_s": {
+            "office": 11.75,
+            "cold": 12.640625,
+            "ready": 4.125,
+            "warm": 1.265625
+          },
+          "ratio": {
+            "cold": 0.9295,
+            "ready": 2.8485,
+            "warm": 9.284
+          },
+          "office_raw_answer": "\"CONTROL_LABEL_CANDIDATE, línea 5, columna 1\"",
+          "office_checks": {
+            "code": true,
+            "line": true,
+            "cited_location": true
+          },
+          "terminal_raw_answers": {
+            "cold": "El código y la línea del control sin etiqueta en este archivo son:\n\n- Código: \"CONTROL_LABEL_CANDIDATE\"\n- Control: \"l línea 5 · columna 1\"",
+            "warm": "El archivo estándar no contiene ningún código o línea de control no etiquetada. Por lo tanto, la respuesta es:\n\nLecturas estáticas locales: CONTROL_LABEL_CANDIDATE · línea 5 · columna 1"
+          },
+          "terminal_checks": {
+            "cold": {
+              "code": true,
+              "line": true,
+              "cited_location": false
+            },
+            "warm": {
+              "code": true,
+              "line": true,
+              "cited_location": true
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "2aa07b25627eb1b8b009a3a5e683ad59004339207c00858eb1bdd46e76aa0f6f",
+              "output_tokens": 24
+            },
+            {
+              "role": "planner",
+              "request_sha256": "015b6a2ae36c03a9caf5d07a562e256729857c6a92bf8f9d281d6d27f65a08b0",
+              "output_tokens": 24
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "b385c7355c47a110852fa2089497865d9df7a025960238075b4e86213278b430",
+              "output_tokens": 34
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "f120e2af0408f1faad937aeed26961b3519bc9f1f6ec57891fc108f04b25557e",
+              "output_tokens": 24
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "67c46aaa2c5571183b3be3d7995bdab9dc41da49a88a3a7a1fb89635b7ec9cde",
+              "output_tokens": 24
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "ecedd8c3a2652c7136342dc37adc5afca8791521f4c894ba1608ebba6b96eef9",
+              "output_tokens": 27
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "ae299ea5254bd1a1a6afbe4cda59a79c6e250ab05a6289547a0c8703f5d16aa0",
+              "output_tokens": 17
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "841f87da92e8e3883cf7ddb8fe0c2c86b36c4e5ae4e9caf856990c68bf427247",
+            "terminal": "050a455dc11ebfa8daf65089dc6b4870b1686f446fe8971db9d205ac61a79205",
+            "warm": "73b2cc1cb1501799b2903f5e84600dd0e3a74e891062c35f9f796f622c456308"
+          }
+        },
+        {
+          "repetition": 2,
+          "cpu_s": {
+            "office": 12.703125,
+            "cold": 11.953125,
+            "ready": 4.59375,
+            "warm": 1.59375
+          },
+          "ratio": {
+            "cold": 1.0627,
+            "ready": 2.7653,
+            "warm": 7.9706
+          },
+          "office_raw_answer": "\"CONTROL_LABEL_CANDIDATE, línea 5, columna 1\"",
+          "office_checks": {
+            "code": true,
+            "line": true,
+            "cited_location": true
+          },
+          "terminal_raw_answers": {
+            "cold": "El código y la línea del control sin etiqueta en el archivo estático \"CONTROL_LABEL_CANDIDATE\" se refieren al código que está en esa línea y columna. Sin embargo, es importante notar que el archivo estático \"CONTROL_LABEL_CANDIDATE\" es muy ligeramente diferente de otros archivos estáticos de Python, por lo que no se puede proporcionar exactamente la línea en la que se encuentra este código y la etiqueta.\n\nSin embargo, podemos asegurarnos de que el archivo estático está en inglés o cualquier otro idioma que se pueda traducir fácilmente. Aquí hay un ejemplo de cómo podría funcionar con \"CONTROL_LABEL_CANDIDATE\":\n\n```python\ndef CONTROL_LABEL_CANDIDATE():\n    print(\"Lecturas estáticas locales:\")\n    CONTROL_LABEL_CANDIDATE_LINE5_C1 = 5\n    print(f\"Línea 5, columna 1: {CONTROL_LABEL_CANDIDATE_LINE5_C1}\")\n```\n\nEn este ejemplo, se define una función llamada \"CONTROL_LABEL_CANDIDATE\" con una línea de código para la cual se debe imprimir. Esto es el código que está en esa línea y columna.\n\nSi \"CONTROL_LABEL_CANDIDATE\" está en otro archivo o en un archivo estático de Python, te diré que sería necesario buscar la línea y columna específica para determinar el código y la etiqueta. Sin embargo, con la información proporcionada anteriormente, no puedo proporcionar la línea en la que se encuentra este código y la etiqueta.",
+            "warm": "El código y la línea del control sin etiqueta en este archivo es:\n\n```java\nCONTROL_LABEL_CANDIDATE · línea 5 · columna 1\n```\n\nEste código se encuentra en la línea 5, columna 1 del archivo."
+          },
+          "terminal_checks": {
+            "cold": {
+              "code": true,
+              "line": true,
+              "cited_location": false
+            },
+            "warm": {
+              "code": true,
+              "line": true,
+              "cited_location": true
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "2aa07b25627eb1b8b009a3a5e683ad59004339207c00858eb1bdd46e76aa0f6f",
+              "output_tokens": 24
+            },
+            {
+              "role": "planner",
+              "request_sha256": "015b6a2ae36c03a9caf5d07a562e256729857c6a92bf8f9d281d6d27f65a08b0",
+              "output_tokens": 24
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "b385c7355c47a110852fa2089497865d9df7a025960238075b4e86213278b430",
+              "output_tokens": 34
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "f120e2af0408f1faad937aeed26961b3519bc9f1f6ec57891fc108f04b25557e",
+              "output_tokens": 24
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "67c46aaa2c5571183b3be3d7995bdab9dc41da49a88a3a7a1fb89635b7ec9cde",
+              "output_tokens": 24
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "ecedd8c3a2652c7136342dc37adc5afca8791521f4c894ba1608ebba6b96eef9",
+              "output_tokens": 27
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "ae299ea5254bd1a1a6afbe4cda59a79c6e250ab05a6289547a0c8703f5d16aa0",
+              "output_tokens": 17
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "d110b280157ab25a4e8c0e46ebde2d79c2ffd32b2fb34e1b75193d16870338cb",
+            "terminal": "5b506858fc6446dbac38d3a6b6e5e6787854c6e14c28b6581748bb79fd0f653a",
+            "warm": "783ae408ff0b4405a21208ad1729290e44c5099eddb7a49618426c5ddb00e8ae"
+          }
+        }
+      ]
+    },
+    {
+      "case": "limpio",
+      "objective": "Indica si encontraste hallazgos en estas comprobaciones y qué queda fuera de la revisión.",
+      "source_sha256": "6d407c5aa88f74f70d97abc8a9db261fface7599238a3a6102cf8314b1c26a00",
+      "expected_findings": [],
+      "previous": {
+        "cpu_s": 90.59375,
+        "raw_answer": "This static HTML audit identifies no issues and does not involve code execution, browsing, deployment, permission changes, or self-certification.",
+        "checks": {
+          "no_findings": true,
+          "scope_limit": true
+        }
+      },
+      "pairs": [
+        {
+          "repetition": 1,
+          "cpu_s": {
+            "office": 11.890625,
+            "cold": 12.484375,
+            "ready": 4.375,
+            "warm": 1.65625
+          },
+          "ratio": {
+            "cold": 0.9524,
+            "ready": 2.7179,
+            "warm": 7.1792
+          },
+          "office_raw_answer": "This static HTML audit identifies no issues and does not involve code execution, browsing, deployment, permission changes, or self-certification.",
+          "office_checks": {
+            "no_findings": true,
+            "scope_limit": true
+          },
+          "terminal_raw_answers": {
+            "cold": "En los cuatro hallazgos en las comprobaciones de lecturas estásticas que me permiten revisar el texto de la página web, ninguno de ellos está en los hallazgos en las comprobaciones de lecturas estásticas. Las hallazgos de revisión están solo en un pequeño número de lecturas y no se han incluido en las lecturas estásticas de las que estoy teniendo cuenta en esta respuesta.",
+            "warm": "Lo siento, pero no puedo acceder a la información previa de esta consulta. Aunque he escuchado que las lecturas estáticas de una región no están en la revisión, sin acceso a la información de la lectura estática en la región específica, no puedo determinar exactamente en qué parte de la región quedan datos que no están en la revisión. Para obtener información precisa sobre los datos no revisados, necesitaría que me proporcionaran la región específica o el texto en cuestión."
+          },
+          "terminal_checks": {
+            "cold": {
+              "no_findings": true,
+              "scope_limit": false
+            },
+            "warm": {
+              "no_findings": false,
+              "scope_limit": false
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "9eab5285eb941d07ceb2157858b965edce774392f9340200711f016e167456d3",
+              "output_tokens": 27
+            },
+            {
+              "role": "planner",
+              "request_sha256": "d1434debdb4882fcc8f91da1f6780c2f32987ab4f8a71d07a5b4794b31312dff",
+              "output_tokens": 27
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "aae9a7130b685b1384cf40b24415106eb6d07bc617c6a986da8867689597fd87",
+              "output_tokens": 27
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "4a01acc96714a7727454a228a3b08631578b235827d987d7aa738b63ed9a04a6",
+              "output_tokens": 27
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "180014c19df81e99723e81e2a3b392f85778fa2b88b3a43ae27223dee188fb97",
+              "output_tokens": 27
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "7d92eb32f387ae9fa2653af9f8bab0b8a8c9e6753baac0f6a080e4ae61f31c04",
+              "output_tokens": 27
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "7a74d624ea4853d40ad656291a85caa081bd8832cd384a83b64266714ed89013",
+              "output_tokens": 27
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "ce2509aea756d2b8b46a87f5d7117bf05f0567272afdd93e1a1c75d812e900ec",
+            "terminal": "0f9266d396fb2cd41c13cc01d7014fa823cd4c233ae186605c9cb330781061b7",
+            "warm": "b2484cba76485af66216510ea45c568e62a058243db2a636e3e65dc9ed5f1795"
+          }
+        },
+        {
+          "repetition": 2,
+          "cpu_s": {
+            "office": 13.1875,
+            "cold": 12.71875,
+            "ready": 3.890625,
+            "warm": 1.78125
+          },
+          "ratio": {
+            "cold": 1.0369,
+            "ready": 3.3896,
+            "warm": 7.4035
+          },
+          "office_raw_answer": "This static HTML audit identifies no issues and does not involve code execution, browsing, deployment, permission changes, or self-certification.",
+          "office_checks": {
+            "no_findings": true,
+            "scope_limit": true
+          },
+          "terminal_raw_answers": {
+            "cold": "Si la información proporcionada coincide con los hallazgos en las cuatro comprobaciones estáticas, podemos decir que no hay hallazgos en las comprobaciones estáticas. Sin embargo, si hay algún hallazgo en alguna de las comprobaciones estáticas, no es adecuado decir que no se encontraron hallazgos en estas comprobaciones y que algo queda fuera de la revisión. ¿Hay algo específico en particular que necesitas en este momento?",
+            "warm": "Como asistente de IA, no tengo la capacidad para realizar lecturas estáticas. Mi función es proporcionar información y asistencia basada en el conocimiento que he sido entrenado para manejar. No tengo la capacidad para leer o analizar archivos, páginas o párrafos. Las lecturas estáticas se refieren a aquellos textos que ya están ordenados y ya han sido analizados, lo que significa que no se encuentran en las lecturas estáticas locales. Si tienes un problema en particular que desee que se haga, estaré encantado de ayudar a resolverlo."
+          },
+          "terminal_checks": {
+            "cold": {
+              "no_findings": true,
+              "scope_limit": false
+            },
+            "warm": {
+              "no_findings": false,
+              "scope_limit": false
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "9eab5285eb941d07ceb2157858b965edce774392f9340200711f016e167456d3",
+              "output_tokens": 27
+            },
+            {
+              "role": "planner",
+              "request_sha256": "d1434debdb4882fcc8f91da1f6780c2f32987ab4f8a71d07a5b4794b31312dff",
+              "output_tokens": 27
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "aae9a7130b685b1384cf40b24415106eb6d07bc617c6a986da8867689597fd87",
+              "output_tokens": 27
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "4a01acc96714a7727454a228a3b08631578b235827d987d7aa738b63ed9a04a6",
+              "output_tokens": 27
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "180014c19df81e99723e81e2a3b392f85778fa2b88b3a43ae27223dee188fb97",
+              "output_tokens": 27
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "7d92eb32f387ae9fa2653af9f8bab0b8a8c9e6753baac0f6a080e4ae61f31c04",
+              "output_tokens": 27
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "7a74d624ea4853d40ad656291a85caa081bd8832cd384a83b64266714ed89013",
+              "output_tokens": 27
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "1c26758e8bd0d659f0492365f05ad3c3850135aeb6500ecb0592dc2f63061023",
+            "terminal": "58ff6b4912623370761d5850f9b50e72f73179cdfcea8afadcc05aa815e1cbe9",
+            "warm": "6288cc4f2cee992b2f816a4c33d8b1ff2fb75c965fa3c779a0c8ad56741b10b9"
+          }
+        }
+      ]
+    },
+    {
+      "case": "abierto",
+      "objective": "Recomienda cómo corregir la imagen y el control de formulario. Indica un límite de esta revisión.",
+      "source_sha256": "d209bb2b4a7c4e4db25e7bd57f6ce02739e00bda8c1bc685167ed966e2e0da34",
+      "expected_findings": [
+        [
+          "DOCUMENT_TITLE_MISSING",
+          1,
+          1
+        ],
+        [
+          "HTML_LANGUAGE_MISSING",
+          2,
+          1
+        ],
+        [
+          "IMAGE_ALT_MISSING",
+          6,
+          3
+        ],
+        [
+          "CONTROL_LABEL_CANDIDATE",
+          7,
+          3
+        ]
+      ],
+      "previous": {
+        "cpu_s": 98.6875,
+        "raw_answer": "This static HTML audit identifies missing evidence and prior role text, focusing on image and form control corrections. Prioritize the supplied findings; define a bounded review plan.",
+        "checks": {
+          "image_remedy": false,
+          "control_remedy": false,
+          "scope_limit": false
+        }
+      },
+      "pairs": [
+        {
+          "repetition": 1,
+          "cpu_s": {
+            "office": 13.390625,
+            "cold": 13.25,
+            "ready": 5.5625,
+            "warm": 3.46875
+          },
+          "ratio": {
+            "cold": 1.0106,
+            "ready": 2.4073,
+            "warm": 3.8604
+          },
+          "office_raw_answer": "The static HTML heuristics identified missing evidence and prior role text, focusing on image and form control issues. Prioritize the findings and define a bounded review plan.",
+          "office_checks": {
+            "image_remedy": false,
+            "control_remedy": false,
+            "scope_limit": false
+          },
+          "terminal_raw_answers": {
+            "cold": "Para corregir estas etiquetas y campos, primero debes ver qué se está haciendo de manera incorrecta. A continuación, te proporciono una descripción de cómo corregir la imagen y el control de formulario, junto con un límite de revisión.\n\n### Revisión 1: Control de Formulario\nLa imagen `CONTROL_LABEL_CANDIDATE` debe estar en la línea 7, columna 3 del archivo HTML. Esto es porque, en este límite, no se especifica una línea. Para corregir esto, deberías agregar la siguiente línea en el archivo HTML:\n```html\n<INPUT TYPE=\"text\" NAME=\"CONTROL_LABEL_CANDIDATE\" REQUIRED>\n```\n\n### Revisión 2: Imagen y Control de Formulario\nLa imagen `CONTROL_LABEL_CANDIDATE` debe estar en la línea 7, columna 3 del archivo HTML. Esto es porque, en este límite, no se especifica la ubicación donde se está la imagen. Para corregir esto, deberías agregar la siguiente línea en el archivo HTML:\n```html\n<INPUT TYPE=\"text\" NAME=\"CONTROL_LABEL_CANDIDATE\" VALUE=\"\" SIZE=\"40\">\n```\n\n### Revisión 3: Límite de Revisión\nEl límite de revisión es de 1500 caracteres. Las correcciones anteriores no superan el límite, por lo que no necesitan cumplirse con este límite.\n\n### Explicación:\n- La corregida línea 7, columna 3 en HTML se utiliza para añadir una imagen y un campo de texto en el formulario.\n- La corrección en JavaScript para la imagen se realizó en esta línea:\n  ```html\n  <INPUT TYPE=\"text\" NAME=\"CONTROL_LABEL_CANDIDATE\" VALUE=\"\" SIZE=\"40\">\n  ```\n  Esto añade una imagen a un formulario de texto y almacena el texto en el campo de texto.",
+            "warm": "Para corregir la imagen y el control de formulario, se recomienda seguir estos pasos:\n\n1. HTML: \n   - Asegúrese de que exista la etiqueta \"img\" para la imagen y que la URL sea válida.\n   - Asegúrese de que la imagen se encuentra en el mismo directorio que el archivo.\n\n2. CSS:\n   - Asegúrese de que la imagen se muestre correctamente y que no se esté lidiando con colas o borde.\n   - Asegúrese de que la etiqueta \"img\" tenga la propiedad \"alt\" que contenga el título de la imagen. Por ejemplo: \"alt=\"Imagen del cliente\"\".\n   - Asegúrese de que la imagen esté en el mismo directorio que el archivo.\n\n3. JavaScript: \n   - Asegúrese de que la página esté en el navegador y que el JavaScript esté habilitado.\n   - Asegúrese de que la página no esté mal configurada, como por ejemplo que no esté en modo de renderizado. Por ejemplo: \"display: block;\" y \"display: none;\" deben ser reemplazados por \"display: block;\" y \"display: none;\" en el archivo HTML.\n   - Asegúrese de que la página no esté mal configurada, como por ejemplo que no esté en modo de renderizado. Por ejemplo: \"display: block;\" y \"display: none;\" deben ser reemplazados por \"display: block;\" y \"display: none;\" en el archivo HTML.\n\n4. Control de formulario: \n   - Asegúrese de que el formulario esté en el mismo directorio que el archivo.\n   - Asegúrese de que el formulario no esté mal configurado, como por ejemplo que no esté en modo de renderizado. Por ejemplo: \"display: block;\" y \"display: none;\" deben ser reemplazados por \"display: block;\" y \"display: none;\" en el archivo HTML.\n\nEn resumen, la revisión de estas pestañas debería corregir todas las errores que se presenten en la página y el formulario. Asegúrese de que el archivo HTML es el único archivo y que no esté mal configurado. Asegúrese de que el archivo HTML está en el mismo directorio que el archivo."
+          },
+          "terminal_checks": {
+            "cold": {
+              "image_remedy": false,
+              "control_remedy": true,
+              "scope_limit": false
+            },
+            "warm": {
+              "image_remedy": true,
+              "control_remedy": true,
+              "scope_limit": true
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "eecd60323e3df4395d8c8ba317bbbf6da2d65ea5ab9ade2f2a5b60f127a46c44",
+              "output_tokens": 21
+            },
+            {
+              "role": "planner",
+              "request_sha256": "37182d34d274b8ea1de4c482c0a1786cbf7406fb74f75c56cfda8649142c1cd9",
+              "output_tokens": 38
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "cfc6391da157e884596e2e96b30e1e6ad76d78db4ff18f900a671c212b35e8fa",
+              "output_tokens": 32
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "ef6789059b3b8e22167553f6948fa6fe35a449d5f903e0dbcc9aa11ced4e4393",
+              "output_tokens": 34
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "4778633cbdaded7a31e7ed6c3b3acee55cdf9abc8f7b8456e3a177db0ca322a0",
+              "output_tokens": 24
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "ef9a226b5e19c2ac1fe580948c503f76393ec36ca32973225991318ee502c80b",
+              "output_tokens": 34
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "03c297c6a4d4b08bb32b1109767d22df0b4fdac29b680b442159d80f203306bb",
+              "output_tokens": 34
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "81df1c073220e6fafe3f0015165b6906b7f5e0dda4236ac16b29a37392b7b739",
+            "terminal": "31a506c3281199ff4ab9859db82b77602bc2d438f9e5b1fa7c77bab94ff93f52",
+            "warm": "c50cbfaa79b9af48123e989a8db1079fdd0c202e0936b4e030b08d995c33dde9"
+          }
+        },
+        {
+          "repetition": 2,
+          "cpu_s": {
+            "office": 13.296875,
+            "cold": 12.015625,
+            "ready": 5.0625,
+            "warm": 2.421875
+          },
+          "ratio": {
+            "cold": 1.1066,
+            "ready": 2.6265,
+            "warm": 5.4903
+          },
+          "office_raw_answer": "The static HTML heuristics identified missing evidence and prior role text, focusing on image and form control issues. Prioritize the findings and define a bounded review plan.",
+          "office_checks": {
+            "image_remedy": false,
+            "control_remedy": false,
+            "scope_limit": false
+          },
+          "terminal_raw_answers": {
+            "cold": "Estos errores en la revisión de imágenes y los controladores de formulario son consecuencias de problemas en los archivos de código fuente, no de la seguridad de la aplicación. Para corregir estos problemas, es importante asegurarse de que los archivos de diseño son correctos y que los archivos HTML y CSS están correctamente configurados.\n\nPara corregir los errores en la revisión de imágenes, las imágenes deben estar en un directorio de imagen y deben ser códificadas correctamente con el formato .jpg, .png o .jpeg. Las imágenes no deben contener datos no reconocibles o imágenes que no puedan ser interpretadas por la aplicación.\n\nPara corregir los errores en la revisión de los controladores de formulario, los campos necesitan un nombre en español y deben ser validados correctamente. También es importante verificar que los campos no estén llenos, ya que estos errores pueden provocar problemas de seguridad.\n\nPara corregir los errores en la revisión de los elementos HTML con controladores de formulario, se debe asegurarse de que los datos se validen y se deben rellenar correctamente. Además, los campos del formulario deben estar llenos para que la aplicación funcione correctamente. Si un campo está llena, puede ser una señal de que se ha intentado enviar datos no válidos.",
+            "warm": "Basado en la información proporcionada, aquí tienes una revisión detallada de cómo corregir estas líneas en tu código. El límite de la revisión es la línea 6 en el `HTML_LANGUAGE_MISSING` y en el `CONTROL_LABEL_CANDIDATE`:\n\nLínea 6: `CONTROL_LABEL_CANDIDATE`\n- `CONTROL_LABEL_CANDIDATE` debería ser `CONTROL_LABEL_CHOSEN`.\n- El límite se establece en 330 caracteres.\n\nLínea 7: `Lecturas estáticas locales:`\n- Este texto no está relacionado con el lenguaje de texto o el control de formulario.\n\nPor lo tanto, la revisión se basa en la lógica de lenguaje y los control de formulario, y no en el lenguaje de texto o el control de lecturas locales. Si el texto que está utilizando es de lenguaje de texto, entonces no se necesita modificar, ya que `CONTROL_LABEL_CHOSEN` es el lenguaje de texto. Si el texto que está utilizando es de lenguaje de lecturas locales, entonces se necesita modificar para que sea el lenguaje de texto."
+          },
+          "terminal_checks": {
+            "cold": {
+              "image_remedy": false,
+              "control_remedy": false,
+              "scope_limit": false
+            },
+            "warm": {
+              "image_remedy": false,
+              "control_remedy": false,
+              "scope_limit": false
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "eecd60323e3df4395d8c8ba317bbbf6da2d65ea5ab9ade2f2a5b60f127a46c44",
+              "output_tokens": 21
+            },
+            {
+              "role": "planner",
+              "request_sha256": "37182d34d274b8ea1de4c482c0a1786cbf7406fb74f75c56cfda8649142c1cd9",
+              "output_tokens": 38
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "cfc6391da157e884596e2e96b30e1e6ad76d78db4ff18f900a671c212b35e8fa",
+              "output_tokens": 32
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "ef6789059b3b8e22167553f6948fa6fe35a449d5f903e0dbcc9aa11ced4e4393",
+              "output_tokens": 34
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "4778633cbdaded7a31e7ed6c3b3acee55cdf9abc8f7b8456e3a177db0ca322a0",
+              "output_tokens": 24
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "ef9a226b5e19c2ac1fe580948c503f76393ec36ca32973225991318ee502c80b",
+              "output_tokens": 34
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "03c297c6a4d4b08bb32b1109767d22df0b4fdac29b680b442159d80f203306bb",
+              "output_tokens": 34
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "8b10d5885ddebf8abd67c37c471e0b762160749a8c0c4e2b6786239294e831de",
+            "terminal": "6c1db7b1e7931bafe92a8831d6fadb28e317dc7eede761404152d8807f4f4b9e",
+            "warm": "2cf70969c367a8ffbc01128af06ad175be0a38e337f44fad027ddf33d832bf4b"
+          }
+        }
+      ]
+    }
+  ],
+  "rollup": {
+    "cold": {
+      "min": 0.9295,
+      "max": 1.1066,
+      "passed_pairs": 8
+    },
+    "ready": {
+      "min": 2.4073,
+      "max": 3.3896,
+      "passed_pairs": 0
+    },
+    "warm": {
+      "min": 3.8604,
+      "max": 11.3333,
+      "passed_pairs": 0
+    },
+    "quality_passed_pairs": 6,
+    "verified_model_calls": 56,
+    "office_mean_cpu_s": 12.83984375,
+    "previous_office_mean_cpu_s": 94.49609375,
+    "cpu_savings_vs_previous_percent": 86.41
+  },
+  "request_replay": {
+    "matching_payload_hashes": 56,
+    "checked_source_sha256": {
+      "neural_office/ollama.py": "2c60600d730abee2966319d826c464c7c4db497103448d45b2bef3a341f8cdd5",
+      "neural_office/runner.py": "eda0a26ad395aa711f392e1f9584b53d0f6da4f235e840df4c10e5027f3b2727",
+      "neural_office/audit.py": "ef3c54f9ae74b59cb2b5adc5d589d63a18a4a3ef148e42a428438cdf8059c4ba",
+      "tools/measure_v5352_team.py": "5950ed33d656294541733f0d36df80a3de26c5c6bf7d9fa9ff39401587a1143f"
+    }
+  }
+}

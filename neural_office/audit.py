@@ -157,21 +157,36 @@ def audit_html(source):
     return sorted(scan.findings,key=lambda x:(x['line'],x['column'],x['code']))
 
 
+RULE_FAMILIES = {
+    'IMAGE_ALT_MISSING':r'\b(?:imagen sin (?:descripción|texto alternativo)|missing (?:image )?alt(?: text)?)\b',
+    'CONTROL_LABEL_CANDIDATE':r'\b(?:control sin etiqueta|unlabelled control|unlabeled control)\b',
+    'HTML_LANGUAGE_MISSING':r'\b(?:idioma del documento|missing document language)\b',
+    'DOCUMENT_TITLE_MISSING':r'\b(?:título del documento|missing document title)\b',
+    'HTML_ELEMENT_MISSING':r'\b(?:elemento html ausente|missing html element)\b',
+}
+
+
 def requested_rule(objective):
     """Recognize a request for the code and position of one supported static finding."""
     text = objective.casefold()
     if not re.search(r'\b(?:código|codigo|code)\b',text) or not re.search(r'\b(?:líneas?|lineas?|lines?)\b',text):
         return None
-    families = {
-        'IMAGE_ALT_MISSING':r'\b(?:imagen sin (?:descripción|texto alternativo)|missing (?:image )?alt(?: text)?)\b',
-        'CONTROL_LABEL_CANDIDATE':r'\b(?:control sin etiqueta|unlabelled control|unlabeled control)\b',
-        'HTML_LANGUAGE_MISSING':r'\b(?:idioma del documento|missing document language)\b',
-        'DOCUMENT_TITLE_MISSING':r'\b(?:título del documento|missing document title)\b',
-        'HTML_ELEMENT_MISSING':r'\b(?:elemento html ausente|missing html element)\b',
-    }
-    found = [code for code, label in families.items()
+    found = [code for code, label in RULE_FAMILIES.items()
              if re.search(r'\b'+code.casefold()+r'\b',text) or re.search(label,text)]
     return found[0] if len(found) == 1 else None
+
+
+def citation_only(objective, code):
+    """Narrow output only for a positive match to a simple location request."""
+    target = rf'\b{re.escape(code.casefold())}\b|{RULE_FAMILIES[code]}'
+    remainder, count = re.subn(target, ' ', objective.casefold())
+    words = re.findall(r'\w+', remainder)
+    allowed = ('el la los las de del en este esta un una y su sus para por favor solo sólo '
+               'código codigo exacto línea lineas líneas linea columna archivo documento '
+               'the a this of in and its for only please exact code line lines file column document')
+    if count != 1 or not words or words[0] not in ('indica','dime','devuelve','give','return','state'):
+        return False
+    return set(words[1:]) <= set(allowed.split())
 
 
 def make_report(source, outputs, rule=None):
