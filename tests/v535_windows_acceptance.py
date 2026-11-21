@@ -419,6 +419,12 @@ def team(exe, work, state, out, receipt):
                    and 'accesibilidad' in answer.casefold(), 'The real team omitted a source location or the browser check')
         else:
             verify(answer=='IMAGE_ALT_MISSING, línea 2, columna 1', 'The actual model cited a different location')
+        wait(lambda: 'Comentarios del modelo' in screen.names(visible_only=False), description='team report rendered')
+        screen.disclosure('Comentarios del modelo', True)
+        displayed = ' '.join(receipt['integrator_answer'].split())
+        wait(lambda: displayed in ' '.join(screen.names(visible_only=False).split()),
+             description='actual integrator answer in the expanded native report')
+        receipt['integrator_in_expanded_report'] = True
         screen.screenshot(out/('08-equipo-navegador.png' if browser_check else '07-equipo.png'))
         receipt.update(objective=objective, source_sha256=sha(source), findings=artifact['findings'], status='passed')
 

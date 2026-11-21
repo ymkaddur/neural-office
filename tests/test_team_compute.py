@@ -126,7 +126,11 @@ class TeamCompute(unittest.TestCase):
         self.assertIn('Notas de la revisión.', message)
         self.assertTrue(message.endswith('IMAGE_ALT_MISSING, líneas 3, 5'))
         pattern = reply['format']['pattern']
-        self.assertRegex('CONTROL_LABEL_CANDIDATE, líneas 10, 17. En el inspector del navegador comprueba el DOM.',pattern)
+        self.assertRegex('IMAGE_ALT_MISSING, líneas 10, 17. En el inspector del navegador comprueba el DOM.',pattern)
+        unrelated = 'HTML_LANGUAGE_MISSING, líneas 3, 5. En el inspector del navegador comprueba el DOM.'
+        self.assertIsNone(re.fullmatch(pattern,unrelated))
+        admitted = {**row['profile'],'citation_format':'locations-and-browser-check-v1'}
+        self.assertRegex(unrelated,prompt({**row,'profile':admitted},'integrator')['format']['pattern'])
         self.assertIsNone(re.fullmatch(pattern,'IMAGE_ALT_MISSING, líneas 3, 5, 7. En el inspector del navegador comprueba el DOM.'))
         old = dict(row['profile'])
         old.pop('citation_format')

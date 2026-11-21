@@ -51,7 +51,8 @@ def select_model(name,models):
 
 
 TEAM_POLICY = 'local-team-v1'
-MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v1'
+MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v2'
+LEGACY_MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v1'
 
 
 def review_profile(model, roles):

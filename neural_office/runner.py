@@ -6,7 +6,7 @@ import uuid
 from .audit import RULE_FAMILIES, audit_html, citation_only, location_and_browser_language, make_report, requested_rule
 from . import excerpt_review
 from .ledger import Denied,canonical,digest,OFFICE_MODE,TERMINAL
-from .ollama import MULTILINE_BROWSER_FORMAT, OwnedOllama, TEAM_POLICY, inference_options
+from .ollama import LEGACY_MULTILINE_BROWSER_FORMAT, MULTILINE_BROWSER_FORMAT, OwnedOllama, TEAM_POLICY, inference_options
 
 ROLES=('director','planner','researcher','implementer','skeptic','verifier','integrator')
 MAX_MODEL_FINDINGS = 24
@@ -25,7 +25,7 @@ def role_order(count):
     return {1:('director',),3:('director','skeptic','integrator'),7:ROLES}[count]
 
 
-def browser_location_reply(payload, objective, rule, hits, prior):
+def browser_location_reply(payload, objective, rule, hits, prior, citation_format):
     language = location_and_browser_language(objective, rule)
     lines = sorted({hit['line'] for hit in hits})
     if language is None or len(lines) < 2:
@@ -42,8 +42,8 @@ def browser_location_reply(payload, objective, rule, hits, prior):
     notes = canonical([r['content'] for r in prior])
     messages = [{'role':'system','content':instruction},
                 {'role':'user','content':'\n'.join((objective, notes, guide, citation))}]
-    # Specify the number of positions and room for a manual check. Values come from the model.
-    vocabulary = '|'.join(sorted(RULE_FAMILIES))
+    # The reader verified the requested rule. The model supplies the positions and advice.
+    vocabulary = re.escape(rule) if citation_format == MULTILINE_BROWSER_FORMAT else '|'.join(sorted(RULE_FAMILIES))
     pattern = rf'^({vocabulary}), {label} [0-9]+(, [0-9]+){{{len(lines)-1}}}\. {start}[^"\r\n.]{{5,150}}\.$'
     candidate = {**payload, 'messages':messages, 'format':{'type':'string','pattern':pattern}}
     return candidate if len(canonical(candidate).encode('utf-8')) <= 6144 else payload
@@ -133,9 +133,10 @@ def prompt(row,role,*,checked_findings=None):
                         rf'^({vocabulary}), {line} [0-9]+, {column} [0-9]+$'}
                 if len(canonical(candidate).encode('utf-8')) <= 6144:
                     payload = candidate
-            elif (role == 'integrator' and len(hits) > 1
-                  and row['profile'].get('citation_format') == MULTILINE_BROWSER_FORMAT):
-                payload = browser_location_reply(payload, row['objective'], focus, hits, prior)
+            elif role == 'integrator' and len(hits) > 1:
+                citation_format = row['profile'].get('citation_format')
+                if citation_format in (MULTILINE_BROWSER_FORMAT, LEGACY_MULTILINE_BROWSER_FORMAT):
+                    payload = browser_location_reply(payload, row['objective'], focus, hits, prior, citation_format)
     if len(canonical(payload).encode('utf-8'))>6144: raise Denied('PROMPT_BYTE_BUDGET')
     return payload
 
