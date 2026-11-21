@@ -142,9 +142,9 @@ def run_team(folder, case, profile, outer, warm):
                 requested_rule=product.get('requested_rule'), state=row['state'], **checkpoints)
 
 
-def run_terminal(folder, case, profile, warm, outer):
+def run_terminal(folder, case, profile, warm, outer, *, sample_peak=True):
     from neural_office.audit import audit_html
-    from neural_office.measurements import job_sample
+    from neural_office.measurements import job_cpu_seconds, job_sample
     from neural_office.ollama import OwnedOllama, local_metadata
     source, goal = CASES[case]
     findings = audit_html(source)
@@ -201,18 +201,18 @@ def run_terminal(folder, case, profile, warm, outer):
                 time.sleep(.01)
             from neural_office.measurements import JobSampler
             from tools.measure_ollama_terminal import peak_cpu_cores
-            sampler = JobSampler(outer,.1)
-            sampler.start()
-            started_cpu = job_sample(outer)['cpu_seconds']
+            sampler = JobSampler(outer,.1) if sample_peak else None
+            if sampler is not None: sampler.start()
+            started_cpu = job_cpu_seconds(outer)
             started = time.perf_counter()
             try:
                 client.communicate(b'run\n',timeout=180)
                 if client.returncode:
                     raise RuntimeError(f'PowerShell reference exited with {client.returncode}')
                 elapsed = time.perf_counter() - started
-                query_cpu = job_sample(outer)['cpu_seconds'] - started_cpu
+                query_cpu = job_cpu_seconds(outer) - started_cpu
             finally:
-                sampler.stop()
+                if sampler is not None: sampler.stop()
         finally:
             if client.poll() is None:
                 client.kill()
@@ -224,7 +224,7 @@ def run_terminal(folder, case, profile, warm, outer):
         answer = raw.decode('utf-16' if raw.startswith(b'\xff\xfe') else 'utf-8-sig').strip()
         return dict(answer=answer, model_loaded_before_query=warm, query_cpu_s=query_cpu, query_wall_s=elapsed,
                     startup_cpu_s=after_boot-before_boot, preload_cpu_s=preload_cpu,
-                    query_peak_cores_1s=peak_cpu_cores(sampler.samples),
+                    query_peak_cores_1s=peak_cpu_cores(sampler.samples) if sampler is not None else None,
                     resident={k: models[0][k] for k in ('size_vram', 'size', 'context_length')})
     finally:
         try: backend.terminate()
@@ -243,7 +243,9 @@ def worker(args):
         if args.arm in ('team', 'previous', 'team-preloaded'):
             result = run_team(folder, args.case, profile, outer, args.arm == 'team-preloaded')
         else:
-            result = run_terminal(folder, args.case, profile, args.arm == 'warm', outer)
+            if not outer.contains_current_process():
+                raise ValueError('Terminal reference is outside the accounting job')
+            result = run_terminal(folder, args.case, profile, args.arm == 'warm', outer, sample_peak=not args.boundaries_only)
         if not result['answer'].strip():
             raise ValueError('No answer')
         result.update(grade=grade(args.case, result['answer']), model=MODEL, digest=profile['model_digest'],
@@ -253,7 +255,7 @@ def worker(args):
         outer.close()
 
 
-def capture(repo, arm, case, dest):
+def capture(repo, arm, case, dest, *, boundaries_only=False):
     from neural_office.measurements import JobSampler, job_sample
     from neural_office.windows_job import Job
     from tools.measure_ollama_terminal import peak_cpu_cores
@@ -265,7 +267,8 @@ def capture(repo, arm, case, dest):
             sampler.start()
             try:
                 proc = job.start([sys.executable, '-B', str(Path(__file__).resolve()), '--job', name,
-                                  '--repo', str(repo), '--arm', arm, '--case', case, '--output', tmp],
+                                  '--repo', str(repo), '--arm', arm, '--case', case, '--output', tmp,
+                                  *(['--boundaries-only'] if boundaries_only else [])],
                                  env=os.environ.copy(), log=log)
                 code = proc.wait(timeout=480)
                 # The worker handle can be signalled before descendant accounting settles.
@@ -307,6 +310,7 @@ def capture(repo, arm, case, dest):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--boundaries-only', action='store_true', help='Exclude the in-job peak sampler from the CLI query interval.')
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--repo', type=Path, default=ROOT)
     p.add_argument('--previous', type=Path)

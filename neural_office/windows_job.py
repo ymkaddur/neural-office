@@ -1,5 +1,6 @@
 """Windows job ownership. Only trusted bootstrap code runs before self-assignment."""
 import ctypes
+from functools import cache
 from ctypes import wintypes as w
 import os
 import subprocess
@@ -35,6 +36,7 @@ class Accounting(ctypes.Structure):
         ('TotalPageFaultCount',w.DWORD),('TotalProcesses',w.DWORD),('ActiveProcesses',w.DWORD),('TotalTerminatedProcesses',w.DWORD)]
 
 
+@cache
 def kernel():
     if os.name!='nt': raise RuntimeError('V52_OWNED_BACKEND_REQUIRES_WINDOWS')
     dll=ctypes.WinDLL('kernel32',use_last_error=True)
@@ -45,6 +47,7 @@ def kernel():
         'QueryInformationJobObject':([w.HANDLE,ctypes.c_int,ctypes.c_void_p,w.DWORD,ctypes.c_void_p],w.BOOL),
         'AssignProcessToJobObject':([w.HANDLE,w.HANDLE],w.BOOL),
         'IsProcessInJob':([w.HANDLE,w.HANDLE,ctypes.POINTER(w.BOOL)],w.BOOL),
+        'OpenProcess':([w.DWORD,w.BOOL,w.DWORD],w.HANDLE),
         'TerminateJobObject':([w.HANDLE,w.UINT],w.BOOL),
         'CloseHandle':([w.HANDLE],w.BOOL), 'GetCurrentProcess':([],w.HANDLE)}
     for name,(args,result) in signatures.items():

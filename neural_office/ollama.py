@@ -1,5 +1,6 @@
 """A dedicated, owned Ollama process tree; the user's existing service is untouched."""
 import ctypes
+from functools import cache
 from ctypes import wintypes
 import hashlib
 import http.client
@@ -79,12 +80,18 @@ def inference_options(profile):
     return options
 
 
-def listener_pids(port):
-    """Read the local IPv4 listener table in process. Each OS row is six DWORDs."""
+@cache
+def _tcp_table_api():
     query = ctypes.WinDLL('iphlpapi', winmode=0x800).GetExtendedTcpTable  # LOAD_LIBRARY_SEARCH_SYSTEM32
     query.argtypes = [ctypes.c_void_p, ctypes.POINTER(wintypes.DWORD), wintypes.BOOL,
                       wintypes.ULONG, ctypes.c_int, wintypes.ULONG]
     query.restype = wintypes.DWORD
+    return query
+
+
+def listener_pids(port):
+    """Read the current local IPv4 listener table. Each OS row is six DWORDs."""
+    query = _tcp_table_api()
     size = wintypes.DWORD(4096)
     for _ in range(4):
         buf = ctypes.create_string_buffer(size.value)
@@ -249,8 +256,6 @@ class OwnedOllama:
         identities=listener_pids(self.port)
         if not identities: raise Denied('BACKEND_LISTENER_OWNER_UNKNOWN')
         dll=self.job.dll
-        dll.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD]; dll.OpenProcess.restype=wintypes.HANDLE
-        dll.IsProcessInJob.argtypes=[wintypes.HANDLE,wintypes.HANDLE,ctypes.POINTER(wintypes.BOOL)]; dll.IsProcessInJob.restype=wintypes.BOOL
         if len(identities)!=1: raise Denied('BACKEND_LISTENER_AMBIGUOUS')
         handle=dll.OpenProcess(0x1000,False,next(iter(identities)))
         if not handle: raise Denied('BACKEND_PROCESS_UNAVAILABLE')

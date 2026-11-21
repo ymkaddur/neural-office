@@ -1,5 +1,6 @@
 """A separate retained witness. It is continuity evidence, not an adversary-proof vault."""
 from contextlib import contextmanager
+from functools import cache
 import ctypes
 from ctypes import wintypes as w
 import os
@@ -40,10 +41,8 @@ def run_guard(path):
         finally: _run_owners.keys = owned
 
 
-@contextmanager
-def _named_guard(path, purpose, timeout_ms, unavailable):
-    if os.name != 'nt':
-        raise Denied('CONTINUITY_REQUIRES_WINDOWS')
+@cache
+def _mutex_api():
     dll = ctypes.WinDLL('kernel32', use_last_error=True)
     for name, args, result in (
         ('CreateMutexW', [ctypes.c_void_p, w.BOOL, w.LPCWSTR], w.HANDLE),
@@ -52,6 +51,14 @@ def _named_guard(path, purpose, timeout_ms, unavailable):
         ('CloseHandle', [w.HANDLE], w.BOOL),
     ):
         fn = getattr(dll, name); fn.argtypes = args; fn.restype = result
+    return dll
+
+
+@contextmanager
+def _named_guard(path, purpose, timeout_ms, unavailable):
+    if os.name != 'nt':
+        raise Denied('CONTINUITY_REQUIRES_WINDOWS')
+    dll = _mutex_api()
     key = digest(os.path.normcase(str(Path(path).resolve())))
     handle = dll.CreateMutexW(None, False, 'Local\\NeuralOffice' + purpose + '_' + key)
     if not handle:

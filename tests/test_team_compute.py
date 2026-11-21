@@ -138,7 +138,10 @@ class TeamCompute(unittest.TestCase):
         for extra in (' Añade una captura.', ' y proporciona un ejemplo', ' sin usar el navegador'):
             self.assertNotIn('format',prompt({**row,'objective':goal.rstrip('.')+extra},'integrator'))
         self.assertNotIn('format',prompt({**row,'snapshot':b'<html lang="es"><title>T</title><img><img></html>'},'integrator'))
-        self.assertNotIn('format',prompt(row,'researcher'))
+        historical = dict(row['profile'])
+        historical.pop('team_session')
+        self.assertNotIn('format',prompt({**row,'profile':historical},'researcher'))
+        self.assertIn('IMAGE_ALT_MISSING, líneas 3, 5',prompt(row,'researcher')['format']['enum'])
 
     def test_unit_contract_depends_on_authorized_fragment_and_explicit_request(self):
         goal = '¿Cuántas horas dura? Devuelve la cifra y su unidad.'

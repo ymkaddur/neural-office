@@ -42,6 +42,16 @@ def generation_metrics(response):
     return result
 
 
+def job_cpu_seconds(job):
+    """Cumulative user and kernel CPU for the whole Windows job, including exited children."""
+    if job.handle is None:
+        raise RuntimeError('MEASUREMENT_JOB_CLOSED')
+    accounting = Accounting()
+    if not job.dll.QueryInformationJobObject(job.handle, BASIC_ACCOUNTING, ctypes.byref(accounting), ctypes.sizeof(accounting), None):
+        raise ctypes.WinError(ctypes.get_last_error())
+    return (accounting.TotalUserTime + accounting.TotalKernelTime) / 1e7
+
+
 def job_sample(job):
     if job.handle is None:
         raise RuntimeError('MEASUREMENT_JOB_CLOSED')

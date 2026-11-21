@@ -1,5 +1,7 @@
 """Exercise the published GUI only through Windows accessibility and its real file picker."""
 from contextlib import closing, contextmanager
+import ctypes
+from ctypes import wintypes
 import hashlib
 import json
 import os
@@ -18,9 +20,9 @@ from examples.multiformat.build_example import pdf_bytes
 from neural_office.windows_job import Job
 from tools.measure_v58_desktop import NativeWindow, choose_files
 from tools.package_windows_pilot import HOST
-from neural_office.measurements import job_sample
+from neural_office.measurements import job_cpu_seconds
 from tools.measure_v5352_polished import completed_calls, repair_checks
-from tools.measure_v5352_team import CASES, capture
+from tools.measure_v5352_team import CASES, capture, grade
 from e2e_v55_native import MODEL, MODEL_DIGEST, OLLAMA_VERSION, http, native_picker, prepare_ollama, readonly_counts, sha
 from e2e_v55_native_uia import wait
 
@@ -151,6 +153,14 @@ def desktop(exe, work, out, phase):
         verify(Path(inherited['NEURAL_OFFICE_ROOT']).samefile(package), 'Core outside the package')
         verify(Path(inherited['NEURAL_OFFICE_STATE']) == work / 'office.sqlite3', 'Unexpected state file')
         screen = NativeWindow(host, hwnd)
+        process_handle = job.dll.OpenProcess(0x1000, False, host.pid)
+        verify(bool(process_handle), 'Unable to verify packaged process membership')
+        try:
+            member = wintypes.BOOL()
+            verify(job.dll.IsProcessInJob(process_handle, job.handle, ctypes.byref(member)) and member.value,
+                   'The packaged host is outside the measured Windows job')
+        finally:
+            job.dll.CloseHandle(process_handle)
         screen.process_job = job
         try:
             wait(screen.core_ready, description='packaged core connected to WebView2')
@@ -378,32 +388,39 @@ def team_permission(screen, host, source, objective):
     wait(permission_matches, description='exact team objective, source and seven calls in the permission dialog')
 
 
-def warm_repair(screen, host, work, state, out, previous_runtime):
-    source = work / 'imagen-y-formulario.html'
-    raw, objective = CASES['abierto']
+def warm_turn(screen, host, work, state, out, previous_runtime, case, already_charged):
+    source = work / ('imagen-y-formulario.html' if case == 'abierto' else 'formulario.html')
+    raw, objective = CASES[case]
     source.write_bytes(raw)
     screen.reveal_button(r'^Preparar otro encargo.*', regex=True).invoke()
     team_permission(screen, host, source, objective)
-    verify(readonly_counts(state)['attempts']==1, 'Warm preview charged before consent')
-    before = job_sample(screen.process_job)['cpu_seconds']
+    verify(readonly_counts(state)['attempts']==already_charged, 'Warm preview charged before consent')
+    before = job_cpu_seconds(screen.process_job)
     screen.button(r'^Autorizar y ejecutar.*', regex=True)
     def accepted_repair():
         with database(state) as db:
             row = db.execute('SELECT id,state FROM attempts WHERE objective=?',(objective,)).fetchone()
         return row if row and row['state'] in ('ACCEPTED','FAILED','REJECTED','CANCELLED','RECOVERY_REQUIRED') else None
-    accepted_turn = wait(accepted_repair, timeout=420, description='second team accepted in the same project')
-    verify(accepted_turn['state']=='ACCEPTED', 'Second team failed')
-    screen.control('Recomendaciones del modelo local','Text')
-    cpu = job_sample(screen.process_job)['cpu_seconds'] - before
+    accepted_turn = wait(accepted_repair, timeout=420, description='warm team accepted in the same project')
+    verify(accepted_turn['state']=='ACCEPTED', 'Warm team failed')
+    if case == 'abierto':
+        screen.control('Recomendaciones del modelo local','Text')
+    else:
+        wait(lambda: 'Comentarios del modelo' in screen.names(visible_only=False),description='citation report rendered')
+        screen.disclosure('Comentarios del modelo', True)
     goal, model_digest, calls = completed_calls(state, accepted_turn['id'])
     verify(goal==objective and model_digest==MODEL_DIGEST and all(c['runtime']==previous_runtime and c['resident']
            and c['reused'] for c in calls), 'The second approval did not use the same already-loaded private model')
     answer = calls[-1]['answer']
-    checks = repair_checks(answer)
-    verify(all(checks.values()), 'Incomplete or generic repairs in the literal integrated answer: '+answer)
-    names = words(screen.names(visible_only=False))
-    verify(all(text in names for text in json.loads(answer).values()), 'The actual repair text is missing from the report')
-    screen.screenshot(out/'08-director-reparaciones.png')
+    checks = repair_checks(answer) if case == 'abierto' else grade(case, answer)
+    verify(all(checks.values()), 'Incomplete literal integrated answer: '+answer)
+    expected = list(json.loads(answer).values()) if case == 'abierto' else [json.loads(answer)]
+    def displayed():
+        names = words(screen.names(visible_only=False))
+        return all(text in names for text in expected)
+    wait(displayed,description='the exact model answer in the native document')
+    cpu = job_cpu_seconds(screen.process_job) - before
+    screen.screenshot(out/('08-director-reparaciones.png' if case == 'abierto' else '09-director-formulario.png'))
     return dict(cpu_s=cpu,attempt=accepted_turn['id'],model_digest=model_digest,source_sha256=sha(source),
                 checks=checks,answer=answer,calls=calls,visible_in_report=True)
 
@@ -472,14 +489,16 @@ def team(exe, work, state, out, receipt):
         if not browser_check:
             first = completed_calls(state, attempt['id'])[2]
             verify(not any(c['reused'] or c['resident'] for c in first), 'Cold setup was already a warm team')
-            repair = warm_repair(screen,host,work,state,out,first[0]['runtime'])
-            receipt['warm_repair'] = repair
-            reference = capture(ROOT,'warm','abierto',out/'warm-powershell.json')
-            verify(reference['model_loaded_before_query'] and reference['digest']==repair['model_digest']
-                   and reference['source_sha256']==repair['source_sha256'], 'Incomparable native PowerShell reference')
-            repair['terminal_cpu_s'] = reference['query_cpu_s']
-            repair['ratio'] = repair['cpu_s'] / reference['query_cpu_s']
-            repair['within_1_3'] = repair['ratio'] <= 1.3
+            for charged,(key,case) in enumerate((('warm_repair','abierto'),('warm_control','control')),start=1):
+                receipt[key] = warm_turn(screen,host,work,state,out,first[0]['runtime'],case,charged)
+            for key,case in (('warm_repair','abierto'),('warm_control','control')):
+                turn = receipt[key]
+                reference = capture(ROOT,'warm',case,out/('warm-powershell-'+case+'.json'),boundaries_only=True)
+                verify(reference['model_loaded_before_query'] and reference['digest']==turn['model_digest']
+                       and reference['source_sha256']==turn['source_sha256'], 'Incomparable native PowerShell reference')
+                turn['terminal_cpu_s'] = reference['query_cpu_s']
+                turn['ratio'] = turn['cpu_s'] / reference['query_cpu_s']
+                turn['within_1_3'] = turn['ratio'] <= 1.3
         receipt['status'] = 'passed'
 
 

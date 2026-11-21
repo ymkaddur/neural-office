@@ -140,9 +140,11 @@ class PolishedTeam(unittest.TestCase):
     def test_repairs_depend_on_requested_scope_and_actual_source(self):
         facts=audit_html(SOURCE)
         self.assertEqual(repair_language(GOAL,facts),'es')
+        self.assertEqual(repair_language('¿Puedes explicarme paso a paso cómo corregir la imagen y el formulario?',facts),'es')
         self.assertEqual(repair_language('Please explain how to fix the image and the form control.',facts),'en')
         self.assertIsNone(repair_language('No corrijas la imagen y el formulario.',facts))
         self.assertIsNone(repair_language(GOAL+' Incluye además el título.',facts))
+        self.assertIsNone(repair_language('¿Puedes corregir la imagen y el formulario y traducir el texto?',facts))
         self.assertIsNone(repair_language(GOAL,audit_html(SOURCE.replace(b'<input id="nombre">',b''))))
         row=dict(profile=self.profile,snapshot=SOURCE,objective=GOAL,outputs=[])
         reply=prompt(row,'integrator')

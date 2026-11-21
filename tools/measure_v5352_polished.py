@@ -1,5 +1,6 @@
 """Measure real, already-resident seven-role desktop turns against an already-open PowerShell and Ollama."""
 import argparse
+import base64
 from contextlib import closing
 import hashlib
 import json
@@ -16,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 from tools.measure_v5352_team import CASES, MODEL, capture, grade
 from neural_office.desktop_service import DesktopService
 from neural_office.ledger import Ledger
-from neural_office.measurements import job_sample
+from neural_office.measurements import job_cpu_seconds
 from neural_office.runner import ROLES
 from neural_office.windows_job import Job
 
@@ -57,6 +58,9 @@ def completed_calls(state, attempt):
 
 def office_arms(folder, job_name, case):
     outer=Job(job_name, existing=True)
+    if not outer.contains_current_process():
+        outer.close()
+        raise RuntimeError('The measured desktop worker is outside the accounting job')
     state=folder/'office.sqlite3'
     service=DesktopService(Ledger(state))
     samples=[]
@@ -69,17 +73,19 @@ def office_arms(folder, job_name, case):
             path.write_bytes(source)
             selected=service.host_capture('medicion',path)
             approval=service.preview('medicion',selected['entry_token'],digest,7,goal)
-            start=job_sample(outer)['cpu_seconds']
+            start=job_cpu_seconds(outer)
             begin=time.perf_counter()
             admitted=service.start(approval['approval_token'],str(uuid.uuid4()),approval['expected_revision'])
             service._worker.join(420)
             if service._worker.is_alive():
                 raise TimeoutError('No terminal team receipt in 420 seconds')
-            service.report(admitted['id'])
+            report=service.report(admitted['id'])
             source_report=service.report_read(admitted['id'],0,2048)
-            if not source_report:
-                raise ValueError('Empty delivery')
-            cpu=job_sample(outer)['cpu_seconds']-start
+            chunk=base64.b64decode(source_report['base64'],validate=True)
+            if (not chunk or source_report['sha256']!=report['sha256']
+                    or hashlib.sha256(chunk).hexdigest()!=source_report['chunk_sha256']):
+                raise ValueError('Delivered bytes do not match the recorded report')
+            cpu=job_cpu_seconds(outer)-start
             elapsed=time.perf_counter()-begin
             objective,model,calls=completed_calls(state,admitted['id'])
             if (objective!=goal or model!=digest or len({r['runtime'] for r in calls})!=1
@@ -121,6 +127,7 @@ def main():
     p.add_argument('--case',choices=CASES)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--worker')
+    p.add_argument('--require-target',action='store_true',help='Fail after recording all pairs if any misses CPU or quality.')
     args=p.parse_args()
     if args.worker:
         rows=office_arms(args.output,args.worker,args.case)
@@ -130,9 +137,9 @@ def main():
     results=[]
     for case in ([args.case] if args.case else CASES):
         # Two independent CLI invocations bracket the two ordinary hot desktop attempts.
-        before=capture(ROOT,'warm',case,args.output/(case+'-first.json'))
+        before=capture(ROOT,'warm',case,args.output/(case+'-first.json'),boundaries_only=True)
         _,first,second=office(args.output/(case+'-desktop.json'),case)
-        after=capture(ROOT,'warm',case,args.output/(case+'-last.json'))
+        after=capture(ROOT,'warm',case,args.output/(case+'-last.json'),boundaries_only=True)
         for team,terminal in ((first,before),(second,after)):
             if not terminal['model_loaded_before_query'] or team['model_digest']!=terminal['digest'] or team['source_sha256']!=terminal['source_sha256']:
                 raise ValueError('Incomparable local inputs or model residency')
@@ -141,6 +148,8 @@ def main():
                                 ratio=ratio,checks=team['checks'],passed=ratio<=1.3 and all(team['checks'].values())))
             print(case,team['cpu_s'],terminal['query_cpu_s'],round(ratio,4),team['checks'],flush=True)
         (args.output/'summary.json').write_text(json.dumps(results,indent=2)+'\n',encoding='utf-8',newline='\n')
+    if args.require_target and not all(r['passed'] for r in results):
+        raise SystemExit('At least one recorded warm pair missed a gate')
 
 
 if __name__=='__main__':main()

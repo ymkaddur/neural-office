@@ -110,12 +110,16 @@ def prompt(row,role,*,checked_findings=None):
         focus = requested_rule(row['objective'])
         modern = row['profile'].get('team_session') == POLISHED_TEAM
         repair = team_guidance.repair_language(row['objective'], findings) if modern else None
-        narrow = focus and (citation_only(row['objective'], focus) or location_and_browser_language(row['objective'], focus))
-        multiple_sources = focus and sum(f['code'] == focus for f in findings) > 1
-        if modern and role != 'integrator' and (repair or narrow) and not (role == 'researcher' and multiple_sources):
-            payload = team_guidance.handoff(payload, role, row['objective'], findings, prior)
+        narrow = any(f['code'] == focus for f in findings) and (
+            citation_only(row['objective'], focus) or location_and_browser_language(row['objective'], focus))
+        if modern and role != 'integrator' and (repair or narrow):
+            candidate = team_guidance.handoff(payload, role, row['objective'], findings, prior, locations_only=bool(narrow))
+            if len(canonical(candidate).encode('utf-8')) <= 6144:
+                payload = candidate
         elif repair and role == 'integrator':
-            payload = team_guidance.repair_response(payload, row['objective'], findings, prior, repair)
+            candidate = team_guidance.repair_response(payload, row['objective'], findings, prior, repair)
+            if len(canonical(candidate).encode('utf-8')) <= 6144:
+                payload = candidate
         elif focus and role in ('researcher','verifier','integrator'):
             hits = [item for item in findings if item['code'] == focus]
             spanish = bool(re.search(r'\bl[ií]neas?\b', row['objective'], re.I))
@@ -226,13 +230,19 @@ def _run_owned(ledger,attempt,roles,backend_factory,progress,team_session=None):
         checked_findings = (audit_html(bytes(row['snapshot'])) if row['profile'].get('execution_policy') == TEAM_POLICY
                             else None)
         for role in order:
-            row=ledger.attempt(attempt)
+            if scope is None:
+                row=ledger.attempt(attempt)
             if any(r['role']==role for r in row['outputs']): continue
             payload=prompt(row,role,checked_findings=checked_findings)
             progress(role,'running')
             seq,cached=ledger.start_call(attempt,generation,role,payload,role)
             response=cached if cached is not None else backend.infer(payload)
             ledger.finish_call(attempt,generation,seq,response)
+            if scope is not None:
+                # The sole lease holder carries forward only acknowledged output.
+                # The next admission validates the witness again before inference.
+                content = response['message']['content']
+                row['outputs'].append({'role':role,'content':content,'content_sha':digest(content)})
             progress(role,'completed')
     except BaseException as exc:
         error=exc
