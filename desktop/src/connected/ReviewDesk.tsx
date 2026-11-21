@@ -239,11 +239,12 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,sessi
       const past=await files.history(project,thread);
       if(!current||read.current!==version)return;
       adoptItems(rows);setHistory(past);
+      // Reading a delivery is independent of confirming the thread and its attachments.
+      setThreadReady(true);
       const wanted=preferredReport.current??job?.reportId;
       const last=wanted?past.find(p=>p.id===wanted):past[0];
       if(wanted&&!last){setReport(null);setProblem('La entrega elegida ya no aparece en este hilo. Puedes abrir otra desde su historial.');}
       if(last){const result=await files.report(project,thread,last.id);if(current&&read.current===version)setReport(result);}
-      if(current&&read.current===version)setThreadReady(true);
     }).catch(e=>{if(current&&version===read.current)setProblem(fault(e));});
     return ()=>{current=false;};
   },[project,thread,session,online,revision,memo,job?.reportId]);
