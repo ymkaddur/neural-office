@@ -257,12 +257,29 @@ def capture(repo, arm, case, dest):
                                   '--repo', str(repo), '--arm', arm, '--case', case, '--output', tmp],
                                  env=os.environ.copy(), log=log)
                 code = proc.wait(timeout=480)
+                # The worker handle can be signalled before descendant accounting settles.
+                # Keep the sampler attached to the whole job until two idle readings agree.
+                end = time.monotonic() + 5
+                previous_cpu = None
+                while time.monotonic() < end:
+                    end_sample = job_sample(job)
+                    idle_cpu = end_sample['cpu_seconds'] if end_sample['active_processes']==0 else None
+                    if idle_cpu is not None and idle_cpu==previous_cpu:
+                        break
+                    previous_cpu = idle_cpu
+                    time.sleep(.05)
+                else:
+                    raise RuntimeError(f'{case}/{arm}: process accounting did not settle: {end_sample}')
             finally:
                 stats = sampler.stop()
         if code:
             raise RuntimeError((folder / 'worker.log').read_text(encoding='utf-8', errors='replace')[-3000:])
-        if job.active() or stats['observation_errors'] or stats['cpu_seconds'] != job_sample(job)['cpu_seconds']:
-            raise RuntimeError('Incomplete job CPU accounting')
+        receipt_end = job_sample(job)
+        if (receipt_end['active_processes'] or stats['observation_errors']
+                or stats['cpu_seconds'] != receipt_end['cpu_seconds']):
+            rejected = {'arm':arm,'case':case,'sampler':stats,'final_read':receipt_end}
+            dest.with_suffix('.rejected.json').write_text(json.dumps(rejected),encoding='utf-8')
+            raise RuntimeError(f'{case}/{arm}: incomplete job CPU accounting; see {dest.with_suffix(".rejected.json")}')
         result = json.loads((folder / 'result.json').read_bytes())
         result.update(arm=arm, case=case, finished_utc=datetime.now(timezone.utc).isoformat(), resources=stats,
                       peak_cores_1s=peak_cpu_cores(sampler.samples), system=platform.platform())

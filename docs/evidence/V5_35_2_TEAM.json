@@ -1,5 +1,4 @@
 {
-  "measured_utc": "2026-11-21T10:54:54.595511+00:00",
   "host": {
     "os": "Windows 11 build 26200",
     "cpu": "Intel Core Ultra 7 255HX",
@@ -10,6 +9,8 @@
     "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67"
   },
   "baseline_commit": "6585b70829d24c0c548504e28324fe36f92170c3",
+  "scope": "Four static HTML tasks for the supported seven-call model path. The native multi-file workflow is assessed separately. The literal-answer checks cover specified text and source locations. Open-ended quality requires judgment.",
+  "measured_utc": "2026-11-21T11:41:52.970703+00:00",
   "gate": {
     "ceiling": 1.5,
     "passed": false,
@@ -20,14 +21,19 @@
     "cold": "Whole private reference process tree including server, loading, shell and one CLI query.",
     "ready": "PowerShell and private server ready, no loaded weights. CPU of the CLI query including loading.",
     "warm": "Same single CLI query from ready PowerShell with weights resident. Bootstrap and preload are recorded separately.",
-    "ordering": "Two repetitions per task in opposite orders, terminal/team/warm then warm/team/terminal."
+    "ordering": "Counterbalanced in the first six runs; interruptions in the final task are recorded. Every reference is an actual PowerShell invocation."
   },
-  "scope": "Four static HTML tasks for the supported seven-call model path. The native multi-file workflow is assessed separately. The literal-answer checks cover specified text and source locations. Open-ended quality requires judgment.",
+  "reference_interruptions": {
+    "case": "abierto",
+    "arm": "warm",
+    "attempts_without_receipt": 2,
+    "observation": "The original warm reference worker exited without a complete answer or CPU receipt. During the repeated attempt, answer.txt was empty after three minutes. Neither is counted as a valid ratio. The diagnostic invocation completed separately and is excluded from these pairs."
+  },
   "source_sha256": {
-    "neural_office/ollama.py": "2c60600d730abee2966319d826c464c7c4db497103448d45b2bef3a341f8cdd5",
+    "neural_office/ollama.py": "6556fc5544af0f6de680a2fa64456ca389be11f49dfa29fd3a31b679efb7a0c0",
+    "neural_office/audit.py": "ef3c54f9ae74b59cb2b5adc5d589d63a18a4a3ef148e42a428438cdf8059c4ba",
     "neural_office/runner.py": "eda0a26ad395aa711f392e1f9584b53d0f6da4f235e840df4c10e5027f3b2727",
-    "neural_office/audit.py": "0987920e5a58f03597497b9a8804f7f752e66db0922551ef984a56e6bc77cd9c",
-    "tools/measure_v5352_team.py": "5950ed33d656294541733f0d36df80a3de26c5c6bf7d9fa9ff39401587a1143f"
+    "tools/measure_v5352_team.py": "2210118bd16d2b4387095e322fa92b29a086ba88ba98def9ef91f137fb53bebc"
   },
   "tasks": [
     {
@@ -69,15 +75,15 @@
         {
           "repetition": 1,
           "cpu_s": {
-            "office": 14.28125,
-            "cold": 13.140625,
-            "ready": 4.34375,
-            "warm": 1.453125
+            "office": 13.015625,
+            "cold": 9.328125,
+            "ready": 4.078125,
+            "warm": 1.40625
           },
           "ratio": {
-            "cold": 1.0868,
-            "ready": 3.2878,
-            "warm": 9.828
+            "cold": 1.3953,
+            "ready": 3.1916,
+            "warm": 9.2556
           },
           "office_raw_answer": "\"IMAGE_ALT_MISSING, línea 6, columna 3\"",
           "office_checks": {
@@ -86,12 +92,12 @@
             "cited_location": true
           },
           "terminal_raw_answers": {
-            "cold": "El código exacto de la imagen sin descripción y su línea en el archivo es:\n\n- **Document_TITLE_MISSING**: 1,1\n- **HTML_LANGUAGE_MISSING**: 2,1\n- **IMAGE_ALT_MISSING**: 6,3\n- **CONTROL_LABEL_CANDIDATE**: 7,3",
-            "warm": "Por supuesto, aquí está el código exacto de la imagen sin descripción y su línea en el archivo:\n\n- Document Title: Document_TITLE_MISSING\n- HTML Language: HTML_LANGUAGE_MISSING\n- IMAGE Alternate: IMAGE_ALT_MISSING\n- CONTROL Label: CONTROL_LABEL_CANDIDATE\n- LINE: 6"
+            "cold": "El código exacto de la imagen sin descripción y su línea en el archivo es:\n\n```plaintext\nDOCUMENT_TITLE_MISSING\n```\n\nEn este caso, no se especifica el código de la imagen, pero para la imagen que se menciona, la línea en el archivo es:\n\n```plaintext\nDOCUMENT_TITLE_MISSING\n```\n\nEs importante notar que este código no es un código de descripción general, sino un código específico para la imagen. Si deseas que el código de la imagen sea específico, se recomienda que especifique el código o la descripción de la imagen en el archivo.",
+            "warm": "El código exacto de la imagen sin descripción y su línea en el archivo es el siguiente:\n\n- DOCUMENT_TITLE_MISSING: 1\n- HTML_LANGUAGE_MISSING: 2\n- IMAGE_ALT_MISSING: 6\n- CONTROL_LABEL_CANDIDATE: 7"
           },
           "terminal_checks": {
             "cold": {
-              "code": true,
+              "code": false,
               "line": false,
               "cited_location": false
             },
@@ -140,23 +146,23 @@
           ],
           "office_model_vram_bytes": 583805173,
           "raw_sha256": {
-            "team": "e524d851466765b09777907e3d00205a73e037abf28f620ec0a5f659e101ca88",
-            "terminal": "06433360d0e4bcc59cd2f0e7ebe546e9f4d921ace4a735718bd3336847dc20b2",
-            "warm": "5b6dad6431c5c210d1f6bcecd9b58e46380a6f93a3ed040c30b36a05fe26135d"
+            "team": "44c2ed13043deac49e2a7355c2c8c76018853df544f54e7b5bf74b0e7c7e4898",
+            "terminal": "512da34c748f72f1e8467e15afec08f6ef5a4dd057dfdc4fe34c253fde548287",
+            "warm": "e0d98c714700cb59d5a7f0d620abfc6f155f8ff174a525e679b133f55dc05948"
           }
         },
         {
           "repetition": 2,
           "cpu_s": {
-            "office": 12.21875,
-            "cold": 13.09375,
-            "ready": 4.375,
-            "warm": 1.078125
+            "office": 11.9375,
+            "cold": 13.609375,
+            "ready": 4.546875,
+            "warm": 2.09375
           },
           "ratio": {
-            "cold": 0.9332,
-            "ready": 2.7929,
-            "warm": 11.3333
+            "cold": 0.8772,
+            "ready": 2.6254,
+            "warm": 5.7015
           },
           "office_raw_answer": "\"IMAGE_ALT_MISSING, línea 6, columna 3\"",
           "office_checks": {
@@ -165,18 +171,18 @@
             "cited_location": true
           },
           "terminal_raw_answers": {
-            "cold": "En la información proporcionada, no hay un código exacto para una imagen. La descripción de cada línea en el archivo se mantiene, pero no hay información sobre una imagen específica. Si quieres obtener un código para una imagen, necesitarías una imagen y su información detallada, por ejemplo, su título, lenguaje de lenguaje de lenguaje, y la ubicación en el archivo. Sin esa información, no puedo proporcionar un código exacto para una imagen.",
-            "warm": "Lecturas estáticas locales:\nDOCUMENT_TITLE_MISSING\nHTML_LANGUAGE_MISSING\nIMAGE_ALT_MISSING\nCONTROL_LABEL_CANDIDATE"
+            "cold": "El código exacto de la imagen sin descripción y su línea en el archivo es:\n\nLecturas estáticas locales:\nDOCUMENT_TITLE_MISSING\nHTML_LANGUAGE_MISSING\nIMAGE_ALT_MISSING\nCONTROL_LABEL_CANDIDATE",
+            "warm": "Para identificar el código exacto de la imagen sin descripción y su línea en el archivo, necesito los detalles de la imagen. Los detalles a buscar incluyen:\n\n1. El título de la imagen\n2. El lugar en el que se encuentra la imagen\n3. La etiqueta HTML para la imagen\n4. El nombre de la línea en el archivo\n5. El código HTML para la línea\n6. El nombre del bloque de código con la línea en el archivo\n\nSin acceso a las imágenes o al archivo, no puedo proporcionar el código exacto de la imagen. Sin embargo, puedo ofrecerte una sugerencia basada en los detalles que hemos proporcionado.\n\nSi se proporcionan los detalles necesarios, por favor, proporcionemos más información o la imagen a la que te refieres."
           },
           "terminal_checks": {
             "cold": {
-              "code": false,
+              "code": true,
               "line": false,
               "cited_location": false
             },
             "warm": {
-              "code": true,
-              "line": false,
+              "code": false,
+              "line": true,
               "cited_location": false
             }
           },
@@ -219,9 +225,9 @@
           ],
           "office_model_vram_bytes": 583805173,
           "raw_sha256": {
-            "team": "ded32c38300f2782daebb7c0fce738bc7971bc67525fa8fb120d54ab65ab4f9b",
-            "terminal": "ed9d01281676173c0e0b9a51755e9a40a173303a60eb4aaae091148e02e1373f",
-            "warm": "51a208aa3464ebe4f8c097fe5aa81f341bbceb3261a257c83e929ea0465c8b62"
+            "team": "60139261dececacd5c0409f42dcbda5a4d2ab70b1176183ee6165e4f519db0b5",
+            "terminal": "c94058eac154ef37303a5f4e8c2f8c81b4d8402a7444e969b3c32f27d811300c",
+            "warm": "874eae4ebfe50b3187482f798a36c77bc8c6aaf9647cd81e3152977708026910"
           }
         }
       ]
@@ -250,15 +256,15 @@
         {
           "repetition": 1,
           "cpu_s": {
-            "office": 11.75,
-            "cold": 12.640625,
-            "ready": 4.125,
-            "warm": 1.265625
+            "office": 12.046875,
+            "cold": 12.75,
+            "ready": 4.328125,
+            "warm": 1.171875
           },
           "ratio": {
-            "cold": 0.9295,
-            "ready": 2.8485,
-            "warm": 9.284
+            "cold": 0.9449,
+            "ready": 2.7834,
+            "warm": 10.28
           },
           "office_raw_answer": "\"CONTROL_LABEL_CANDIDATE, línea 5, columna 1\"",
           "office_checks": {
@@ -267,19 +273,19 @@
             "cited_location": true
           },
           "terminal_raw_answers": {
-            "cold": "El código y la línea del control sin etiqueta en este archivo son:\n\n- Código: \"CONTROL_LABEL_CANDIDATE\"\n- Control: \"l línea 5 · columna 1\"",
-            "warm": "El archivo estándar no contiene ningún código o línea de control no etiquetada. Por lo tanto, la respuesta es:\n\nLecturas estáticas locales: CONTROL_LABEL_CANDIDATE · línea 5 · columna 1"
+            "cold": "El código y la línea del control sin etiqueta en el archivo parece ser:\n\n```java\nCONTROL_LABEL_CANDIDATE\n```\n\nEn este caso, no se especifica la línea específica para esta línea, por lo que la respuesta no se puede predecir con precisión. Si el archivo contiene más contenido y se proporciona una línea específica, estaré encantado de ayudarte a extraerla.",
+            "warm": "El código y la línea del control sin etiqueta en este archivo es:\n\n- Línea 5 (columna 1): CONTROL_LABEL_CANDIDATE"
           },
           "terminal_checks": {
             "cold": {
               "code": true,
-              "line": true,
+              "line": false,
               "cited_location": false
             },
             "warm": {
               "code": true,
               "line": true,
-              "cited_location": true
+              "cited_location": false
             }
           },
           "real_role_calls": [
@@ -321,23 +327,23 @@
           ],
           "office_model_vram_bytes": 583805173,
           "raw_sha256": {
-            "team": "841f87da92e8e3883cf7ddb8fe0c2c86b36c4e5ae4e9caf856990c68bf427247",
-            "terminal": "050a455dc11ebfa8daf65089dc6b4870b1686f446fe8971db9d205ac61a79205",
-            "warm": "73b2cc1cb1501799b2903f5e84600dd0e3a74e891062c35f9f796f622c456308"
+            "team": "1fce3f52d22853d8183826f5e517e3fa47b2a8943cf6ffe3d58e07d22066a733",
+            "terminal": "a550d21033d8dfa45059796e8146118832cfde9d9232af7e5809c5f637c9124e",
+            "warm": "c6ce5abebcdc36ac7bd0683a93cf1695d64a40cdfe1699af33a187f0ff857093"
           }
         },
         {
           "repetition": 2,
           "cpu_s": {
-            "office": 12.703125,
-            "cold": 11.953125,
-            "ready": 4.59375,
-            "warm": 1.59375
+            "office": 12.328125,
+            "cold": 13.515625,
+            "ready": 4.765625,
+            "warm": 1.828125
           },
           "ratio": {
-            "cold": 1.0627,
-            "ready": 2.7653,
-            "warm": 7.9706
+            "cold": 0.9121,
+            "ready": 2.5869,
+            "warm": 6.7436
           },
           "office_raw_answer": "\"CONTROL_LABEL_CANDIDATE, línea 5, columna 1\"",
           "office_checks": {
@@ -346,19 +352,19 @@
             "cited_location": true
           },
           "terminal_raw_answers": {
-            "cold": "El código y la línea del control sin etiqueta en el archivo estático \"CONTROL_LABEL_CANDIDATE\" se refieren al código que está en esa línea y columna. Sin embargo, es importante notar que el archivo estático \"CONTROL_LABEL_CANDIDATE\" es muy ligeramente diferente de otros archivos estáticos de Python, por lo que no se puede proporcionar exactamente la línea en la que se encuentra este código y la etiqueta.\n\nSin embargo, podemos asegurarnos de que el archivo estático está en inglés o cualquier otro idioma que se pueda traducir fácilmente. Aquí hay un ejemplo de cómo podría funcionar con \"CONTROL_LABEL_CANDIDATE\":\n\n```python\ndef CONTROL_LABEL_CANDIDATE():\n    print(\"Lecturas estáticas locales:\")\n    CONTROL_LABEL_CANDIDATE_LINE5_C1 = 5\n    print(f\"Línea 5, columna 1: {CONTROL_LABEL_CANDIDATE_LINE5_C1}\")\n```\n\nEn este ejemplo, se define una función llamada \"CONTROL_LABEL_CANDIDATE\" con una línea de código para la cual se debe imprimir. Esto es el código que está en esa línea y columna.\n\nSi \"CONTROL_LABEL_CANDIDATE\" está en otro archivo o en un archivo estático de Python, te diré que sería necesario buscar la línea y columna específica para determinar el código y la etiqueta. Sin embargo, con la información proporcionada anteriormente, no puedo proporcionar la línea en la que se encuentra este código y la etiqueta.",
-            "warm": "El código y la línea del control sin etiqueta en este archivo es:\n\n```java\nCONTROL_LABEL_CANDIDATE · línea 5 · columna 1\n```\n\nEste código se encuentra en la línea 5, columna 1 del archivo."
+            "cold": "En este archivo, no hay ningún código o control sin etiqueta. Es simplemente una secuencia de líneas con números de línea y columnas.",
+            "warm": "El archivo parece estar en un formato de control de flujo de control (CFC). Aunque no veo en particular la lógica de control, puedo decir que el código y la línea del control sin etiqueta en este archivo no se pueden determinar de manera directa sin ver el código fuente o el contexto en el que se encuentra el archivo. Sin embargo, si se proporciona el código fuente o un ejemplo de código, sería posible ayudar a determinar cuál es la lógica de control sin etiqueta."
           },
           "terminal_checks": {
             "cold": {
-              "code": true,
-              "line": true,
+              "code": false,
+              "line": false,
               "cited_location": false
             },
             "warm": {
-              "code": true,
-              "line": true,
-              "cited_location": true
+              "code": false,
+              "line": false,
+              "cited_location": false
             }
           },
           "real_role_calls": [
@@ -400,9 +406,9 @@
           ],
           "office_model_vram_bytes": 583805173,
           "raw_sha256": {
-            "team": "d110b280157ab25a4e8c0e46ebde2d79c2ffd32b2fb34e1b75193d16870338cb",
-            "terminal": "5b506858fc6446dbac38d3a6b6e5e6787854c6e14c28b6581748bb79fd0f653a",
-            "warm": "783ae408ff0b4405a21208ad1729290e44c5099eddb7a49618426c5ddb00e8ae"
+            "team": "e7eda3f7b72e3a23bd20084024b96588279773ad3f5d97a01e75d188113b6b7f",
+            "terminal": "c8fa7960e00ef9bf60f700527cf29687d1a5e8d9b49ac3fcc65b3bdf816f634b",
+            "warm": "1e9ab9a544bf50c63ce69b94907f7a986431ed687b79945ebbe665e5e9a89d63"
           }
         }
       ]
@@ -424,15 +430,15 @@
         {
           "repetition": 1,
           "cpu_s": {
-            "office": 11.890625,
-            "cold": 12.484375,
-            "ready": 4.375,
-            "warm": 1.65625
+            "office": 12.6875,
+            "cold": 13.65625,
+            "ready": 4.859375,
+            "warm": 1.953125
           },
           "ratio": {
-            "cold": 0.9524,
-            "ready": 2.7179,
-            "warm": 7.1792
+            "cold": 0.9291,
+            "ready": 2.6109,
+            "warm": 6.496
           },
           "office_raw_answer": "This static HTML audit identifies no issues and does not involve code execution, browsing, deployment, permission changes, or self-certification.",
           "office_checks": {
@@ -440,8 +446,8 @@
             "scope_limit": true
           },
           "terminal_raw_answers": {
-            "cold": "En los cuatro hallazgos en las comprobaciones de lecturas estásticas que me permiten revisar el texto de la página web, ninguno de ellos está en los hallazgos en las comprobaciones de lecturas estásticas. Las hallazgos de revisión están solo en un pequeño número de lecturas y no se han incluido en las lecturas estásticas de las que estoy teniendo cuenta en esta respuesta.",
-            "warm": "Lo siento, pero no puedo acceder a la información previa de esta consulta. Aunque he escuchado que las lecturas estáticas de una región no están en la revisión, sin acceso a la información de la lectura estática en la región específica, no puedo determinar exactamente en qué parte de la región quedan datos que no están en la revisión. Para obtener información precisa sobre los datos no revisados, necesitaría que me proporcionaran la región específica o el texto en cuestión."
+            "cold": "Claro, estaré encantado de ayudarte con esta información. Puedo compartir que, según la información que me proporcionas, no se han encontrado hallazgos en las cuatro comprobaciones estáticas. Esta información indica que en la revisión estática de los documentos, no se han detectado ningún hallazgo. Si necesitas más información o ayuda con otros aspectos, no dudes en preguntar.",
+            "warm": "Entiendo que estás buscando hallazgos en las comprobaciones y que no se han identificado ninguno. Recuerda que los hallazgos en comprobaciones estánsticas se consideran como \"que quedan fuera de la revisión\" si no se han podido identificar con la información disponible. Por lo que si no se han encontrado hallazgos, no se trata de hallazgos \"que quedan fuera de la revisión\". Si necesitas que se identifiquen los hallazgos en comprobaciones, estaré encantado de ayudarte a lograrlo. ¿Podrías proporcionar más detalles sobre qué hallazgos estás buscando?"
           },
           "terminal_checks": {
             "cold": {
@@ -449,7 +455,7 @@
               "scope_limit": false
             },
             "warm": {
-              "no_findings": false,
+              "no_findings": true,
               "scope_limit": false
             }
           },
@@ -492,23 +498,23 @@
           ],
           "office_model_vram_bytes": 583805173,
           "raw_sha256": {
-            "team": "ce2509aea756d2b8b46a87f5d7117bf05f0567272afdd93e1a1c75d812e900ec",
-            "terminal": "0f9266d396fb2cd41c13cc01d7014fa823cd4c233ae186605c9cb330781061b7",
-            "warm": "b2484cba76485af66216510ea45c568e62a058243db2a636e3e65dc9ed5f1795"
+            "team": "d09e12aa3f7de2cb302f5c16293e7e2eb025d90c27ca33c94b327f09c0a9178c",
+            "terminal": "96e7598446198a163b9110454b6ba5672c4949349f58da31a84a464a3ba76f95",
+            "warm": "baa6db36af2371642a647b36e5e8e748752844021b82a9eea3fab5f2230b7227"
           }
         },
         {
           "repetition": 2,
           "cpu_s": {
-            "office": 13.1875,
-            "cold": 12.71875,
-            "ready": 3.890625,
-            "warm": 1.78125
+            "office": 11.640625,
+            "cold": 13.625,
+            "ready": 4.46875,
+            "warm": 1.984375
           },
           "ratio": {
-            "cold": 1.0369,
-            "ready": 3.3896,
-            "warm": 7.4035
+            "cold": 0.8544,
+            "ready": 2.6049,
+            "warm": 5.8661
           },
           "office_raw_answer": "This static HTML audit identifies no issues and does not involve code execution, browsing, deployment, permission changes, or self-certification.",
           "office_checks": {
@@ -516,8 +522,8 @@
             "scope_limit": true
           },
           "terminal_raw_answers": {
-            "cold": "Si la información proporcionada coincide con los hallazgos en las cuatro comprobaciones estáticas, podemos decir que no hay hallazgos en las comprobaciones estáticas. Sin embargo, si hay algún hallazgo en alguna de las comprobaciones estáticas, no es adecuado decir que no se encontraron hallazgos en estas comprobaciones y que algo queda fuera de la revisión. ¿Hay algo específico en particular que necesitas en este momento?",
-            "warm": "Como asistente de IA, no tengo la capacidad para realizar lecturas estáticas. Mi función es proporcionar información y asistencia basada en el conocimiento que he sido entrenado para manejar. No tengo la capacidad para leer o analizar archivos, páginas o párrafos. Las lecturas estáticas se refieren a aquellos textos que ya están ordenados y ya han sido analizados, lo que significa que no se encuentran en las lecturas estáticas locales. Si tienes un problema en particular que desee que se haga, estaré encantado de ayudar a resolverlo."
+            "cold": "Sí, he realizado una revisión y no encontré ningún hallazgo en las cuatro comprobaciones y revisiones estáticas. Los hallazgos en las revisiones estáticas son considerados como factores de riesgo, ya que pueden ser importantes para las operaciones futuras, pero no son absolutamente nuevos o únicos para mi.",
+            "warm": "Sigo encontrando información sobre una tarea o proceso, pero en este caso, no he encontrado ningún hallazgo en las cuatro comprobaciones estáticas. Esta afirmación se refiere a las comprobaciones estáticas de texto y no a las de la lenguaje natural o de sistemas en general.\n\nEspero que me aclaren los detalles o que puedas proporcionar más contexto para que puedas ayudar mejor. Si tienes alguna tarea que necesites que pueda revisar o ayudar con, estaré encantado de ayudarte."
           },
           "terminal_checks": {
             "cold": {
@@ -525,7 +531,7 @@
               "scope_limit": false
             },
             "warm": {
-              "no_findings": false,
+              "no_findings": true,
               "scope_limit": false
             }
           },
@@ -568,9 +574,9 @@
           ],
           "office_model_vram_bytes": 583805173,
           "raw_sha256": {
-            "team": "1c26758e8bd0d659f0492365f05ad3c3850135aeb6500ecb0592dc2f63061023",
-            "terminal": "58ff6b4912623370761d5850f9b50e72f73179cdfcea8afadcc05aa815e1cbe9",
-            "warm": "6288cc4f2cee992b2f816a4c33d8b1ff2fb75c965fa3c779a0c8ad56741b10b9"
+            "team": "2a6aba1e2e941275e78444d46326e416865505bc3da9b966201e71b39b956d90",
+            "terminal": "e3aeeb3e33e498e5c68a327573c08a4f89d747c128d8dceb2e2528d4c902e851",
+            "warm": "10fe5925b259b14a30219236a8e2fe2a13adfe790b4345bab2850af4d3610579"
           }
         }
       ]
@@ -614,15 +620,15 @@
         {
           "repetition": 1,
           "cpu_s": {
-            "office": 13.390625,
-            "cold": 13.25,
-            "ready": 5.5625,
-            "warm": 3.46875
+            "office": 12.265625,
+            "cold": 13.421875,
+            "ready": 4.71875,
+            "warm": 3.109375
           },
           "ratio": {
-            "cold": 1.0106,
-            "ready": 2.4073,
-            "warm": 3.8604
+            "cold": 0.9139,
+            "ready": 2.5993,
+            "warm": 3.9447
           },
           "office_raw_answer": "The static HTML heuristics identified missing evidence and prior role text, focusing on image and form control issues. Prioritize the findings and define a bounded review plan.",
           "office_checks": {
@@ -631,17 +637,96 @@
             "scope_limit": false
           },
           "terminal_raw_answers": {
-            "cold": "Para corregir estas etiquetas y campos, primero debes ver qué se está haciendo de manera incorrecta. A continuación, te proporciono una descripción de cómo corregir la imagen y el control de formulario, junto con un límite de revisión.\n\n### Revisión 1: Control de Formulario\nLa imagen `CONTROL_LABEL_CANDIDATE` debe estar en la línea 7, columna 3 del archivo HTML. Esto es porque, en este límite, no se especifica una línea. Para corregir esto, deberías agregar la siguiente línea en el archivo HTML:\n```html\n<INPUT TYPE=\"text\" NAME=\"CONTROL_LABEL_CANDIDATE\" REQUIRED>\n```\n\n### Revisión 2: Imagen y Control de Formulario\nLa imagen `CONTROL_LABEL_CANDIDATE` debe estar en la línea 7, columna 3 del archivo HTML. Esto es porque, en este límite, no se especifica la ubicación donde se está la imagen. Para corregir esto, deberías agregar la siguiente línea en el archivo HTML:\n```html\n<INPUT TYPE=\"text\" NAME=\"CONTROL_LABEL_CANDIDATE\" VALUE=\"\" SIZE=\"40\">\n```\n\n### Revisión 3: Límite de Revisión\nEl límite de revisión es de 1500 caracteres. Las correcciones anteriores no superan el límite, por lo que no necesitan cumplirse con este límite.\n\n### Explicación:\n- La corregida línea 7, columna 3 en HTML se utiliza para añadir una imagen y un campo de texto en el formulario.\n- La corrección en JavaScript para la imagen se realizó en esta línea:\n  ```html\n  <INPUT TYPE=\"text\" NAME=\"CONTROL_LABEL_CANDIDATE\" VALUE=\"\" SIZE=\"40\">\n  ```\n  Esto añade una imagen a un formulario de texto y almacena el texto en el campo de texto.",
-            "warm": "Para corregir la imagen y el control de formulario, se recomienda seguir estos pasos:\n\n1. HTML: \n   - Asegúrese de que exista la etiqueta \"img\" para la imagen y que la URL sea válida.\n   - Asegúrese de que la imagen se encuentra en el mismo directorio que el archivo.\n\n2. CSS:\n   - Asegúrese de que la imagen se muestre correctamente y que no se esté lidiando con colas o borde.\n   - Asegúrese de que la etiqueta \"img\" tenga la propiedad \"alt\" que contenga el título de la imagen. Por ejemplo: \"alt=\"Imagen del cliente\"\".\n   - Asegúrese de que la imagen esté en el mismo directorio que el archivo.\n\n3. JavaScript: \n   - Asegúrese de que la página esté en el navegador y que el JavaScript esté habilitado.\n   - Asegúrese de que la página no esté mal configurada, como por ejemplo que no esté en modo de renderizado. Por ejemplo: \"display: block;\" y \"display: none;\" deben ser reemplazados por \"display: block;\" y \"display: none;\" en el archivo HTML.\n   - Asegúrese de que la página no esté mal configurada, como por ejemplo que no esté en modo de renderizado. Por ejemplo: \"display: block;\" y \"display: none;\" deben ser reemplazados por \"display: block;\" y \"display: none;\" en el archivo HTML.\n\n4. Control de formulario: \n   - Asegúrese de que el formulario esté en el mismo directorio que el archivo.\n   - Asegúrese de que el formulario no esté mal configurado, como por ejemplo que no esté en modo de renderizado. Por ejemplo: \"display: block;\" y \"display: none;\" deben ser reemplazados por \"display: block;\" y \"display: none;\" en el archivo HTML.\n\nEn resumen, la revisión de estas pestañas debería corregir todas las errores que se presenten en la página y el formulario. Asegúrese de que el archivo HTML es el único archivo y que no esté mal configurado. Asegúrese de que el archivo HTML está en el mismo directorio que el archivo."
+            "cold": "Para corregir estas líneas de texto y definir el límite de revisión, necesitaríamos el archivo de texto o el contenido de la página que está siendo revisado. Sin embargo, en el contexto actual de esta conversación, es posible que pueda ayudarte a crear una descripción o un texto que reemplazara estas líneas de texto. Sin embargo, la revisión más correcta se basaría en el contenido del archivo de texto o el texto que se ha recibido.",
+            "warm": "Para corregir la imagen y el formulario de forma correcta, necesitaríamos información sobre qué imagen está siendo usada y qué formulario se está utilizando. Sin embargo, de acuerdo con los datos proporcionados en tu solicitud, te sugiero revisar el HTML y CSS de la página web en cuestión.\n\n1. **Document Title Missing:** La ligería de esta revisión es que la página se está utilizando en el idioma de texto, pero no en el idioma de HTML. ¿Qué idioma está siendo usado en la página web? ¿Cómo se identifica o se conoce a la página en el idioma de la página web?\n\n2. **HTML Language Missing:** Se dice que la página web está utilizando un idioma de texto, pero no en el idioma de HTML. ¿Qué idioma está siendo usado en la página web? ¿Cómo se conoce a la página en el idioma de la página web?\n\n3. **IMAGE ALT Missing:** Algunos usuarios pueden estar confundidos con esta revisión. Si una imagen es necesario y no está proporcionada, pero se está utilizando en el texto, ¿qué se está haciendo con la imagen en la página web? ¿Cómo se va a interpretar y cómo se mostrará el texto? ¿Cómo se puede mejorar o corregir esto?\n\n4. **CONTROL_LABEL_CANDIDATE:** Este estándar se usa para indicar que se debe seleccionar en la lista \"Candidate\". ¿Qué está pasando aquí? ¿Qué es lo que se está intentando hacer con esta revisión? ¿Cómo se puede mejorar o corregir esto?\n\nPara resolver estas correcciones, te sugiero:\n\n- **Identificar el idioma de la página web:** Si no se está utilizando un idioma específico, o si no se estén utilizando las imágenes en el idioma de texto, es recomendable usar un idioma de texto para la página web.\n- **Después de identificar el idioma de la página web, corregir o revisar el HTML y CSS:** Asegúrate de que la página web se vea correctamente en el idioma de la página web. Si se está utilizando un idioma de texto, asegúrate de que las imágenes y las listas \"Candidate\" sean de este idioma.\n- **Verificar la página web en el idioma de la página web:** Asegúrate de que las imágenes y las listas \"Candidate\" están en el idioma de la página web.\n\nEspero que esta información te ayude a corregir y mejorar la página web."
           },
           "terminal_checks": {
             "cold": {
               "image_remedy": false,
-              "control_remedy": true,
+              "control_remedy": false,
               "scope_limit": false
             },
             "warm": {
               "image_remedy": true,
+              "control_remedy": false,
+              "scope_limit": false
+            }
+          },
+          "real_role_calls": [
+            {
+              "role": "director",
+              "request_sha256": "eecd60323e3df4395d8c8ba317bbbf6da2d65ea5ab9ade2f2a5b60f127a46c44",
+              "output_tokens": 21
+            },
+            {
+              "role": "planner",
+              "request_sha256": "37182d34d274b8ea1de4c482c0a1786cbf7406fb74f75c56cfda8649142c1cd9",
+              "output_tokens": 38
+            },
+            {
+              "role": "researcher",
+              "request_sha256": "cfc6391da157e884596e2e96b30e1e6ad76d78db4ff18f900a671c212b35e8fa",
+              "output_tokens": 32
+            },
+            {
+              "role": "implementer",
+              "request_sha256": "ef6789059b3b8e22167553f6948fa6fe35a449d5f903e0dbcc9aa11ced4e4393",
+              "output_tokens": 34
+            },
+            {
+              "role": "skeptic",
+              "request_sha256": "4778633cbdaded7a31e7ed6c3b3acee55cdf9abc8f7b8456e3a177db0ca322a0",
+              "output_tokens": 24
+            },
+            {
+              "role": "verifier",
+              "request_sha256": "ef9a226b5e19c2ac1fe580948c503f76393ec36ca32973225991318ee502c80b",
+              "output_tokens": 34
+            },
+            {
+              "role": "integrator",
+              "request_sha256": "03c297c6a4d4b08bb32b1109767d22df0b4fdac29b680b442159d80f203306bb",
+              "output_tokens": 34
+            }
+          ],
+          "office_model_vram_bytes": 583805173,
+          "raw_sha256": {
+            "team": "d6ba525885288172b75d25c1cab6723f4a72b04c386404b085ff76c3a5639d44",
+            "terminal": "11906baf1add154020196090fd925b21e68cee39d2599eeae8124213cf65d453",
+            "warm": "74d612258c57740c46f6bb98336495629dd238916b9706c7b0aa8136116deba2"
+          }
+        },
+        {
+          "repetition": 2,
+          "cpu_s": {
+            "office": 12.109375,
+            "cold": 13.90625,
+            "ready": 5.203125,
+            "warm": 3.796875
+          },
+          "ratio": {
+            "cold": 0.8708,
+            "ready": 2.3273,
+            "warm": 3.1893
+          },
+          "office_raw_answer": "The static HTML heuristics identified missing evidence and prior role text, focusing on image and form control issues. Prioritize the findings and define a bounded review plan.",
+          "office_checks": {
+            "image_remedy": false,
+            "control_remedy": false,
+            "scope_limit": false
+          },
+          "terminal_raw_answers": {
+            "cold": "Para corregir las imágenes y el control de formulario, puedes seguir estos pasos:\n\n1. Verifica el archivo HTML:\n   - Asegúrate de que el archivo HTML que estás revisando incluye correctamente las líneas de texto (HTML_LANGUAGE_MISSING, DOCUMENT_TITLE_MISSING, CONTROL_LABEL_CANDIDATE).\n   - Asegúrate de que los elementos con ID \"doc\" (si el archivo es un documento) o que se encuentran en la estructura de la página se están utilizando correctamente.\n\n2. Verifica el archivo imagen:\n   - Asegúrate de que el archivo de imagen se almacene correctamente en la carpeta de imagen y está en la misma carpeta del archivo HTML.\n\n3. Verifica el archivo CSS:\n   - Asegúrate de que el archivo CSS que estás revisando no está duplicado o no está relacionado con el HTML del documento.\n\n4. Verifica el archivo JavaScript:\n   - Asegúrate de que los archivos JavaScript están en la misma carpeta del archivo HTML y que se almacenan correctamente.\n\n5. Verifica el archivo CSS:\n   - Asegúrate de que el archivo CSS que estás revisando no está duplicado o no está relacionado con el HTML del documento.\n\n6. Verifica el archivo JavaScript:\n   - Asegúrate de que los archivos JavaScript están en la misma carpeta del archivo HTML y que se almacenan correctamente.\n\n7. Consulta el documental:\n   - Si el documento es un archivo de texto o PDF, consulta el documental para obtener más información sobre cómo corregir las imágenes y el control de formulario.\n\nEn resumen, para corregir las imágenes y el control de formulario, asegúrate de que estén correctamente incluidos y que se almacenan correctamente en la página. Si el documento es un documento, consulte el documental para obtener más información.",
+            "warm": "En la lista de revisiones (control de formulario y imagen), no se especifican límites sobre los textos y los etiquetas de formulario. Sin embargo, puedo recomendar que corregas estos puntos y ajustes de forma segura en tu código, como lo sugiere el \"Limiting code\" en las líneas 2 y 7.\n\nPrimero, te recomiendo que realices una revisión con los siguientes límites:\n\n1. Límite de texto: Asegúrate de que el límite de texto no supera el límite de caracteres permitidos por el navegador. Para HTML, se mide a 790 caracteres en total (incluyendo el espacio entre el contenido y el final de la línea).\n2. Límite de etiquetas: Asegúrate de que las etiquetas no superen los límites de caracteres permitidos en el navegador. En este caso, los límites de etiquetas son: 10000000 para los análogos HTML y 1000000 para los análogos CSS.\n\nPara corregir la revisión:\n\n1. Límite de texto:\n   - Asegúrate de que el texto no supera el límite de caracteres permitidos en el navegador.\n   - Si tienes un texto largo, puedes usar un parámetro de respuesta en tu lenguaje de programación (JS) para limitar la cantidad de texto que se muestra en la interfaz de usuario.\n\n2. Límite de etiquetas:\n   - Asegúrate de que las etiquetas no superen los límites de caracteres permitidos en el navegador.\n   - Si hay etiquetas largas, puedes usar un parámetro de respuesta en tu lenguaje de programación (JS) para limitar la cantidad de textos que se mostrarán en la interfaz de usuario.\n\nLamentablemente, en la actualidad, no se ha proporcionado la información sobre el texto y etiquetas que están en el código. Te recomendaría que revises el código de la siguiente manera:\n- Realiza una revisión con los siguientes límites:\n  - Límite de texto: 790 caracteres en total.\n  - Límite de etiquetas: 10000000 para HTML y 1000000 para CSS.\n- Asegúrate de que el texto no supera el límite de caracteres permitidos en el navegador.\n- Si tienes un texto largo, puedes usar un parámetro de respuesta en tu lenguaje de programación (JS) para limitar la cantidad de texto que se muestra en la interfaz de usuario.\n\nPuedes reemplazar la parte de la revisión con la información proporcionada o actualizarla si es necesario.\nEspero que esto te sea útil y que puedas corregir la revisión y ajustes. ¡Buena suerte con tu proyecto!"
+          },
+          "terminal_checks": {
+            "cold": {
+              "image_remedy": false,
+              "control_remedy": false,
+              "scope_limit": false
+            },
+            "warm": {
+              "image_remedy": false,
               "control_remedy": true,
               "scope_limit": true
             }
@@ -685,122 +770,182 @@
           ],
           "office_model_vram_bytes": 583805173,
           "raw_sha256": {
-            "team": "81df1c073220e6fafe3f0015165b6906b7f5e0dda4236ac16b29a37392b7b739",
-            "terminal": "31a506c3281199ff4ab9859db82b77602bc2d438f9e5b1fa7c77bab94ff93f52",
-            "warm": "c50cbfaa79b9af48123e989a8db1079fdd0c202e0936b4e030b08d995c33dde9"
-          }
-        },
-        {
-          "repetition": 2,
-          "cpu_s": {
-            "office": 13.296875,
-            "cold": 12.015625,
-            "ready": 5.0625,
-            "warm": 2.421875
-          },
-          "ratio": {
-            "cold": 1.1066,
-            "ready": 2.6265,
-            "warm": 5.4903
-          },
-          "office_raw_answer": "The static HTML heuristics identified missing evidence and prior role text, focusing on image and form control issues. Prioritize the findings and define a bounded review plan.",
-          "office_checks": {
-            "image_remedy": false,
-            "control_remedy": false,
-            "scope_limit": false
-          },
-          "terminal_raw_answers": {
-            "cold": "Estos errores en la revisión de imágenes y los controladores de formulario son consecuencias de problemas en los archivos de código fuente, no de la seguridad de la aplicación. Para corregir estos problemas, es importante asegurarse de que los archivos de diseño son correctos y que los archivos HTML y CSS están correctamente configurados.\n\nPara corregir los errores en la revisión de imágenes, las imágenes deben estar en un directorio de imagen y deben ser códificadas correctamente con el formato .jpg, .png o .jpeg. Las imágenes no deben contener datos no reconocibles o imágenes que no puedan ser interpretadas por la aplicación.\n\nPara corregir los errores en la revisión de los controladores de formulario, los campos necesitan un nombre en español y deben ser validados correctamente. También es importante verificar que los campos no estén llenos, ya que estos errores pueden provocar problemas de seguridad.\n\nPara corregir los errores en la revisión de los elementos HTML con controladores de formulario, se debe asegurarse de que los datos se validen y se deben rellenar correctamente. Además, los campos del formulario deben estar llenos para que la aplicación funcione correctamente. Si un campo está llena, puede ser una señal de que se ha intentado enviar datos no válidos.",
-            "warm": "Basado en la información proporcionada, aquí tienes una revisión detallada de cómo corregir estas líneas en tu código. El límite de la revisión es la línea 6 en el `HTML_LANGUAGE_MISSING` y en el `CONTROL_LABEL_CANDIDATE`:\n\nLínea 6: `CONTROL_LABEL_CANDIDATE`\n- `CONTROL_LABEL_CANDIDATE` debería ser `CONTROL_LABEL_CHOSEN`.\n- El límite se establece en 330 caracteres.\n\nLínea 7: `Lecturas estáticas locales:`\n- Este texto no está relacionado con el lenguaje de texto o el control de formulario.\n\nPor lo tanto, la revisión se basa en la lógica de lenguaje y los control de formulario, y no en el lenguaje de texto o el control de lecturas locales. Si el texto que está utilizando es de lenguaje de texto, entonces no se necesita modificar, ya que `CONTROL_LABEL_CHOSEN` es el lenguaje de texto. Si el texto que está utilizando es de lenguaje de lecturas locales, entonces se necesita modificar para que sea el lenguaje de texto."
-          },
-          "terminal_checks": {
-            "cold": {
-              "image_remedy": false,
-              "control_remedy": false,
-              "scope_limit": false
-            },
-            "warm": {
-              "image_remedy": false,
-              "control_remedy": false,
-              "scope_limit": false
-            }
-          },
-          "real_role_calls": [
-            {
-              "role": "director",
-              "request_sha256": "eecd60323e3df4395d8c8ba317bbbf6da2d65ea5ab9ade2f2a5b60f127a46c44",
-              "output_tokens": 21
-            },
-            {
-              "role": "planner",
-              "request_sha256": "37182d34d274b8ea1de4c482c0a1786cbf7406fb74f75c56cfda8649142c1cd9",
-              "output_tokens": 38
-            },
-            {
-              "role": "researcher",
-              "request_sha256": "cfc6391da157e884596e2e96b30e1e6ad76d78db4ff18f900a671c212b35e8fa",
-              "output_tokens": 32
-            },
-            {
-              "role": "implementer",
-              "request_sha256": "ef6789059b3b8e22167553f6948fa6fe35a449d5f903e0dbcc9aa11ced4e4393",
-              "output_tokens": 34
-            },
-            {
-              "role": "skeptic",
-              "request_sha256": "4778633cbdaded7a31e7ed6c3b3acee55cdf9abc8f7b8456e3a177db0ca322a0",
-              "output_tokens": 24
-            },
-            {
-              "role": "verifier",
-              "request_sha256": "ef9a226b5e19c2ac1fe580948c503f76393ec36ca32973225991318ee502c80b",
-              "output_tokens": 34
-            },
-            {
-              "role": "integrator",
-              "request_sha256": "03c297c6a4d4b08bb32b1109767d22df0b4fdac29b680b442159d80f203306bb",
-              "output_tokens": 34
-            }
-          ],
-          "office_model_vram_bytes": 583805173,
-          "raw_sha256": {
-            "team": "8b10d5885ddebf8abd67c37c471e0b762160749a8c0c4e2b6786239294e831de",
-            "terminal": "6c1db7b1e7931bafe92a8831d6fadb28e317dc7eede761404152d8807f4f4b9e",
-            "warm": "2cf70969c367a8ffbc01128af06ad175be0a38e337f44fad027ddf33d832bf4b"
+            "team": "9b04af1c8b0a12a4148699fbff6729eeec206d57724a6077fd5d958367023855",
+            "terminal": "d56c08265c362c54ca20e98675afb850e94fbcc14b8aa90dd05b8a5694dea60f",
+            "warm": "0208ab5a409899e60376870c24823f7125c8ec0da028e2378e10b59b261c6495"
           }
         }
       ]
     }
   ],
+  "memory_sample_gaps": {
+    "control-0-terminal.json": 1,
+    "limpio-0-team.json": 1
+  },
   "rollup": {
     "cold": {
-      "min": 0.9295,
-      "max": 1.1066,
-      "passed_pairs": 8
+      "min": 0.8544,
+      "max": 1.3953,
+      "passed_pairs": 8,
+      "measured_pairs": 8,
+      "unavailable_pairs": 0
     },
     "ready": {
-      "min": 2.4073,
-      "max": 3.3896,
-      "passed_pairs": 0
+      "min": 2.3273,
+      "max": 3.1916,
+      "passed_pairs": 0,
+      "measured_pairs": 8,
+      "unavailable_pairs": 0
     },
     "warm": {
-      "min": 3.8604,
-      "max": 11.3333,
-      "passed_pairs": 0
+      "min": 3.1893,
+      "max": 10.28,
+      "passed_pairs": 0,
+      "measured_pairs": 8,
+      "unavailable_pairs": 0
     },
     "quality_passed_pairs": 6,
     "verified_model_calls": 56,
-    "office_mean_cpu_s": 12.83984375,
+    "office_mean_cpu_s": 12.25390625,
     "previous_office_mean_cpu_s": 94.49609375,
-    "cpu_savings_vs_previous_percent": 86.41
+    "cpu_savings_vs_previous_percent": 87.03,
+    "peak_vs_warm_1s": {
+      "valid": 7,
+      "unavailable": 1,
+      "min": 1.1257744733581165,
+      "max": 1.3884533143264433,
+      "within_1_5": 7
+    }
   },
   "request_replay": {
     "matching_payload_hashes": 56,
     "checked_source_sha256": {
-      "neural_office/ollama.py": "2c60600d730abee2966319d826c464c7c4db497103448d45b2bef3a341f8cdd5",
-      "neural_office/runner.py": "eda0a26ad395aa711f392e1f9584b53d0f6da4f235e840df4c10e5027f3b2727",
+      "neural_office/ollama.py": "6556fc5544af0f6de680a2fa64456ca389be11f49dfa29fd3a31b679efb7a0c0",
       "neural_office/audit.py": "ef3c54f9ae74b59cb2b5adc5d589d63a18a4a3ef148e42a428438cdf8059c4ba",
-      "tools/measure_v5352_team.py": "5950ed33d656294541733f0d36df80a3de26c5c6bf7d9fa9ff39401587a1143f"
+      "neural_office/runner.py": "eda0a26ad395aa711f392e1f9584b53d0f6da4f235e840df4c10e5027f3b2727",
+      "tools/measure_v5352_team.py": "2210118bd16d2b4387095e322fa92b29a086ba88ba98def9ef91f137fb53bebc"
     }
+  },
+  "previous_candidate": {
+    "commit": "279004405694c19afdd434a5f8afedc5fdb6fff8",
+    "windows_actions": {
+      "run": 44896798182,
+      "job": 136824092379,
+      "tested_commit": "279004405694c19afdd434a5f8afedc5fdb6fff8",
+      "exe_sha256": "491a45ed763f0558daad71d8952338d7e9404e04053472107058d35bb0c00ce0",
+      "artifact": {
+        "id": 14704593136,
+        "digest": "sha256:e9d84d897c55ee26a913761865663ec9dff6f83dc07396fdf35dd13362209c1b",
+        "bytes": 2264012
+      },
+      "webview2": "157.0.4341.46",
+      "attachment_hashes": {
+        "manifiesto.json": "7f0acc9ad139d5f8941856417bd70f828dccd2a6fa963165f6866e543fe355e8",
+        "especificacion.pdf": "03bbb05f07f7f0861cfa55a66078b047b0cea4349b97148ddf81306d83769b02"
+      },
+      "local_response": "31 h en la especificación, 57 h en la entrega",
+      "model_raw_response": "\"31 horas\"",
+      "model_digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "team": [
+        {
+          "role": "director",
+          "request": "34a1170ba05b4fe33e8dc6bc9546c58a59a34b098ac24f86cb53c9eaa888cd4f",
+          "tokens": 18,
+          "mode": "CPU",
+          "size_vram": 0
+        },
+        {
+          "role": "planner",
+          "request": "aa8b7ec10a52ff1bea43cc590f80e53e7cb99c283604375b0990cd6118c6aa08",
+          "tokens": 35,
+          "mode": "CPU",
+          "size_vram": 0
+        },
+        {
+          "role": "researcher",
+          "request": "c7511e282b60d85a4a5311bc90d2fad0df48d83249cd3ad243517a1df9745c21",
+          "tokens": 30,
+          "mode": "CPU",
+          "size_vram": 0
+        },
+        {
+          "role": "implementer",
+          "request": "e7fd05f8fa62ae367f5744c6317cca6e8fbf0f25e2c6cb65ccc76bc49b060a1e",
+          "tokens": 35,
+          "mode": "CPU",
+          "size_vram": 0
+        },
+        {
+          "role": "skeptic",
+          "request": "ecf8084708697764e90c439c17386218ac0c7eabc08e002217d9d7636124388c",
+          "tokens": 17,
+          "mode": "CPU",
+          "size_vram": 0
+        },
+        {
+          "role": "verifier",
+          "request": "7382fa8e61b258a0d7d832f7259e05fae6a830f729f3d5e70d1b9fd6d4d2e9c7",
+          "tokens": 50,
+          "mode": "CPU",
+          "size_vram": 0
+        },
+        {
+          "role": "integrator",
+          "request": "5400c577af5e9622fd898e3796018a2f41c7bc5f3608f9bd4389b658f93d1ffc",
+          "tokens": 16,
+          "mode": "CPU",
+          "size_vram": 0
+        }
+      ],
+      "team_raw_response": "\"IMAGE_ALT_MISSING, línea 2, columna 1\""
+    },
+    "12_pair_cpu_comparison": {
+      "pairs": 12,
+      "calls": 84,
+      "all_answer_checks": 9,
+      "office_mean_cpu_s": 12.967447916666666,
+      "cold": {
+        "min": 0.8536,
+        "max": 1.4132,
+        "passed": 12
+      },
+      "ready": {
+        "min": 2.2479,
+        "max": 4.0095,
+        "passed": 0
+      },
+      "warm": {
+        "min": 3.8604,
+        "max": 11.3333,
+        "passed": 0
+      }
+    }
+  },
+  "identity_diagnostic": {
+    "ollama_version": "0.40.16",
+    "model_store": "canonical v2 single manifest with matched config SHA-256",
+    "source": "https://github.com/ollama/ollama/blob/v0.40.16/server/model_list.go",
+    "manifest_resolution": "https://github.com/ollama/ollama/blob/v0.40.16/manifest/paths.go",
+    "catalog_14_checks_backend_cpu_s": [
+      1.328125,
+      1.046875,
+      1.0
+    ],
+    "file_verification_14_checks": {
+      "version": "0.40.16",
+      "model": "qwen2.5:0.5b",
+      "manifest_matches": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "validates_changed_manifest": true,
+      "validates_changed_config": true,
+      "checks": 14,
+      "cpu_s": 0.015625,
+      "wall_s": 0.021442299941554666
+    },
+    "owner_checks_wall_s_x8": {
+      "shell": 23.91722399997525,
+      "native": 0.0019132000161334872
+    },
+    "one_server_startup_cpu_s": 5.125,
+    "model_receipts_using_pinned_tag_and_config": 56
   }
 }

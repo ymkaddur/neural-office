@@ -1,10 +1,12 @@
 """A dedicated, owned Ollama process tree; the user's existing service is untouched."""
 import ctypes
 from ctypes import wintypes
+import hashlib
 import http.client
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
+import re
 import shutil
 import socket
 import struct
@@ -13,6 +15,7 @@ import threading
 import time
 
 from .ledger import Denied, canonical
+from .files import capture_local
 from .windows_job import Job
 
 
@@ -95,6 +98,50 @@ def listener_pids(port):
     raise Denied('BACKEND_LISTENER_OWNER_UNKNOWN')
 
 
+def _matching_bytes(path, root, expected):
+    data, _ = capture_local(path, root, maximum=65536)
+    if hashlib.sha256(data).hexdigest() != expected:
+        raise Denied('MODEL_DIGEST_CHANGED')
+    return data
+
+
+def _team_model_files(root, profile, version):
+    """Attest a plain v2 tag against the live catalog before using per-file checks."""
+    if version != '0.40.16' or profile.get('execution_policy') != TEAM_POLICY or not root.is_absolute():
+        return ()
+    match = re.fullmatch(r'([a-z0-9][a-z0-9_.-]{0,100}):([a-z0-9][a-z0-9_.-]{0,100})', profile['model'])
+    if not match or any(p.endswith('.') or PureWindowsPath(p).is_reserved() for p in match.groups()):
+        return ()
+    model, tag = match.groups()
+    if re.fullmatch(r'(?:sha256-)?[a-f0-9]{12,64}', model):
+        return ()
+    manifest = root / 'manifests-v2' / 'ollama.com' / 'library' / model / tag
+    try:
+        raw, _ = capture_local(manifest, root, maximum=65536)
+        info = json_unique(raw)
+        if (not isinstance(info, dict) or info.get('schemaVersion') != 2
+                or info.get('mediaType') != 'application/vnd.docker.distribution.manifest.v2+json'):
+            return ()
+        config = info.get('config')
+        if not isinstance(config, dict) or not isinstance(config.get('digest'), str):
+            return ()
+        sha = re.fullmatch(r'sha256:([a-f0-9]{64})', config['digest'])
+        if not sha:
+            return ()
+        if hashlib.sha256(raw).hexdigest() != profile['model_digest']:
+            raise Denied('MODEL_DIGEST_CHANGED')
+        blob = root / 'blobs' / ('sha256-' + sha[1])
+        _matching_bytes(blob, root, sha[1])
+    except Denied as exc:
+        if str(exc) == 'MODEL_DIGEST_CHANGED':
+            raise
+        return ()
+    except (OSError, ValueError):
+        # An unrecognized or unavailable layout continues with the live catalog.
+        return ()
+    return ((manifest, profile['model_digest']), (blob, sha[1]))
+
+
 class OwnedOllama:
     def __init__(self,job_name,profile,log_path):
         self.job=Job(job_name)
@@ -103,6 +150,7 @@ class OwnedOllama:
         self.log_path=Path(log_path)
         self.log=None
         self.telemetry=[]
+        self._model_files=()
         self._process_lock=threading.Lock()
         self._stop_requested=False
 
@@ -144,13 +192,15 @@ class OwnedOllama:
             try:
                 probe+=1; phase='metadata'
                 self._startup_event('STARTUP_PROBE_BEGIN',probe=probe,phase=phase)
-                local_metadata('/api/version',self.port)
+                version=local_metadata('/api/version',self.port)
                 phase='listener_owner'
                 self._startup_event('STARTUP_PHASE',probe=probe,phase=phase)
                 self._assert_owned_listener()
                 phase='model_identity'
                 self._startup_event('STARTUP_PHASE',probe=probe,phase=phase)
                 self.check_model()
+                self._model_root=Path(env['OLLAMA_MODELS'])
+                self._model_files=_team_model_files(self._model_root,self.profile,version.get('version'))
                 self._startup_event('OWNED_BACKEND_READY',active_processes=self.job.active())
                 return
             except (OSError,http.client.HTTPException) as exc:
@@ -189,6 +239,13 @@ class OwnedOllama:
         finally: dll.CloseHandle(handle)
 
     def check_model(self):
+        if self._model_files:
+            for path, expected in self._model_files:
+                try:
+                    _matching_bytes(path, self._model_root, expected)
+                except OSError as exc:
+                    raise Denied('MODEL_IDENTITY_UNAVAILABLE') from exc
+            return
         selected=select_model(self.profile['model'],local_metadata('/api/tags',self.port)['models'])
         if selected['model_digest']!=self.profile['model_digest']: raise Denied('MODEL_DIGEST_CHANGED')
 
@@ -221,6 +278,7 @@ class OwnedOllama:
                 'prompt_eval_count':result.get('prompt_eval_count'),'eval_count':result.get('eval_count'),
                 'total_duration':result.get('total_duration'),'done_reason':result.get('done_reason')})
             result['_neural_office_execution']={**self.telemetry[-1],'model_digest':self.profile['model_digest'],
+                                                'model_identity_check':'manifest-and-config' if self._model_files else 'catalog',
                                                 'owned_job':True,'mode':'GPU allocation' if rows[0]['size_vram'] else 'CPU'}
             return result
         finally: con.close()

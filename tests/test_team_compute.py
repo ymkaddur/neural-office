@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import re
@@ -10,7 +11,7 @@ from unittest import mock
 
 from neural_office import excerpt_review
 from neural_office.ledger import Denied
-from neural_office.ollama import OwnedOllama, inference_options, listener_pids, review_profile
+from neural_office.ollama import OwnedOllama, _team_model_files, inference_options, listener_pids, review_profile
 from neural_office.runner import prompt
 
 
@@ -19,6 +20,60 @@ SOURCE = b'<html lang="es"><title>Test</title>\n<img src="x">\n</html>'
 
 
 class TeamCompute(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'nt', 'Windows model store')
+    def test_catalog_attested_tag_and_config_are_both_rechecked_on_each_call(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            tag=root/'manifests-v2'/'ollama.com'/'library'/'example'/'latest'
+            config=b'{"model_format":"gguf"}'
+            config_sha=hashlib.sha256(config).hexdigest()
+            blob=root/'blobs'/('sha256-'+config_sha)
+            blob.parent.mkdir()
+            blob.write_bytes(config)
+            tag.parent.mkdir(parents=True)
+            manifest=json.dumps({'schemaVersion':2,'mediaType':'application/vnd.docker.distribution.manifest.v2+json',
+                                 'config':{'digest':'sha256:'+config_sha}}).encode()
+            tag.write_bytes(manifest)
+            profile=review_profile({**MODEL,'model':'example:latest','model_digest':hashlib.sha256(manifest).hexdigest()},7)
+            with mock.patch('neural_office.ollama.local_metadata') as catalog:
+                backend=OwnedOllama('Local\\NeuralTag_'+uuid.uuid4().hex,profile,root/'run.log')
+                try:
+                    backend._model_root=root
+                    backend._model_files=_team_model_files(root,profile,'0.40.16')
+                    self.assertEqual(len(backend._model_files),2)
+                    backend.check_model()
+                    for file, content in ((tag,manifest),(blob,config)):
+                        file.write_bytes(content+b' ')
+                        with self.assertRaisesRegex(Denied,'MODEL_DIGEST_CHANGED'):
+                            backend.check_model()
+                        with mock.patch('neural_office.ollama.http.client.HTTPConnection') as network:
+                            with self.assertRaisesRegex(Denied,'MODEL_DIGEST_CHANGED'):
+                                backend.infer({})
+                            network.assert_not_called()
+                        with self.assertRaisesRegex(Denied,'MODEL_DIGEST_CHANGED'):
+                            _team_model_files(root,profile,'0.40.16')
+                        file.write_bytes(content)
+                    with (mock.patch.object(backend,'_assert_owned_listener'),
+                          mock.patch('neural_office.ollama.http.client.HTTPConnection') as network):
+                        response=network.return_value.getresponse.return_value
+                        response.status=200
+                        def finish_while_retagged(_):
+                            tag.write_bytes(manifest+b' ')
+                            return b'{"done":true}'
+                        response.read.side_effect=finish_while_retagged
+                        with self.assertRaisesRegex(Denied,'MODEL_DIGEST_CHANGED'):
+                            backend.infer({'model':profile['model'],'options':inference_options(profile)})
+                        self.assertEqual(backend.telemetry,[])
+                    tag.unlink()
+                    with self.assertRaisesRegex(Denied,'MODEL_IDENTITY_UNAVAILABLE'):
+                        backend.check_model()
+                    catalog.assert_not_called()
+                finally:
+                    backend.close()
+            self.assertEqual(_team_model_files(root,profile,'unknown'),())
+            self.assertEqual(_team_model_files(root,profile,'0.40.16'),())
+            self.assertEqual(_team_model_files(root,{**profile,'model':'org/example:latest'},'0.40.16'),())
+
     def test_new_team_enables_local_acceleration_without_changing_admitted_profiles(self):
         for profile in (review_profile(MODEL, 1), review_profile(MODEL, 3), {**MODEL, 'roles':7}):
             self.assertEqual(inference_options(profile), {'num_gpu':0,'num_ctx':8192,'num_predict':128,'temperature':0})

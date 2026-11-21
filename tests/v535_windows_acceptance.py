@@ -398,7 +398,8 @@ def team(exe, work, state, out, receipt):
                    and stats['owned_job'] and stats['eval_count']>0 and response['message']['content'].strip(),
                    'Missing model output or execution receipt')
             receipt['calls'].append({'role':row['role'],'request':row['payload_sha'],'tokens':stats['eval_count'],
-                                     'mode':stats['mode'],'size_vram':stats['size_vram']})
+                                     'mode':stats['mode'],'size_vram':stats['size_vram'],
+                                     'model_identity_check':stats['model_identity_check']})
         artifact = json.loads(attempt['artifact'])
         receipt['integrator_answer'] = json.loads(rows[-1]['response'])['message']['content']
         receipt['model_digest'] = MODEL_DIGEST
