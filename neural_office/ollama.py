@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import shutil
 import socket
+import struct
 import subprocess
 import threading
 import time
@@ -44,6 +45,54 @@ def select_model(name,models):
         raise Denied('CLOUD_MODEL_EXCLUDED')
     return {'mode':'ollama-owned','model':name,'model_digest':found[0]['digest'],
             'num_ctx':8192,'num_predict':128,'num_gpu':0,'timeout_seconds':300}
+
+
+TEAM_POLICY = 'local-team-v1'
+
+
+def review_profile(model, roles):
+    profile = {**model, 'roles': roles}
+    if roles == 7 and model.get('mode') == 'ollama-owned':
+        profile.update(execution_policy=TEAM_POLICY, num_gpu=-1)
+    return profile
+
+
+def inference_options(profile):
+    options = {'num_ctx': 8192, 'num_predict': 128, 'num_gpu': 0, 'temperature': 0}
+    if 'execution_policy' in profile:
+        if (profile['execution_policy'] != TEAM_POLICY or profile.get('roles') != 7
+                or profile.get('mode') != 'ollama-owned' or profile.get('analysis_scope')
+                or profile.get('num_gpu') != -1):
+            raise Denied('MODEL_PROFILE_MISMATCH')
+        options.update(num_gpu=-1, num_thread=1)
+    elif profile.get('num_gpu', 0) != 0:
+        raise Denied('MODEL_PROFILE_MISMATCH')
+    return options
+
+
+def listener_pids(port):
+    """Read the local IPv4 listener table in process. Each OS row is six DWORDs."""
+    query = ctypes.WinDLL('iphlpapi').GetExtendedTcpTable
+    query.argtypes = [ctypes.c_void_p, ctypes.POINTER(wintypes.DWORD), wintypes.BOOL,
+                      wintypes.ULONG, ctypes.c_int, wintypes.ULONG]
+    query.restype = wintypes.DWORD
+    size = wintypes.DWORD(4096)
+    for _ in range(4):
+        buf = ctypes.create_string_buffer(size.value)
+        error = query(buf, ctypes.byref(size), False, socket.AF_INET, 3, 0)  # TCP_TABLE_OWNER_PID_LISTENER
+        if error == 122 and 0 < size.value <= 16 * 1024 * 1024:
+            continue
+        if error or size.value < 4 or size.value > len(buf):
+            break
+        count, = struct.unpack_from('<I', buf)
+        end = 4 + count * 24
+        if end > size.value:
+            break
+        loopback = int.from_bytes(socket.inet_aton('127.0.0.1'), 'little')
+        port_word = socket.htons(port)
+        return {pid for state, address, local_port, _, _, pid in struct.iter_unpack('<6I', buf.raw[4:end])
+                if state == 2 and address == loopback and local_port == port_word}
+    raise Denied('BACKEND_LISTENER_OWNER_UNKNOWN')
 
 
 class OwnedOllama:
@@ -125,18 +174,13 @@ class OwnedOllama:
         raise Denied('OWNED_BACKEND_START_TIMEOUT')
 
     def _assert_owned_listener(self):
-        shell=Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/powershell.exe'
-        command=f"@(Get-NetTCPConnection -LocalAddress 127.0.0.1 -LocalPort {int(self.port)} -State Listen -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique) | ConvertTo-Json -Compress"
-        result=subprocess.run([str(shell),'-NoProfile','-NonInteractive','-Command',command],
-                              capture_output=True,text=True,timeout=15,creationflags=subprocess.CREATE_NO_WINDOW)
-        if result.returncode: raise Denied('BACKEND_LISTENER_OWNER_UNKNOWN')
-        identities=json.loads(result.stdout)
-        identities=identities if isinstance(identities,list) else [identities]
+        identities=listener_pids(self.port)
+        if not identities: raise Denied('BACKEND_LISTENER_OWNER_UNKNOWN')
         dll=self.job.dll
         dll.OpenProcess.argtypes=[wintypes.DWORD,wintypes.BOOL,wintypes.DWORD]; dll.OpenProcess.restype=wintypes.HANDLE
         dll.IsProcessInJob.argtypes=[wintypes.HANDLE,wintypes.HANDLE,ctypes.POINTER(wintypes.BOOL)]; dll.IsProcessInJob.restype=wintypes.BOOL
         if len(identities)!=1: raise Denied('BACKEND_LISTENER_AMBIGUOUS')
-        handle=dll.OpenProcess(0x1000,False,identities[0])
+        handle=dll.OpenProcess(0x1000,False,next(iter(identities)))
         if not handle: raise Denied('BACKEND_PROCESS_UNAVAILABLE')
         try:
             belongs=wintypes.BOOL()
@@ -151,8 +195,8 @@ class OwnedOllama:
     def infer(self,payload):
         self.check_model()
         self._assert_owned_listener()
-        if payload['model']!=self.profile['model'] or payload['options']!={
-                'num_ctx':8192,'num_predict':128,'num_gpu':0,'temperature':0}:
+        options = inference_options(self.profile)
+        if payload['model']!=self.profile['model'] or payload['options']!=options:
             raise Denied('MODEL_PROFILE_MISMATCH')
         data=canonical(payload).encode('utf-8')
         if len(data)>6144: raise Denied('PROMPT_BYTE_BUDGET')
@@ -167,13 +211,15 @@ class OwnedOllama:
             self.check_model()
             running=local_metadata('/api/ps',self.port).get('models',[])
             rows=[r for r in running if r.get('digest')==self.profile['model_digest']]
-            if len(rows)!=1 or rows[0].get('size_vram')!=0: raise Denied('CPU_ALLOCATION_NOT_OBSERVED')
+            if len(rows)!=1 or type(rows[0].get('size_vram')) is not int or rows[0]['size_vram'] < 0:
+                raise Denied('MODEL_ALLOCATION_NOT_OBSERVED')
+            if options['num_gpu'] == 0 and rows[0]['size_vram'] != 0: raise Denied('CPU_ALLOCATION_NOT_OBSERVED')
             if rows[0].get('context_length')!=8192: raise Denied('CONTEXT_ALLOCATION_MISMATCH')
             self.telemetry.append({'size_vram':rows[0]['size_vram'],'context_length':rows[0].get('context_length'),
                 'prompt_eval_count':result.get('prompt_eval_count'),'eval_count':result.get('eval_count'),
                 'total_duration':result.get('total_duration'),'done_reason':result.get('done_reason')})
             result['_neural_office_execution']={**self.telemetry[-1],'model_digest':self.profile['model_digest'],
-                                                'owned_job':True,'mode':'CPU'}
+                                                'owned_job':True,'mode':'GPU' if rows[0]['size_vram'] else 'CPU'}
             return result
         finally: con.close()
 

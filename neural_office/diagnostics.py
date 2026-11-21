@@ -19,7 +19,7 @@ import uuid
 from . import __version__
 from .ledger import Ledger, Denied, canonical, digest
 from .measurements import JobSampler, generation_metrics
-from .ollama import OwnedOllama, local_metadata, select_model
+from .ollama import OwnedOllama, local_metadata, review_profile, select_model
 from .runner import run
 
 
@@ -232,7 +232,7 @@ def benchmark(root, profile, repeats, role_counts):
         (project_root / 'audit-sample.html').write_bytes(snapshot)
         ledger.register(project, project_root)
         for repetition in range(repeats):
-            result = measured_attempt(ledger, {**profile, 'roles': roles}, project, snapshot, str(repetition))
+            result = measured_attempt(ledger, review_profile(profile, roles), project, snapshot, str(repetition))
             result['repetition'] = repetition + 1
             trials.append(result)
             write_json(root / f'trial-{roles}-{repetition + 1}.json', result)
@@ -263,7 +263,7 @@ def main(argv=None):
         raise FileExistsError(args.output)
     header = {'schema': 'neural-office.measurement.v1', 'kind': args.action,
               'created_at_utc': datetime.now(timezone.utc).isoformat(),
-              'scope': 'owned CPU backend; synthetic tasks only; advisory quality not graded',
+              'scope': 'owned local backend; synthetic tasks only; advisory quality not graded',
               'cache_control': 'new backend each attempt; filesystem cache and other apps uncontrolled',
               'ui_memory_included': False, 'power_and_temperature_measured': False}
     try:

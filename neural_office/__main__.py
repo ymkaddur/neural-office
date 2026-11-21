@@ -7,7 +7,7 @@ import uuid
 
 from . import __version__
 from .ledger import Ledger,Denied,canonical,digest
-from .ollama import local_metadata,select_model
+from .ollama import local_metadata,review_profile,select_model
 from .runner import run,recover
 
 
@@ -132,7 +132,7 @@ def main(argv=None):
     if args.action=='resume':
         row=ledger.attempt(args.attempt)
         print(canonical({'attempt':args.attempt,'state':run(ledger,args.attempt,row['profile']['roles'])})); return
-    profile=select_model(args.model,local_metadata()['models']); profile['roles']=args.roles
+    profile=review_profile(select_model(args.model,local_metadata()['models']), args.roles)
     content=snapshot_file(args.file,args.root)
     ledger.initialize(); ledger.register(args.project,args.root)
     key=args.key or uuid.uuid4().hex

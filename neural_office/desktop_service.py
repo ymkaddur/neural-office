@@ -18,7 +18,7 @@ from .audit import audit_html
 from .desktop_contract import MAX_SAFE_INTEGER, decode_command, valid
 from .files import capture_html, local_path
 from .ledger import Denied, OFFICE_MODE, TERMINAL, canonical, digest
-from .ollama import OwnedOllama, local_metadata, select_model
+from .ollama import OwnedOllama, local_metadata, review_profile, select_model
 from .runner import MAX_MODEL_FINDINGS, _recover_owned, check_first_prompt, make_attempt_report, run
 
 GRANT_TTL_SECONDS = 120
@@ -279,7 +279,7 @@ class DesktopService:
             raise Denied('OBJECTIVE_SIZE')
         matching = [model for model in self.models() if model['model_digest'] == model_digest]
         if len(matching) != 1: raise Denied('MODEL_DIGEST_UNAVAILABLE')
-        profile = {**matching[0], 'roles': roles, **(origin or {})}
+        profile = {**review_profile(matching[0], roles), **(origin or {})}
         check_first_prompt(source['snapshot'], objective, profile)
         with self.ledger.connection() as con:
             project = con.execute('SELECT * FROM projects WHERE id=?', (project_id,)).fetchone()

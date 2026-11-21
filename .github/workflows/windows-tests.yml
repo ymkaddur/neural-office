@@ -98,6 +98,9 @@ jobs:
       - name: Test consent, keyboard, minimum window and one real model call after restart
         timeout-minutes: 17
         run: python -B tests/v535_windows_acceptance.py model
+      - name: Authorize seven roles in the packaged application and verify all seven real model receipts
+        timeout-minutes: 12
+        run: python -B tests/v535_windows_acceptance.py team
       - name: Verify the five real attachments, citations, ZIP image and reopening through Windows UI Automation
         if: ${{ !cancelled() && steps.native_tools.outcome == 'success' }}
         run: python -B -m tools.verify_v513_desktop --exe desktop/src-tauri/target/release/neural-office-desktop.exe --output v513-multiformat

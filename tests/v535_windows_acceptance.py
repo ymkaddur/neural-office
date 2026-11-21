@@ -18,7 +18,7 @@ from examples.multiformat.build_example import pdf_bytes
 from neural_office.windows_job import Job
 from tools.measure_v58_desktop import NativeWindow, choose_files
 from tools.package_windows_pilot import HOST
-from e2e_v55_native import MODEL, MODEL_DIGEST, OLLAMA_VERSION, http, prepare_ollama, readonly_counts, sha
+from e2e_v55_native import MODEL, MODEL_DIGEST, OLLAMA_VERSION, http, native_picker, prepare_ollama, readonly_counts, sha
 from e2e_v55_native_uia import wait
 
 
@@ -349,14 +349,65 @@ def model(exe, work, state, out, receipt):
     receipt['status'] = 'passed'
 
 
+def team(exe, work, state, out, receipt):
+    from neural_office.runner import ROLES
+    work.mkdir()
+    source = work / 'prueba-equipo.html'
+    source.write_bytes(b'<html lang="es"><title>Prueba</title>\n<img src="foto.png">\n</html>')
+    objective = 'Indica el código y la línea de la imagen sin descripción.'
+    with real_model(work), desktop(exe, work, out, 'equipo') as (screen, host, _):
+        receipt.update(window_titles(screen))
+        screen.open_html()
+        screen.objective(objective)
+        screen.button('Elegir archivo HTML')
+        native_picker(host, source)
+        wait(lambda: source.name in screen.names(), description='seven-role source captured')
+        screen.button('Consultar al Director')
+        wait(lambda: screen.control('Modelo local','ComboBox').selected_text() == MODEL, description='selected local model')
+        screen.disclosure('Perfil acotado', True)
+        selector = screen.control('Roles secuenciales','ComboBox')
+        selector.select('7 · Equipo completo')
+        wait(lambda: '7 · Equipo completo' == selector.selected_text(), description='seven roles selected')
+        screen.press_space(screen.reveal_button(r'^Revisar encargo.*', regex=True))
+        wait(lambda: '7 llamadas secuenciales' in words(screen.names()), description='seven calls in permission')
+        verify(readonly_counts(state)['attempts']==0, 'Early team reservation')
+        screen.button('Autorizar y ejecutar.*', regex=True)
+        def terminal():
+            states = readonly_counts(state)['states']
+            return states if any(s in ('ACCEPTED','REJECTED','CANCELLED','FAILED','RECOVERY_REQUIRED') for s in states) else None
+        verify(wait(terminal, timeout=450, description='seven-role terminal receipt') == ['ACCEPTED'],
+               'The team did not deliver')
+        with database(state) as db:
+            attempt, = db.execute('SELECT id,objective,profile,snapshot_sha,artifact FROM attempts').fetchall()
+            rows = db.execute('SELECT role,state,payload_sha,response FROM calls WHERE attempt=? ORDER BY seq',
+                              (attempt['id'],)).fetchall()
+        verify(attempt['objective']==objective and attempt['snapshot_sha']==sha(source), 'Team source or goal changed')
+        verify(json.loads(attempt['profile']).get('execution_policy')=='local-team-v1', 'Team approval used another policy')
+        verify([r['role'] for r in rows]==list(ROLES) and len({r['payload_sha'] for r in rows})==7, 'Role chain changed')
+        receipt['calls'] = []
+        for row in rows:
+            response = json.loads(row['response'])
+            stats = response['_neural_office_execution']
+            verify(row['state']=='DONE' and response['done'] and stats['model_digest']==MODEL_DIGEST
+                   and stats['owned_job'] and stats['eval_count']>0 and response['message']['content'].strip(),
+                   'Missing model output or execution receipt')
+            receipt['calls'].append({'role':row['role'],'request':row['payload_sha'],'tokens':stats['eval_count'],
+                                     'mode':stats['mode'],'size_vram':stats['size_vram']})
+        artifact = json.loads(attempt['artifact'])
+        verify(artifact['requested_rule']=='IMAGE_ALT_MISSING' and artifact['findings']==[
+            {'code':'IMAGE_ALT_MISSING','line':2,'column':1}], 'Incorrect delivered location')
+        screen.screenshot(out/'07-equipo.png')
+        receipt.update(objective=objective, source_sha256=sha(source), findings=artifact['findings'], status='passed')
+
+
 def main():
     if sys.platform != 'win32' or os.environ.get('GITHUB_ACTIONS') != 'true' or os.environ.get('RUNNER_OS') != 'Windows':
         raise SystemExit('This acceptance test requires an isolated Windows Actions runner')
     phase, = sys.argv[1:]
-    functions = {'local': local, 'model': model}
+    functions = {'local': local, 'model': model, 'team': team}
     out = ROOT / 'v535-package-evidence'
     out.mkdir(exist_ok=True)
-    work = Path(os.environ['RUNNER_TEMP']) / 'v535-native-office'
+    work = Path(os.environ['RUNNER_TEMP']) / ('v535-native-team' if phase == 'team' else 'v535-native-office')
     package = Path(os.environ['NO_PILOT_DIR']).resolve(strict=True)
     verify(not package.is_relative_to(ROOT), 'Package test must run outside the checkout')
     exe = (package / HOST).resolve(strict=True)

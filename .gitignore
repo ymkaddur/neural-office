@@ -412,3 +412,6 @@
 !tests/test_forensic_closure.py
 !tests/test_reader_fidelity.py
 !tests/test_workspace_recovery.py
+!tests/test_team_compute.py
+!tools/measure_v5352_team.py
+!docs/evidence/V5_35_2_TEAM.json

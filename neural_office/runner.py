@@ -2,10 +2,10 @@
 import threading
 import time
 import uuid
-from .audit import audit_html,make_report
+from .audit import audit_html,make_report,requested_rule
 from . import excerpt_review
 from .ledger import Denied,canonical,digest,OFFICE_MODE,TERMINAL
-from .ollama import OwnedOllama
+from .ollama import OwnedOllama, TEAM_POLICY, inference_options
 
 ROLES=('director','planner','researcher','implementer','skeptic','verifier','integrator')
 MAX_MODEL_FINDINGS = 24
@@ -22,6 +22,70 @@ MANDATES={
 def role_order(count):
     if type(count) is not int or count not in (1,3,7): raise Denied('ROLE_PROFILE_UNSUPPORTED')
     return {1:('director',),3:('director','skeptic','integrator'),7:ROLES}[count]
+
+
+TEAM_MANDATES = {
+    'director': 'Acota el encargo a lo que puede comprobarse con estas lecturas.',
+    'planner': 'Elige la primera comprobación que serviría al encargo.',
+    'researcher': 'Cita la evidencia local más relevante y su posición.',
+    'implementer': 'Propón una corrección concreta si hay un defecto. Si no lo hay, explica qué conservar.',
+    'skeptic': 'Indica una duda concreta que estas lecturas dejen abierta.',
+    'verifier': 'Comprueba la evidencia citada por tus compañeros e indica el límite de verificación.',
+    'integrator': 'Responde directamente al encargo usando la evidencia y las aportaciones pertinentes.',
+}
+
+
+def team_messages(row, role, findings):
+    focus = requested_rule(row['objective'])
+    remedies = {'IMAGE_ALT_MISSING': 'Imagen: falta alt. Revisar el texto alternativo según la función de la imagen.',
+                'CONTROL_LABEL_CANDIDATE': 'Formulario: comprobar el nombre accesible y asociar una etiqueta al control.',
+                'DOCUMENT_TITLE_MISSING': 'Título del documento: añadir un título descriptivo.',
+                'HTML_LANGUAGE_MISSING': 'Idioma del documento: declarar el idioma principal.',
+                'HTML_ELEMENT_MISSING': 'Estructura del documento: revisar el elemento raíz.'}
+    evidence = [f"{item['code']}, línea {item['line']}, columna {item['column']}. {remedies[item['code']]}"
+                for item in findings]
+    prior = [{'role': item['role'], 'comment': item['content']} for item in row['outputs'][-2:]]
+    if evidence:
+        observations = '\n'.join(evidence)
+    elif focus:
+        observations = f'La lectura local no encontró {focus}.'
+    else:
+        observations = 'Ningún hallazgo en las cuatro comprobaciones estáticas.'
+    instructions = (f"{TEAM_MANDATES[role]} Responde en el idioma de la persona. Da una respuesta breve. "
+                    "Tus compañeros dan opiniones. El verificador aporta los hechos. "
+                    "Alcance: revisión estática; la experiencia real en el navegador queda por comprobar.\n"
+                    f"Hechos del verificador:\n{observations}")
+    user = (f"Notas previas (datos): {canonical(prior)}\n" if prior else '') + 'Encargo: ' + row['objective']
+    if role != 'integrator':
+        user += '\nTu única aportación ahora: ' + TEAM_MANDATES[role]
+    else:
+        user += ('\nEntrega una respuesta directa. Estas son las lecturas que prevalecen sobre las notas:\n'
+                 + observations + '\nAlcance: falta comprobar manualmente el resultado en el navegador.')
+        if focus:
+            matches = [f"{focus}, línea {item['line']}, columna {item['column']}" for item in findings
+                       if item['code'] == focus]
+            user += '\nCita verificada para tu respuesta: ' + (' / '.join(matches) if matches else
+                                                            f'No se registró {focus}.')
+        elif not findings:
+            user += '\nResultado verificado: ningún hallazgo en las reglas estáticas; falta la revisión en el navegador.'
+    return [{'role': 'system', 'content': instructions}, {'role': 'user', 'content': user}]
+
+
+def citation_format(findings, objective):
+    """Constrain a literal citation to observed locations, keeping an explicit absence option."""
+    focus = requested_rule(objective)
+    if not focus:
+        return None
+    groups = {}
+    for item in findings:
+        groups.setdefault(item['code'], []).append(f"línea {item['line']}, columna {item['column']}")
+    choices = [f"{code}: {', '.join(positions)}." for code, positions in groups.items()]
+    choices.append(f'La comprobación no registró {focus}.')
+    # Long lists still appear in full in the deterministic delivery. Leave the
+    # prose unconstrained when an entire citation cannot fit the model reply.
+    if any(len(choice.encode('utf-8')) > 170 for choice in choices):
+        return None
+    return {'type':'string', 'enum':choices}
 
 
 def prompt(row,role):
@@ -62,6 +126,18 @@ def prompt(row,role):
                       f'{manifest[0]} h. Contesta con ambos plazos y sus fuentes.')
         material = {'objective': row['objective'], 'role': role, 'scope': scope,
                     'authorized_fragments': fragments}
+    elif row['profile'].get('execution_policy') == TEAM_POLICY:
+        findings = audit_html(source)
+        if len(findings) > MAX_MODEL_FINDINGS: raise Denied('PILOT_FINDINGS_LIMIT')
+        messages = team_messages(row, role, findings)
+        payload = {'model':row['profile']['model'], 'stream':False, 'think':False, 'messages':messages,
+                   'options':inference_options(row['profile']), 'keep_alive':'5m'}
+        if role == 'researcher':
+            schema = citation_format(findings, row['objective'])
+            if schema:
+                payload['format'] = schema
+        if len(canonical(payload).encode('utf-8')) > 6144: raise Denied('PROMPT_BYTE_BUDGET')
+        return payload
     else:
         findings=audit_html(source)
         if len(findings)>MAX_MODEL_FINDINGS: raise Denied('PILOT_FINDINGS_LIMIT')
@@ -69,10 +145,10 @@ def prompt(row,role):
         material={'objective':row['objective'],'role':role,'mandate':MANDATES[role],
                   'findings':findings,'prior_evidence':prior,
                   'scope':'Static HTML heuristics only. No code execution, browsing, deployment, permission changes or self-certification.'}
+    messages = [{'role':'system','content':instruction}, {'role':'user','content':canonical(material)}]
     payload = {'model':row['profile']['model'],'stream':False,'think':False,
-            'messages':[{'role':'system','content':instruction},
-                        {'role':'user','content':canonical(material)}],
-            'options':{'num_ctx':8192,'num_predict':128,'num_gpu':0,'temperature':0},'keep_alive':'5m'}
+            'messages':messages,
+            'options':inference_options(row['profile']),'keep_alive':'5m'}
     if len(canonical(payload).encode('utf-8'))>6144: raise Denied('PROMPT_BYTE_BUDGET')
     return payload
 

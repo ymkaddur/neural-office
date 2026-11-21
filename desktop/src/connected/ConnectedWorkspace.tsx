@@ -909,7 +909,7 @@ export function ConnectedWorkspace() {
                     <button type="button" aria-label="Actualizar modelos locales" title="Actualizar modelos locales"
                       disabled={busy||!!doing||!session||catalog==='loading'||exhausted} onClick={()=>void loadModels()}>↻</button>
                   </div>
-                  {!catalogEmpty&&<details className="connected-profile"><summary>Perfil acotado <span>{roleCount} {roleCount===1?'rol':'roles'} · CPU</span></summary>
+                  {!catalogEmpty&&<details className="connected-profile"><summary>Perfil acotado <span>{roleCount} {roleCount===1?'rol':'roles'} · {roleCount===7?'GPU si está disponible':'CPU'}</span></summary>
                     <label htmlFor="connected-roles">Roles secuenciales</label><select id="connected-roles" value={roleCount} disabled={busy||!!doing}
                       onChange={e=>{invalidate();setRoleCount(Number(e.target.value));}}>
                       <option value={1}>1 · Director</option><option value={3}>3 · Director, revisor e integrador</option><option value={7}>7 · Equipo completo</option>
@@ -995,7 +995,7 @@ export function ConnectedWorkspace() {
                 </div>):<div className="connected-evidence"><h3>Qué puedes comprobar</h3><dl><dt>Documento</dt><dd>{sourceLabel}</dd><dt>Intento</dt><dd>{viewed.id}</dd><dt>Último estado registrado</dt><dd>{viewed.state}</dd><dt>Modelo aprobado</dt><dd>{viewed.model}</dd><dt>Huella del modelo</dt><dd>{viewed.model_digest}</dd><dt>Huella de la fuente</dt><dd>{viewed.source_sha256}</dd><dt>Huella del informe</dt><dd>{report?.meta.sha256||'Todavía no disponible'}</dd></dl>{report&&<p>La lectura comprobó los fragmentos y la huella completa del informe antes de mostrarlo.</p>}<p>La aceptación verifica consistencia estática y procedencia de contenido. No certifica accesibilidad, seguridad ni que las sugerencias del modelo sean correctas.</p>{viewed.execution_error_code&&<p>Código de ejecución: <code>{viewed.execution_error_code}</code></p>}{report&&<details><summary>Informe original de sólo lectura</summary><pre>{report.text}</pre></details>}</div>}
           </div></section></>}
         </section>
-        <footer className="connected-footer"><span>{viewed?.model||(assisted?(selectedModel?.model||'Selecciona tu modelo local') :showingFindings?'Análisis estático':'Director')}</span><span>{connectionError?'Último estado guardado':active?'Trabajo acotado en curso':viewed||assisted?'Modelo local · CPU':'Lectura local del archivo'}</span></footer>
+        <footer className="connected-footer"><span>{viewed?.model||(assisted?(selectedModel?.model||'Selecciona tu modelo local') :showingFindings?'Análisis estático':'Director')}</span><span>{connectionError?'Último estado guardado':active?'Trabajo acotado en curso':viewed||assisted?'Modelo local':'Lectura local del archivo'}</span></footer>
         </>}
       </main>
     </div>
@@ -1028,7 +1028,7 @@ export function ConnectedWorkspace() {
             <dt>Proyecto</dt><dd>{nameForProject(approval.value.project_id)}</dd>
             <dt>Entrada autorizada</dt><dd>{approval.excerpts?.analysis_scope===directorTextScope?'Solo el texto del encargo':approval.excerpts?'Extractos de la entrega':source?.filename}</dd>
             <dt>Modelo</dt><dd>{approval.value.model}</dd>
-            <dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd>
+            <dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · {approval.value.roles===7?'GPU local si está disponible':'CPU'} · 128 tokens de salida por llamada</dd>
           </dl>
           {approval.excerpts&&approval.excerpts.analysis_scope!==directorTextScope&&<div className="permission-excerpts">
             <h3>Fragmentos que recibirá el modelo</h3>

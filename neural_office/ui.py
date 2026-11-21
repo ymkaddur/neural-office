@@ -11,7 +11,7 @@ from .__main__ import snapshot_file
 from . import __version__
 from .files import local_path
 from .ledger import canonical
-from .ollama import local_metadata,select_model
+from .ollama import local_metadata,review_profile,select_model
 from .runner import run
 
 FINDING_NAMES={
@@ -46,7 +46,7 @@ def show(ledger):
     models=[]
     frame=ttk.Frame(window,padding=18); frame.pack(fill='both',expand=True)
     ttk.Label(frame,text='Auditoría HTML local',font=('Segoe UI',18,'bold')).pack(anchor='w')
-    ttk.Label(frame,text='CPU · entrada HTML explícita · cuatro comprobaciones estáticas · comentarios del modelo sin certificar',wraplength=800).pack(anchor='w',pady=(4,15))
+    ttk.Label(frame,text='Modelo local · cuatro comprobaciones estáticas de HTML · comentarios del modelo sin certificar',wraplength=800).pack(anchor='w',pady=(4,15))
     model=tk.StringVar(); chosen_file=tk.StringVar(); project=tk.StringVar(value='mi-auditoria'); roles=tk.StringVar(value='7')
     ttk.Label(frame,text='Modelo local instalado').pack(anchor='w')
     model_box=ttk.Combobox(frame,textvariable=model,state='readonly'); model_box.pack(fill='x')
@@ -68,7 +68,7 @@ def show(ledger):
     def work(values):
         try:
             file=local_path(values['file']); root=file.resolve().parent
-            profile=select_model(values['model'],models); profile['roles']=values['roles']
+            profile=review_profile(select_model(values['model'],models), values['roles'])
             source=snapshot_file(file,root)
             ledger.register(values['project'],root)
             attempt=ledger.reserve(values['project'],'Audit the selected HTML snapshot and explain the observed static findings.',source,profile,uuid.uuid4().hex,admit=True)

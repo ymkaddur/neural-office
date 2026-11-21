@@ -14,7 +14,7 @@ class LegacyProjectIdentity(unittest.TestCase):
         for project in ('Area con espacios', 'Área de revisión', 'x'*65, 'x'*80,
                         '🙂'*80, ' ', 'nul\0project'):
             with self.subTest(codepoints=len(project)), tempfile.TemporaryDirectory() as temporary:
-                root = Path(temporary)
+                root = Path(temporary).resolve(strict=True)
                 ledger = Ledger(root/'state.sqlite3')
                 ledger.initialize()
                 # Recreate the exact row written by pre-normalization versions, including
