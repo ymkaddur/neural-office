@@ -382,10 +382,15 @@ def team(exe, work, state, out, receipt):
              timeout=5, description='team selector owns keyboard focus')
         keyboard.send_keys('{END}{TAB}', turn_off_numlock=False)
         wait(lambda: selector.selected_text()=='7 · Equipo completo', description='seven roles selected by keyboard')
-        screen.press_space(screen.reveal_button(r'^Revisar encargo.*', regex=True))
-        wait(lambda: '7 llamadas secuenciales' in words(screen.names()), description='seven calls in permission')
+        # Invoke the addressed WebView button once, then inspect the scope in its dialog.
+        screen.reveal_button(r'^Revisar encargo.*', regex=True).invoke()
+        permission = screen.control('Este es el encargo.', 'Window')
+        def permission_matches():
+            labels = words(' '.join(node.element_info.name for node in permission.descendants(control_type='Text')))
+            return objective in labels and source.name in labels and '7 llamadas secuenciales' in labels
+        wait(permission_matches, description='exact team objective, source and seven calls in the permission dialog')
         verify(readonly_counts(state)['attempts']==0, 'Early team reservation')
-        screen.press_space(screen.control(r'^Autorizar y ejecutar.*', regex=True))
+        screen.button(r'^Autorizar y ejecutar.*', regex=True)
         def terminal():
             states = readonly_counts(state)['states']
             return states if any(s in ('ACCEPTED','REJECTED','CANCELLED','FAILED','RECOVERY_REQUIRED') for s in states) else None
