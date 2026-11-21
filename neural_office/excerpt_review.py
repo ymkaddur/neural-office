@@ -3,6 +3,7 @@ import json
 import re
 
 from .ledger import Denied, canonical, digest
+from . import written_answer
 
 SCOPE = 'local-inspection-excerpts-v1'
 TEXT_SCOPE = 'local-director-text-v1'
@@ -10,7 +11,7 @@ SCOPES = (SCOPE, TEXT_SCOPE)
 COMMENTARY = 'UNVERIFIED_ASSISTANCE'
 
 
-def capture_excerpts(report, project_id, thread_id):
+def _disclosure(report, project_id, thread_id):
     """Build the server-owned disclosure once. A client cannot supply file text."""
     includes = {item['id']: item for item in report['attachments']}
     fragments = []
@@ -40,17 +41,31 @@ def capture_excerpts(report, project_id, thread_id):
                 fragments.append(fragment)
     text_only = (not includes and bool(report['objective'].strip()) and
                  [f['rule'] for f in report['findings']] == ['text_brief'])
-    if not fragments and not text_only:
-        raise Denied('NO_CITED_EXCERPTS')
-    if len(fragments) > 8:
-        raise Denied('EXCERPT_BUDGET')
     body = {'scope': TEXT_SCOPE if text_only else SCOPE, 'project_id': project_id, 'thread_id': thread_id,
             'inspection_id': report['id'], 'fragments': fragments}
     if text_only:
         body['objective'] = report['objective']
+        if written_answer.contract(report['objective']):
+            body['answer_check_version'] = 1
     snapshot = canonical(body).encode('utf-8')
-    if len(snapshot) > 4608:
-        raise Denied('EXCERPT_BUDGET')
+    reason = None
+    if not fragments and not text_only:
+        reason = 'NO_CITED_EXCERPTS'
+    elif len(fragments) > 8 or len(snapshot) > 4608:
+        reason = 'EXCERPT_BUDGET'
+    return snapshot, fragments, body['scope'], reason
+
+
+def scope_size(report, project_id, thread_id):
+    snapshot, fragments, scope, reason = _disclosure(report, project_id, thread_id)
+    return dict(project_id=project_id, thread_id=thread_id, report_id=report['id'], scope=scope,
+                bytes=len(snapshot), fragments=len(fragments), allowed=reason is None, reason=reason)
+
+
+def capture_excerpts(report, project_id, thread_id):
+    snapshot, fragments, _, reason = _disclosure(report, project_id, thread_id)
+    if reason:
+        raise Denied(reason)
     return snapshot, fragments
 
 
@@ -67,10 +82,15 @@ def material(snapshot):
 
 def make_report(snapshot, outputs):
     source = material(snapshot)
-    return canonical({'schema': 1, 'scope': source['scope'], 'source_sha256': digest(snapshot),
+    report = {'schema': 1, 'scope': source['scope'], 'source_sha256': digest(snapshot),
                       'inspection_id': source['inspection_id'], 'thread_id': source['thread_id'],
                       'authorized_fragments': source['fragments'], 'findings': [],
-                      'model_commentary_status': COMMENTARY, 'role_outputs': outputs}).encode('utf-8')
+                      'model_commentary_status': COMMENTARY, 'role_outputs': outputs}
+    if source['scope'] == TEXT_SCOPE and source.get('answer_check_version') == 1:
+        result = written_answer.check(source['objective'], outputs)
+        if result is not None:
+            report['answer_check'] = result
+    return canonical(report).encode('utf-8')
 
 
 def verify_report(snapshot, artifact):

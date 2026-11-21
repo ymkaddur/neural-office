@@ -48,7 +48,10 @@ class JSONReaderTests(unittest.TestCase):
         self.assertIn('"response_sla_hours"', view['hours']['context'])
 
     def test_duplicates_invalid_and_non_numbers(self):
-        for data in (b'{"x":1,\n"\\u0078":2}', b'{"x":}', b'{} second', b'{"x":NaN}'):
+        duplicate = json_view(b'{"x":1,\n"\\u0078":2}')
+        self.assertEqual((duplicate['status'], duplicate['line'], duplicate['column']), ('ambiguous',2,1))
+        self.assertNotIn('hours', duplicate)
+        for data in (b'{"x":}', b'{} second', b'{"x":NaN}'):
             with self.subTest(data=data):
                 view = json_view(data)
                 self.assertEqual(view['status'], 'invalid')

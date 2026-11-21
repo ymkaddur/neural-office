@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';
+import {useLayoutEffect,useRef,useState} from 'react';
 import type {RefObject,PointerEvent,KeyboardEvent} from 'react';
 import {clampPane,keyPane,paneBounds,PANE_DEFAULT,readPane} from './panes.ts';
 import type {PaneKind} from './panes.ts';
@@ -12,7 +12,7 @@ export function PaneDivider({kind,container,controls,label}:Props) {
   const pending=useRef<number|null>(null);
   const frame=useRef<number|null>(null);
   const handle=useRef<HTMLDivElement>(null);
-  const [position,setPosition]=useState(desired.current);
+  const [position,setPosition]=useState(()=>clampPane(kind,desired.current,0));
   const [bounds,setBounds]=useState(paneBounds(kind,0));
   function paint(value=desired.current) {
     const node=container.current;
@@ -35,7 +35,7 @@ export function PaneDivider({kind,container,controls,label}:Props) {
     if(handle.current?.hasPointerCapture(active.id)) handle.current.releasePointerCapture(active.id);
     if(!cancel) persist();
   }
-  useEffect(()=>{
+  useLayoutEffect(()=>{
     const node=container.current;
     if(!node) return;
     const update=()=>{end(true);extent.current=node.getBoundingClientRect().width;setBounds(paneBounds(kind,extent.current));paint();};

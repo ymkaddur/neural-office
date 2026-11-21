@@ -166,6 +166,19 @@ test('report corruption, a stalled chunk and wrong attempt identity fail closed'
 test('leaving a report view stops further chunk requests',async()=>{
   const fixture=await reportFixture();await assert.rejects(()=>readReport(fixture.send,'attempt',()=>false),/SUPERSEDED/);assert.equal(fixture.calls(),1);
 });
+test('a specifically requested HTML rule stays attached to its measured locations and preserves contradictory commentary',async()=>{
+  const rule='IMAGE_ALT_MISSING';
+  const output='a'.repeat(64);
+  const fields={requested_rule:rule,findings:[{code:rule,line:6,column:3}],role_outputs:[{role:'director',content:output}]};
+  const {report}=await readReport((await reportFixture(undefined,fields)).send,'attempt');
+  assert.equal(report.requested_rule,rule);
+  assert.deepEqual(report.findings,fields.findings);
+  assert.equal(report.role_outputs[0].content,output);
+  for(const changes of [{requested_rule:'UNKNOWN_CHECK'},{scope:'local-director-text-v1'}]){
+    const invalid=await reportFixture(undefined,{...fields,...changes});
+    await assert.rejects(()=>readReport(invalid.send,'attempt'),/REPORT_REQUESTED_RULE_INVALID/);
+  }
+});
 
 test('delivery requires agreement between accepted state and a passing verdict before reading content',async()=>{
   for(const [state,passed] of [['REJECTED',true],['ACCEPTED',false]]){

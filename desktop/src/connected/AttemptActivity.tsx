@@ -6,7 +6,11 @@ type Page = {session_id:string; office_id:string; attempt_id:string; events:Even
 const pageSize=24;
 // UI navigation is scoped to the durable attempt; receipts are always read again from the service.
 const positions=new Map<string,{open:boolean;before:number}>();
-const publicFields:Record<string,string>={role:'Rol',state:'Estado',reason:'Motivo',code:'Código',model:'Modelo',project:'Proyecto',attempt:'Intento',source_sha256:'Huella de entrada',prompt_sha256:'Huella del mensaje',output_sha256:'Huella de salida',tokens:'Tokens registrados'};
+const publicFields:Record<string,string>={
+  ordinal:'Número de intento',call:'Llamada',role:'Rol',state:'Estado',reason:'Motivo',code:'Código',model:'Modelo',project:'Proyecto',attempt:'Intento',
+  source_sha256:'Huella de entrada',prompt_sha256:'Huella del mensaje',output_sha256:'Huella de salida',payload_sha:'Huella de la petición',
+  content_sha:'Huella de la respuesta',artifact_sha:'Huella de la entrega',tokens:'Tokens registrados',
+};
 const labels:Record<string,string>={
   ATTEMPT_RESERVED:'Intento reservado', LEASE_ACQUIRED:'Ejecución adquirida',
   MODEL_CALL_ADMITTED:'Llamada autorizada', MODEL_CALL_COMPLETED:'Respuesta registrada', OWNED_JOB_TERMINATED:'Ejecución cerrada',

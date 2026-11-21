@@ -403,3 +403,12 @@
 !docs/images/v5.35-polished-claro.png
 !tests/test_v5352_text.py
 !docs/V5_35_2.md
+!desktop/src/connected/sessionDraft.ts
+!desktop/src/connected/useTaskbarProgress.ts
+!desktop/src/connected/taskbar.test.ts
+!neural_office/workspace_backup.py
+!neural_office/written_answer.py
+!tests/test_desktop_drafts.py
+!tests/test_forensic_closure.py
+!tests/test_reader_fidelity.py
+!tests/test_workspace_recovery.py

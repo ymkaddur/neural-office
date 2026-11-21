@@ -18,7 +18,8 @@ export const request:Requester=async<T>(method:string,params:Record<string,unkno
 };
 export type Finding={code:string;line:number;column:number};
 export type FindingPage={session_id:string;project_id:string;source_sha256:string;offset:number;total:number;findings:Finding[]};
-export type Report={schema:number;scope:string;source_sha256:string;findings:Finding[];model_commentary_status:string;role_outputs:{role:string;content:string}[];authorized_fragments?:Citation[];thread_id?:string;inspection_id?:string};
+const htmlRules=['HTML_ELEMENT_MISSING','DOCUMENT_TITLE_MISSING','HTML_LANGUAGE_MISSING','IMAGE_ALT_MISSING','CONTROL_LABEL_CANDIDATE'] as const;
+export type Report={schema:number;scope:string;source_sha256:string;findings:Finding[];requested_rule?:typeof htmlRules[number];model_commentary_status:string;role_outputs:{role:string;content:string}[];answer_check?:{kind:'arithmetic'|'literal';answer:string;basis:string;matches:boolean};authorized_fragments?:Citation[];thread_id?:string;inspection_id?:string};
 type ReportMetadata={attempt_id:string;state:string;sha256:string;bytes:number;encoding:string;media_type:string;verdict:{passed:boolean;coverage:string};mode:string;generation_limited?:boolean};
 type Chunk={attempt_id:string;sha256:string;offset:number;next_offset:number;eof:boolean;chunk_sha256:string;base64:string};
 const sha=async(data:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data as Uint8Array<ArrayBuffer>)),b=>b.toString(16).padStart(2,'0')).join('');
@@ -39,6 +40,13 @@ export async function readReport(send:Requester,attemptId:string,current:()=>boo
   }
   if(await sha(bytes)!==meta.sha256) throw Error('REPORT_HASH_CHANGED');
   const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes),report=JSON.parse(text) as Report;
+  if(report.requested_rule!==undefined&&
+    (typeof report.scope!=='string'||!report.scope.startsWith('static-html-checks-')||!htmlRules.includes(report.requested_rule)))throw Error('REPORT_REQUESTED_RULE_INVALID');
+  if(report.answer_check!==undefined){
+    const check=report.answer_check;
+    if(report.scope!==directorTextScope||!check||!['arithmetic','literal'].includes(check.kind)||typeof check.answer!=='string'||!check.answer||
+       typeof check.basis!=='string'||!check.basis||typeof check.matches!=='boolean')throw Error('REPORT_ANSWER_CHECK_INVALID');
+  }
   if(report.schema!==1||!['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3','static-html-checks-v4',excerptScope,directorTextScope].includes(report.scope)||report.model_commentary_status!=='UNVERIFIED_ASSISTANCE'||!Array.isArray(report.findings)||report.findings.length>10000||!Array.isArray(report.role_outputs)||report.role_outputs.length>7) throw Error('REPORT_CONTENT_INVALID');
   if(report.scope===excerptScope||report.scope===directorTextScope){
     const fragments=report.authorized_fragments;

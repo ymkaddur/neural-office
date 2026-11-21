@@ -71,7 +71,7 @@ const address='http://127.0.0.1:52375';
 const project='Portal de clientes',thread='main';
 const allowed=new Set(['describe','models.list','projects.list','snapshot.get','project.history','attachments.pick','attachments.list',
   'attachments.cancel','attachments.threads','attachments.inspect','attachments.view','attachments.history','attachments.report',
-  'attachments.activity','attachments.decide','attachments.search','library.list','library.change','library.for_draft','library.history','events.read','attempt.events','attempt.get','attempt.lookup','attempt.recover','attempt.cancel']);
+  'draft.get','draft.put','attachments.scope','attachments.search.page','attachments.activity','attachments.decide','attachments.search','library.list','library.change','library.for_draft','library.copy_to_draft','library.history','events.read','attempt.events','attempt.get','attempt.lookup','attempt.recover','attempt.cancel']);
 const roster=['Investigador','Planificador','Implementador','Verificador','Escéptico','Integrador'];
 const pages=['Director',...roster,'Memoria','Skills','Ajustes'];
 let browser;

@@ -37,7 +37,7 @@ def location(citation):
     return ' · '.join([citation['name'], *parts])
 
 
-def review(objective, attachments, findings, checks, cancelled, notify=None, *, progress=None):
+def review(objective, attachments, findings, checks, cancelled, notify=None, *, progress=None, legacy_sources=False):
     by_id = {item['id']: item for item in attachments}
     references = [c for f in findings for c in f['sources']]
     facts = [f['detail'] for f in findings]
@@ -97,11 +97,19 @@ def review(objective, attachments, findings, checks, cancelled, notify=None, *, 
     def check_index():
         if sum(evidence.values()) != len(references) or set(evidence) != set(by_id):
             raise Denied('ATTACHMENT_INTEGRITY_FAILED')
-        return [f'{sum(evidence.values())} referencias en {len(evidence)} fuentes.']
+        count = len(evidence) if legacy_sources else sum(bool(n) for n in evidence.values())
+        return [f'{sum(evidence.values())} referencias en {count} fuentes.']
 
     def assemble():
+        captures = [dict(name=i['name'],sha256=i['sha256']) for i in attachments]
+        if not legacy_sources:
+            captures = [dict(capture,attachment_id=i['id']) for i,capture in zip(attachments,captures)]
+            cited = [capture for i,capture in zip(attachments,captures) if evidence[i['id']]]
         entries.update(objective=objective, results=list(facts), limitations=list(limits),
-                       sources=[dict(name=i['name'], sha256=i['sha256']) for i in attachments])
+                       sources=captures if legacy_sources else cited)
+        if not legacy_sources:
+            entries['captures']=captures
+            entries['reads']=[capture for i,capture in zip(attachments,captures) if 'status' in i]
         return list(facts) or ['Los lectores no registraron conclusiones.']
 
     def verify_report():
@@ -131,7 +139,14 @@ def review(objective, attachments, findings, checks, cancelled, notify=None, *, 
     step(3, 'implementer', assemble)
     step(3, 'verifier', verify_report)
     step(3, 'skeptic', verify_limits)
-    step(3, 'integrator', lambda: [f"Informe de {len(entries['sources'])} fuentes.", *entries['limitations']])
+    def handoff():
+        if legacy_sources:
+            scope=f"Informe de {len(entries['sources'])} fuentes."
+        else:
+            scope=(f"Capturas seleccionadas: {len(entries['captures'])}. "
+                   f"Consultadas: {len(entries['reads'])}. Citadas: {len(entries['sources'])}.")
+        return [scope,*entries['limitations']]
+    step(3, 'integrator', handoff)
     if cancelled():
         raise Denied('ATTACHMENT_READ_CANCELLED')
     return dict(version=1, engine='deterministic', rounds=3, receipts=receipts,
@@ -147,7 +162,8 @@ def verify_saved(report):
     files = report['attachments']
     checks = requested_checks(report['objective'], {f['kind'] for f in files},
                               allow_dialogue=report['rule_version'] != 'local-inspection-5')
-    expected = review(report['objective'], files, report['findings'], checks, lambda: False)
+    expected = review(report['objective'], files, report['findings'], checks, lambda: False,
+                      legacy_sources=report['rule_version'] in ('local-inspection-5','local-inspection-6','local-inspection-7','local-inspection-8'))
     if (not isinstance(recorded.get('receipts'), list)
             or len(recorded['receipts']) != len(expected['receipts'])
             or {k: v for k, v in recorded.items() if k != 'receipts'} !=

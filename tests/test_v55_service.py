@@ -155,6 +155,11 @@ class DesktopServiceTests(unittest.TestCase):
                 expected = [r[0] for r in con.execute(
                     "SELECT seq FROM events WHERE json_extract(payload,'$.attempt')=? ORDER BY seq", (target,))]
             self.assertEqual([e['seq'] for e in all_events], expected)
+            with self.assertRaisesRegex(Denied, 'EVENT_CURSOR_AHEAD'):
+                self.command('attempt.events', {'attempt_id':target,'before':page['cursor']+1,'limit':2}, reader)
+            admitted = next(e['payload'] for e in all_events if e['kind']=='MODEL_CALL_ADMITTED')
+            self.assertIsInstance(admitted['call'],int)
+            self.assertRegex(admitted['payload_sha'],r'^[0-9a-f]{64}$')
             self.assertEqual(reader.attempt_events(target,expected[0],2)['events'], [])
             detail = reader.attempt(target)
             self.assertEqual(len(detail['calls']), 1)

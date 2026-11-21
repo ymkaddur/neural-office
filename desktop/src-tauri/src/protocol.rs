@@ -9,6 +9,7 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "models.list",
     "library.list",
     "library.for_draft",
+    "library.copy_to_draft",
     "library.history",
     "library.change",
     "projects.list",
@@ -24,6 +25,8 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "attachments.view",
     "attachments.history",
     "attachments.search",
+    "attachments.search.page",
+    "attachments.scope",
     "attachments.report",
     "attachments.preview",
     "attachments.decide",
@@ -38,6 +41,8 @@ pub const PUBLIC_METHODS: &[&str] = &[
     "report.read",
     "events.read",
     "attempt.events",
+    "draft.get",
+    "draft.put",
 ];
 
 pub fn valid_id(value: &Value) -> bool {

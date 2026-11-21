@@ -4,5 +4,5 @@
   "description": "Only the local main webview can call the restricted desktop controller.",
   "windows": ["main"],
   "local": true,
-  "permissions": ["allow-desktop-request"]
+  "permissions": ["allow-desktop-request", "core:window:allow-set-progress-bar"]
 }

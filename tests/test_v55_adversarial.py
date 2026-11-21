@@ -1,4 +1,5 @@
 """Independent bridge regression: legal core identities remain usable through IPC."""
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -14,7 +15,15 @@ class LegacyProjectIdentity(unittest.TestCase):
                         '🙂'*80, ' ', 'nul\0project'):
             with self.subTest(codepoints=len(project)), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
-                ledger = Ledger(root/'state.sqlite3'); ledger.initialize(); ledger.register(project, root)
+                ledger = Ledger(root/'state.sqlite3')
+                ledger.initialize()
+                # Recreate the exact row written by pre-normalization versions, including
+                # the names the current registration UI would now decline.
+                with ledger.transaction() as con:
+                    con.execute('INSERT INTO projects(id,root) VALUES(?,?)',(project,os.path.normcase(str(root))))
+                    ledger._event(con,'PROJECT_REGISTERED',{'project':project})
+                ledger.register(project,root)
+                ledger.register_text(project)
                 service = DesktopService(ledger)
                 try:
                     saved = service.snapshot()['projects'][0]['id']

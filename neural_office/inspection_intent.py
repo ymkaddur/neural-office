@@ -57,12 +57,14 @@ def _clause_checks(text, kinds):
         return ['decision']
     if re.search(r'\b(?:decidimos|acordamos|elegimos|decision|nos quedamos)\b', text):
         return ['clarify']
+    if re.search(r'\b(?:resume|resumir|haz un resumen|prepara un resumen)\b',text):
+        return ['summary']
     rules = [
         ('visual', r'\b(legib\w*|le[ei]ble\w*|se lee|se ve|contraste|tipograf\w*|colores|readab\w*|legib\w*)\b'),
         ('syntax', r'\b(sintaxis|sintactic\w*|syntax|valida[rc]?\w* (?:el |este |the )?json|json (?:es )?valid\w*)\b'),
         ('hours', HOURS),
         ('zip', r'\b(inventar\w*|contiene el (?:zip|paquete)|(?:dentro|contenido) del (?:zip|paquete)|zip contents|list files)\b'),
-        ('dimensions', r'\b(dimension\w*|resolucion|pixeles|pixels?|anchura|altura|ancho|alto|width|height)\b'),
+        ('dimensions', r'\b(dimension\w*|resolucion|pixeles|pixels?|anchura|altura|width|height)\b|\b(?:el|su|de)\s+(?:ancho|alto)\b'),
         ('html', r'\b((comprueba|comprobar|revisa|valida|audita|check|validate) (?:el |este |the )?html|etiquetas? de (?:control|imagen)|controles sin etiqueta|alternativas? de imagen|alt text)\b'),
         ('pages', r'\b(cuantas paginas|numero de paginas|contar paginas|cuenta (?:las )?paginas|page count|how many pages)\b'),
     ]
@@ -81,7 +83,38 @@ def literal_query(objective):
     return match.group(1) if match else None
 
 
-def literal_findings(phrase, inputs, views):
+def literal_spans(phrase, line):
+    """Find canonically equivalent text and return offsets in the original line."""
+    needle = unicodedata.normalize('NFD', phrase.casefold())
+    if not needle:
+        return
+    if line.isascii() and phrase.isascii():
+        yield from ((m.start(),m.end()) for m in re.finditer(re.escape(phrase),line,re.I))
+        return
+    original = {}
+    pieces = []
+    size = start = 0
+    for i in range(1, len(line)+1):
+        if i < len(line) and unicodedata.combining(line[i]):
+            continue
+        original[size] = start
+        segment = unicodedata.normalize('NFD',line[start:i].casefold())
+        pieces.append(segment)
+        size += len(segment)
+        start = i
+    original[size] = len(line)
+    normal = ''.join(pieces)
+    start = 0
+    while (pos := normal.find(needle,start)) >= 0:
+        end = pos + len(needle)
+        if pos in original and end in original:
+            yield original[pos],original[end]
+            start = end
+        else:
+            start = pos + 1
+
+
+def literal_findings(phrase, inputs, views, *, modifier=''):
     rows = []
     for item in inputs:
         view = views[item['id']]
@@ -96,19 +129,48 @@ def literal_findings(phrase, inputs, views):
                           image_pages=view['image_pages'],complete=not view['text_truncated'])
         if isinstance(text, str):
             slices = view.get('page_texts', [dict(page=view.get('page'), text=text)])
-            found = next(((part.get('page'), number, line, match)
-                         for part in slices
-                         for number, line in enumerate(part['text'].splitlines(), start=view.get('text_start_line', 1))
-                         if (match := re.search(re.escape(phrase),line,re.I))), None)
-            if found:
-                page, number, line, match = found
-                status='observed'
+            hits = ((part.get('page'), number, line, begin, end)
+                    for part in slices
+                    for number, line in enumerate(part['text'].splitlines(), start=view.get('text_start_line', 1))
+                    for begin,end in literal_spans(phrase,line))
+            refs = []
+            pages = set()
+            count = 0
+            for page,number,line,begin,end in hits:
+                count += 1
+                first_on_page = page not in pages
+                pages.add(page)
+                if len(refs)<8 and (modifier!='pages_containing' or first_on_page):
+                    first_column = view.get('text_start_column',1) if number==view.get('text_start_line',1) else 1
+                    ref = dict(citation,quote=line[max(0,begin-50):end+80],line=number,column=begin+first_column)
+                    if page:
+                        ref['page']=page
+                    refs.append(ref)
+                if modifier not in ('all','pages_containing'):
+                    break
+            partial = view.get('text_truncated') or item['kind'] not in ('text','other','json','html','pdf')
+            if modifier=='pages_containing':
+                total=len(pages)
+                title=f'{total} página' + ('' if total==1 else 's') + f' con «{phrase}»'
+                if partial:
+                    title = 'Al menos ' + title
+                detail = f'Se buscaron las coincidencias en el texto seleccionable de {name}.'
+                if partial:
+                    detail += ' Quedan páginas o contenido sin verificar.'
+                rows.append(dict(rule='pages',status='insufficient' if partial else 'observed',title=title,
+                                 detail=detail,sources=refs or [citation],coverage=coverage))
+                continue
+            if count:
+                status='mismatch' if modifier=='absent' else 'observed'
                 detail=f'«{phrase}» aparece en el texto recuperado de {name}.'
-                citation.update(quote=line[max(0,match.start()-50):match.end()+80], line=number)
-                if page:
-                    citation['page']=page
+                if modifier=='all':
+                    detail=f'{count} coincidencia' + ('' if count==1 else 's') + f' de «{phrase}» en el texto recuperado de {name}.'
+                    if count>len(refs):
+                        detail+=f' Se muestran las primeras {len(refs)} ubicaciones.'
+                    if partial:
+                        status='insufficient'
+                        detail+=' El archivo tiene contenido fuera del extracto comprobado.'
             else:
-                partial = (view.get('text_truncated') or item['kind'] not in ('text','other','json','html','pdf'))
                 status='insufficient' if partial else 'observed'
                 detail=('La expresión no aparece en el extracto recuperado.' if partial else
                         'La expresión no aparece en el texto completo del archivo.')
@@ -123,7 +185,13 @@ def literal_findings(phrase, inputs, views):
                         detail+=' La búsqueda no lee el texto dentro de las imágenes.'
                     elif checked==total:
                         detail+=' El texto extraído tiene cobertura parcial.'
-        rows.append(dict(rule='literal',status=status,title=name,detail=detail,sources=[citation],**({'coverage':coverage} if coverage else {})))
+        else:
+            refs = []
+            if modifier=='pages_containing':
+                rows.append(dict(rule='pages',status='insufficient',title='Recuento de páginas pendiente',
+                                 detail=view.get('detail',detail),sources=[citation]))
+                continue
+        rows.append(dict(rule='literal',status=status,title=name,detail=detail,sources=refs or [citation],**({'coverage':coverage} if coverage else {})))
     return rows
 
 
@@ -160,6 +228,9 @@ def reader_findings(check, inputs, views):
     titles = {'syntax':'Validar la sintaxis JSON', 'pages':'Contar páginas del PDF',
               'dimensions':'Comprobar las dimensiones', 'visual':'Revisar la legibilidad',
               'zip':'Inventariar el paquete', 'html':'Comprobar HTML'}
+    if check == 'summary':
+        return [dict(rule='scope',status='insufficient',title='Resumen pendiente',
+                     detail='La lectura local recupera extractos. Para redactar un resumen, autoriza una consulta al Director sobre las fuentes elegidas.',sources=[])]
     if check == 'general':
         results = []
         for item in inputs:
@@ -218,6 +289,10 @@ def reader_findings(check, inputs, views):
             elif view['status']=='invalid':
                 title='El JSON contiene un error de sintaxis'
                 outcome='observed'
+            elif view['status']=='ambiguous':
+                title='Hay una clave JSON repetida'
+            elif view['status']=='limit':
+                title='Validación JSON incompleta por límite de lectura'
         elif check=='visual' and view['status']=='ok':
             title='La legibilidad requiere revisión visual'
             detail='La imagen se ha abierto. Revisa el título en el visor a tamaño original. El lector local comprueba el archivo y sus dimensiones.'

@@ -7,10 +7,12 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import platform
 import statistics
 import sys
+import tempfile
 import time
 import uuid
 
@@ -121,9 +123,23 @@ def new_output(path):
 
 
 def write_json(path, value):
-    with Path(path).open('x', encoding='utf-8', newline='\n') as out:
-        json.dump(value, out, indent=2, ensure_ascii=False, allow_nan=False)
-        out.write('\n')
+    path = Path(path)
+    if path.exists():
+        raise FileExistsError(path)
+    with tempfile.NamedTemporaryFile(dir=path.parent, prefix='.measurement-', delete=False) as out:
+        pending = Path(out.name)
+    try:
+        with pending.open('w', encoding='utf-8', newline='\n') as out:
+            json.dump(value, out, indent=2, ensure_ascii=False, allow_nan=False)
+            out.write('\n')
+            out.flush()
+            os.fsync(out.fileno())
+        if os.name == 'nt':
+            os.rename(pending, path)  # Windows fails when the target exists.
+        else:
+            os.link(pending, path)
+    finally:
+        pending.unlink(missing_ok=True)
 
 
 def environment(profile):
@@ -192,16 +208,20 @@ def aggregate(trials):
     return result
 
 
+def _benchmark_target(root):
+    from .legacy import PATHS
+    target = Path(root).resolve()
+    if any((parent / PATHS['v1']).is_file() for parent in (target, *target.parents)):
+        raise Denied('BENCHMARK_REQUIRES_NON_LEGACY_DIRECTORY')
+    return target
+
+
 def benchmark(root, profile, repeats, role_counts):
     if type(repeats) is not int or not 1 <= repeats <= 3:
         raise ValueError('REPEATS_MUST_BE_1_TO_3')
     if not role_counts or len(set(role_counts)) != len(role_counts) or any(type(n) is not int or n not in (1, 3, 7) for n in role_counts):
         raise ValueError('ROLE_PROFILES_INVALID')
-    from .legacy import PATHS
-    target = Path(root).resolve()
-    if any((parent / PATHS['v1']).is_file() for parent in (target, *target.parents)):
-        raise Denied('BENCHMARK_REQUIRES_NON_LEGACY_DIRECTORY')
-    root = new_output(root)
+    root = new_output(_benchmark_target(root))
     fixture = Path(__file__).resolve().parents[1] / 'examples' / 'audit-sample.html'
     snapshot = fixture.read_bytes()
     ledger = Ledger(root / 'benchmark.sqlite3'); ledger.initialize()
@@ -237,12 +257,27 @@ def main(argv=None):
             command.add_argument('--repeats', type=int, choices=range(1, 4), default=2)
             command.add_argument('--roles', type=int, choices=(1, 3, 7), nargs='+', default=[1, 3, 7])
     args = parser.parse_args(argv)
-    profile = select_model(args.model, local_metadata()['models'])
+    if args.action == 'benchmark':
+        _benchmark_target(args.output)
+    if Path(args.output).exists():
+        raise FileExistsError(args.output)
     header = {'schema': 'neural-office.measurement.v1', 'kind': args.action,
-              'created_at_utc': datetime.now(timezone.utc).isoformat(), 'environment': environment(profile),
+              'created_at_utc': datetime.now(timezone.utc).isoformat(),
               'scope': 'owned CPU backend; synthetic tasks only; advisory quality not graded',
               'cache_control': 'new backend each attempt; filesystem cache and other apps uncontrolled',
               'ui_memory_included': False, 'power_and_temperature_measured': False}
+    try:
+        catalog = local_metadata()
+        if (not isinstance(catalog, dict) or not isinstance(catalog.get('models'), list)
+                or not all(isinstance(model,dict) for model in catalog['models'])):
+            raise Denied('METADATA_UNAVAILABLE')
+        profile = select_model(args.model, catalog['models'])
+        header['environment'] = environment(profile)
+    except (OSError, ValueError, RuntimeError) as exc:
+        root = new_output(args.output)
+        write_json(root / 'summary.json', {**header, 'status': 'metadata_unavailable',
+                                          'error': safe_error(exc), 'trials': []})
+        return 2
     if args.action == 'startup':
         root = new_output(args.output); trials = []; status = 'completed'
         for number in range(args.trials):

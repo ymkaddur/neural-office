@@ -2,6 +2,7 @@
 from html import unescape
 from html.parser import HTMLParser
 import json
+import re
 from .ledger import canonical, digest
 
 SCOPE = 'static-html-checks-v4'
@@ -156,18 +157,41 @@ def audit_html(source):
     return sorted(scan.findings,key=lambda x:(x['line'],x['column'],x['code']))
 
 
-def make_report(source, outputs):
-    return canonical({'schema':1,'scope':SCOPE,'source_sha256':digest(source),
+def requested_rule(objective):
+    """Recognize a request for the code and position of one supported static finding."""
+    text = objective.casefold()
+    if not re.search(r'\b(?:código|codigo|code)\b',text) or not re.search(r'\b(?:líneas?|lineas?|lines?)\b',text):
+        return None
+    families = {
+        'IMAGE_ALT_MISSING':r'\b(?:imagen sin (?:descripción|texto alternativo)|missing (?:image )?alt(?: text)?)\b',
+        'CONTROL_LABEL_CANDIDATE':r'\b(?:control sin etiqueta|unlabelled control|unlabeled control)\b',
+        'HTML_LANGUAGE_MISSING':r'\b(?:idioma del documento|missing document language)\b',
+        'DOCUMENT_TITLE_MISSING':r'\b(?:título del documento|missing document title)\b',
+        'HTML_ELEMENT_MISSING':r'\b(?:elemento html ausente|missing html element)\b',
+    }
+    found = [code for code, label in families.items()
+             if re.search(r'\b'+code.casefold()+r'\b',text) or re.search(label,text)]
+    return found[0] if len(found) == 1 else None
+
+
+def make_report(source, outputs, rule=None):
+    report = {'schema':1,'scope':SCOPE,'source_sha256':digest(source),
         'findings':audit_html(source),'model_commentary_status':'UNVERIFIED_ASSISTANCE',
-        'role_outputs':outputs}).encode('utf-8')
+        'role_outputs':outputs}
+    if rule is not None:
+        report['requested_rule'] = rule
+    return canonical(report).encode('utf-8')
 
 
-def verify_report(source, artifact):
+def verify_report(source, artifact, rule=None):
     checks={}
     try:
         report=json.loads(artifact)
-        checks['schema']=type(report) is dict and set(report)=={
-            'schema','scope','source_sha256','findings','model_commentary_status','role_outputs'}
+        keys={'schema','scope','source_sha256','findings','model_commentary_status','role_outputs'}
+        if rule is not None:
+            keys.add('requested_rule')
+            checks['requested_rule']=report.get('requested_rule')==rule
+        checks['schema']=type(report) is dict and set(report)==keys
         checks['scope']=type(report.get('schema')) is int and report['schema']==1 and report.get('scope')==SCOPE
         checks['source_identity']=report.get('source_sha256')==digest(source)
         checks['findings_match_recomputed']=canonical(report.get('findings'))==canonical(audit_html(source))

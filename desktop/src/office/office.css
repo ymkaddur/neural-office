@@ -14,7 +14,7 @@
 .v541.connected.desk513.arcade535[data-contrast=true]:not(.theme-dark){--muted:#413e37;--line:#938c7f;--outline:#70371d}
 .v541.connected.desk513.arcade535.theme-dark[data-contrast=true]{--muted:#e1e7f0;--line:#8791a2;--outline:#ffd1ad}
 .arcade535 .desk-titlebar{display:flex;gap:clamp(10px,2vw,35px);padding:0 17px;height:49px;min-height:49px}
-.arcade535 button{transition:background-color 110ms ease,color 110ms ease;border-color:var(--line)}
+.arcade535 button{border-color:var(--line)}
 .arcade535 .desk-titlebar button,.arcade535 .arc-icon,.arcade535 .mobile-team-switch{background:transparent;border:0;color:var(--muted);font:inherit;cursor:pointer}
 .arcade535 .desk-brand{gap:9px;font-weight:650;white-space:nowrap;letter-spacing:-.035em}
 .arcade535 .desk-brand .arcade-bot{width:28px;height:28px;object-fit:contain}
@@ -60,7 +60,7 @@
 .team-member[data-running=true] .arcade-bot{animation:office-working .6s steps(2,end) 2}
 @keyframes office-working{50%{transform:translateY(-2px)}}
 .specialist-objective{border-inline-start:2px solid var(--line);padding-inline-start:.7em;color:var(--muted)}
-.member-peek{position:absolute;z-index:7;right:calc(100% - 3px);top:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 13px;width:max-content;max-width:225px;box-shadow:0 5px 14px #0002;pointer-events:none;font-size:.87em}
+.member-peek{position:absolute;z-index:7;right:calc(100% - 3px);top:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 13px;width:max-content;max-width:225px;box-shadow:0 5px 14px #0002;pointer-events:auto;font-size:.87em}
 .arcade535 .mobile-team-switch{display:none}
 .specialist-sheet{color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 12px 44px #0003;max-height:82dvh;width:min(600px,55vw);max-width:calc(100vw - 22px);margin:auto max(5vw,calc(20vw - 20px)) auto auto;padding:0;overflow:auto}
 .specialist-sheet::backdrop{background:#090b103d}
@@ -88,9 +88,12 @@
 .arcade535 :is(.earlier-turn,.history-entry,.round-ledger) time{flex:none;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:max(.8rem,12px)}
 .arcade535 :is(.earlier-turn,.history-entry) span{min-width:0;overflow-wrap:anywhere}
 .arcade535 .earlier-turn span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.arcade535 :is(.workfile,.team-member,.arc-disclosure) small{font-size:max(.8rem,12px)}
+.arcade535 :is(.workfile,.team-member,.arc-disclosure) small{font-size:calc(12px * var(--desk-scale,1))}
+ .arcade535 .compact-history-link{display:none}
 .arcade535 .answer-list{padding-left:1.25em;display:grid;gap:.65em}
 .arcade535 .answer-list li p{margin:.15em 0;color:var(--muted)}
+.arcade535 .answer-list [data-rule=file_content] p,.arcade535 .desk-lede[data-literal=true]{white-space:pre-wrap;overflow-wrap:anywhere}
+.arcade535 .citation-row[aria-pressed=true]{background:var(--selection)}
 .arcade535 .answer-list .answer-source{display:inline-flex;align-items:baseline;gap:8px;padding:0;font-size:inherit;text-align:left}
 .arcade535 .answer-source small{font-size:max(.8rem,12px);color:var(--muted)}
 .arcade535.theme-dark .desk-composer .desk-primary:disabled{background:var(--wash);border-color:var(--line);color:var(--muted);opacity:1}
@@ -119,5 +122,28 @@
 @media(max-width:900px){.arcade535 .review-desk.with-team{grid-template-columns:minmax(0,1fr) 170px}.team-rail{padding:10px 5px}.team-member .arcade-bot{width:27px;height:27px}.specialist-sheet{width:min(620px,78vw);margin:auto}.arcade535 .desk-titlebar{gap:8px}}
 @media(max-width:760px){.arcade535 .review-desk.with-team{display:flex;flex-direction:column}.arcade535 .mobile-team-switch{display:block;align-self:flex-end;font-size:.82em;padding:4px 12px}.arcade535 .review-desk.with-team>.desk-thread{flex:1;min-height:0}.with-team .team-rail{display:none}.with-team.show-team .team-rail{display:flex;overflow:auto;flex:1}.with-team.show-team>.desk-thread{display:none}.member-peek{display:none}.arcade535 .arc-search{margin-left:auto}.arcade535 .engine-state{display:none}.library-columns{grid-template-columns:1fr}.library-index{border-right:0;border-bottom:1px solid var(--line);padding:0 0 12px}.library-detail{padding:12px 0}.specialist-sheet{width:calc(100vw - 20px)}.office-settings{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.office-settings>nav{display:flex;overflow-x:auto;white-space:nowrap;border-bottom:1px solid var(--line);padding:5px}.arcade535 .arc-global button{font-size:.87em}.arcade535 .desk-titlebar{padding:0 6px}.arcade535 .desk-brand strong{font-size:.87em}.arcade535 .desk-brand .arcade-bot{width:21px}}
 @media(max-height:650px) and (min-width:761px){.team-rail{overflow-y:auto}.team-member small{font-size:.7em}.arcade535 .team-member{min-height:36px;padding:3px 5px}.team-captain{padding-block:4px}.team-members{gap:0}.member-peek{display:none}}
+@media(forced-colors:active){
+  .office-settings nav button[aria-current=page],.library-index>button[aria-pressed=true],.arcade535 .citation-row[aria-pressed=true]{outline:2px solid Highlight;outline-offset:-3px}
+}
+@media(max-width:425px){
+  .arcade535 .desk-brand strong{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .arcade535 .arc-global{min-width:0;gap:0}
+  .arcade535 .arc-global button{padding-inline:4px}
+  .arcade535 .desk-titlebar{gap:3px}
+  .arcade535 .header-actions{max-width:100%;min-width:0;flex-wrap:wrap}
+}
+@media(max-height:600px) and (min-width:681px) and (max-width:900px){
+  .arcade535 .has-inspector .thread-document{padding:9px 12px 14px}
+  .arcade535 .has-inspector .earlier-turn{display:none}
+  .arcade535 .has-inspector .compact-history-link{display:inline-flex;align-items:center;gap:5px;margin-bottom:5px;background:transparent;color:var(--accent);font:inherit;font-size:.85em}
+  .arcade535 .has-inspector .user-turn{margin-bottom:8px}
+  .arcade535 .has-inspector .user-turn p{margin-block:3px;padding:.35em .65em}
+  .arcade535 .has-inspector .thread-document h1{margin-block:6px}
+  .arcade535 .has-inspector .composer-wrap{padding:3px 8px}
+  .arcade535 .has-inspector .desk-composer{padding:3px 7px}
+  .arcade535 .has-inspector .desk-composer>p[role=status]{margin:3px 0;font-size:.88em;line-height:1.3}
+  .arcade535 .has-inspector .composer-actions{gap:3px}
+  .arcade535 .has-inspector .composer-actions button{min-height:28px;padding:3px 6px}
+}
 @media(prefers-reduced-motion:reduce){.arcade535 *, .arcade535 *::before,.arcade535 *::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
 .arcade535[data-motion=true] *, .arcade535[data-motion=true] *::before,.arcade535[data-motion=true] *::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}

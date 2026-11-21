@@ -20,23 +20,25 @@ function utf16(text:string) {
   return hex;
 }
 
+export type ReportParagraph=string|{kind:'heading'|'quote';text:string};
+type PrintRow={visible:string;semantic:string;image:boolean};
+
 function wrap(text:string,ctx:CanvasRenderingContext2D) {
   const lines:string[]=[];
-  let line='';
+  let line='',longToken=false;
   const fits=(value:string)=>ctx.measureText(value).width<=496;
-  for (const word of text.split(/\s+/)) {
-    if(!word)continue;
-    const joined=line?line+' '+word:word;
-    if(fits(joined)){line=joined;continue;}
+  for(const part of text.match(/\s+|\S+/gu)??[]){
+    if(fits(line+part)){line+=part;continue;}
     if(line){lines.push(line);line='';}
-    if(fits(word)){line=word;continue;}
-    for(const character of word){
+    if(fits(part)){line=part;continue;}
+    if(/\S/u.test(part))longToken=true;
+    for(const character of part){
       if(line&&!fits(line+character)){lines.push(line);line='';}
       line+=character;
     }
   }
   lines.push(line);
-  return lines;
+  return {lines,longToken};
 }
 
 function rasterLine(line:string) {
@@ -47,21 +49,77 @@ function rasterLine(line:string) {
   ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.font='40px Arial, sans-serif';
   ctx.fillStyle='#161616';ctx.fillText(line,0,39,canvas.width);
-  return atob(canvas.toDataURL('image/jpeg',.94).split(',')[1]);
+  if(ansi(line)===null)return {color:'/DeviceRGB',bits:8,filter:'/DCTDecode',data:atob(canvas.toDataURL('image/jpeg',.94).split(',')[1])};
+  // Mostly white rows of four-times-resolution Latin text fit a small monochrome image.
+  const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+  const bitmap=new Uint8Array(canvas.width*canvas.height/8);
+  for(let i=0;i<bitmap.length;i++){
+    let bits=0;
+    for(let b=0;b<8;b++)bits=(bits<<1)|(pixels[(i*8+b)*4]>=155?1:0);
+    bitmap[i]=bits;
+  }
+  const output:number[]=[];
+  for(let at=0;at<bitmap.length;){
+    let end=at+1;
+    while(end<bitmap.length&&end-at<128&&bitmap[end]===bitmap[at])end++;
+    if(end-at>1){output.push(257-(end-at),bitmap[at]);at=end;continue;}
+    while(end<bitmap.length&&end-at<128&&bitmap[end]!==bitmap[end+1])end++;
+    output.push(end-at-1,...bitmap.subarray(at,end));at=end;
+  }
+  output.push(128);
+  return {color:'/DeviceGray',bits:1,filter:'/RunLengthDecode',data:String.fromCharCode(...output)};
 }
 
-export function reportPdf(paragraphs:string[]) {
+function printPages(paragraphs:ReportParagraph[],measure:CanvasRenderingContext2D){
+  const pages:PrintRow[][]=[[]];
+  let page=pages[0];
+  const newPage=()=>{page=[];pages.push(page);};
+  const blocks:{rows:PrintRow[];heading:boolean}[]=[];
+  for(const paragraph of paragraphs){
+    const text=typeof paragraph==='string'?paragraph:paragraph.text;
+    const heading=typeof paragraph!=='string'&&paragraph.kind==='heading';
+    const quote=typeof paragraph!=='string'&&paragraph.kind==='quote';
+    const rows:PrintRow[]=[];
+    for(const source of text.split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/)){
+      const visible=source.replace(/\t/g,'    ');
+      const wrapped=wrap(visible,measure);
+      // The visible rows remain at reading size, while one selectable span preserves
+      // the source line for copying a citation or searching for a long identifier.
+      const keepSource=visible!==source||wrapped.longToken||(quote&&wrapped.lines.length>1);
+      wrapped.lines.forEach((line,i)=>{
+        const semantic=keepSource?(i===0?source:''):line;
+        rows.push({visible:line,semantic,image:keepSource||ansi(line)===null});
+      });
+    }
+    blocks.push({rows,heading});
+  }
+  for(const [i,{rows,heading}] of blocks.entries()){
+    if(heading&&page.length){
+      let keep=rows.length;
+      for(let next=i+1;next<blocks.length&&keep<49;next++){
+        const block=blocks[next];
+        if(block.heading||block.rows.every(row=>!row.visible.trim()))keep+=block.rows.length;
+        else{keep++;break;}
+      }
+      if(page.length+Math.min(keep,49)>49)newPage();
+    }
+    for(const row of rows){if(page.length===49)newPage();page.push(row);}
+  }
+  return pages;
+}
+
+export function reportPdf(paragraphs:ReportParagraph[]) {
   const measure=document.createElement('canvas').getContext('2d');
   if(!measure)throw new Error('No se pudo medir la tipografía del informe.');
   measure.font='10px Arial, sans-serif';
-  const lines=paragraphs.flatMap(p=>p.split(/\r\n|[\n\r\v\f\x1c-\x1e\x85\u2028\u2029]/).flatMap(s=>wrap(s,measure)));
+  const layout=printPages(paragraphs,measure);
   const objects=['<< /Type /Catalog /Pages 2 0 R >>','',
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'];
   const add=(object:string)=>objects.push(object);
   const streamObject=(s:string)=>add('<< /Length '+s.length+' >>\nstream\n'+s+'\nendstream');
   // A small Type 3 subset gives each Unicode scalar its own code and ToUnicode entry.
   // Positions use the measured line width. The following opaque image supplies the visible glyphs.
-  const characters=[...new Set(lines.filter(line=>ansi(line)===null).flatMap(line=>Array.from(line)))];
+  const characters=[...new Set(layout.flat().flatMap(row=>ansi(row.semantic)===null?Array.from(row.semantic):[]))];
   const codes=new Map<string,{font:string;code:string;width:number}>();
   const fonts=['/F1 3 0 R'];
   if(characters.length){
@@ -77,7 +135,9 @@ export function reportPdf(paragraphs:string[]) {
       }
       const cmap=streamObject('/CIDInit /ProcSet findresource begin 12 dict begin begincmap\n/CIDSystemInfo << /Registry (Local) /Ordering (Unicode) /Supplement 0 >> def\n/CMapName /'+font+' def /CMapType 2 def\n1 begincodespacerange\n<01> <f0>\nendcodespacerange\n'+mapping.join('\n')+'\nendcmap CMapName currentdict /CMap defineresource pop end end');
       const names=subset.map((_,i)=>'/g'+(i+1));
-      const widths=subset.map(c=>Math.round(measure.measureText(c).width*100));
+      // Tab stops belong to the visible line. A second advance for the semantic
+      // tab makes geometry-based extractors invent a space after /ActualText.
+      const widths=subset.map(c=>c==='\t'?0:Math.round(measure.measureText(c).width*100));
       const procedures=widths.map((w,i)=>{
         if(!glyphs.has(w))glyphs.set(w,streamObject(w+' 0 0 -200 '+w+' 800 d1'));
         return names[i]+' '+glyphs.get(w)+' 0 R';
@@ -88,19 +148,27 @@ export function reportPdf(paragraphs:string[]) {
     }
   }
   const pages:number[]=[];
-  for (let start=0;start<Math.max(lines.length,1);start+=49) {
+  for (const rows of layout) {
     const commands:string[]=[];
     const images:string[]=[];
-    for (const [row,line] of lines.slice(start,start+49).entries()) {
+    for(const [row,{visible,semantic:line,image}] of rows.entries()){
       const y=786-row*15;
+      if(image){
+        const pixels=rasterLine(visible);
+        const ref=add('<< /Type /XObject /Subtype /Image /Width 2040 /Height 52 /ColorSpace '+pixels.color+' /BitsPerComponent '+pixels.bits+' /Filter '+pixels.filter+' /Length '+pixels.data.length+' >>\nstream\n'+pixels.data+'\nendstream');
+        images.push('/I'+row+' '+ref+' 0 R');
+        commands.push('/Artifact BMC q 510 0 0 13 44 '+(y-3)+' cm /I'+row+' Do Q EMC');
+      }
+      if(!line)continue;
       const literal=ansi(line);
-      if (literal!==null) {
-        commands.push('BT /F1 10 Tf 100 Tz 0 Tr 1 0 0 1 44 '+y+' Tm ('+literal+') Tj ET');
+      const width=measure.measureText(line).width;
+      if(image)commands.push('/Span << /ActualText <feff'+utf16(line)+'> >> BDC');
+      if(literal!==null){
+        const scale=Math.min(100,496/Math.max(width,1)*100).toFixed(3);
+        commands.push('BT /F1 10 Tf '+scale+' Tz '+(image?'3':'0')+' Tr 1 0 0 1 44 '+y+' Tm ('+literal+') Tj ET');
+        if(image)commands.push('EMC');
         continue;
       }
-      const pixels=rasterLine(line);
-      const ref=add('<< /Type /XObject /Subtype /Image /Width 2040 /Height 52 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+pixels.length+' >>\nstream\n'+pixels+'\nendstream');
-      images.push('/I'+row+' '+ref+' 0 R');
       const runs:{font:string;hex:string}[]=[];
       let advance=0;
       for(const c of line){
@@ -110,9 +178,9 @@ export function reportPdf(paragraphs:string[]) {
         if(last?.font===font)last.hex+=code;
         else runs.push({font,hex:code});
       }
-      const scale=(advance?100*measure.measureText(line).width/advance:100).toFixed(3);
+      const scale=(advance?100*Math.min(width,496)/advance:100).toFixed(3);
       commands.push('BT '+scale+' Tz 3 Tr 1 0 0 1 44 '+y+' Tm '+runs.map(r=>'/'+r.font+' 10 Tf <'+r.hex+'> Tj').join(' ')+' ET');
-      commands.push('q 510 0 0 13 44 '+(y-3)+' cm /I'+row+' Do Q');
+      if(image)commands.push('EMC');
     }
     const content=commands.join('\n')+'\n';
     const stream=add('<< /Length '+content.length+' >>\nstream\n'+content+'endstream');

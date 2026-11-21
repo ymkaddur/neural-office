@@ -82,8 +82,9 @@ def check_first_prompt(snapshot, objective, profile):
 
 
 def make_attempt_report(row):
-    formatter = excerpt_review.make_report if row['profile'].get('analysis_scope') in excerpt_review.SCOPES else make_report
-    return formatter(bytes(row['snapshot']), row['outputs'])
+    if row['profile'].get('analysis_scope') in excerpt_review.SCOPES:
+        return excerpt_review.make_report(bytes(row['snapshot']), row['outputs'])
+    return make_report(bytes(row['snapshot']), row['outputs'], row['profile'].get('requested_rule'))
 
 
 def run(ledger,attempt,roles=7,backend_factory=OwnedOllama,progress=lambda *_:None):

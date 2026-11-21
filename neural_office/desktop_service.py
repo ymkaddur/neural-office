@@ -4,6 +4,7 @@ No web server, shell command or frontend supplied file path is exposed. Producti
 uses OwnedOllama; tests may inject a clearly labelled fixture backend/catalog.
 """
 import base64
+from collections import OrderedDict
 from contextlib import nullcontext
 import json
 import os
@@ -82,6 +83,9 @@ class DesktopService:
         self._errors = {}
         self._closed = False
         self._catalog = None
+        self._drafts = OrderedDict()
+        self._cleared_drafts = OrderedDict()
+        self._draft_revision = 0
 
     def _meta(self, con):
         office, revision = con.execute('SELECT office,revision FROM continuity_meta WHERE id=1').fetchone()
@@ -247,6 +251,10 @@ class DesktopService:
                   'inspection_id': report_id, 'thread_id': thread_id}
         approval = self._prepare_approval(project_id, source, model_digest, 1, objective, origin=origin)
         return {**approval, **origin, 'report_id': report_id, 'fragments': fragments}
+
+    def inspection_scope(self, project_id, thread_id, report_id):
+        report = self.attachments.report(project_id, report_id, thread_id=thread_id)
+        return excerpt_review.scope_size(report, project_id, thread_id)
 
     def check_source(self, project_id, entry_token, offset):
         with self._command_lock:
@@ -432,6 +440,8 @@ class DesktopService:
         with self.ledger.connection() as con:
             self.ledger._row(con, attempt_id)
             meta = self._meta(con)
+            if before > meta['cursor']:
+                raise Denied('EVENT_CURSOR_AHEAD')
             bound = before if before else meta['cursor'] + 1
             rows = con.execute("SELECT seq,stamp_ns,kind,payload FROM events WHERE seq<? "
                                "AND json_extract(payload,'$.attempt')=? ORDER BY seq DESC LIMIT ?",
@@ -439,7 +449,8 @@ class DesktopService:
             visible = rows[:limit]
             return {**meta, 'attempt_id': attempt_id, 'has_more': len(rows)>limit,
                     'next_before': visible[-1]['seq'] if visible else 0,
-                    'events': [_public_event(r, {'attempt', 'role', 'state', 'ordinal'}) for r in reversed(visible)]}
+                    'events': [_public_event(r, {'attempt', 'role', 'state', 'ordinal', 'call', 'payload_sha',
+                                                'content_sha', 'artifact_sha'}) for r in reversed(visible)]}
 
     def events(self, after, limit):
         with self.ledger.connection() as con:
@@ -480,6 +491,59 @@ class DesktopService:
                 'next_offset': offset+len(chunk), 'eof': offset+len(chunk) == len(artifact),
                 'chunk_sha256': digest(chunk), 'base64': base64.b64encode(chunk).decode('ascii')}
 
+    def _session_draft(self, session_id, project_id, thread_id, expected_revision=None, text=None, edit_id=None, after_edit=None):
+        key = (project_id, thread_id)
+        with self._command_lock:
+            if self._closed or session_id != self.session_id:
+                raise Denied('HOST_SESSION_CHANGED')
+            revision, previous, previous_edit = self._drafts.get(key, self._cleared_drafts.get(key, (0, '', None)))
+            evicted = None
+            if expected_revision is not None:
+                if revision != expected_revision and previous_edit not in (after_edit, edit_id):
+                    raise Denied('DRAFT_REVISION_CHANGED')
+                if text != previous or (after_edit != 'none' and previous_edit != edit_id):
+                    self._drafts.pop(key, None)
+                    self._cleared_drafts.pop(key, None)
+                    self._draft_revision += 1
+                    revision = self._draft_revision
+                    if text:
+                        if len(self._drafts) >= 128:
+                            (old_project, old_thread), _ = self._drafts.popitem(last=False)
+                            evicted = {'project_id': old_project, 'thread_id': old_thread}
+                        self._drafts[key] = (revision, text, edit_id)
+                    else:
+                        if len(self._cleared_drafts) >= 128:
+                            self._cleared_drafts.popitem(last=False)
+                        self._cleared_drafts[key] = (revision, '', edit_id)
+                    previous = text
+            if key in self._drafts:
+                self._drafts.move_to_end(key)
+            return {'session_id': session_id, 'project_id': project_id, 'thread_id': thread_id,
+                    'text': previous, 'revision': revision, 'evicted': evicted}
+
+    def _copy_skill_to_draft(self, library, session_id, project_id, thread_id, entry_id, expected_revision,
+                             active_revision, draft_revision, edit_id):
+        with self._command_lock:
+            draft = self._session_draft(session_id, project_id, thread_id)
+            key = (project_id, thread_id)
+            operation = digest(canonical(['library.copy_to_draft', session_id, project_id, thread_id, entry_id,
+                                          expected_revision, active_revision, draft_revision, edit_id]))
+            current = self._drafts.get(key)
+            receipt = dict(session_id=session_id, project_id=project_id, thread_id=thread_id,
+                           entry_id=entry_id, active_revision=active_revision, edit_id=edit_id)
+            if current and current[2] == operation:
+                return dict(receipt, draft_revision=draft['revision'], evicted=None)
+            if draft['revision'] != draft_revision:
+                raise Denied('DRAFT_REVISION_CHANGED')
+            with library.accepted_instruction(project_id, entry_id, expected_revision, for_copy=True) as skill:
+                if skill['active_revision'] != active_revision:
+                    raise Denied('LIBRARY_REVISION_CHANGED')
+                text = '\n'.join(part for part in (draft['text'], skill['body']) if part)
+                if len(text) > 2000:
+                    raise Denied('LIBRARY_DRAFT_TOO_LONG')
+                saved = self._session_draft(session_id, project_id, thread_id, draft_revision, text, operation, 'none')
+                return dict(receipt, draft_revision=saved['revision'], evicted=saved['evicted'])
+
     def dispatch(self, raw):
         request = decode_command(raw)
         method, params = request['method'], request['params']
@@ -493,7 +557,7 @@ class DesktopService:
                     identity = self._meta(con)
                 return {**identity, 'version': 1, 'backend': 'python-ledger',
                         'inference': 'owned-local-model' if self.backend_factory is OwnedOllama else 'injected-test-backend',
-                        'source_selection': 'native-host',
+                        'source_selection': 'native-host', 'session_drafts': True,
                         'approval_ttl_seconds': GRANT_TTL_SECONDS, 'max_attempts_per_project': 3,
                         'max_active_projects': 2, 'max_concurrent_inference': 1}
             if method == 'models.list':
@@ -506,6 +570,8 @@ class DesktopService:
             if method.startswith('library.'):
                 from .project_library import ProjectLibrary
                 library = ProjectLibrary(self.attachments)
+                if method == 'library.copy_to_draft':
+                    return self._copy_skill_to_draft(library, **params)
                 return {'library.list': library.read, 'library.history': library.history, 'library.for_draft': library.for_draft,
                         'library.change': library.change}[method](**params)
             if method.startswith('attachments.'):
@@ -513,6 +579,7 @@ class DesktopService:
                 attachment_commands = {'attachments.list': store.list, 'attachments.view': self.attachment_view,
                                        'attachments.inspect': store.inspect, 'attachments.threads': store.threads,
                                        'attachments.history': store.history, 'attachments.search': store.search, 'attachments.report': store.report,
+                                       'attachments.search.page': store.search_page, 'attachments.scope': self.inspection_scope,
                                        'attachments.activity': store.activity, 'attachments.decide': store.decide, 'attachments.preview': self.preview_excerpts, 'attachments.cancel': self.cancel_attachment_reads}
                 return attachment_commands[method](**params)
             handlers = {'source.check': self.check_source, 'attempt.preview': self.preview, 'attempt.start': self.start,
@@ -520,6 +587,8 @@ class DesktopService:
                         'attempt.get': self.attempt, 'attempt.lookup': self.lookup,
                         'events.read': self.events, 'attempt.events': self.attempt_events,
                         'report.get': self.report, 'report.read': self.report_read}
+            if method in ('draft.get', 'draft.put'):
+                return self._session_draft(**params)
             return handlers[method](**params)
 
     def stop_owned(self):
@@ -540,5 +609,7 @@ class DesktopService:
             self._sources.clear()
             self._approvals.clear()
             worker = self.stop_owned()
+            self._drafts.clear()
+            self._cleared_drafts.clear()
         if worker is not None: worker.join(timeout)
         return worker is None or not worker.is_alive()

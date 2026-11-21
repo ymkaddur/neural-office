@@ -2,6 +2,7 @@
 from io import BytesIO
 from pathlib import PurePosixPath
 import re
+import posixpath
 import wave
 import xml.etree.ElementTree as ET
 import zipfile
@@ -75,6 +76,106 @@ def xml_part(archive, info):
     return root
 
 
+def presentation_order(archive, names, slides):
+    presentation = 'ppt/presentation.xml'
+    relationships = 'ppt/_rels/presentation.xml.rels'
+    if presentation not in names and relationships not in names:
+        return slides, False
+    if any(names.count(n) != 1 for n in (presentation, relationships)):
+        raise ValueError('incomplete slide order')
+    roots = [xml_part(archive, archive.getinfo(n)) for n in (presentation, relationships)]
+    targets = {}
+    for relation in roots[1].findall('{*}Relationship'):
+        if relation.get('TargetMode') == 'External' or not relation.get('Type', '').endswith('/slide'):
+            continue
+        target = relation.get('Target', '')
+        path = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join('ppt', target))
+        link = relation.get('Id')
+        if not link or link in targets or path not in slides:
+            raise ValueError('invalid slide relationship')
+        targets[link] = path
+    refs = roots[0].find('{*}sldIdLst')
+    if refs is None:
+        raise ValueError('missing slide references')
+    ordered = []
+    for ref in refs.findall('{*}sldId'):
+        links = [value for key, value in ref.attrib.items() if key.endswith('}id')]
+        if len(links) != 1 or links[0] not in targets or targets[links[0]] in ordered:
+            raise ValueError('unresolved slide reference')
+        ordered.append(targets[links[0]])
+    return ordered, True
+
+
+def word_paragraphs(root):
+    lines, fragments = [], []
+    def finish():
+        lines.append(''.join(fragments))
+        fragments.clear()
+    def visit(element, in_paragraph):
+        tag = element.tag.rsplit('}', 1)[-1]
+        if tag == 'p':
+            if fragments:
+                finish()
+            start = len(lines)
+            for child in element:
+                visit(child,True)
+            if fragments or start==len(lines):
+                finish()
+        elif in_paragraph and tag == 't':
+            fragments.append(element.text or '')
+        elif in_paragraph and tag in ('tab','br','cr'):
+            fragments.append('\t' if tag=='tab' else '\n')
+        else:
+            for child in element:
+                visit(child,in_paragraph)
+    visit(root,False)
+    return lines
+
+
+def odf_text(root, maximum):
+    text_ns = '{urn:oasis:names:tc:opendocument:xmlns:text:1.0}'
+    office = '{urn:oasis:names:tc:opendocument:xmlns:office:1.0}'
+    cell = '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}table-cell'
+    paragraphs = (text_ns+'p', text_ns+'h', 'p', 'h')
+    fragments = []
+    size = 0
+    def append(value):
+        nonlocal size
+        text = (value or '')[:maximum + 1 - size]
+        fragments.append(text)
+        size += len(text)
+    def content(node):
+        append(node.text)
+        for child in node:
+            if size > maximum:
+                return
+            if child.tag == text_ns+'s':
+                qty = child.get(text_ns+'c', '1')
+                if not qty.isascii() or not qty.isdecimal() or len(qty) > 9 or int(qty) < 1:
+                    raise ValueError('invalid ODF space count')
+                append(' ' * min(int(qty), maximum + 1 - size))
+            elif child.tag in (text_ns+'tab', text_ns+'line-break'):
+                append('\t' if child.tag == text_ns+'tab' else '\n')
+            else:
+                content(child)
+            append(child.tail)
+    blocks = 0
+    for element in root.iter():
+        if size > maximum:
+            break
+        if element.tag in paragraphs:
+            if blocks: append('\n')
+            content(element)
+            blocks += 1
+        elif element.tag == cell and not any(p.tag in paragraphs for p in element.iter()):
+            fallback = next((element.get(office+key) for key in ('value','date-value','time-value','boolean-value','string-value') if office+key in element.attrib), None)
+            if fallback is not None:
+                if blocks: append('\n')
+                append(fallback)
+                blocks += 1
+    return ''.join(fragments)
+
+
 def office_text(kind, data):
     from .attachment_formats import zip_view, result, MAX_TEXT
     inventory=zip_view(data,1,'','inspect')
@@ -87,6 +188,9 @@ def office_text(kind, data):
         parts=sorted([n for n in names if re.fullmatch(pattern,n)],key=lambda x:int((re.search(r'(\d+)\.xml$',x) or [None,0])[1]))
         if not parts or len(parts)!=len(set(parts)):
             return result(kind,'invalid','El paquete no contiene las partes de documento esperadas.')
+        known_order=True
+        if kind=='pptx':
+            parts,known_order=presentation_order(archive,names,parts)
         selected=parts[:24]
         has_shared=kind=='xlsx' and 'xl/sharedStrings.xml' in names
         required=selected+(['xl/sharedStrings.xml'] if has_shared else [])
@@ -114,23 +218,16 @@ def office_text(kind, data):
                         value=''.join(t.text or '' for t in cell.findall('.//{*}t'))
                     lines.append(part.split('/')[-1]+' · '+(cell.get('r') or '?')+'  '+value)
             elif kind in ('odt','ods','odp'):
-                lines.extend(''.join(p.itertext()) for p in root.iter() if p.tag.rsplit('}',1)[-1] in ('h','p'))
+                lines.append(odf_text(root, MAX_TEXT))
             elif kind == 'docx':
-                separators = {'tab': '\t', 'br': '\n', 'cr': '\n'}
-                for paragraph in root.findall('.//{*}p'):
-                    fragments = []
-                    for node in paragraph.iter():
-                        tag = node.tag.rsplit('}', 1)[-1]
-                        if tag == 't':
-                            fragments.append(node.text or '')
-                        elif tag in separators:
-                            fragments.append(separators[tag])
-                    lines.append(''.join(fragments))
+                lines.extend(word_paragraphs(root))
             else:
                 lines.extend(''.join(t.text or '' for t in p.findall('.//{*}t')) for p in root.findall('.//{*}p'))
         text='\n'.join(lines)
-        return result(kind,'ok','Texto recuperado de las partes del documento.',text=text[:MAX_TEXT],
-                      text_truncated=len(text)>MAX_TEXT or len(parts)>len(selected),parts=len(selected))
+        detail = ('Texto recuperado de las partes del documento.' if known_order else
+                  'Texto recuperado por partes. El paquete no declara el orden de las diapositivas.')
+        return result(kind,'ok',detail,text=text[:MAX_TEXT],
+                      text_truncated=len(text)>MAX_TEXT or len(parts)>len(selected) or not known_order,parts=len(selected))
 
 
 def general_view(kind, data):

@@ -17,6 +17,9 @@ METHODS = {
     'source.pick': {'project_id': 'project'},
     'library.list': {'project_id': 'project'},
     'library.for_draft': {'project_id': 'project', 'entry_id': 'id', 'expected_revision': 'revision'},
+    'library.copy_to_draft': {'session_id': 'id', 'project_id': 'project', 'thread_id': 'id', 'entry_id': 'id',
+                              'expected_revision': 'revision', 'active_revision': 'revision',
+                              'draft_revision': 'revision', 'edit_id': 'id'},
     'library.history': {'project_id': 'project', 'entry_id': 'id'},
     'library.change': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id', 'entry_id': 'id',
                        'kind': 'library_kind', 'title': 'objective', 'body': 'inspection_objective',
@@ -31,6 +34,8 @@ METHODS = {
                          'page': 'page', 'member': 'member'},
     'attachments.history': {'project_id': 'project', 'thread_id': 'id'},
     'attachments.search': {'project_id': 'project', 'query': 'objective'},
+    'attachments.search.page': {'project_id': 'project', 'query': 'objective', 'before': 'search_cursor'},
+    'attachments.scope': {'project_id': 'project', 'thread_id':'id', 'report_id':'id'},
     'attachments.report': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id'},
     'attachments.activity': {'project_id':'project','thread_id':'id'},
     'attachments.decide': {'project_id': 'project', 'thread_id': 'id', 'report_id': 'id', 'choice':'decision', 'expected_revision':'revision'},
@@ -47,10 +52,19 @@ METHODS = {
     'report.read': {'attempt_id': 'id', 'offset': 'revision', 'limit': 'chunk'},
     'events.read': {'after': 'revision', 'limit': 'limit'},
     'attempt.events': {'attempt_id': 'id', 'before': 'revision', 'limit': 'limit'},
+    'draft.get': {'session_id': 'id', 'project_id': 'project', 'thread_id': 'id'},
+    'draft.put': {'session_id': 'id', 'project_id': 'project', 'thread_id': 'id',
+                  'expected_revision': 'revision', 'edit_id': 'id', 'after_edit': 'id', 'text': 'draft'},
 }
 
 
 def valid(kind, value):
+    if kind == 'search_cursor':
+        return type(value) is str and (value == '' or re.fullmatch(r'[a-f0-9]{32}', value) is not None)
+    if kind == 'draft':
+        if type(value) is not str or '\x00' in value: return False
+        try: return len(value.encode('utf-8')) <= 12_000
+        except UnicodeError: return False
     if kind == 'library_kind':
         return value in ('memory', 'skill') if type(value) is str else False
     if kind == 'library_op':

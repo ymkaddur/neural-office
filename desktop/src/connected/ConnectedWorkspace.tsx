@@ -1,16 +1,18 @@
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {AttemptActivity} from './AttemptActivity.tsx';
-import {ProjectHistory} from './ProjectHistory.tsx';
+import {ProjectHistory,useProjectHistory} from './ProjectHistory.tsx';
+import {useTaskbarProgress} from './useTaskbarProgress';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
 import {hasNativeHost,readReport,request} from './client.ts';
 import type {Finding,FindingPage,Report} from './client.ts';
 import {acceptAttempt,approvalMatches,approvalScopeMatches,claimPending,releasePending,readPending,recordedDuration,remainingLabel,stateLabels,terminal,validateSnapshot} from './model.ts';
 import type {Approval,Attempt,Model,Pending,Project,Snapshot,Source} from './model.ts';
 import {readSavedDraft,ReviewDesk} from './ReviewDesk.tsx';
+import {readSessionDraft} from './sessionDraft.ts';
 import type {Inspection} from './ReviewDesk.tsx';
 import {attachmentApi,directorTextScope,excerptScope} from './attachments.ts';
 import {AppearancePanel, CommandSearch, DeskDialog, Icon, useAppearance} from './DeskTools.tsx';
-import type {DeskAction} from './DeskTools.tsx';
+import type {DeskAction,SearchPage} from './DeskTools.tsx';
 import './connected.css';
 import './desk.css';
 import '../office/office.css';
@@ -21,16 +23,24 @@ import {useInspectionJobs} from './useInspectionJobs.ts';
 
 type AttachmentAPI=ReturnType<typeof attachmentApi>;
 type FragmentApproval=Awaited<ReturnType<AttachmentAPI['preview']>>;
-type FragmentProposal={report:Inspection;objective:string;thread:string;project:string;scopeError?:string};
+type FragmentProposal={report:Inspection;objective:string;thread:string;project:string;scope?:Awaited<ReturnType<AttachmentAPI['scope']>>;scopeError?:string};
 
 
 type LoadedReport=Awaited<ReturnType<typeof readReport>>;
-type Description={session_id:string;inference:string;office_id:string};
+type Description={session_id:string;inference:string;office_id:string;session_drafts?:boolean};
 type Draft={objective:string;source:Source|null;modelDigest:string;roleCount:number;assisted:boolean;afterAttempt?:string};
 let initialFlight:Promise<{description:Description;snapshot:Snapshot}>|null=null;
+async function initialRead<T>(method:string,params:Record<string,unknown>={}){
+  for(const delay of [0,80,220]){
+    if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+    try{return await request<T>(method,params);}
+    catch(error){if(!(error instanceof Error)||error.message!=='HOST_BUSY'||delay===220)throw error;}
+  }
+  throw Error('HOST_BUSY');
+}
 function initialData() {
-  if(!initialFlight) initialFlight=request<Description>('describe').then(async description=>({
-    description,snapshot:validateSnapshot(await request<Snapshot>('snapshot.get',{project_after:0,attempt_after:0,limit:100})),
+  if(!initialFlight) initialFlight=initialRead<Description>('describe').then(async description=>({
+    description,snapshot:validateSnapshot(await initialRead<Snapshot>('snapshot.get',{project_after:0,attempt_after:0,limit:100})),
   })).finally(()=>{initialFlight=null;});
   return initialFlight;
 }
@@ -58,13 +68,18 @@ const errors:Record<string,string>={
   HOST_RESPONSE_TIMEOUT:'El núcleo no ha confirmado la respuesta. Comprueba el estado del mismo encargo.',
   HOST_SESSION_CHANGED:'El núcleo ha cambiado de sesión. Reconecta para confirmar la oficina y el encargo.',
   HOST_SIDECAR_START:'No ha sido posible iniciar el núcleo local. Comprueba su configuración y vuelve a conectar.',
+  HOST_CONFIGURATION_REQUIRED:'Inicia Neural Office con el lanzador incluido en el paquete. Consulta los requisitos en LEEME.md.',
+  HOST_CONFIGURATION_INVALID:'Comprueba la ubicación del núcleo y de Python con el lanzador del paquete. Consulta LEEME.md y vuelve a conectar.',
+  SNAPSHOT_CONTRACT:'El núcleo devolvió un estado incompatible. Abre el núcleo y el escritorio de la misma versión, y vuelve a conectar.',
+  PROJECT_NAME_NORMALIZATION_REQUIRED:'El nombre del proyecto debe utilizar caracteres normalizados y carecer de espacios exteriores.',
+  PROJECT_NAME_CONFLICT:'Ya existe un proyecto con un nombre equivalente.',
   HOST_REQUEST_TIMEOUT:'La respuesta está tardando. El encargo podría haberse registrado; consulta su estado, sin reenviarlo.',
   MODEL_METADATA_UNAVAILABLE:'Ollama no responde. Ábrelo y comprueba que tienes un modelo local descargado; después actualiza la lista.',
   MODEL_CATALOG_BUSY:'El núcleo está ocupado. La selección de modelo estará disponible al terminar.',
   SOURCE_GRANT_INVALID_OR_EXPIRED:'La selección temporal ha caducado. Vuelve a elegir el archivo para revisar sus bytes actuales.',
   APPROVAL_INVALID_OR_EXPIRED:'La aprobación ha caducado. Revisa de nuevo el encargo antes de ejecutarlo.',
   APPROVAL_CHANGED:'El encargo cambió o la aprobación caducó. Revisa otra vez su alcance.',
-  ATTEMPT_BUDGET_EXHAUSTED:'Este proyecto ha consumido sus 3 intentos. Puedes seguir comprobando HTML sin modelo y consultar sus entregas.',
+  ATTEMPT_BUDGET_EXHAUSTED:'Este proyecto ha consumido sus 3 intentos. Puedes seguir enviando encargos de texto, inspeccionando archivos y consultando las entregas con las reglas locales.',
   DESKTOP_REVISION_CHANGED:'El estado del núcleo cambió. Actualiza y vuelve a revisar el encargo.',
   GLOBAL_INFERENCE_BUSY:'Ya hay un trabajo en curso. Espera a que termine o solicita su parada.',
   OFFICE_RUNNER_STILL_ACTIVE:'El controlador sigue activo. Solicita la parada y espera su confirmación antes de recuperar.',
@@ -93,7 +108,7 @@ function errorInfo(error:unknown) {
   const code=/^[A-Z][A-Z0-9_]{0,95}$/.test(raw)?raw:'DESKTOP_OPERATION_FAILED';
   return {code,message:errors[code]||'No se pudo completar esta operación. No reenviamos el encargo automáticamente: comprueba su estado antes de continuar.'};
 }
-const transportCodes=new Set(['HOST_DISCONNECTED','HOST_CLOSING','HOST_CONNECTION_UNAVAILABLE','HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT','HOST_SIDECAR_START','HOST_SESSION_CHANGED','HOST_PIPE_UNAVAILABLE','HOST_RESPONSE_INVALID','HOST_REQUEST_FAILED','HOST_CONFIGURATION_REQUIRED','HOST_CONFIGURATION_INVALID']);
+const transportCodes=new Set(['HOST_DISCONNECTED','HOST_CLOSING','HOST_CONNECTION_UNAVAILABLE','HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT','HOST_SIDECAR_START','HOST_SESSION_CHANGED','HOST_PIPE_UNAVAILABLE','HOST_RESPONSE_INVALID','HOST_REQUEST_FAILED','HOST_CONFIGURATION_REQUIRED','HOST_CONFIGURATION_INVALID','SNAPSHOT_CONTRACT']);
 const readTimeout=(code:string)=>code==='HOST_REQUEST_TIMEOUT'||code==='HOST_RESPONSE_TIMEOUT';
 const deliveryTabs={activity:'Actividad',report:'Informe',evidence:'Evidencia y alcance'} as const;
 type DeliveryTab=keyof typeof deliveryTabs;
@@ -113,6 +128,14 @@ function failureAdvice(code?:string|null){
   }
 }
 function DirectorMark(){return <span className="director-mark" aria-hidden="true"><span/><span/><span/></span>;}
+function NextObjective({initial,disabled,edit}:{initial:string;disabled:boolean;edit:(text:string)=>void}){
+  const [text,setText]=useState(initial);
+  const length=[...text].length;
+  return <><label htmlFor="next-objective">Borrador en esta ventana</label>
+    <textarea id="next-objective" rows={3} value={text} disabled={disabled} aria-invalid={length>2000||undefined}
+      aria-describedby={length>=1900?'next-objective-count':undefined} onInput={e=>{const value=e.currentTarget.value;setText(value);edit(value);}}/>
+    {length>=1900&&<small id="next-objective-count" role={length>2000?'status':undefined}>{length}/2000{length>2000?' · Acorta el encargo antes de enviarlo.':''}</small>}</>;
+}
 
 export function ConnectedWorkspace() {
   const native=hasNativeHost();
@@ -124,6 +147,10 @@ export function ConnectedWorkspace() {
   const [browsedProject,setBrowsedProject]=useState<string|null>(null);
   const [session,setSession]=useState('');
   const [officeId,setOfficeId]=useState('');
+  const [sessionDrafts,setSessionDrafts]=useState(false);
+  const requestedFocus=useRef('');
+  const modelChoice=useRef('');
+  const [openingAttempt,setOpeningAttempt]=useState<Attempt|null>(null);
   const attachments=useMemo(()=>attachmentApi(request),[officeId,session]);
   const inspectionJobs=useInspectionJobs(officeId,session);
   const [draftThreads,setDraftThreads]=useState<Record<string,{project:string;thread:string;title:string}>>({});
@@ -158,12 +185,16 @@ export function ConnectedWorkspace() {
   const [notice,setNotice]=useState('');
   const appearance=useAppearance(),dark=appearance.dark;
   const [section,setSection]=useState<'projects'|'library'|'settings'>('projects');
+  const [settingsEntry,setSettingsEntry]=useState({tab:'General',visit:0});
+  function openSettings(tab='General'){setSettingsEntry(entry=>({tab,visit:entry.visit+1}));setSection('settings');}
   const [openedReport,setOpenedReport]=useState<Inspection|null>(null);
   const [returnTo,setReturnTo]=useState<{report?:string;instruction?:string}|null>(null);
   const consumeReturn=useCallback(()=>setReturnTo(null),[]);
   const [deskPage,setDeskPage]=useState<'thread'|'html'|'attempt'>('thread');
   const [panel,setPanel]=useState<'appearance'|'search'|'project'|null>(null);
   const [projectName,setProjectName]=useState('');
+  const [knownProject,setKnownProject]=useState(''),[checkingProject,setCheckingProject]=useState(false);
+  const projectDialogRead=useRef(0);
   const [inspector,setInspector]=useState(false);
   const [threadByProject,setThreadByProject]=useState<Record<string,string>>({});
   const [threadRows,setThreadRows]=useState<{project:string;rows:Awaited<ReturnType<typeof attachments.threads>>}|null>(null);
@@ -180,13 +211,27 @@ export function ConnectedWorkspace() {
   // Unsent text stays in this window only. Cap storage without silently evicting work.
   const drafts=useRef(new Map<string,Draft>());
   const active=attempt!==null&&!terminal(attempt.state);
-  const viewed=inspected??attempt;
-  const sourceLabel=viewed?(viewed.source_name||`HTML · ${viewed.source_sha256.slice(0,12)}`):(source?.filename||'Nuevo encargo');
+  useTaskbarProgress({active,stopping:attempt?.state==='STOPPING'||requestingStop,reading:inspectionJobs.jobs.some(j=>j.state==='reading'||j.state==='stopping')});
+  const viewed=openingAttempt?null:inspected??attempt;
+  const scopeName=viewed?.analysis_scope===directorTextScope?'Encargo escrito':viewed?.analysis_scope===excerptScope?'Extractos de la entrega':'HTML';
+  const sourceLabel=viewed?(viewed.source_name||`${scopeName} · ${viewed.source_sha256.slice(0,12)}`):(source?.filename||'Nuevo encargo');
+  const objectiveCount=[...objective].length, objectiveValid=[...objective.trim()].length>=12&&objectiveCount<=2000;
   const navProject=browsedProject??projectId;
+  const projectHistory=useProjectHistory(navProject,snapshot,!!connectionError||initializing);
   const threadId=threadByProject[navProject]??'main';
   const persistedThreads=threadRows?.project===navProject?threadRows.rows:[];
   const currentThreads=[...persistedThreads,...Object.values(draftThreads).filter(t=>t.project===navProject&&!persistedThreads.some(p=>p.id===t.thread)).map(t=>({id:t.thread,objective:t.title,created_at:0}))];
   const threadTitle=currentThreads.find(t=>t.id===threadId)?.objective||'Nuevo hilo';
+  function titleForThread(row:typeof currentThreads[number]){
+    const title=row.objective||'Hilo de revisión';
+    const peers=currentThreads.filter(t=>(t.objective||'Hilo de revisión')===title);
+    return peers.length>1?title+' · hilo '+(peers.findIndex(t=>t.id===row.id)+1):title;
+  }
+  function nameForProject(id:string){
+    if(id===id.normalize('NFC').trim())return id;
+    const visible=id.replace(/^ +| +$/g,s=>'␠'.repeat(s.length));
+    return [...visible].map(c=>/\p{M}/u.test(c)?'〔U+'+c.codePointAt(0)!.toString(16).toUpperCase().padStart(4,'0')+'〕':c).join('');
+  }
   const project=snapshot?.projects.find(p=>p.id===navProject)??(pagedProject&&snapshot&&
     pagedProject.value.id===navProject&&pagedProject.session===snapshot.session_id&&pagedProject.office===snapshot.office_id&&
     pagedProject.revision===snapshot.revision?pagedProject.value:null);
@@ -219,7 +264,7 @@ export function ConnectedWorkspace() {
     stopFlight.current=null;setRequestingStop(false);
     setInitializing(true);setApproval(null);setHandshake(old=>old+1);
   }
-  function invalidate(){generation.current++;dismissProposal();setApproval(null);setProblem(null);setNotice('');}
+  function invalidate(){generation.current++;setOpeningAttempt(null);dismissProposal();setApproval(null);setProblem(null);setNotice('');}
   function putAttempt(next:Attempt) {
     const previous=currentAttempt.current;
     const accepted=acceptAttempt(previous,next);
@@ -263,13 +308,17 @@ export function ConnectedWorkspace() {
       if(!Array.isArray(result.models)||result.models.length>64||result.models.some(m=>!m||typeof m.model!=='string'||!/^[a-f0-9]{64}$/.test(m.model_digest)))throw Error('MODEL_CONTRACT');
       setModels(result.models);
       setCatalogEmpty(result.models.length===0);
-      setModelDigest(old=>result.models.some(m=>m.model_digest===old)?old:(result.models[0]?.model_digest||''));
+      const previous=modelChoice.current;
+      const next=previous?(result.models.some(m=>m.model_digest===previous)?previous:''):(result.models[0]?.model_digest??'');
+      if(next)modelChoice.current=next;
+      else if(previous&&result.models.length)setNotice('El modelo elegido ha cambiado o ya no está instalado. Selecciona su versión actual para autorizar otra consulta.');
+      setModelDigest(next);
       setCatalog('ready');
     } catch(error) {
       if(!current())return;
       setModels([]);setModelDigest('');setCatalog('error');
       const issue=errorInfo(error);
-      if(readTimeout(issue.code))setProblem({code:issue.code,message:'El catálogo de modelos no respondió. Puedes comprobar el HTML con las reglas locales.'});
+      if(readTimeout(issue.code))setProblem({code:issue.code,message:'El catálogo de modelos no respondió. Puedes enviar encargos de texto e inspeccionar archivos con las reglas locales.'});
       else noteError(error);
     }
   }
@@ -302,12 +351,12 @@ export function ConnectedWorkspace() {
       if(!live) return;
       if(description.session_id!==first.session_id||description.office_id!==first.office_id) throw Error('HOST_SESSION_CHANGED');
       if(previousSession&&(previousSession!==description.session_id||previousOffice!==description.office_id)){
-        invalidate();setModels([]);setModelDigest('');setCatalog('idle');setCatalogEmpty(false);setSource(null);setInspection(null);setInspected(null);setBrowsedProject(null);
+        invalidate();modelChoice.current='';setModels([]);setModelDigest('');setCatalog('idle');setCatalogEmpty(false);setSource(null);setInspection(null);setInspected(null);setBrowsedProject(null);
         for(const draft of drafts.current.values())draft.source=null;
         if(previousOffice!==description.office_id){setDraftThreads({});setThreadByProject({});drafts.current.clear();setObjective('');setProjectId(makeProject());setReport(null);setAttempt(null);currentAttempt.current=null;}
       }
       setProblem(null);setPendingMissing(false);
-      sessionRef.current=description.session_id;officeRef.current=description.office_id;setSession(description.session_id);setOfficeId(description.office_id);setSnapshot(first);
+      setSessionDrafts(description.session_drafts===true);sessionRef.current=description.session_id;officeRef.current=description.office_id;setSession(description.session_id);setOfficeId(description.office_id);setSnapshot(first);
       setBudgetPending(false);confirmConnection();
       let saved:Pending|null=null;
       try{saved=readPending(localStorage,description.office_id);setPending(saved);setStorageBlocked(false);}catch(error){setStorageBlocked(true);throw error;}
@@ -345,12 +394,20 @@ export function ConnectedWorkspace() {
           try{address=JSON.parse(sessionStorage.getItem('office-thread:'+description.office_id)??'null');}catch{/* Storage is optional. */}
           if(Array.isArray(address)&&address.length===2&&address.every(v=>typeof v==='string'&&v.length>0&&v.length<=120)){
             const [project,thread]=address;
-            if(first.projects.some(p=>p.id===project)||readSavedDraft(first.office_id,project,thread)){setProjectId(project);setThreadByProject(old=>({...old,[project]:thread}));}
+            const known=first.projects.some(p=>p.id===project)||!!readSavedDraft(first.office_id,project,thread);
+            const hasMemory=!known&&description.session_drafts&&!!(await readSessionDraft(description.session_id,project,thread)).text;
+            if(!live)return;
+            if(known||hasMemory){setProjectId(project);setThreadByProject(old=>({...old,[project]:thread}));}
           }
         }
       }
       // Static inspection has no dependency on the model catalog.
-    }).catch(error=>{if(live)noteError(error);}).finally(()=>{if(live)setInitializing(false);});
+    }).catch(error=>{
+      if(!live)return;
+      const issue=errorInfo(error);
+      if(!sessionRef.current)setConnectionError(readTimeout(issue.code)?{code:issue.code,message:'La lectura inicial del núcleo no respondió. Reconecta para recuperar la oficina.'}:issue);
+      else noteError(error);
+    }).finally(()=>{if(live)setInitializing(false);});
     return ()=>{live=false;mounted.current=false;generation.current++;};
   },[native,handshake]);
   useEffect(()=>{
@@ -362,15 +419,18 @@ export function ConnectedWorkspace() {
   useEffect(()=>{
     if(!officeId||!session||initializing||connectionError)return;
     let live=true;
-    void attachments.threads(navProject).then(rows=>{if(live)setThreadRows({project:navProject,rows});})
-      .catch(e=>{if(live){setThreadRows(null);setProblem(errorInfo(e));}});
+    void attachments.threads(navProject).then(rows=>{
+      if(!live)return;
+      setThreadRows({project:navProject,rows});
+      if(rows.length)setThreadByProject(old=>old[navProject]?old:{...old,[navProject]:rows[0].id});
+    }).catch(e=>{if(live){setThreadRows(null);noteError(e);}});
     return ()=>{live=false;};
   },[officeId,session,navProject,initializing,!!connectionError,threadRevision]);
   useEffect(()=>{
     const shortcut=(e:KeyboardEvent)=>{
       if(e.defaultPrevented||e.isComposing||e.keyCode===229||e.altKey||!(e.ctrlKey||e.metaKey)||document.querySelector('dialog[open]'))return;
       const next=e.key.toLowerCase()==='k'?'search':e.key===','?'appearance':null;
-      if(next){e.preventDefault();setNavOpen(false);if(next==='appearance'){setPanel(null);setSection('settings');}else setPanel(next);}
+      if(next){e.preventDefault();setNavOpen(false);if(next==='appearance'){setPanel(null);openSettings();}else setPanel(next);}
     };
     window.addEventListener('keydown',shortcut);return ()=>window.removeEventListener('keydown',shortcut);
   },[]);
@@ -482,7 +542,7 @@ export function ConnectedWorkspace() {
       document.getElementById('static-result-title')||document.getElementById('static-picker'))?.focus());
   }
   async function prepare() {
-    if(!source||catalog!=='ready'||!selectedModel||objective.trim().length<12||busy||exhausted||budgetPending)return;
+    if(!source||catalog!=='ready'||!selectedModel||!objectiveValid||busy||exhausted||budgetPending)return;
     const expected=epoch();
     const requestedAt=performance.now();
     const result=await request<Approval>('attempt.preview',{project_id:projectId,entry_token:source.entry_token,model_digest:modelDigest,roles:roleCount,objective:objective.trim()});
@@ -526,6 +586,7 @@ export function ConnectedWorkspace() {
   function discardSubmittedDraft(found:Attempt) {
     if(drafts.current.get(found.project_id)?.afterAttempt!==found.id)drafts.current.delete(found.project_id);
   }
+  function chooseModel(value:string){modelChoice.current=value;setModelDigest(value);setApproval(null);}
   function noteNext(item:Attempt,text:string) {
     const previous=drafts.current.get(item.project_id);
     if(!text&&!previous?.source){drafts.current.delete(item.project_id);return;}
@@ -539,7 +600,7 @@ export function ConnectedWorkspace() {
     invalidate();setInspected(null);setBrowsedProject(null);setProjectId(id);setSource(draft?.source?.session_id===session?draft.source:null);
     setInspection(null);setAssisted(draft?.assisted??false);
     setObjective(draft?.objective||'');setRoleCount(draft?.roleCount||1);
-    if(draft)setModelDigest(models.some(m=>m.model_digest===draft.modelDigest)?draft.modelDigest:'');
+    if(draft){modelChoice.current=draft.modelDigest;setModelDigest(models.some(m=>m.model_digest===draft.modelDigest)?draft.modelDigest:'');}
     setReport(null);setAttempt(null);currentAttempt.current=null;
     setNavOpen(false);requestAnimationFrame(()=>(document.getElementById('connected-objective')||document.getElementById('static-picker'))?.focus());
   }
@@ -554,29 +615,62 @@ export function ConnectedWorkspace() {
   function newTask(newProject=false) {
     if(newProject&&unconfirmedActive)return;
     setInspector(false);
-    openThread(newProject?makeProject():navProject,crypto.randomUUID());
+    const project=newProject?makeProject():navProject, thread=crypto.randomUUID();
+    requestedFocus.current=JSON.stringify([project,thread]);openThread(project,thread);
   }
   function chooseProject(id:string) {
-    openThread(id,threadByProject[id]??'main');
+    const remembered=threadByProject[id];
+    openThread(id,remembered??'main');
+    if(!remembered)setThreadByProject(old=>{const next={...old};delete next[id];return next;});
+  }
+  async function findOrCreateProject(ticket:number){
+    if(busy||!projectName.trim())return;
+    const id=projectName.trim().normalize('NFC'), here=epoch();
+    let reply=snapshot;
+    if(!reply)return;
+    // The currently visible snapshot may be a later page. Check every durable project before creation.
+    if(reply.next.project_after>100)reply=validateSnapshot(await request<Snapshot>('snapshot.get',{project_after:0,attempt_after:0,limit:100}));
+    while(true){
+      if(!mounted.current||here!==epoch()||ticket!==projectDialogRead.current)return;
+      if(reply.office_id!==officeRef.current||reply.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
+      const existing=reply.projects.find(p=>p.id.trim().normalize('NFC')===id);
+      if(existing){setKnownProject(existing.id);return;}
+      if(!reply.has_more.projects)break;
+      const after=reply.next.project_after;
+      reply=validateSnapshot(await request<Snapshot>('snapshot.get',{project_after:after,attempt_after:0,limit:100}));
+      if(reply.next.project_after<=after)throw Error('SNAPSHOT_CONTRACT');
+    }
+    if(openThreadForCreation(id))setPanel(null);
+  }
+  async function createProject(){
+    if(checkingProject)return;
+    const ticket=++projectDialogRead.current;setCheckingProject(true);
+    try{await findOrCreateProject(ticket);}catch(e){if(ticket===projectDialogRead.current)noteError(e);}
+    finally{if(ticket===projectDialogRead.current)setCheckingProject(false);}
+  }
+  function openThreadForCreation(id:string){
+    if(unconfirmedActive)return false;
+    requestedFocus.current=JSON.stringify([id,'main']);openThread(id,'main');return true;
   }
   async function chooseAttempt(item:Attempt) {
     if(unconfirmedActive&&item.id!==unconfirmedActive)return;
-    setDeskPage('attempt');
     if(!retainDraft())return;
+    setDeskPage('attempt');
     setNavOpen(false);
-    invalidate();const expected=epoch();
+    invalidate();setOpeningAttempt(item);const expected=epoch();
     let next:Attempt;
     try{next=await request<Attempt>('attempt.get',{attempt_id:item.id});}
     catch(error){
       if(!mounted.current||expected!==epoch())return;
       const issue=errorInfo(error);
-      if(!readTimeout(issue.code))throw error;
-      setProblem({code:issue.code,message:'No se pudo abrir el encargo del historial. Puedes volver a seleccionarlo.'});
+      if(transportCodes.has(issue.code)&&!readTimeout(issue.code))throw error;
+      setProblem({code:issue.code,message:'No se pudo abrir este encargo del historial. Puedes reintentar su lectura.'});
       return;
     }
     if(!mounted.current||expected!==epoch())return;
     if(next.id!==item.id||next.project_id!==item.project_id)throw Error('ATTEMPT_IDENTITY_CHANGED');
     if(next.session_id&&next.session_id!==sessionRef.current)throw Error('HOST_SESSION_CHANGED');
+    setOpeningAttempt(null);
     setNavOpen(false);
     if(currentAttempt.current&&currentAttempt.current.id!==item.id&&(active||!terminal(currentAttempt.current.state))){
       setBrowsedProject(next.project_id);setInspected(next.id===currentAttempt.current.id?null:next);
@@ -619,9 +713,16 @@ export function ConnectedWorkspace() {
   }
 
   const stopControl=active&&attempt?<button className="stop-button" disabled={initializing||!!connectionError||requestingStop||attempt.state==='STOPPING'} onClick={()=>void stopActive()}>■ {attempt.state==='STOPPING'?'Parada registrada':requestingStop?'Solicitando parada':'Detener trabajo'} · {attempt.project_id}</button>:null;
-  const localStops=inspectionJobs.jobs.filter(j=>j.state==='reading'||j.state==='stopping').map(j=><div className="local-read-control" key={j.key}><span><Icon name="clock"/> {j.project} · Inspección local</span><button className="stop-button" disabled={j.state==='stopping'} onClick={()=>void inspectionJobs.stop(j).catch(noteError)}>{j.state==='stopping'?'Parada solicitada':'Detener lectura'} · {j.project}</button></div>);
+  function forgetSessionDraft(oldProject:string,oldThread:string){
+    if(officeRef.current!==officeId||sessionRef.current!==session)return;
+    const key=JSON.stringify([officeId,oldProject,oldThread]);
+    setDraftThreads(old=>{const next={...old};delete next[key];return next;});
+    setNotice('Se alcanzó el límite de 128 borradores en memoria. Se retiró el del hilo '+oldThread+' de '+oldProject+'. Si guardaste una copia en esta pestaña, puedes recuperarla.');
+  }
+  const runningReads=inspectionJobs.jobs.filter(j=>j.state==='reading'||j.state==='stopping');
+  const localStops=runningReads.map(j=><div className="local-read-control" key={j.key}><span><Icon name="clock"/> {j.project} · {Array.from(j.objective).slice(0,80).join('')||'Inspección local'} · {j.thread}</span><button className="stop-button" disabled={j.state==='stopping'} onClick={()=>void inspectionJobs.stop(j).catch(noteError)}>{j.state==='stopping'?'Parada solicitada':'Detener lectura'} · {j.project}{runningReads.some(other=>other.project===j.project&&other.thread!==j.thread)?' · '+j.thread:''}</button></div>);
   const allStops=<>{stopControl}{localStops}</>;
-  const searchReports=useCallback((query:string)=>request<{id:string;thread_id:string;objective:string}[]>('attachments.search',{project_id:navProject,query}),[navProject,session]);
+  const searchReports=useCallback((query:string,before:string)=>request<SearchPage>('attachments.search.page',{project_id:navProject,query,before}),[navProject,session]);
   function recoverAttempt(item:Attempt){
     if(stopFlight.current)return;
     const peer=peerGeneration.current;
@@ -650,18 +751,36 @@ export function ConnectedWorkspace() {
     });
   }
   const commands:DeskAction[]=[
-    {id:'appearance',name:'Apariencia y lectura',run:()=>setSection('settings')},
+    {id:'appearance',name:'Apariencia y lectura',aliases:'Ajustes configuración tema teclado',run:()=>openSettings('Apariencia')},
     {id:'library',name:'Memoria y skills del proyecto',run:()=>setSection('library')},
     {id:'legacy-review',name:'Revisión especializada de HTML',run:()=>{setSection('projects');if(!active)openDraft(navProject);setDeskPage(active?'attempt':'html');}},
     {id:'inspector',name:inspector?'Ocultar inspector':'Abrir inspector',run:()=>setInspector(v=>!v)},
     ...(!busy&&!doing?[{id:'new',name:'Nuevo hilo',run:()=>newTask()}]:[]),
-    ...(snapshot?.projects??[]).filter(p=>!unconfirmedActive||p.id===attempt?.project_id).map(p=>({id:'p-'+p.id,name:p.id,detail:'Proyecto',run:()=>chooseProject(p.id)})),
-    ...currentThreads.map(t=>({id:'t-'+t.id,name:t.objective||'Hilo de revisión',detail:navProject,run:()=>openThread(navProject,t.id)})),
+    ...(snapshot?.projects??[]).filter(p=>!unconfirmedActive||p.id===attempt?.project_id).map(p=>({id:'p-'+p.id,name:nameForProject(p.id),detail:'Proyecto',run:()=>chooseProject(p.id)})),
+    ...currentThreads.map(t=>({id:'t-'+t.id,name:titleForThread(t),detail:navProject,run:()=>openThread(navProject,t.id)})),
     ...(snapshot?.attempts??[]).filter(a=>!unconfirmedActive||a.id===unconfirmedActive).map(a=>({id:'a-'+a.id,name:a.objective,detail:a.project_id,run:()=>void act('Abriendo encargo',()=>chooseAttempt(a))})),
   ];
+  async function measureScope(proposal:FragmentProposal,ticket:number){
+    try{
+      const value=await attachments.scope(proposal.project,proposal.thread,proposal.report.id);
+      if(proposalGeneration.current!==ticket||!mounted.current)return;
+      const expectedScope=proposal.report.attachments.length?excerptScope:directorTextScope;
+      if(!value||value.project_id!==proposal.project||value.thread_id!==proposal.thread||value.report_id!==proposal.report.id||value.scope!==expectedScope||
+         typeof value.allowed!=='boolean'||!Number.isSafeInteger(value.bytes)||value.bytes<0||!Number.isSafeInteger(value.fragments)||value.fragments<0)throw Error('SCOPE_CONTRACT');
+      setFragmentProposal({...proposal,scope:value});
+    }catch(error){
+      if(proposalGeneration.current!==ticket||!mounted.current)return;
+      setFragmentProposal({...proposal,scopeError:'No se pudo medir la entrada autorizable. ('+errorInfo(error).code+')'});
+    }
+  }
+  function openProposal(report:Inspection,objective:string,origin:HTMLElement){
+    const ticket=++proposalGeneration.current;
+    const proposal={report,objective,project:navProject,thread:threadId};
+    fragmentOrigin.current=origin;setFragmentProposal(proposal);void measureScope(proposal,ticket);void loadModels();
+  }
   async function previewFragments(){
     const proposal=fragmentProposal;
-    if(!proposal||!selectedModel||busy||exhausted||proposal.thread!==threadId||proposal.project!==navProject)return;
+    if(!proposal?.scope?.allowed||!selectedModel||busy||exhausted||proposal.thread!==threadId||proposal.project!==navProject)return;
     const before=performance.now(),expected=epoch(),ticket=proposalGeneration.current;
     let result:Awaited<ReturnType<typeof attachments.preview>>;
     try {
@@ -686,8 +805,8 @@ export function ConnectedWorkspace() {
     previousFocus.current=fragmentOrigin.current;dismissProposal();setApproval({value:result,excerpts:result,expiresAt:expires});
   }
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
-    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V5.35</span></div>
-    <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa una entrega con el Director</h1><p>Abre Neural Office en Windows para adjuntar documentos, comprobar sus fuentes y consultar a tu modelo local.</p><p>Las instrucciones están en <code>desktop/README.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
+    <div className="offline-wordmark"><DirectorMark/><strong>Neural Office</strong><span>V{import.meta.env.VITE_DESKTOP_VERSION}</span></div>
+    <section className="offline-content"><span className="eyebrow">Neural Office · Escritorio Windows</span><h1>Revisa una entrega con el Director</h1><p>Abre Neural Office en Windows para escribir al Director, adjuntar documentos y consultar a tu modelo local.</p><p>Las instrucciones están en <code>LEEME.md</code>, dentro de la descarga.</p>{import.meta.env.DEV&&<a className="solid-button" href="?preview=1&screen=ready">Galería histórica de desarrollo →</a>}<p className="offline-note">Esta página no ejecuta encargos.</p></section>
     <footer>Software gratuito · Tus modelos locales · Apoyo voluntario</footer>
   </main>;
 
@@ -701,15 +820,15 @@ export function ConnectedWorkspace() {
         {navOpen&&<div className="nav-stop">{allStops}</div>}
         <button className="connected-close-nav" onClick={()=>setNavOpen(false)}>Cerrar proyectos ×</button>
         <button className="new-task" disabled={busy||!!doing} onClick={()=>newTask()}><span aria-hidden="true">＋</span> Nuevo hilo</button>
-        <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>{if(deskPage==='html'){newTask(true);setDeskPage('html');}else{setProjectName('');setNavOpen(false);setPanel('project');}}}>＋</button></div>
-        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(!!unconfirmedActive&&p.id!==attempt?.project_id)||(!active&&(!!pending||storageBlocked))} onClick={()=>chooseProject(p.id)} title={p.id}><Icon name="folder"/><span>{p.id}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span title={projectId}>{projectId}</span>{project?.id===projectId&&!budgetPending&&<small>{remainingLabel(project.attempts_consumed)}</small>}</div>}</div>
-        <div className="nav-threads">{currentThreads.map(t=><button key={t.id} className={t.id===threadId&&deskPage==='thread'?'chosen':''} title={t.objective||'Hilo de revisión'} aria-current={t.id===threadId&&deskPage==='thread'?'page':undefined} onClick={()=>openThread(navProject,t.id)}><Icon name="thread"/><span>{t.objective||'Hilo de revisión'}</span></button>)}</div>
-        <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} showProjectName={navProject!==projectId} snapshot={snapshot} current={attempt} selected={viewed?.id}
+        <div className="connected-nav-heading">Proyectos <button aria-label="Crear otro proyecto" title="Crear otro proyecto" disabled={busy||!!doing} onClick={()=>{if(deskPage==='html'){newTask(true);setDeskPage('html');}else{projectDialogRead.current++;setCheckingProject(false);setKnownProject('');setProjectName('');setNavOpen(false);setPanel('project');}}}>＋</button></div>
+        <div className="connected-projects">{snapshot?.projects.map(p=><button key={p.id} className={p.id===navProject?'selected':''} disabled={initializing||!!doing||!!connectionError||(!!unconfirmedActive&&p.id!==attempt?.project_id)||(!active&&(!!pending||storageBlocked))} onClick={()=>chooseProject(p.id)} title={nameForProject(p.id)}><Icon name="folder"/><span>{nameForProject(p.id)}</span><small>{p.attempts_consumed}/3 usados</small></button>)}{!snapshot?.projects.some(p=>p.id===projectId)&&<div className="connected-new-project"><span title={projectId}>{projectId}</span>{project?.id===projectId&&!budgetPending&&<small>{remainingLabel(project.attempts_consumed)}</small>}</div>}</div>
+        <div className="nav-threads">{currentThreads.map(t=><button key={t.id} className={t.id===threadId&&deskPage==='thread'?'chosen':''} title={titleForThread(t)+' · '+t.id} aria-current={t.id===threadId&&deskPage==='thread'?'page':undefined} onClick={()=>openThread(navProject,t.id)}><Icon name="thread"/><span>{titleForThread(t)}</span></button>)}</div>
+        <ProjectHistory key={JSON.stringify([snapshot?.office_id,snapshot?.session_id,navProject])} project={navProject} history={projectHistory} showProjectName={navProject!==projectId} snapshot={snapshot} current={attempt} selected={viewed?.id}
           offline={!!connectionError||initializing} disabled={initializing||!!connectionError||!!doing||(!active&&!!pending)} onOpen={a=>void act('Abriendo encargo',()=>chooseAttempt(a))}
           onRefresh={()=>act('Actualizando historial',refreshAll)}/>
         {snapshot?.has_more.projects&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',nextProjects)}>Siguientes proyectos →</button>}
         {snapshot&&snapshot.next.project_after>100&&<button className="nav-secondary" disabled={initializing||!!doing} onClick={()=>void act('Cargando proyectos',refreshAll)}>Primeros proyectos</button>}
-        <div className="nav-bottom"><button className="nav-setting" onClick={()=>{setNavOpen(false);setSection('settings');}}><Icon name="settings"/> Ajustes <kbd>Ctrl ,</kbd></button></div>
+        <div className="nav-bottom"><button className="nav-setting" onClick={()=>{setNavOpen(false);openSettings();}}><Icon name="settings"/> Ajustes <kbd>Ctrl ,</kbd></button></div>
       </nav>
       <PaneDivider kind="navigation" container={shell} controls="connected-main" label="Ancho de navegación"/>
       {navOpen&&<button className="connected-nav-backdrop" aria-label="Cerrar navegación" onClick={()=>setNavOpen(false)}/>}
@@ -721,38 +840,39 @@ export function ConnectedWorkspace() {
             <button className="quiet-button refresh-core" disabled={initializing||!!doing} onClick={()=>connectionError||!session?retryConnection():void act('Actualizando estado',refreshAll)}>{initializing?'Conectando…':connectionError||!session?'Reconectar':'Actualizar'}</button>
           </div>
         </header>
-        {(alert||notice)&&<div className={`connected-notice ${alert?'problem':''}`} role={alert?'alert':'status'}><span>{alert?.message||notice}{alert&&<code>{alert.code}</code>}{connectionError&&lastConfirmed.current&&<small>Última confirmación a las {lastConfirmed.current.toLocaleTimeString('es-ES')}.</small>}</span>{!connectionError&&<button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button>}</div>}
+        {(alert||notice)&&<div className={`connected-notice ${alert?'problem':''}`} role={alert?'alert':'status'}><span>{alert?.message||notice}{alert&&<code>{alert.code}</code>}{connectionError&&lastConfirmed.current&&<small>Última confirmación a las {lastConfirmed.current.toLocaleTimeString('es-ES')}.</small>}</span>{connectionError&&section!=='projects'&&<button className="quiet-button" disabled={initializing} onClick={retryConnection}>Reconectar</button>}{!connectionError&&<button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button>}</div>}
         {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><button className="inline-link" onClick={()=>{setSection('projects');setInspected(null);setBrowsedProject(null);setDeskPage('attempt');}}><Icon name="activity"/><span>{attempt.project_id} · {stateLabels[attempt.state]}</span><small>{attempt.objective}</small></button>{stopControl}</div>}
         {localStops}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>void act('Revisando la petición pendiente',async()=>{try{const other=await releasePending(localStorage,pending);setPending(other);setPendingMissing(false);setNotice(other?'Hay otra petición pendiente en esta oficina.':'Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}})}>Descartar petición sin reserva</button>}</div>}
-        {section==='settings'?<Settings appearance={appearance} models={models} model={modelDigest} choose={setModelDigest} load={()=>void loadModels()} catalog={catalog} project={navProject} online={!!session&&!connectionError} quota={project&&!budgetPending?remainingLabel(project.attempts_consumed):'Por confirmar'}/>:section==='library'?<Library key={officeId+':'+navProject} project={navProject} online={!!session&&!connectionError} source={openedReport?.project_id===navProject?openedReport:null}
-          openSource={(thread,id)=>{openThread(navProject,thread);setReturnTo({report:id});}} useSkill={instruction=>{setReturnTo({instruction});setSection('projects');setDeskPage('thread');}}/>:deskPage==='thread'?<ReviewDesk consumeReturn={consumeReturn} onReport={setOpenedReport} returnTo={returnTo} renderConsultation={reportId=>{
+        {section==='settings'?<Settings key={settingsEntry.visit} initialTab={settingsEntry.tab} appearance={appearance} models={models} model={modelDigest} choose={chooseModel} load={()=>void loadModels()} catalog={catalog} project={navProject} online={!!session&&!connectionError} quota={project&&!budgetPending?remainingLabel(project.attempts_consumed):'Por confirmar'}/>:section==='library'?<Library key={JSON.stringify([officeId,session,navProject,threadId])} project={navProject} session={session} thread={threadId} copyAvailable={sessionDrafts} online={!!session&&!connectionError} source={openedReport?.project_id===navProject?openedReport:null}
+          openSource={(thread,id)=>{openThread(navProject,thread);setReturnTo({report:id});}} openDraft={receipt=>{if(receipt.evicted)forgetSessionDraft(receipt.evicted.project_id,receipt.evicted.thread_id);setReturnTo(null);setSection('projects');setDeskPage('thread');}}/>:deskPage==='thread'?<ReviewDesk consumeReturn={consumeReturn} onReport={setOpenedReport} returnTo={returnTo} renderConsultation={reportId=>{
           const attached=viewed?.inspection_id===reportId&&viewed.thread_id===threadId&&viewed.project_id===navProject?viewed:null;
-          if(!attached){
-            const archived=snapshot?.attempts.filter(a=>a.inspection_id===reportId&&a.project_id===navProject&&a.thread_id===threadId)??[];
-            return archived.map(a=><button key={a.id} className="history-entry" onClick={()=>void act('Abriendo consulta',()=>chooseAttempt(a))}>Consulta {a.ordinal} · {a.model}<span>{stateLabels[a.state]}</span></button>);
-          }
-          return <section className="thread-consult" aria-label="Consulta de este hilo">
+          const archived=projectHistory.rows?.filter(a=>a.inspection_id===reportId&&a.project_id===navProject&&a.thread_id===threadId&&a.id!==attached?.id)??[];
+          return <>{archived.map(a=><button key={a.id} className="history-entry" onClick={()=>void act('Abriendo consulta',()=>chooseAttempt(a))}>Consulta {a.ordinal} · {a.model}<span>{stateLabels[a.state]}</span></button>)}
+          {projectHistory.failed&&<p role="status">No se pudo leer el historial de consultas de este proyecto. <button onClick={projectHistory.retry}>Reintentar historial</button></p>}
+          {attached&&<section className="thread-consult" aria-label="Consulta de este hilo">
             <div className="source-label">Consulta {attached.ordinal} · {attached.model}</div>
             <AttemptActivity key={session+attached.id} office={officeId} session={session} attempt={attached.id} revision={attached.cursor??attached.revision}/>
             {active&&!inspected&&!terminal(attached.state)&&<button className="inline-link" disabled={initializing||!!connectionError||!!doing||requestingStop} onClick={()=>recoverAttempt(attached)}>Comprobar recuperación</button>}
-            {report?.report.inspection_id===reportId?<ReportView report={report.report} limited={report.meta.generation_limited}/>:<p role="status">{attached.state==='ACCEPTED'?'Recuperando el comentario':stateLabels[attached.state]}</p>}
+            {report?.report.inspection_id===reportId?<ReportView report={report.report} limited={report.meta.generation_limited}/>:reportProblem?.id===attached.id?<p role="status">No se pudo leer el comentario. <code>{reportProblem.code}</code> <button className="inline-link" onClick={()=>setReportReadRevision(n=>n+1)}>Reintentar lectura del comentario</button></p>:<p role="status">{attached.state==='ACCEPTED'?'Recuperando el comentario':stateLabels[attached.state]}</p>}
             <button className="inline-link" onClick={()=>{setDeskPage('attempt');setTabChoice({attempt:attached.id,tab:'evidence'});}}>Ver recibo de la consulta</button>
-          </section>;
-        }} key={JSON.stringify([officeId,session,navProject,threadId])} office={officeId} session={session} project={navProject} thread={threadId} online={!!session&&!initializing&&!connectionError}
+          </section>}</>;
+        }} key={JSON.stringify([officeId,session,navProject,threadId])} office={officeId} session={session} sessionDrafts={sessionDrafts} focusComposer={requestedFocus.current===JSON.stringify([navProject,threadId])} project={navProject} thread={threadId} online={!!session&&!initializing&&!connectionError&&(!!threadByProject[navProject]||threadRows?.project===navProject)}
           job={inspectionJobs.jobs.find(j=>j.project===navProject&&j.thread===threadId)} inspectFiles={inspectionJobs.inspect} onDraft={value=>{
             const key=JSON.stringify([officeId,navProject,threadId]);setDraftThreads(old=>{
               if(!value.trim()){const next={...old};delete next[key];return next;}
-              const title=value.trim();if(old[key]?.title===title)return old;
-              return {...old,[key]:{project:navProject,thread:threadId,title}};
+              const title=[...value.trim()].slice(0,100).join('');if(old[key]?.title===title)return old;
+              const next={...old};delete next[key];const keys=Object.keys(next);if(keys.length>=128)delete next[keys[0]];
+              return {...next,[key]:{project:navProject,thread:threadId,title}};
             });
-          }} inspector={inspector} showInspector={()=>setInspector(true)} onUpdate={()=>{setThreadRevision(v=>v+1);void refreshSnapshot().catch(noteError);}} modelBlocked={busy||!!doing||exhausted||budgetPending}
-          onConsult={(report,query,origin)=>{proposalGeneration.current++;fragmentOrigin.current=origin;setFragmentProposal({report,objective:query,project:navProject,thread:threadId});void loadModels();}}
+          }} onEvictDraft={forgetSessionDraft} inspector={inspector} showInspector={()=>setInspector(true)} onUpdate={()=>{setThreadRevision(v=>v+1);void refreshSnapshot().catch(noteError);}} modelBlocked={busy||!!doing||exhausted||budgetPending}
+          onConsult={openProposal}
           onLegacy={()=>{if(!active)openDraft(navProject);setDeskPage(active?'attempt':'html');}}/>:<>
         <section ref={surface} className={`connected-surface ${viewed?'with-delivery':''}`} aria-label="Encargo y entrega">
-          <section className="connected-director" aria-labelledby={viewed?'director-title':showingFindings?'static-result-title':'desk-title'}>
+          <section className="connected-director" aria-labelledby={openingAttempt?'history-target':viewed?'director-title':showingFindings?'static-result-title':'desk-title'}>
+            {openingAttempt&&<div><h2 id="history-target">{openingAttempt.objective}</h2><p role="status">{doing?'Leyendo esta consulta…':'No se ha podido leer esta consulta.'}</p><button disabled={!!doing||!!connectionError} className="quiet-button" onClick={()=>void act('Abriendo encargo',()=>chooseAttempt(openingAttempt))}>Reintentar esta consulta</button></div>}
             {viewed&&<div className="connected-director-heading"><div className="director-signature"><DirectorMark/><strong id="director-title">Director</strong></div><span className={`connected-status ${active&&!inspected&&!connectionError?'active':''}`} role="status">{connectionError&&viewed&&!terminal(viewed.state)?`Último estado · ${status}`:status}</span></div>}
-            {!viewed&&<div id="static-workspace" role="region" aria-labelledby={showingFindings?'static-result-title':'desk-title'} className={'brief-desk static-workspace'+(showingFindings?' has-findings':'')}>
+            {!viewed&&!openingAttempt&&<div id="static-workspace" role="region" aria-labelledby={showingFindings?'static-result-title':'desk-title'} className={'brief-desk static-workspace'+(showingFindings?' has-findings':'')}>
               <header className="brief-intro">
                 <div className="brief-byline"><DirectorMark/><span>{showingFindings?'Comprobación local':'Director · Revisión de HTML'}</span></div>
                 {showingFindings&&staticPage?
@@ -766,8 +886,8 @@ export function ConnectedWorkspace() {
                 else void act('Preparando revisión',prepare);
               }}>
                 {!showingFindings&&<div className="brief-writing">
-                  <div className="brief-label"><label htmlFor="connected-objective">Tu encargo al Director</label>{objective.length>0&&<small>{objective.length}/2000</small>}</div>
-                  <textarea id="connected-objective" name="objective" rows={3} maxLength={2000} value={objective}
+                  <div className="brief-label"><label htmlFor="connected-objective">Tu encargo al Director</label>{objectiveCount>0&&<small id="legacy-objective-count" role={objectiveCount>2000?'status':undefined}>{objectiveCount}/2000{objectiveCount>2000?' · Acorta el encargo antes de enviarlo.':''}</small>}</div>
+                  <textarea id="connected-objective" name="objective" rows={3} aria-invalid={objectiveCount>2000||undefined} aria-describedby={objectiveCount>0?'legacy-objective-count':undefined} value={objective}
                     disabled={busy||!session} placeholder="Por ejemplo, ¿qué campo de este formulario necesita una etiqueta y cómo lo compruebo?"
                     onChange={e=>{invalidate();setObjective(e.target.value);}}
                     onKeyDown={e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229){
@@ -785,7 +905,7 @@ export function ConnectedWorkspace() {
                 {assisted&&<div className="brief-settings">
                   <div className="connected-model-row"><label htmlFor="connected-model">Modelo local</label>
                     <select id="connected-model" value={modelDigest} disabled={busy||!!doing||catalog!=='ready'||!models.length}
-                      onChange={e=>{invalidate();setModelDigest(e.target.value);}}>
+                      onChange={e=>{invalidate();chooseModel(e.target.value);}}>
                       <option value="" disabled>{catalog==='loading'?'Consultando modelos…':catalogEmpty?'Sin modelos compatibles':'Selecciona un modelo'}</option>
                       {models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
                     <button type="button" aria-label="Actualizar modelos locales" title="Actualizar modelos locales"
@@ -803,9 +923,9 @@ export function ConnectedWorkspace() {
                 </section>}
                 {!showingFindings&&<div className="brief-actions">
                   <div className="brief-primary">
-                    {assisted?<button type="submit" className="solid-button" disabled={busy||exhausted||budgetPending||!!doing||catalog!=='ready'||!source||!selectedModel||objective.trim().length<12}>Revisar encargo <span aria-hidden="true">→</span></button>:
+                    {assisted?<button type="submit" className="solid-button" disabled={busy||exhausted||budgetPending||!!doing||catalog!=='ready'||!source||!selectedModel||!objectiveValid}>Revisar encargo <span aria-hidden="true">→</span></button>:
                       <button type="button" className={source?'quiet-button':'solid-button'} disabled={busy||!!doing||!session} onClick={()=>changeMode(true)}>Consultar al Director</button>}
-                    <small>{exhausted?'3 intentos consumidos · cuota agotada':budgetPending?'Cuota pendiente de actualizar':assisted&&!catalogEmpty&&objective.trim().length>0&&objective.trim().length<12?'Escribe al menos 12 caracteres':'1 intento al autorizar'}</small>
+                    <small>{exhausted?'3 intentos consumidos · cuota agotada':budgetPending?'Cuota pendiente de actualizar':assisted&&!catalogEmpty&&objectiveCount>0&&[...objective.trim()].length<12?'Escribe al menos 12 caracteres':'1 intento al autorizar'}</small>
                   </div>
                   <div className="brief-alternative">
                     <button type="button" className={source&&!assisted?'solid-button':'quiet-button'} disabled={busy||!!doing||!source}
@@ -835,10 +955,8 @@ export function ConnectedWorkspace() {
                 {!active&&!connectionError&&terminal(viewed.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>viewed.thread_id?openThread(viewed.project_id,viewed.thread_id,viewed.inspection_id):openDraft(viewed.project_id)}>{viewed.thread_id?'Revisar la decisión del hilo':drafts.current.has(viewed.project_id)?'Volver al borrador':'Preparar otro encargo →'}{(inspected||navProject!==viewed.project_id)&&` · ${viewed.project_id}`}</button>}
                 {!inspected&&(active||drafts.current.get(viewed.project_id)?.afterAttempt===viewed.id)&&<details key={officeId+':'+viewed.id} className="next-draft">
                   <summary>Preparar el siguiente encargo</summary>
-                  <label htmlFor="next-objective">Borrador en esta ventana</label>
-                  <textarea id="next-objective" maxLength={2000} rows={3} defaultValue={drafts.current.get(viewed.project_id)?.objective||''}
-                    disabled={!drafts.current.has(viewed.project_id)&&drafts.current.size>=20}
-                    onInput={e=>noteNext(viewed,e.currentTarget.value)}/>
+                  <NextObjective initial={drafts.current.get(viewed.project_id)?.objective||''}
+                    disabled={!drafts.current.has(viewed.project_id)&&drafts.current.size>=20} edit={text=>noteNext(viewed,text)}/>
                   <p>{!drafts.current.has(viewed.project_id)&&drafts.current.size>=20?'Hay veinte borradores abiertos. Recupera uno al terminar.':'Podrás revisarlo y autorizarlo cuando termine el encargo actual.'}</p>
                 </details>}
             </div>}
@@ -885,12 +1003,14 @@ export function ConnectedWorkspace() {
     </div>
     {panel==='appearance'&&<AppearancePanel control={allStops} appearance={appearance} close={()=>setPanel(null)}/>}
     {panel==='search'&&<CommandSearch key={navProject} control={allStops} items={commands} project={navProject} search={searchReports} openReport={(thread,id)=>{openThread(navProject,thread);setReturnTo({report:id});}} close={()=>setPanel(null)}/>}
-    {panel==='project'&&<DeskDialog label="Nuevo proyecto" close={()=>setPanel(null)}><form className="prefs-body" onSubmit={e=>{e.preventDefault();const id=projectName.trim();if(!id||busy||doing)return;openThread(id,'main');setPanel(null);}}><label htmlFor="new-project-name">Nombre del proyecto</label><input id="new-project-name" autoFocus required maxLength={80} value={projectName} onChange={e=>setProjectName(e.target.value)}/><div className="approval-actions"><button type="submit" className="desk-primary" disabled={!projectName.trim()||busy||!!doing}>Abrir proyecto</button></div></form></DeskDialog>}
+    {panel==='project'&&<DeskDialog label="Nuevo proyecto" close={()=>{projectDialogRead.current++;setPanel(null);}}><form className="prefs-body" onSubmit={e=>{e.preventDefault();void createProject();}}><label htmlFor="new-project-name">Nombre del proyecto</label><input id="new-project-name" autoFocus required value={projectName} onChange={e=>{projectDialogRead.current++;setCheckingProject(false);setKnownProject('');setProjectName(e.target.value);}}/>{knownProject&&<p role="status">Ya existe el proyecto {nameForProject(knownProject)}. <button type="button" onClick={()=>{chooseProject(knownProject);setPanel(null);}}>Abrir el proyecto existente</button></p>}<div className="approval-actions"><button type="submit" className="desk-primary" disabled={!projectName.trim()||[...projectName.trim().normalize('NFC')].length>80||!!knownProject||checkingProject||busy||!!doing}>{checkingProject?'Comprobando nombre…':'Abrir proyecto'}</button></div></form></DeskDialog>}
     {fragmentProposal&&<DeskDialog label={fragmentProposal.report.attachments.length?'Consultar los extractos':'Consultar el encargo de texto'} close={dismissProposal}><div className="prefs-body"><p>{fragmentProposal.objective}</p>
-      <label htmlFor="fragment-model">Modelo local</label><select id="fragment-model" disabled={catalog!=='ready'||!!doing} value={modelDigest} onChange={e=>setModelDigest(e.target.value)}>{!models.length&&<option value="">{catalog==='loading'?'Consultando Ollama…':'Sin modelos disponibles'}</option>}{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
+      <label htmlFor="fragment-model">Modelo local</label><select id="fragment-model" disabled={catalog!=='ready'||!!doing} value={modelDigest} onChange={e=>chooseModel(e.target.value)}>{!modelDigest&&<option value="">{catalog==='loading'?'Consultando Ollama…':models.length?'Selecciona un modelo':'Sin modelos disponibles'}</option>}{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
       {catalog==='error'&&<p role="alert">No se pudo leer el catálogo de Ollama. La inspección local sigue disponible.</p>}
-      {fragmentProposal.scopeError?<p role="alert">{fragmentProposal.scopeError}</p>:fragmentProposal.report.attachments.length>0&&<p>El permiso admite hasta 8 citas distintas y 4.608 bytes con sus referencias.</p>}
-      <div className="approval-actions"><button className="desk-secondary" disabled={catalog==='loading'||!!doing} onClick={()=>void loadModels()}>Actualizar modelos</button><button className="desk-primary" disabled={!!doing||!selectedModel||catalog!=='ready'||busy} onClick={()=>void act('Preparando permiso',previewFragments)}>Revisar permiso</button></div></div></DeskDialog>}
+      {fragmentProposal.scopeError?<p role="alert">{fragmentProposal.scopeError} <button className="inline-link" onClick={()=>void measureScope({...fragmentProposal,scopeError:undefined},++proposalGeneration.current)}>Reintentar medición</button></p>:
+        fragmentProposal.scope?<p role="status">{fragmentProposal.scope.fragments} citas · {fragmentProposal.scope.bytes.toLocaleString('es-ES')} de 4.608 bytes.
+          {!fragmentProposal.scope.allowed&&(fragmentProposal.scope.reason==='NO_CITED_EXCERPTS'?' La entrega carece de fragmentos autorizables.':' La entrada supera el límite de la consulta. Reduce el encargo o sus fuentes.')}</p>:<p role="status">Midiendo la entrada de esta consulta…</p>}
+      <div className="approval-actions"><button className="desk-secondary" disabled={catalog==='loading'||!!doing} onClick={()=>void loadModels()}>Actualizar modelos</button><button className="desk-primary" disabled={!!doing||!selectedModel||catalog!=='ready'||busy||!fragmentProposal.scope?.allowed||!!fragmentProposal.scopeError} onClick={()=>void act('Preparando permiso',previewFragments)}>Revisar permiso</button></div></div></DeskDialog>}
     <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title"
       onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>
       {approval&&<>
@@ -964,8 +1084,14 @@ function FindingList({findings,offset=0}:{findings:Finding[];offset?:number}) {
 }
 function ReportView({report,limited}:{report:Report;limited?:boolean}) {
   const limitNotice=limited===true&&<p className="report-scope">El modelo alcanzó el límite de salida. Su respuesta puede estar incompleta.</p>;
-  if(report.scope===directorTextScope)return <article className="connected-report excerpt-delivery"><h3>Respuesta del Director</h3>
-    {limitNotice}<p className="model-answer">{report.role_outputs[0].content}</p><small>Respuesta del modelo local · Pendiente de contrastar</small></article>;
+  if(report.scope===directorTextScope){
+    const check=report.answer_check;
+    return <article className="connected-report excerpt-delivery"><h3>Respuesta del Director</h3>{limitNotice}
+      {check?<><p className="model-answer">{check.answer}</p><p>{check.kind==='arithmetic'?'Cálculo local':'Comprobación literal'} · {check.basis}</p>
+        <details className="model-notes"><summary>{check.matches?'El modelo coincide con la comprobación local':'La respuesta original del modelo difiere'}</summary><p className="model-answer">{report.role_outputs[0].content}</p></details></>:
+        <><p className="model-answer">{report.role_outputs[0].content}</p><small>Respuesta del modelo local · Pendiente de contrastar</small></>}
+    </article>;
+  }
   const hours=(report.authorized_fragments??[]).flatMap(f=>f.unit==='h'&&typeof f.value==='number'?[{...f,value:f.value}]:[]);
   const pdf=hours.filter(f=>f.page),json=hours.filter(f=>f.pointer==='/response_sla_hours');
   const measured=pdf.length===1&&json.length===1;
@@ -981,9 +1107,15 @@ function ReportView({report,limited}:{report:Report;limited?:boolean}) {
       <><h3>Opinión del modelo</h3><p className="report-scope">Contrasta el comentario con sus fuentes.</p>
       {report.role_outputs.map((out,i)=><p className="model-answer" key={i}>{out.content}</p>)}</>}
     <details><summary>Fuentes que recibió el modelo</summary>{report.authorized_fragments?.map((f,i)=><blockquote key={i}><strong>{f.name}</strong> {f.page?'· pág. '+f.page:f.line?'· línea '+f.line:''}<p>{f.quote}{f.unit&&typeof f.value==='number'?' · '+f.value+' '+f.unit:''}</p></blockquote>)}</details></article>;
+  const requested=report.requested_rule;
+  const matching=requested?report.findings.filter(finding=>finding.code===requested):[];
+  const others=requested?report.findings.filter(finding=>finding.code!==requested):report.findings;
   return <article className="connected-report"><span className="eyebrow">Comprobaciones estáticas</span>
-    <h3>{findingTitle(report.findings.length)}</h3><p className="report-scope">{report.findings.length?'Ubicaciones de la captura. Comprueba los candidatos en el navegador.':'Comprueba en el navegador el nombre de los controles y la función de las imágenes.'}</p>
-    <FindingList findings={report.findings}/>
+    {requested?<section aria-label="Resultado de la regla solicitada"><h3>Regla solicitada · <code>{requested}</code></h3>
+      {matching.length?<FindingList findings={matching}/>:<p>La comprobación local no registró coincidencias para esta regla en la captura.</p>}
+    </section>:<><h3>{findingTitle(report.findings.length)}</h3><p className="report-scope">{report.findings.length?'Ubicaciones de la captura. Comprueba los candidatos en el navegador.':'Comprueba en el navegador el nombre de los controles y la función de las imágenes.'}</p></>}
+    {requested&&others.length>0&&<h4>Otros hallazgos de la captura</h4>}
+    {others.length>0&&<FindingList findings={others}/>}
     {limitNotice}<details className="model-notes"><summary>Comentarios del modelo <span>· sugerencias por revisar</span></summary>
       {report.role_outputs.map((r,index)=><section className="role-commentary" key={`${r.role}-${index}`}><h4>{roles[r.role]||r.role}</h4><p>{r.content}</p></section>)}
     </details></article>;

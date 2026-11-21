@@ -56,6 +56,7 @@ export type AttachmentView = {
 };
 export const directorTextScope='local-director-text-v1';
 export const excerptScope='local-inspection-excerpts-v1';
+export type ConsultationScope={project_id:string;thread_id:string;report_id:string;scope:string;bytes:number;fragments:number;allowed:boolean;reason:string|null};
 export type ExcerptApproval = Approval & { thread_id: string; report_id: string; analysis_scope?:typeof directorTextScope|typeof excerptScope; fragments: Citation[] };
 
 export function attachmentApi(send: Requester) {
@@ -71,7 +72,8 @@ export function attachmentApi(send: Requester) {
     let interrupted = false;
     const operation = async () => {
       for (const delay of [0, 40, 100, 220, 440]) {
-        if (delay) await new Promise<void>(done => setTimeout(done, delay));
+        // Independent windows should not contend for the reader again at the same instant.
+        if (delay) await new Promise<void>(done => setTimeout(done, Math.round(delay*(0.5+Math.random()*0.5))));
         if (interrupted) throw Error('ATTACHMENT_READ_CANCELLED');
         try {
           const result = await send<T>(method, params);
@@ -121,6 +123,8 @@ export function attachmentApi(send: Requester) {
     history: (project: string, thread: string) => read<InspectionSummary[]>('attachments.history', target(project, thread)),
     report: (project: string, thread: string, report_id: string) =>
       read<Inspection>('attachments.report', { ...target(project, thread), report_id }),
+    scope: (project:string,thread:string,report_id:string)=>
+      read<ConsultationScope>('attachments.scope',{...target(project,thread),report_id}),
     decide: (project: string, thread: string, report_id: string, choice: ReviewDecision['choice'], expected_revision: number) =>
       send<ReviewDecision>('attachments.decide', {...target(project, thread), report_id, choice, expected_revision}),
     preview: (project: string, thread: string, report_id: string, model_digest: string, objective: string) =>

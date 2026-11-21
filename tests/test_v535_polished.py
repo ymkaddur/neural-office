@@ -1,9 +1,13 @@
+from contextlib import closing
 from pathlib import Path
+import json
+import sqlite3
 import tempfile
 import unittest
 
 from examples.multiformat.build_example import pdf_bytes
 from neural_office.attachments import AttachmentStore
+from neural_office.desktop_service import DesktopService
 from neural_office.ledger import Denied, Ledger
 from neural_office.project_library import ProjectLibrary
 
@@ -71,18 +75,25 @@ class PolishedWorkflowTests(unittest.TestCase):
 
     def test_scope_restrictions_do_not_certify_a_different_question(self):
         cases = (
-            'Lee el contenido de notas.md sin consultar valido.json.',
-            'Lee el contenido de los archivos. No leas valido.json.',
             'Valida el esquema de valido.json.',
-            'Cuenta las páginas que mencionan «Ausente» en manual.pdf.',
-            'Cuenta las páginas de manual.pdf solo si contiene «Ausente».',
+            'Lee el contenido de los archivos sin consultar el de ayer.',
+            'Cuenta las páginas de manual.pdf solo si son pertinentes.',
         )
         for objective in cases:
             with self.subTest(objective=objective):
                 report = self.inspect(objective, list(self.ids))
                 self.assertTrue(all(f['status'] == 'insufficient' for f in report['findings']))
                 self.assertTrue(all(not f['sources'] for f in report['findings']))
-                self.assertFalse(any(f.get('reader_status') == 'ok' for f in report['attachments']))
+                self.assertFalse(any(f.get('status') == 'ok' for f in report['attachments']))
+        for objective in ('Lee el contenido de notas.md sin consultar valido.json.',
+                          'Lee el contenido de los archivos. No leas valido.json.'):
+            report = self.inspect(objective,list(self.ids))
+            self.assertTrue(any(c['name']=='notas.md' for f in report['findings'] for c in f['sources']))
+            self.assertNotIn('valido.json',[f['name'] for f in report['attachments']])
+        count, = self.inspect('Cuenta las páginas que mencionan «Ausente» en manual.pdf.',list(self.ids))['findings']
+        self.assertEqual((count['status'],count['title']),('observed','0 páginas con «Ausente»'))
+        guard, = self.inspect('Cuenta las páginas de manual.pdf solo si contiene «Ausente».',list(self.ids))['findings']
+        self.assertEqual((guard['rule'],guard['title']),('condition','La condición no se cumple'))
         literal = self.inspect('Busca «sin consultar» en notas.md.', list(self.ids))
         self.assertEqual(literal['findings'][0]['rule'], 'literal')
 
@@ -164,6 +175,71 @@ class PolishedWorkflowTests(unittest.TestCase):
             library.for_draft('Portal','buscar',1)
         library.change(**args, operation='accept', expected_revision=1)
         self.assertEqual(library.for_draft('Portal','buscar',2)['body'],args['body'])
-        library.change(**args, operation='retire', expected_revision=2)
+        library.change(**{**args, 'body':'Texto por revisar.'}, operation='propose', expected_revision=2)
+        pending = library.for_draft('Portal', 'buscar', 3)
+        self.assertEqual((pending['revision'], pending['active_revision'], pending['body']), (3, 2, args['body']))
+        library.change(**args, operation='retire', expected_revision=3)
         with self.assertRaisesRegex(Denied,'LIBRARY_ENTRY_RETIRED'):
             library.for_draft('Portal','buscar',2)
+        with self.assertRaisesRegex(Denied,'LIBRARY_ENTRY_NOT_FOUND'):
+            library.for_draft('Portal', 'sin-entrada', 1)
+
+    def test_saving_the_same_note_preserves_its_revision_after_validating_ownership(self):
+        report = self.inspect('Inspecciona los archivos.', ['notas.md'])
+        library = ProjectLibrary(self.store)
+        args = dict(project_id='Portal', thread_id='revision', report_id=report['id'], entry_id='recordar',
+                    kind='memory', title='Nota', body='Revisar los límites.')
+        library.change(**args, operation='create', expected_revision=0)
+        saved = library.change(**args, operation='edit', expected_revision=1)
+        self.assertEqual((saved['revision'], len(library.history('Portal','recordar'))), (1, 1))
+        with self.assertRaisesRegex(Denied, 'LIBRARY_SOURCE_CHANGED'):
+            library.change(**{**args,'thread_id':'otro'}, operation='edit', expected_revision=1)
+        renamed = library.change(**{**args,'title':'Nueva nota'}, operation='edit', expected_revision=1)
+        self.assertEqual(renamed['revision'], 2)
+        self.assertEqual([r['title'] for r in library.history('Portal','recordar')], ['Nueva nota','Nota'])
+
+    def test_copy_to_draft_is_ordered_with_retirement_and_idempotent_across_lost_ack(self):
+        report = self.inspect('Inspecciona los archivos.', ['notas.md'])
+        library = ProjectLibrary(self.store)
+        core = DesktopService(self.store.ledger)
+        self.addCleanup(core.close)
+        target = dict(project_id='Portal', thread_id='revision', report_id=report['id'], entry_id='skill',
+                      kind='skill', title='Citar', body='Conserva la cita.')
+        library.change(**target, operation='create', expected_revision=0)
+        library.change(**target, operation='accept', expected_revision=1)
+        address = dict(project_id='Portal', thread_id='destino', session_id=core.session_id)
+        def call(method, **params):
+            return core.dispatch(json.dumps(dict(version=1, id='caso', method=method, params=address | params)).encode())
+        draft = call('draft.put', expected_revision=0, edit_id='propio', after_edit='none', text='Texto del autor.')
+        intent = dict(entry_id='skill', expected_revision=2, active_revision=2, draft_revision=draft['revision'], edit_id='copia')
+        with self.assertRaisesRegex(Denied, 'DRAFT_REVISION_CHANGED'):
+            call('library.copy_to_draft', **(intent | {'draft_revision':0}))
+        receipt = call('library.copy_to_draft', **intent)
+        self.assertNotIn('text', receipt)
+        library.change(**target, operation='retire', expected_revision=2)
+        self.assertEqual(call('library.copy_to_draft', **intent), receipt)
+        applied = call('draft.get')
+        self.assertEqual(applied['text'], 'Texto del autor.\nConserva la cita.')
+        with self.assertRaisesRegex(Denied, 'LIBRARY_ENTRY_RETIRED'):
+            call('library.copy_to_draft', **(intent | {'edit_id':'otra','draft_revision':applied['revision']}))
+        self.assertEqual(call('draft.get')['revision'], applied['revision'])
+
+    def test_copy_holds_the_store_write_lock_and_overlong_copy_preserves_the_draft(self):
+        report = self.inspect('Inspecciona los archivos.', ['notas.md'])
+        library = ProjectLibrary(self.store)
+        target = dict(project_id='Portal', thread_id='revision', report_id=report['id'], entry_id='skill',
+                      kind='skill', title='Citar', body='Cita la fuente.')
+        library.change(**target, operation='create', expected_revision=0)
+        library.change(**target, operation='accept', expected_revision=1)
+        with library.accepted_instruction('Portal','skill',2,for_copy=True):
+            with closing(sqlite3.connect(self.store.path, timeout=0)) as peer:
+                with self.assertRaisesRegex(sqlite3.OperationalError,'locked'):
+                    peer.execute('BEGIN IMMEDIATE')
+        with closing(sqlite3.connect(self.store.path, timeout=0)) as peer:
+            peer.execute('BEGIN IMMEDIATE')
+        core = DesktopService(self.store.ledger)
+        self.addCleanup(core.close)
+        original = core._session_draft(core.session_id, 'Portal','destino',0,'A'*1998,'propio','none')
+        with self.assertRaisesRegex(Denied, 'LIBRARY_DRAFT_TOO_LONG'):
+            core._copy_skill_to_draft(library, core.session_id, 'Portal','destino','skill',2,2,original['revision'],'intento')
+        self.assertEqual(core._session_draft(core.session_id, 'Portal','destino'),original)

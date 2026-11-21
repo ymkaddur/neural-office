@@ -20,7 +20,7 @@ from .team_review import review as review_with_team, verify_saved
 
 SCHEMA = 2
 APPLICATION_ID = 0x4E4F4154
-RULE_VERSION = 'local-inspection-8'
+RULE_VERSION = 'local-inspection-9'
 MAX_CAPTURE_BATCH = 8
 MAX_REPORT = 300_000
 MAX_IDENTIFIED_FILE = 512 * 1024 * 1024
@@ -199,7 +199,7 @@ def recover_report(db, project_id, thread_id, identity):
                            (item['id'], project_id, thread_id)).fetchone()
         if owner is None or owner[0] != item['sha256']:
             raise Denied('ATTACHMENT_INTEGRITY_FAILED')
-    if record['rule_version'] in ('local-inspection-5', 'local-inspection-6', 'local-inspection-7', RULE_VERSION):
+    if record['rule_version'] in ('local-inspection-5', 'local-inspection-6', 'local-inspection-7', 'local-inspection-8', RULE_VERSION):
         only_guidance = all(f['rule'] in ('scope', 'greeting', 'text_brief') for f in record['findings'])
         if record['rule_version'] != 'local-inspection-5' and only_guidance:
             if 'team' in record:
@@ -218,10 +218,17 @@ def matching_legacy_report(db, project, thread, objective, inputs, findings):
         r.created_at DESC,r.id''', (project, thread, objective, len(inputs), len(findings)))
     for row in candidates:
         old = recover_report(db, project, thread, row['id'])
-        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3', 'local-inspection-4', 'local-inspection-5', 'local-inspection-6', 'local-inspection-7')
+        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3', 'local-inspection-4', 'local-inspection-5', 'local-inspection-6', 'local-inspection-7', 'local-inspection-8')
                 or (old['rule_version'] == 'local-inspection-5' and all(f['rule'] in ('scope', 'greeting') for f in findings))
                 or old['objective'] != objective or old['findings'] != findings
                 or len(old['attachments']) != len(inputs)):
+            continue
+        cited_ids = {c['attachment_id'] for f in findings for c in f['sources']}
+        if (old.get('team') and len(old['team']['delivery']['sources']) != len(cited_ids)
+                and not db.execute('SELECT 1 FROM decisions WHERE project=? AND thread=? AND report=? LIMIT 1',
+                                   (project,thread,old['id'])).fetchone()):
+            # Historical deliveries included all selected captures in the source count.
+            # Keep the original openable, but publish corrected provenance on a new inspection.
             continue
         if all(all(saved.get(key) == value for key, value in current.items())
                for saved, current in zip(old['attachments'], inputs)):
@@ -463,7 +470,10 @@ class AttachmentStore:
             tasks = plan(objective, ordered) if ordered else [Task('text_brief', (), objective)]
             checks = [t.action for t in tasks]
             modes = read_plan(tasks, ordered)
+            excluded = {i for request in tasks for i in request.excluded}
             for identity in attachment_ids:
+                if identity in excluded:
+                    continue
                 if cancelled():
                     raise Denied('ATTACHMENT_READ_CANCELLED')
                 started = time.monotonic()
@@ -513,14 +523,28 @@ class AttachmentStore:
                 started = time.monotonic()
                 task = request.action
                 sources = [f for f in inputs if f['id'] in request.sources]
+                guard = None
+                if not request.limit and request.modifier=='if_contains':
+                    test, = literal_findings(request.phrase,sources,views)
+                    if not any(c['quote'] for c in test['sources']):
+                        established = test['status']=='observed'
+                        guard = dict(rule='condition',status=test['status'],
+                                     title='La condición no se cumple' if established else 'Condición pendiente de comprobar',
+                                     detail=f'La operación depende de encontrar «{request.phrase}». '+test['detail'],
+                                     sources=test['sources'])
                 if task == 'text_brief':
                     answers = [dict(rule='text_brief', status='observed', title='Encargo guardado en este hilo',
                                     detail='Puedes pedir al modelo local que responda con este texto o añadir archivos para una comprobación.',
                                     sources=[])]
                 elif request.limit or task == 'clarify':
                     answers = [unsupported(request, sources)]
+                elif guard is not None:
+                    answers = [guard]
+                elif request.modifier=='pages_containing':
+                    pdfs=[f for f in sources if f['kind']=='pdf']
+                    answers = literal_findings(request.phrase,pdfs,views,modifier='pages_containing') if pdfs else [unsupported(request,sources)]
                 elif task == 'literal':
-                    answers = literal_findings(request.phrase, sources, views)
+                    answers = literal_findings(request.phrase, sources, views, modifier=request.modifier)
                 elif task == 'hours':
                     answers = [comparison(sources, views)]
                 elif task == 'decision':
@@ -632,17 +656,35 @@ class AttachmentStore:
             return dict(revision=revision+1, choice=choice, at=at)
 
     def search(self, project_id, query):
+        return self.search_page(project_id, query, '')['items']
+
+    def search_page(self, project_id, query, before):
         from .inspection_plan import fold
         scope(project_id, 'main')
         office, root = self._authority(project_id)
         needle = fold(query.strip())
         if not root or not needle:
-            return []
+            if before:
+                raise Denied('SEARCH_CURSOR_INVALID')
+            return {'items': [], 'next_before': ''}
         with self._db(office) as db:
-            # A project is capped at 300 reports. Read only the titles, never report payloads or source bytes.
-            rows = db.execute('SELECT id,thread AS thread_id,objective FROM reports WHERE project=? ORDER BY created_at DESC,id',
-                              (project_id,))
-            return [dict(row) for row in rows if needle in fold(row['objective'])][:30]
+            sql = 'SELECT id,thread AS thread_id,objective FROM reports WHERE project=?'
+            args = [project_id]
+            if before:
+                pivot = db.execute('SELECT created_at,objective FROM reports WHERE project=? AND id=?',
+                                   (project_id, before)).fetchone()
+                if not pivot or needle not in fold(pivot['objective']):
+                    raise Denied('SEARCH_CURSOR_INVALID')
+                sql += ' AND (created_at<? OR (created_at=? AND id>?))'
+                args.extend((pivot['created_at'], pivot['created_at'], before))
+            rows = db.execute(sql + ' ORDER BY created_at DESC,id', args)
+            items = []
+            for row in rows:
+                if needle in fold(row['objective']):
+                    if len(items) == 30:
+                        return {'items': items, 'next_before': items[-1]['id']}
+                    items.append(dict(row))
+            return {'items': items, 'next_before': ''}
 
     def history(self, project_id, *, thread_id='main'):
         scope(project_id, thread_id)

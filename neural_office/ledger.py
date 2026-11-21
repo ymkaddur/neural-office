@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import sqlite3
 import time
+import unicodedata
 import uuid
 
 TERMINAL = {'ACCEPTED', 'REJECTED', 'FAILED', 'CANCELLED'}
@@ -169,12 +170,22 @@ class Ledger:
         # keeps its own UNIQUE slot until its first native file selection.
         return 'neural-office:unbound:' + digest(project)
 
+    @staticmethod
+    def _check_new_name(con, project):
+        def normalized(name):
+            return unicodedata.normalize('NFC', name.strip())
+        if not project.strip() or project != normalized(project) or any(unicodedata.category(char)=='Cc' for char in project):
+            raise Denied('PROJECT_NAME_NORMALIZATION_REQUIRED')
+        if any(normalized(row[0]) == project for row in con.execute('SELECT id FROM projects')):
+            raise Denied('PROJECT_NAME_CONFLICT')
+
     def register_text(self, project):
-        if not isinstance(project, str) or not project.strip() or len(project) > 80:
+        if not isinstance(project, str) or not project or len(project) > 80:
             raise Denied('PROJECT_ID_INVALID')
         with self.transaction(seal_unchanged=False) as con:
             if con.execute('SELECT 1 FROM projects WHERE id=?', (project,)).fetchone():
                 return
+            self._check_new_name(con, project)
             con.execute('INSERT INTO projects(id,root) VALUES(?,?)', (project, self.unbound_root(project)))
             self._event(con, 'PROJECT_REGISTERED', {'project': project})
 
@@ -196,6 +207,7 @@ class Ledger:
                 if os.path.normcase(old[0]) != os.path.normcase(root):
                     raise Denied('PROJECT_ROOT_CHANGED')
                 return
+            self._check_new_name(con, project)
             con.execute('INSERT INTO projects(id,root) VALUES(?,?)', (project,root))
             self._event(con, 'PROJECT_REGISTERED', {'project':project})
 
@@ -272,10 +284,17 @@ class Ledger:
             else:
                 from .runner import check_first_prompt
                 check_first_prompt(snapshot, objective, profile)
+            stored_profile = dict(profile)
+            stored_profile.pop('requested_rule',None)
+            if profile.get('mode') != OFFICE_MODE and not profile.get('analysis_scope'):
+                from .audit import requested_rule
+                rule = requested_rule(objective)
+                if rule is not None:
+                    stored_profile['requested_rule'] = rule
             attempt, stamp = uuid.uuid4().hex, time.time()
             con.execute('''INSERT INTO attempts(id,project,ordinal,request_key,request_digest,objective,
                 profile,snapshot,snapshot_sha,state,created,last_seen) VALUES(?,?,?,?,?,?,?,?,?,'QUEUED',?,?)''',
-                (attempt,project,count+1,key,signature,objective,canonical(profile),snapshot,digest(snapshot),stamp,stamp))
+                (attempt,project,count+1,key,signature,objective,canonical(stored_profile),snapshot,digest(snapshot),stamp,stamp))
             receipt = {'attempt': attempt, 'project': project, 'ordinal': count+1}
             if source_name is not None:
                 receipt['source_name'] = source_name
@@ -453,11 +472,13 @@ class Ledger:
                 raise Denied('TERMINAL_RESULT_CONFLICT')
             self._authorized(con,row)
             if row['state']!='VERIFYING': raise Denied('NOT_VERIFYING')
-            scope = json.loads(row['profile']).get('analysis_scope')
-            verifier = excerpt_review.verify_report if scope in excerpt_review.SCOPES else verify_report
-            receipt = verifier(bytes(row['snapshot']), artifact)
+            profile = json.loads(row['profile'])
+            scope = profile.get('analysis_scope')
             if scope in excerpt_review.SCOPES:
+                receipt = excerpt_review.verify_report(bytes(row['snapshot']), artifact)
                 receipt['checks']['authorized_scope'] = receipt['verifier'] == scope
+            else:
+                receipt = verify_report(bytes(row['snapshot']), artifact, profile.get('requested_rule'))
             from .runner import role_order
             stored=[dict(r) for r in con.execute('SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid',(attempt,))]
             try:

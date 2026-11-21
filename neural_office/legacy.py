@@ -95,7 +95,11 @@ def snapshot(root):
                 data[key] = {t: [dict(r) for r in con.execute('SELECT * FROM "' + t.replace('"', '""') + '" ORDER BY rowid')] for t in tables}
                 logical[key] = signature(con)
             finally: con.close()
-        result = assess(data, root)
+        try:
+            result = assess(data, root)
+        except KeyError as exc:
+            # A required table or column is missing from the historical schema.
+            raise Denied('LEGACY_SCHEMA_UNSUPPORTED') from exc
         result['source_fingerprints'] = logical
         result['fingerprint'] = digest(canonical(logical))
         result['physical_sources'] = identities

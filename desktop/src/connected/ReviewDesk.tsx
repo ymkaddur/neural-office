@@ -1,5 +1,6 @@
 import {useEffect,useId,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import {request} from './client.ts';
+import {draftWriter,readSessionDraft} from './sessionDraft.ts';
 import type {ReactNode} from 'react';
 import type {InspectionJob} from './useInspectionJobs.ts';
 import {PaneDivider} from '../workspace/PaneDivider.tsx';
@@ -11,6 +12,7 @@ import type {SymbolName} from './DeskTools.tsx';
 type Files=ReturnType<typeof attachmentApi>;
 import {Bot, TeamDelivery, TeamRail, TeamOverlay, TeamTrail} from '../office/TeamView.tsx';
 import type {OfficeSignal} from '../office/TeamView.tsx';
+import {timeLabel as when} from '../office/team.ts';
 import type {Specialist} from '../office/team.ts';
 export type Inspection=Awaited<ReturnType<Files['report']>>;
 type FileItem=Awaited<ReturnType<Files['list']>>[number];
@@ -66,7 +68,6 @@ const formatIcons:Record<string,SymbolName>={
 };
 const kindIcon=(kind:string='other'):SymbolName=>formatIcons[kind]??'note';
 const size=(n:number)=>n<1024?n+' B':new Intl.NumberFormat('es-ES',{maximumFractionDigits:1}).format(n/1024)+' KiB';
-const when=(s:number)=>new Date(s*1000).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 function fault(e:unknown){
   const code=e instanceof Error?e.message:'ATTACHMENT_READ_FAILED';
   if(code==='HOST_PICKER_FILE_LIMIT')return 'La selección admite hasta ocho archivos. Elige ocho o menos para adjuntarlos.';
@@ -74,13 +75,16 @@ function fault(e:unknown){
   const message:Record<string,string>={SNAPSHOT_SIZE:'Se admiten archivos de hasta 512 MiB y hasta 1 GiB por selección. Elige menos archivos si se supera el total.',ATTACHMENT_SELECTION_LIMIT:'Elige hasta ocho archivos. Las copias completas de esta selección admiten 24 MiB en total.',DECISION_CHANGED:'Otra ventana cambió la decisión. Se ha solicitado la lectura vigente.',NO_CITED_EXCERPTS:'Esta entrega aún no tiene fragmentos que se puedan autorizar.',EXCERPT_BUDGET:'Los fragmentos superan el espacio disponible para esta consulta.',ATTACHMENT_NOT_FOUND:'El núcleo ya no encuentra esta captura.',HOST_REQUEST_TIMEOUT:'La respuesta está pendiente. Actualiza la lectura antes de repetir la operación.',PROJECT_ROOT_ALREADY_REGISTERED:'La carpeta pertenece a otro proyecto. Abre el hilo de ese proyecto.',PROJECT_ROOT_CHANGED:'Elige archivos de la carpeta de este proyecto.'};
   return (message[code]??'No se pudo completar la lectura local.')+' ('+code+')';
 }
-function fileCapability(kind:string){return ({pdf:'Páginas y texto',zip:'Inventario del paquete',json:'Estructura y líneas',png:'Vista de imagen',jpeg:'Vista de imagen',html:'Texto y estructura',text:'Texto local',identity:'Identidad y huella',docx:'Texto del documento',xlsx:'Texto de las celdas',pptx:'Texto de diapositivas',wav:'Propiedades de audio',odt:'Texto del documento',ods:'Texto de las celdas',odp:'Texto de diapositivas'} as Record<string,string>)[kind]??'Información del archivo';}
-function coordinate(c:Citation){return [c.page?'Pág. '+c.page:'',c.line?'Línea '+c.line:'',c.pointer??''].filter(Boolean).join(' · ');}
+function fileCapability(kind:string){
+  if(['png','jpeg','gif','webp','bmp','tiff'].includes(kind))return 'Vista de imagen';
+  return ({pdf:'Páginas y texto',zip:'Inventario del paquete',json:'Estructura y líneas',html:'Texto y estructura',text:'Texto local',identity:'Identidad y huella',docx:'Texto del documento',xlsx:'Texto de las celdas',pptx:'Texto de diapositivas',wav:'Propiedades de audio',odt:'Texto del documento',ods:'Texto de las celdas',odp:'Texto de diapositivas'} as Record<string,string>)[kind]??'Información del archivo';
+}
+function coordinate(c:Citation){return [c.page?'Pág. '+c.page:'',c.line?'Línea '+c.line:'',c.column?'Columna '+c.column:'',c.pointer??''].filter(Boolean).join(' · ');}
 function AnswerList({findings,openSource}:{findings:Inspection['findings'];openSource:(source:Citation)=>void}){
   return <ol className="answer-list">{findings.map((finding,i)=>{
     const refs=finding.sources;
     const headingSource=refs.length===1&&refs[0].name===finding.title?refs[0]:null;
-    return <li key={i}>
+    return <li key={i} data-rule={finding.rule}>
       {headingSource?<button className="inline-link answer-source" onClick={()=>openSource(headingSource)}>
         <strong>{finding.title}</strong>{coordinate(headingSource)&&<small>{coordinate(headingSource)}</small>}
       </button>:<strong>{finding.title}</strong>}
@@ -89,10 +93,10 @@ function AnswerList({findings,openSource}:{findings:Inspection['findings'];openS
     </li>;
   })}</ol>;
 }
-type Props={consumeReturn:()=>void;returnTo:{report?:string;instruction?:string}|null;onReport:(report:Inspection|null)=>void;office:string;session:string;project:string;thread:string;online:boolean;inspector:boolean;showInspector:()=>void;onUpdate:()=>void;onLegacy:()=>void;
+type Props={consumeReturn:()=>void;returnTo:{report?:string;instruction?:string}|null;onReport:(report:Inspection|null)=>void;office:string;session:string;sessionDrafts:boolean;focusComposer:boolean;project:string;thread:string;online:boolean;inspector:boolean;showInspector:()=>void;onUpdate:()=>void;onLegacy:()=>void;
   renderConsultation:(reportId:string)=>ReactNode;
-  inspectFiles:(project:string,thread:string,ids:string[],objective:string)=>Promise<Inspection>;job?:InspectionJob;onDraft:(value:string)=>void;modelBlocked:boolean;onConsult:(report:Inspection,objective:string,origin:HTMLElement)=>void};
-export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,project,thread,online,inspector,showInspector,onUpdate,onLegacy,modelBlocked,onConsult,inspectFiles,job,onDraft,renderConsultation}:Props){
+  inspectFiles:(project:string,thread:string,ids:string[],objective:string)=>Promise<Inspection>;job?:InspectionJob;onDraft:(value:string)=>void;onEvictDraft:(project:string,thread:string)=>void;modelBlocked:boolean;onConsult:(report:Inspection,objective:string,origin:HTMLElement)=>void};
+export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,sessionDrafts,focusComposer,project,thread,online,inspector,showInspector,onUpdate,onLegacy,modelBlocked,onConsult,inspectFiles,job,onDraft,onEvictDraft,renderConsultation}:Props){
   const files=useMemo(()=>attachmentApi(request),[office,session]);
   const key=JSON.stringify([office,project,thread]);
   const [savedDraft,setSavedDraft]=useState(()=>readSavedDraft(office,project,thread));
@@ -102,25 +106,38 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
   const overLimit=draftLength>objectiveLimit;
   const [excluded,setExcluded]=useState<string[]>(memo.excluded??[]);
   const inspecting=job?.state==='reading'||job?.state==='stopping';
-  const [signal,setSignal]=useState<OfficeSignal|null>(null);
+  const [telemetry,setTelemetry]=useState<{ids:string[];last:OfficeSignal|null;stale:boolean}|null>(null);
+  const currentTelemetry=inspecting&&telemetry?.ids===job?.ids?telemetry:null;
+  const signal=online&&!currentTelemetry?.stale?currentTelemetry?.last??null:null;
+  const lastSignal=currentTelemetry?.last;
+  const delayedSignal=!!currentTelemetry?.stale||!online;
   useEffect(()=>{
-    setSignal(null);
     if(!inspecting||!job||!online)return;
+    const ids=job.ids;
     let live=true;
     let timer:ReturnType<typeof setTimeout>;
     async function readSignal(){
       try {
         const item=await request<(OfficeSignal & {objective:string;sources:string[]})|null>('attachments.activity',{project_id:project,thread_id:thread});
-        if(live)setSignal(item&&item.objective===job?.objective&&JSON.stringify(item.sources)===JSON.stringify(job?.ids)?item:null);
-      } catch { if(live)setSignal(null); }
+        if(live){
+          const matching=item&&item.objective===job?.objective&&JSON.stringify(item.sources)===JSON.stringify(ids)?item:null;
+          setTelemetry(previous=>matching?{ids,last:matching,stale:false}:previous?.ids===ids&&previous.last?{...previous,stale:true}:{ids,last:null,stale:false});
+        }
+      } catch {
+        if(live)setTelemetry(previous=>({ids,last:previous?.ids===ids?previous.last:null,stale:true}));
+      }
       if(live)timer=setTimeout(readSignal,450);
     }
     void readSignal();
     return ()=>{live=false;clearTimeout(timer);};
-  },[online,inspecting,job?.key,project,thread,session]);
+  },[online,inspecting,job?.ids,project,thread,session]);
   const [items,setItems]=useState<FileItem[]>([]);
   const [threadReady,setThreadReady]=useState(false);
-  const awaitingThread=!office||!session||!threadReady;
+  const [memoryReady,setMemoryReady]=useState(!sessionDrafts);
+  const [memoryNotice,setMemoryNotice]=useState('');
+  const memoryWrite=useRef<((text:string)=>void)|undefined>(undefined);
+  const seedInstruction=useRef(returnTo?.instruction);
+  const awaitingThread=!office||!session||!threadReady||!memoryReady;
   const knownIds=useRef<string[]>([]);
   function adoptItems(rows:FileItem[]){
     const ordered=[...new Set([...knownIds.current,...rows.map(f=>f.id)])].filter(id=>rows.some(f=>f.id===id));
@@ -136,7 +153,10 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
   const [inventory,setInventory]=useState<{id:string;entries:Member[]}|null>(null);
   const [history,setHistory]=useState<Awaited<ReturnType<typeof files.history>>>([]);
   const [historyOpen,setHistoryOpen]=useState(false);
+  const datedHistory=useMemo(()=>historyOpen?history.map(entry=>({...entry,clock:new Date(entry.created_at*1000).toLocaleString('es-ES')})):[],[historyOpen,history]);
   const [report,setReport]=useState<Inspection|null>(null);
+  const historyId=useId();
+  const earlier=useMemo(()=>report?history.filter(entry=>entry.project_id===project&&entry.thread_id===thread&&entry.id!==report.id&&entry.created_at<report.created_at):[],[history,report,project,thread]);
   const [specialist,setSpecialist]=useState<{role:Specialist;round?:number;duringInspection?:boolean}|null>(null);
   const awaitingReceipt=specialist?.duringInspection&&job&&(job.state!=='complete'||job.reportId!==report?.id);
   const pendingSheet=awaitingReceipt?{
@@ -164,6 +184,7 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
   const alive=useRef(false),flight=useRef(false),read=useRef(0),scroll=useRef<HTMLDivElement>(null),inspectorRef=useRef<HTMLElement>(null);
   const desk=useRef<HTMLElement>(null);
   const sourceTitle=useRef<HTMLHeadingElement>(null);
+  const findingOrigin=useRef<HTMLElement|null>(null);
   const inspectorFocus=useRef<{kind:'title'}|{kind:'file';id:string}|{kind:'page';page:number;step:1|-1}|null>(null);
   const selected=items.find(i=>i.id===selection?.id)??report?.attachments.find(i=>i.id===selection?.id);
   const snapshot=useRef<ThreadView>(memo);
@@ -176,7 +197,38 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
     if(focusReport.current===report.id){focusReport.current=undefined;heading.current?.focus();heading.current?.scrollIntoView({block:'nearest'});}
   },[report,key]);
   snapshot.current={...snapshot.current,draft,expanded,excluded,target:selection??undefined,reportId:report?.id??memo.reportId};
-  useEffect(()=>{alive.current=true;return ()=>{alive.current=false;const entry=snapshot.current;if(views.size>=128&&!views.has(key)){const old=[...views.keys()].find(k=>!views.get(k)?.draft);if(old)views.delete(old);}views.set(key,entry);};},[key]);
+  useEffect(()=>{alive.current=true;return ()=>{alive.current=false;
+    views.delete(key);
+    if(views.size>=128){const oldest=views.keys().next().value;if(oldest!==undefined)views.delete(oldest);}
+    views.set(key,snapshot.current);
+  };},[key]);
+  useEffect(()=>{
+    if(!sessionDrafts||!online)return;
+    let current=true;
+    void readSessionDraft(session,project,thread).then(initial=>{
+      if(!current)return;
+      const writer=draftWriter(initial,msg=>{if(current)setMemoryNotice(msg);},(oldProject,oldThread)=>{
+        views.delete(JSON.stringify([office,oldProject,oldThread]));
+        onEvictDraft(oldProject,oldThread);
+      });
+      memoryWrite.current=writer;
+      const original=initial.text||snapshot.current.draft;
+      const merged=[original,seedInstruction.current].filter(Boolean).join('\n');
+      const value=initial.text&&seedInstruction.current&&[...merged].length<=objectiveLimit?merged:original;
+      seedInstruction.current=undefined;
+      setDraft(value);writer(value);setMemoryReady(true);
+    }).catch(()=>{if(current){setMemoryNotice('La memoria de sesión no está disponible. Guarda el borrador en esta pestaña antes de recargar.');setMemoryReady(true);}});
+    return ()=>{current=false;memoryWrite.current=undefined;};
+  },[online,sessionDrafts,session,project,thread,office,memo]);
+  const needsFocus=useRef(focusComposer);
+  useEffect(()=>{
+    if(!needsFocus.current||awaitingThread)return;
+    needsFocus.current=false;desk.current?.querySelector('textarea')?.focus();
+  },[awaitingThread]);
+  function editDraft(value:string){
+    setDraft(value);onDraft(value);memoryWrite.current?.(value);
+    try{sessionStorage.setItem('office-thread:'+office,JSON.stringify([project,thread]));}catch{/* Text lives in the session. */}
+  }
   useEffect(()=>{
     if(!online)return;
     let current=true;
@@ -199,13 +251,14 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
     if(preview&&selection?.citation?.line)inspectorRef.current?.querySelector('.line-target')?.scrollIntoView({block:'nearest'});
   },[preview,selection]);
   useEffect(()=>{
-    setPreview(null);setViewProblem('');setZoom(1);
+    setPreview(null);setViewProblem('');
     if(!selection||!online||!inspector)return;
     let current=true;
     void files.view(project,thread,selection.id,{page:selection.page??1,...(selection.member?{member:selection.member}:{})})
       .then(value=>{if(current){setPreview(value);if(!selection.member&&value.entries)setInventory({id:selection.id,entries:value.entries});}}).catch(e=>{if(current)setViewProblem(fault(e));});
     return ()=>{current=false;};
   },[selection,online,inspector,session,project,thread,revision]);
+  useEffect(()=>{setZoom(1);},[selection?.id,selection?.member]);
   async function perform(label:string,work:()=>Promise<void>){
     if(!online||flight.current)return;
     flight.current=true;read.current++;setWorking(label);setProblem('');setRetryPicker(false);
@@ -233,10 +286,13 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
     (target??title).focus();
   },[inspector,selection,preview]);
   function open(target:Target,focus=false){
+    if(target.citation&&document.activeElement instanceof HTMLElement)findingOrigin.current=document.activeElement;
+    else if(!target.member&&target.id!==selection?.id)findingOrigin.current=null;
     inspectorFocus.current=focus?{kind:'title'}:null;
     showInspector();setSelection(target);
   }
   function returnToFiles(focus:boolean){
+    findingOrigin.current=null;
     inspectorFocus.current=focus&&selection?{kind:'file',id:selection.id}:null;
     setSelection(null);
   }
@@ -269,10 +325,17 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
     }
     onUpdate();
     if(!alive.current)return;
-    if(snapshot.current.draft.trim()===next.objective)onDraft('');
+    if(snapshot.current.draft.trim()===next.objective)editDraft('');
     preferredReport.current=next.id;setReport(next);setSelection(null);setDraft(old=>old.trim()===next.objective?'':old);setEditingDecision(false);setExpanded(false);
     const past=await files.history(project,thread);if(alive.current)setHistory(past);
   });}
+  function citeObjective(row:typeof history[number]){
+    if(row.project_id!==project||row.thread_id!==thread||!row.objective.trim())return;
+    const quote='Encargo anterior · '+row.id+'\n«'+row.objective+'»';
+    const value=draft.trim()?draft+'\n\n'+quote:quote;
+    if([...value].length>objectiveLimit){setProblem('La cita supera los 2.000 caracteres disponibles. Acorta el borrador antes de incluirla.');return;}
+    editDraft(value);desk.current?.querySelector('textarea')?.focus();
+  }
   function keepDraft(){
     try{
       const value=draft===savedDraft?'':draft;
@@ -283,7 +346,7 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
       setProblem(error instanceof Error&&error.message==='DRAFT_CAPACITY'?'Ya hay 32 borradores guardados. Retira uno para guardar este.':'No se pudo guardar el borrador en esta pestaña. El texto sigue en el editor.');
     }
   }
-  function reopen(id:string){void perform('Abriendo la entrega guardada',async()=>{
+  function reopen(id:string){if(id===report?.id)return;void perform('Abriendo la entrega guardada',async()=>{
     const next=await files.report(project,thread,id);if(alive.current){preferredReport.current=next.id;focusReport.current=next.id;setReport(next);setSelection(null);setEditingDecision(false);setExpanded(false);}
   });}
   function decide(choice:ReviewDecision['choice']){
@@ -315,14 +378,14 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
   const unavailable=report?.attachments.filter(a=>a.status&&a.status!=='ok')??[];
   const partial=unavailable.length>0;
   const changed=!!draft.trim()&&draft.trim()!==report?.objective;
-  const mayInspect=online&&threadReady&&!working&&!inspecting&&!overLimit&&(included.length>0||!!draft.trim())&&included.length<=8&&(!report||!selectionMatches||changed);
+  const mayInspect=online&&!awaitingThread&&!working&&!inspecting&&!overLimit&&(included.length>0||!!draft.trim())&&included.length<=8&&(!report||!selectionMatches||changed);
   const availableAction=(!report||changed||!selectionMatches);
   const fileCount=(n:number)=>n===1?'1 archivo':n+' archivos';
   const stepCount=(n:number)=>n===1?'1 paso':n+' pasos';
   const singlePlan=plan.map(item=><button className="plan-option" key={item.name} onClick={()=>{
     const next=draft.trim()?draft+'\n'+item.prompt:item.prompt;
     if([...next].length>objectiveLimit){setProblem('La sugerencia supera los 2.000 caracteres del encargo. Acorta tu texto para añadirla.');return;}
-    setDraft(next);onDraft(next);desk.current?.querySelector('textarea')?.focus();
+    editDraft(next);desk.current?.querySelector('textarea')?.focus();
   }}>{item.name}</button>);
 
   const fileResults=report?.findings.filter(f=>f.rule==='file_content')??[];
@@ -340,6 +403,7 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
   const pageCitation=anchor&&(preview?.kind!=='pdf'||!anchor.page||preview.page===anchor.page)?anchor:undefined;
   const literalCitation=!!pageCitation&&answers.some(f=>f.rule==='literal'&&f.sources.some(c=>c.attachment_id===pageCitation.attachment_id&&c.line===pageCitation.line&&c.quote===pageCitation.quote));
   const question=consultationQuestion(report,selectionMatches,draft);
+  const missingExcerpts=!!report&&selectionMatches&&report.attachments.length>0&&!report.findings.some(f=>f.sources.some(c=>c.quote?.trim()||c.code?.trim()));
   const canConsult=!!question&&threadReady&&!overLimit&&!inspecting&&!modelBlocked&&online&&!working;
   const htmlReviewLink=items.some(item=>item.kind==='html')&&<button className="legacy-link" onClick={onLegacy}><Icon name="json"/>Abrir revisión de HTML con roles <Icon name="arrow"/></button>;
   return <section ref={desk} className={'review-desk'+(inspector?' has-inspector':' with-team')+(mobileTeam?' show-team':'')} aria-label="Hilo de revisión">
@@ -347,21 +411,29 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
     <div className="desk-thread">
       <div className="thread-scroll" ref={scroll} onScroll={e=>{snapshot.current.scroll=e.currentTarget.scrollTop;}}>
         <article className="thread-document">
-          {report&&history.filter(h=>h.id!==report.id&&h.created_at<report.created_at).slice(0,4).reverse().map(h=><button key={h.id} className="earlier-turn" onClick={()=>reopen(h.id)}><Icon name="thread"/><span>{h.objective||'Inspección anterior'}</span><time>{when(h.created_at)}</time></button>)}
+          {earlier.length>0&&<button className="compact-history-link" aria-controls={historyId} onClick={()=>{
+            setHistoryOpen(true);
+            requestAnimationFrame(()=>document.getElementById(historyId)?.querySelector('summary')?.focus());
+          }}><Icon name="clock"/>{earlier.length===1?'1 entrega anterior':earlier.length+' entregas anteriores'}</button>}
+          {earlier.slice(0,4).reverse().map(h=><button key={h.id} className="earlier-turn" onClick={()=>reopen(h.id)}><Icon name="thread"/><span>{h.objective||'Inspección anterior'}</span><time>{when(h.created_at)}</time></button>)}
           {report?.objective&&<div className="user-turn"><div><strong>Tú</strong><time>{when(report.created_at)}</time></div><p>{report.objective}</p><small><Icon name="attach"/>{fileCount(report.attachments.length)} en esta entrega</small></div>}
           <div className="director-byline"><Bot role="director"/><strong>Director</strong>{report&&<><span className="source-label">{guidance?'Orientación del Director':'Comprobación local'} · {report.model_calls} llamadas al modelo</span><time>{when(report.completed_at??report.steps.at(-1)?.at??report.created_at)}</time></>}</div>
           <h1 ref={heading} tabIndex={-1}>{multiple?multipleTitle:contentTitle??(report?(result?.status==='mismatch'&&hourSources.length===2?hourSources[0].value+' h en la especificación, '+hourSources[1].value+' h en la entrega':result?.title??(partial?'Archivos con lectura limitada':'Lectura local registrada')):items.length?'¿Qué quieres comprobar?':'¿En qué trabajamos?')}</h1>
           {multiple?<AnswerList findings={answers} openSource={c=>open({id:c.attachment_id,page:c.page,citation:c},true)}/>:
-          <p className="desk-lede">{contentLead??(report?(result?.status==='mismatch'?(report.decision?'Puedes revisar la elección del equipo y consultar las dos fuentes.':'Decide qué plazo debe aplicar el equipo. Puedes revisar los dos originales antes de elegir.'):result?.detail??'Abre las fuentes para revisar lo que pudo leerse.'):included.length?fileCount(included.length)+' en la selección. Elige una comprobación o escribe tu pregunta.':'Escribe tu encargo. Puedes añadir archivos cuando necesites que el Director compruebe una fuente.')}</p>}
+          <p className="desk-lede" data-literal={!!contentLead||undefined}>{contentLead??(report?(result?.rule==='first_response_hours'&&result.status==='mismatch'?(report.decision?'Puedes revisar la elección del equipo y consultar las dos fuentes.':'Decide qué plazo debe aplicar el equipo. Puedes revisar los dos originales antes de elegir.'):result?.detail??'Abre las fuentes para revisar lo que pudo leerse.'):included.length?fileCount(included.length)+' en la selección. Elige una comprobación o escribe tu pregunta.':'Escribe tu encargo. Puedes añadir archivos cuando necesites que el Director compruebe una fuente.')}</p>}
           {(items.length>0&&(!report||guidance||result?.rule==='scope'))&&<div className="inspection-plan" aria-label="Comprobaciones disponibles">{singlePlan}</div>}
-          {selection?.member&&<p className="reading-context"><Icon name="zip"/> Estás revisando {selection.member} en {selected?.name}. <button className="inline-link" onClick={()=>setSelection(null)}>Volver al hallazgo</button></p>}
+          {selection?.member&&<p className="reading-context"><Icon name="zip"/> Estás revisando {selection.member} en {selected?.name}. <button className="inline-link" onClick={()=>{
+            const origin=findingOrigin.current;
+            returnToFiles(!origin?.isConnected);
+            if(origin?.isConnected){origin.focus();origin.scrollIntoView({block:'nearest'});}
+          }}>{findingOrigin.current?.isConnected?'Volver al hallazgo':'Volver a los adjuntos'}</button></p>}
           {report?.team&&<TeamDelivery report={report}/>}
           {partial&&!fileResults.length&&<section className="evidence-block"><div className="evidence-heading"><Icon name="activity"/><strong>Archivos con lectura limitada</strong></div>{unavailable.map(a=><button className="citation-row" key={a.id} onClick={()=>open({id:a.id},true)}><Icon name={kindIcon(a.kind)}/><span><strong>{a.name}</strong><small>{a.detail}</small></span><Icon name="arrow"/></button>)}</section>}
           {report&&!guidance&&<details className="evidence-drawer" open={report.findings.some(f=>f.status==='mismatch')}><summary>Fuentes y comprobaciones <small>{report.attachments.length} adjuntos</small></summary>
           {report.findings.filter(finding=>finding.sources.length>0||finding!==result).map((finding,i)=><section className="evidence-block" key={finding.rule+i} data-rule={finding.rule}>
             <div className="evidence-heading"><Icon name={finding.status==='mismatch'?'activity':'note'}/><strong>{finding.rule==='first_response_hours'?'Plazo de primera respuesta':finding.title}</strong><small>{finding.status==='mismatch'?'Discrepancia':finding.status==='match'?'Coincidencia':finding.status==='insufficient'?'Evidencia insuficiente':'Regla local'}</small></div>
             {finding!==result&&<p>{finding.detail}</p>}
-            {finding.sources.map((c,j)=><button key={c.attachment_id+j} className={'citation-row'+(selection?.citation===c?' chosen':'')} onClick={()=>open({id:c.attachment_id,page:c.page,citation:c},true)}>
+            {finding.sources.map((c,j)=><button key={c.attachment_id+j} aria-pressed={!!anchor&&anchor.attachment_id===c.attachment_id&&anchor.sha256===c.sha256&&anchor.page===c.page&&anchor.line===c.line&&anchor.pointer===c.pointer&&anchor.quote===c.quote} className="citation-row" onClick={()=>open({id:c.attachment_id,page:c.page,citation:c},true)}>
               <Icon name={kindIcon(c.kind)}/><span><strong>{typeof c.value==='number'&&c.unit?<b className="source-value">{c.value} {c.unit}</b>:null}{c.name}</strong><small>{c.unit&&typeof c.value==='number'?(c.kind==='pdf'?'Especificación':'Manifiesto'):c.quote||'Abrir la fuente'}</small></span><code>{coordinate(c)}</code><Icon name="arrow"/></button>)}
           </section>)}
           </details>}
@@ -376,24 +448,26 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,proje
             <button type="button" className="event-disclosure" aria-expanded={expanded} aria-controls={receiptsId} onClick={()=>setExpanded(value=>!value)}>
               <Icon name="activity"/><strong>Actividad de la inspección</strong><small>{stepCount(report.steps.length)} · {report.reservations} intentos</small>
             </button>
-            <ol id={receiptsId} aria-label="Registros de la inspección" hidden={!expanded}>{report.steps.map((step,i)=><li key={i}><Icon name={['ok','match','mismatch','observed'].includes(step.status)?'check':'activity'}/><div><strong>{step.action}</strong><p>{step.actor} · {step.detail}</p>{step.attachment_id&&<button className="inline-link" onClick={()=>open({id:step.attachment_id!},true)}>Abrir fuente</button>}</div><time>{when(step.at)}<small>{Math.round(step.duration_ms)} ms</small></time></li>)}</ol>
+            <ol id={receiptsId} aria-label="Registros de la inspección" hidden={!expanded}>{report.steps.map((step,i)=><li key={i}><Icon name={['ok','match','mismatch','observed'].includes(step.status)?'check':'activity'}/><div><strong>{step.action}</strong><p>{step.actor} · {step.detail}</p>{step.attachment_id&&<button className="inline-link" aria-label={'Abrir fuente · '+(report.attachments.find(f=>f.id===step.attachment_id)?.name??step.attachment_id)+' · '+step.action} onClick={()=>open({id:step.attachment_id!},true)}>Abrir fuente</button>}</div><time>{when(step.at)}<small>{Math.round(step.duration_ms)} ms</small></time></li>)}</ol>
           </section>}
           {report&&renderConsultation(report.id)}
-          {history.length>0&&<details className="desk-events" open={historyOpen} onToggle={e=>setHistoryOpen(e.currentTarget.open)}><summary><Icon name="clock"/>Entregas de este hilo <small>{history.length}</small></summary>{historyOpen&&history.map(h=><button key={h.id} disabled={!!working} className="history-entry" onClick={()=>reopen(h.id)}><span>{h.objective||'Inspección local'}<small>{fileCount(h.attachment_count)} · {h.finding_count} {h.finding_count===1?'comprobación':'comprobaciones'}{h.id===report?.id?' · Abierta':''}</small></span> <time>{new Date(h.created_at*1000).toLocaleString('es-ES')}</time></button>)}</details>}
+          {history.length>0&&<details id={historyId} className="desk-events" open={historyOpen} onToggle={e=>setHistoryOpen(e.currentTarget.open)}><summary><Icon name="clock"/>Entregas de este hilo <small>{history.length}</small></summary>{datedHistory.filter(h=>h.project_id===project&&h.thread_id===thread).map(h=><div key={h.id}><button disabled={!!working} className="history-entry" onClick={()=>reopen(h.id)}><span>{h.objective||'Inspección local'}<small>{fileCount(h.attachment_count)} · {h.finding_count} {h.finding_count===1?'comprobación':'comprobaciones'}{h.id===report?.id?' · Abierta':''}</small></span> <time>{h.clock}</time></button>{h.objective.trim()&&<button className="inline-link" disabled={awaitingThread} onClick={()=>citeObjective(h)} aria-label={'Citar encargo '+h.objective+' · '+h.id}>Citar encargo en el borrador</button>}</div>)}</details>}
         </article>
       </div>
       <div className="composer-wrap">
         {online&&!threadReady&&!problem&&<div className="desk-progress" role="status">Recuperando las fuentes y el historial del hilo…</div>}
         {problem&&<div className="desk-fault" role="alert">{problem} <button className="inline-link" disabled={!online||!!working} onClick={()=>{if(retryPicker)pick();else{setProblem('');setRevision(v=>v+1);}}}>{retryPicker?'Elegir archivos':'Actualizar lectura'}</button></div>}
-        {inspecting&&<div className="desk-progress" role="status"><Icon name="activity"/>{!job?.ids.length?'Registrando el encargo en este hilo…':signal?signal.action+' · '+signal.finished+'/'+job.ids.length+' fuentes leídas':'Esperando el primer registro de lectura…'}</div>}
+        {inspecting&&<div className="desk-progress" role="status"><Icon name="activity"/>{!job?.ids.length?'Registrando el encargo en este hilo…':delayedSignal?(lastSignal?'Última señal · '+lastSignal.action+' · '+lastSignal.finished+'/'+job.ids.length+' fuentes leídas. Actualización pendiente.':'Actualización pendiente. Aún no se ha confirmado una lectura.'):signal?signal.action+' · '+signal.finished+'/'+job.ids.length+' fuentes leídas':'Esperando el primer registro de lectura…'}</div>}
         {working&&!inspecting&&<div className="desk-progress" role="status"><Icon name="clock"/>{working}</div>}
-        {report&&!selectionMatches?<p className="selection-note" role="status">La selección difiere de la entrega abierta. Envía el encargo con la selección actual antes de consultar al modelo.</p>:textBrief&&changed?<p className="selection-note">Envía el encargo modificado antes de consultarlo con el modelo.</p>:report&&changed&&question?<p className="selection-note">Consulta esta pregunta con las citas de la entrega abierta, o envíala para crear una nueva inspección.</p>:null}
+        {report&&!selectionMatches?<p className="selection-note" role="status">La selección difiere de la entrega abierta. {draft.trim()?'Se usará el encargo escrito en el borrador.':included.length?'Se aplicará la inspección general a '+fileCount(included.length)+' de la selección actual.':'Escribe un encargo para enviar solo texto.'}</p>:textBrief&&changed?<p className="selection-note">Envía el encargo modificado antes de consultarlo con el modelo.</p>:report&&changed&&question?<p className="selection-note">Consulta esta pregunta con las citas de la entrega abierta, o envíala para crear una nueva inspección.</p>:null}
         {job?.state==='error'&&!problem&&<p className={job.error==='ATTACHMENT_READ_CANCELLED'?'selection-note':'desk-fault'} role="status">{job.error==='ATTACHMENT_READ_CANCELLED'?'Lectura detenida por el núcleo. Se conservan el borrador y la selección.':fault(Error(job.error))}</p>}
         <div className="desk-composer"><textarea aria-label="Instrucción para el Director" value={draft} readOnly={awaitingThread} aria-invalid={overLimit||undefined} aria-describedby={draftLength>=1900?'desk-objective-limit':undefined} rows={2}
-          placeholder={awaitingThread?'El editor se abrirá cuando se confirme este hilo.':'Escribe al Director…'} onChange={e=>{setDraft(e.target.value);onDraft(e.target.value);}}
+          placeholder={awaitingThread?'El editor se abrirá cuando se confirme este hilo.':'Escribe al Director…'} onChange={e=>editDraft(e.target.value)}
           onKeyDown={e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229&&mayInspect){e.preventDefault();inspect();}}}/>
+          {memoryNotice&&<p role="status">{memoryNotice}</p>}
           <div className="composer-actions"><button className="desk-attach" disabled={!online||!threadReady||!!working} onClick={pick}><Icon name="attach"/>Adjuntar archivos</button>
-          {report&&<button className="desk-secondary" disabled={!canConsult} onClick={e=>question&&onConsult(report,question,e.currentTarget)}><Icon name="shield"/>Consultar al modelo</button>}
+          {report&&<button className="desk-secondary" disabled={!canConsult} aria-describedby={missingExcerpts?'scope-without-excerpts':undefined} onClick={e=>question&&onConsult(report,question,e.currentTarget)}><Icon name="shield"/>Consultar al modelo</button>}
+          {missingExcerpts&&<small id="scope-without-excerpts">La consulta necesita un fragmento de texto citado. Esta entrega solo conserva información de las fuentes.</small>}
           <button className="desk-primary" title="Enviar al Director · Ctrl+Intro" aria-keyshortcuts="Control+Enter Meta+Enter" disabled={!availableAction||!mayInspect} onClick={inspect}><span aria-hidden="true">↑</span> Enviar · 0 intentos</button></div></div>
         {draftLength>=1900&&<small id="desk-objective-limit">{draftLength} / {objectiveLimit} caracteres{overLimit?' · Acorta el encargo para enviarlo.':''}</small>}
         <div className="desk-caption"><span><Icon name="folder"/>{project}</span>

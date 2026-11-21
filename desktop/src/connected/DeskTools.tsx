@@ -50,7 +50,7 @@ export function useAppearance(){
   function update(next:Appearance){setPrefs(next);try{localStorage.setItem(appearanceKey,JSON.stringify(next));setSaved(true);}catch{setSaved(false);}}
   return {prefs,update,saved,dark:prefs.theme==='dark'||(prefs.theme==='system'&&system)};
 }
-export function DeskDialog({label,close,children,wide=false}:{label:string;close:()=>void;children:ReactNode;wide?:boolean}){
+export function DeskDialog({label,close,children,wide=false,busy=false}:{label:string;close:()=>void;children:ReactNode;wide?:boolean;busy?:boolean}){
   const ref=useRef<HTMLDialogElement>(null);
   useLayoutEffect(()=>{
     const origin=document.activeElement;
@@ -59,8 +59,8 @@ export function DeskDialog({label,close,children,wide=false}:{label:string;close
     dialog?.querySelector<HTMLElement>('[data-initial-focus]')?.focus();
     return ()=>{dialog?.close();if(origin instanceof HTMLElement&&origin.isConnected)origin.focus();};
   },[]);
-  return <dialog ref={ref} aria-label={label} className={'desk-dialog'+(wide?' wide':'')} onCancel={e=>{e.preventDefault();close();}}>
-    <header><h2>{label}</h2><button className="desk-icon-button" aria-label={'Cerrar '+label} onClick={close}>×</button></header>{children}</dialog>;
+  return <dialog ref={ref} aria-label={label} aria-busy={busy||undefined} className={'desk-dialog'+(wide?' wide':'')} onCancel={e=>{e.preventDefault();if(!busy)close();}}>
+    <header><h2>{label}</h2><button className="desk-icon-button" aria-label={'Cerrar '+label} disabled={busy} onClick={close}>×</button></header>{children}</dialog>;
 }
 function Choices<T extends string|number>({label,value,options,onChange}:{label:string;value:T;options:ReadonlyArray<readonly [T,string]>;onChange:(v:T)=>void}){
   return <div className="desk-segment" role="group" aria-label={label}>{options.map(([v,text])=><button key={v} aria-pressed={v===value} onClick={()=>onChange(v)}>{text}</button>)}</div>;
@@ -87,24 +87,34 @@ export function AppearancePanel({appearance,close,control}:{appearance:ReturnTyp
     <button className="desk-primary" onClick={close}>Volver al hilo</button>
   </div></DeskDialog>;
 }
-export type DeskAction={id:string;name:string;detail?:string;run:()=>void};
+export type DeskAction={id:string;name:string;detail?:string;aliases?:string;run:()=>void};
 type SearchResult={id:string;thread_id:string;objective:string};
-export function CommandSearch({items,close,control,project,openReport,search}:{items:DeskAction[];close:()=>void;control?:ReactNode;project:string;openReport:(thread:string,id:string)=>void;search:(query:string)=>Promise<SearchResult[]>}){
+export type SearchPage={items:SearchResult[];next_before:string};
+export function CommandSearch({items,close,control,project,openReport,search}:{items:DeskAction[];close:()=>void;control?:ReactNode;project:string;openReport:(thread:string,id:string)=>void;search:(query:string,before:string)=>Promise<SearchPage>}){
   const [query,setQuery]=useState('');
-  const [history,setHistory]=useState<{query:string;rows:SearchResult[];failed?:boolean}|null>(null);
+  const [history,setHistory]=useState<{query:string;rows:SearchResult[];next:string;failed?:boolean}|null>(null);
+  const [before,setBefore]=useState(''),[retry,setRetry]=useState(0),[reading,setReading]=useState(false);
   useEffect(()=>{
     let current=true;
     const term=query.trim();
     if(!term)return;
-    const timer=setTimeout(()=>{search(term).then(rows=>{if(current)setHistory({query:term,rows});})
-      .catch(()=>{if(current)setHistory({query:term,rows:[],failed:true});});},140);
+    setReading(true);
+    const timer=setTimeout(()=>{search(term,before).then(page=>{
+      if(!Array.isArray(page.items)||typeof page.next_before!=='string'||(before&&page.next_before===before))throw Error('SEARCH_PAGE_CONTRACT');
+      if(current)setHistory(old=>{
+        const rows=before&&old?.query===term?old.rows:[];
+        const seen=new Set(rows.map(r=>r.id));
+        return {query:term,rows:[...rows,...page.items.filter(item=>!seen.has(item.id))],next:page.next_before};
+      });
+    }).catch(()=>{if(current)setHistory(old=>({query:term,rows:before&&old?.query===term?old.rows:[],next:before,failed:true}));})
+      .finally(()=>{if(current)setReading(false);});},140);
     return ()=>{current=false;clearTimeout(timer);};
-  },[query,project,search]);
+  },[query,project,search,before,retry]);
   const norm=(s:string)=>s.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
-  const choices=items.filter(item=>norm(item.name+' '+(item.detail??'')).includes(norm(query.trim())));
+  const choices=items.filter(item=>norm([item.name,item.detail,item.aliases].filter(Boolean).join(' ')).includes(norm(query.trim())));
   if(history?.query===query.trim())choices.push(...history.rows.map(r=>({id:'r-'+r.id,name:r.objective||'Inspección local',detail:project+' · '+r.id.slice(0,8),run:()=>openReport(r.thread_id,r.id)})));
   return <DeskDialog label="Buscar hilo o acción" close={close}><div className="command-body">{control}
-    <input aria-label="Buscar por nombre o proyecto" data-initial-focus maxLength={2000} value={query} placeholder="Hilo, entrega, proyecto o acción…" onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==='ArrowDown'||(e.key==='Enter'&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229)){e.preventDefault();const first=e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.command-results button');if(e.key==='Enter')first?.click();else first?.focus();}}}/>
+    <input aria-label="Buscar por nombre o proyecto" data-initial-focus maxLength={2000} value={query} placeholder="Hilo, entrega, proyecto o acción…" onChange={e=>{setBefore('');setHistory(null);setQuery(e.target.value);}} onKeyDown={e=>{if(e.key==='ArrowDown'||(e.key==='Enter'&&!e.nativeEvent.isComposing&&e.nativeEvent.keyCode!==229)){e.preventDefault();const first=e.currentTarget.parentElement?.querySelector<HTMLButtonElement>('.command-results button');if(e.key==='Enter')first?.click();else first?.focus();}}}/>
     <div className="command-results" onKeyDown={e=>{
       if(!['ArrowDown','ArrowUp'].includes(e.key))return;
       const nodes=[...e.currentTarget.querySelectorAll('button')];
@@ -114,6 +124,8 @@ export function CommandSearch({items,close,control,project,openReport,search}:{i
     }}>{(['Acciones','Proyectos','Hilos','Entregas','Consultas'] as const).map(group=>{
       const rows=choices.filter(item=>(item.id.startsWith('p-')?'Proyectos':item.id.startsWith('t-')?'Hilos':item.id.startsWith('r-')?'Entregas':item.id.startsWith('a-')?'Consultas':'Acciones')===group);
       return rows.length>0&&<section key={group} aria-label={group}><h3>{group}</h3>{rows.map(item=><button key={item.id} onClick={()=>{close();item.run();}}><span>{item.name}</span><small>{item.detail}</small></button>)}</section>;
-    })}{!choices.length&&<p role="status">{history?.query!==query.trim()&&query.trim()?'Buscando entregas…':history?.failed?'No se pudo consultar el historial.':'Sin coincidencias.'}</p>}</div>
+    })}{history?.query===query.trim()&&history.failed?<p role="status">No se pudo consultar el historial. <button disabled={reading} onClick={()=>setRetry(n=>n+1)}>Reintentar búsqueda</button></p>:
+      history?.query===query.trim()&&history.next?<button disabled={reading} onClick={()=>setBefore(history.next)}>Ver más entregas</button>:
+      !choices.length&&<p role="status">{query.trim()&&(reading||history?.query!==query.trim())?'Buscando entregas…':'Sin coincidencias.'}</p>}</div>
   </div></DeskDialog>;
 }

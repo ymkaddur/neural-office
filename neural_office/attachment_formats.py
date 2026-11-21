@@ -90,9 +90,10 @@ def image_view(kind, data, mode):
 
 
 class JsonLocationError(ValueError):
-    def __init__(self, detail, at):
+    def __init__(self, detail, at, status='invalid'):
         super().__init__(detail)
         self.at = at
+        self.status = status
 
 
 def json_view(data):
@@ -116,7 +117,7 @@ def json_view(data):
         nonlocal nodes, hours, schema, fields_truncated
         nodes += 1
         if depth > 40 or nodes > 10_000 or len(pointer) > 1400:
-            raise JsonLocationError('La estructura excede el límite de lectura.', at)
+            raise JsonLocationError('La estructura excede el límite de lectura.', at, 'limit')
         at = skip(at)
         char = source[at:at + 1]
         line = bisect_right(starts, at)
@@ -137,9 +138,9 @@ def json_view(data):
                     if any(0xd800 <= ord(c) <= 0xdfff for c in key):
                         raise JsonLocationError('La clave contiene un carácter Unicode incompleto.', key_start)
                     if len(key) > 512:
-                        raise JsonLocationError('La clave supera el límite de longitud.', key_start)
+                        raise JsonLocationError('La clave supera el límite de longitud.', key_start, 'limit')
                     if key in keys:
-                        raise JsonLocationError('Clave duplicada; corrígela antes de comparar.', key_start)
+                        raise JsonLocationError('Hay una clave repetida. Hace falta una única definición para comparar sus valores.', key_start, 'ambiguous')
                     keys.add(key)
                     i = skip(i)
                     if source[i:i + 1] != ':':
@@ -185,7 +186,9 @@ def json_view(data):
     except (JsonLocationError, json.JSONDecodeError) as error:
         pos = error.at if isinstance(error, JsonLocationError) else error.pos
         line = bisect_right(starts, pos)
-        return result('json', 'invalid', 'JSON inválido. ' + str(error).split(': line ')[0],
+        status = getattr(error, 'status', 'invalid')
+        reason = str(error).split(': line ')[0]
+        return result('json', status, ('JSON inválido. ' if status == 'invalid' else '') + reason,
                       line=line, column=pos - starts[line-1] + 1, text=source[:MAX_TEXT],
                       text_truncated=len(source) > MAX_TEXT)
     snippet_start = 0
@@ -313,8 +316,14 @@ def pdf_view(data, page_number, mode):
 
 
 def member_kind(name):
-    from .general_files import TEXT_SUFFIXES
+    from .general_files import TEXT_SUFFIXES, OFFICE, EXTRA_IMAGES
     suffix = PurePosixPath(name).suffix.lower()
+    if suffix in OFFICE:
+        return OFFICE[suffix]
+    if suffix in ('.tif', '.tiff'):
+        return 'tiff'
+    if suffix[1:] in EXTRA_IMAGES or suffix == '.wav':
+        return suffix[1:]
     return EXTENSIONS.get(suffix, 'text' if suffix in TEXT_SUFFIXES else 'other')
 
 

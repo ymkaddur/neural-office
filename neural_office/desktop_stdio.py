@@ -21,6 +21,7 @@ READ_METHODS = frozenset({
 })
 ATTACHMENT_METHODS = frozenset({
     'host.attachments.capture', 'attachments.list', 'attachments.inspect', 'attachments.view',
+    'attachments.search.page', 'attachments.scope',
     'attachments.history', 'attachments.search', 'attachments.threads', 'attachments.report', 'attachments.preview', 'attachments.decide',
 })
 

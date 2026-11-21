@@ -1,4 +1,5 @@
 """Project-scoped human notes and versioned instructions. Entries grant no execution rights."""
+from contextlib import contextmanager
 import time
 
 from .attachments import recover_report
@@ -38,15 +39,23 @@ class ProjectLibrary:
                 ORDER BY revision DESC''', (project_id, entry_id))]
 
     def for_draft(self, project_id, entry_id, expected_revision):
+        with self.accepted_instruction(project_id, entry_id, expected_revision) as instruction:
+            return instruction
+
+    @contextmanager
+    def accepted_instruction(self, project_id, entry_id, expected_revision, *, for_copy=False):
         office, root = self.store._authority(project_id)
         if not root:
             raise Denied('LIBRARY_PROJECT_REQUIRED')
         with self.store._db(office) as db:
             self._table(db)
-            db.execute('BEGIN')
+            # Keep withdrawals in other service processes ordered with the actual draft write.
+            db.execute('BEGIN IMMEDIATE' if for_copy else 'BEGIN')
             row = db.execute('SELECT * FROM library_versions WHERE project=? AND id=? ORDER BY revision DESC LIMIT 1',
                              (project_id, entry_id)).fetchone()
-            if not row or row['retired']:
+            if not row:
+                raise Denied('LIBRARY_ENTRY_NOT_FOUND')
+            if row['retired']:
                 raise Denied('LIBRARY_ENTRY_RETIRED')
             if row['revision'] != expected_revision:
                 raise Denied('LIBRARY_REVISION_CHANGED')
@@ -54,7 +63,12 @@ class ProjectLibrary:
                 raise Denied('LIBRARY_TRANSITION_INVALID')
             if recover_report(db, project_id, row['thread'], row['report']) is None:
                 raise Denied('LIBRARY_SOURCE_REQUIRED')
-            return dict(id=row['id'], revision=row['revision'], body=row['body'])
+            accepted = db.execute('''SELECT MAX(revision) FROM library_versions
+                WHERE project=? AND id=? AND operation='accept' AND body=?''',
+                                  (project_id, entry_id, row['body'])).fetchone()[0]
+            if accepted is None:
+                raise Denied('LIBRARY_TRANSITION_INVALID')
+            yield dict(id=row['id'], revision=row['revision'], active_revision=accepted, body=row['body'])
 
     def change(self, project_id, thread_id, report_id, entry_id, kind, title, body, operation, expected_revision):
         office, root = self.store._authority(project_id)
@@ -70,8 +84,6 @@ class ProjectLibrary:
                              (project_id, entry_id)).fetchone()
             if (old['revision'] if old else 0) != expected_revision:
                 raise Denied('LIBRARY_REVISION_CHANGED')
-            if expected_revision >= 48 and operation != 'retire':
-                raise Denied('LIBRARY_STORAGE_LIMIT')
             if old and (old['kind'], old['thread'], old['report']) != (kind, thread_id, report_id):
                 raise Denied('LIBRARY_SOURCE_CHANGED')
             if old and old['retired']:
@@ -80,10 +92,14 @@ class ProjectLibrary:
             # report must not keep it active. All changes that publish content still verify it.
             if not (old and operation == 'retire') and recover_report(db, project_id, thread_id, report_id) is None:
                 raise Denied('LIBRARY_SOURCE_REQUIRED')
+            if old and kind == 'memory' and operation == 'edit' and body and (title, body) == (old['title'], old['body']):
+                return dict(id=entry_id, revision=expected_revision)
+            if expected_revision >= 48 and operation != 'retire':
+                raise Denied('LIBRARY_REVISION_LIMIT')
             active, proposal, retired = (old['body'], old['proposal'], 0) if old else ('', None, 0)
             if operation == 'create' and not old and body:
                 if db.execute('SELECT COUNT(*) FROM library_versions WHERE project=? AND revision=1', (project_id,)).fetchone()[0] >= 64:
-                    raise Denied('LIBRARY_STORAGE_LIMIT')
+                    raise Denied('LIBRARY_ENTRY_LIMIT')
                 if kind == 'skill':
                     proposal = body
                 else:

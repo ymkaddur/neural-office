@@ -15,8 +15,9 @@ export type TeamReview = {
   delivery:{objective:string; results:string[]; limitations:string[]; sources:{name:string;sha256:string}[]};
   delivery_sha256:string;
 };
+const receiptClock=new Intl.DateTimeFormat('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 export function timeLabel(seconds:number) {
-  return new Intl.DateTimeFormat('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(seconds*1000);
+  return receiptClock.format(seconds*1000);
 }
 export function downloadFile(data:Blob, name:string) {
   const address=URL.createObjectURL(data);

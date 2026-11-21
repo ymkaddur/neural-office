@@ -46,8 +46,10 @@ def main(argv=None):
     check.add_argument('--root',required=True); check.add_argument('--file',required=True)
     sub.add_parser('protect',help='Enroll an idle schema-1 V5.2 ledger without resetting history')
     for action in ('backup','restore'):
-        command=sub.add_parser(action, help=f'{action.capitalize()} the attempt ledger. Captures, inspection reports and the witness are stored separately.')
-        command.add_argument('file', help='SQLite copy of the attempt ledger')
+        command=sub.add_parser(action, help=f'{action.capitalize()} the workspace (.zip) or the attempt ledger (.sqlite3)')
+        command.add_argument('file', help='Workspace ZIP or ledger SQLite file')
+        if action == 'restore':
+            command.add_argument('--witness', help='Independently retained witness for the workspace ZIP')
     for action in ('legacy-inspect','legacy-reconcile'):
         command=sub.add_parser(action); command.add_argument('source_root')
     command=sub.add_parser('legacy-rebind')
@@ -91,6 +93,15 @@ def main(argv=None):
         print(canonical(result))
         return
     if args.action in ('protect','backup','restore'):
+        if args.action != 'protect' and Path(args.file).suffix.lower() == '.zip':
+            from . import workspace_backup
+            if args.action == 'restore' and not args.witness:
+                raise Denied('WORKSPACE_RETAINED_WITNESS_REQUIRED')
+            result = (workspace_backup.create(ledger, args.file) if args.action == 'backup'
+                      else workspace_backup.restore(ledger, args.file, args.witness))
+            print(canonical(result)); return
+        if args.action == 'restore' and args.witness:
+            raise Denied('WORKSPACE_ARCHIVE_REQUIRED')
         from . import continuity
         operation=getattr(continuity,args.action)
         print(canonical(operation(ledger) if args.action=='protect' else operation(ledger,args.file))); return
