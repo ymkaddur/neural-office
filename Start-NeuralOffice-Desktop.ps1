@@ -7,6 +7,10 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    throw 'El lanzador requiere PowerShell 7 (pwsh). Abre esa consola y vuelve a ejecutar el script.'
+}
+
 function Get-LocalAbsolutePath([string]$Value) {
     if ($Value.StartsWith('\\') -or $Value.StartsWith('//') -or $Value.StartsWith('\??\')) {
         throw 'This Windows test host requires local paths.'
