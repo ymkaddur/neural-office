@@ -468,7 +468,7 @@ def team_permission(screen, host, source, objective):
     wait(lambda: source.name in screen.names(), description='seven-role source captured')
     screen.button('Consultar al Director')
     wait(lambda: screen.control('Modelo local','ComboBox').selected_text() == MODEL, description='selected local model')
-    screen.disclosure('Perfil acotado', True)
+    screen.disclosure('Perfil acotado', True, keyboard=False)
     selector = screen.control('Roles secuenciales','ComboBox')
     screen.window.set_focus()
     selector.set_focus()
@@ -572,7 +572,7 @@ def team(exe, work, state, out, receipt):
         else:
             verify(answer=='IMAGE_ALT_MISSING, línea 2, columna 1', 'The actual model cited a different location')
         wait(lambda: 'Comentarios del modelo' in screen.names(visible_only=False), description='team report rendered')
-        screen.disclosure('Comentarios del modelo', True)
+        screen.disclosure('Comentarios del modelo', True, keyboard=False)
         displayed = ' '.join(receipt['integrator_answer'].split())
         wait(lambda: displayed in ' '.join(screen.names(visible_only=False).split()),
              description='actual integrator answer in the expanded native report')

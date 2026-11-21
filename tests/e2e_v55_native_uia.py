@@ -155,13 +155,19 @@ class Screen:
              timeout=5, description='own window and button have keyboard focus')
         keyboard.send_keys('{SPACE}', turn_off_numlock=False)
 
-    def disclosure(self, title, expanded):
-        # Uncontrolled HTML summaries report their own UIA expanded state.
-        summary = self.reveal_button(r'(?s)^(?:[›⌄]\s*)?'+re.escape(title)+r'.*', regex=True)
-        pattern = summary.iface_expand_collapse
-        if pattern.CurrentExpandCollapseState != int(expanded):
-            self.press_space(summary)
-        wait(lambda: pattern.CurrentExpandCollapseState == int(expanded), timeout=5,
+    def disclosure(self, title, expanded, *, keyboard=True):
+        name = r'(?s)^(?:[›⌄]\s*)?'+re.escape(title)+r'.*'
+        summary = self.reveal_button(name, regex=True)
+        if summary.get_expand_state() != int(expanded):
+            if keyboard:
+                self.press_space(summary)
+            elif expanded:
+                summary.expand()
+            else:
+                summary.collapse()
+        # Query the live summary after the action, including when WebView2 replaces its provider.
+        control = self.window.child_window(title_re=name, control_type='Button', visible_only=False)
+        wait(lambda: control.wrapper_object().get_expand_state() == int(expanded), timeout=5,
              description='native disclosure state for '+title)
 
     def core_ready(self):
