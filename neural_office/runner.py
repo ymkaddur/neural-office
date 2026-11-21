@@ -6,7 +6,9 @@ import uuid
 from .audit import RULE_FAMILIES, audit_html, citation_only, location_and_browser_language, make_report, requested_rule
 from . import excerpt_review
 from .ledger import Denied,canonical,digest,OFFICE_MODE,TERMINAL
-from .ollama import LEGACY_MULTILINE_BROWSER_FORMAT, MULTILINE_BROWSER_FORMAT, OwnedOllama, TEAM_POLICY, inference_options
+from .ollama import LEGACY_MULTILINE_BROWSER_FORMAT, MULTILINE_BROWSER_FORMAT, OwnedOllama, POLISHED_TEAM, TEAM_POLICY, inference_options
+from .team_session import discard
+from . import team_guidance
 
 ROLES=('director','planner','researcher','implementer','skeptic','verifier','integrator')
 MAX_MODEL_FINDINGS = 24
@@ -106,7 +108,15 @@ def prompt(row,role,*,checked_findings=None):
         payload['format'] = {'type':'string', 'pattern':r'^[0-9]+([.,][0-9]+)? (h|hora|horas|hour|hours)$'}
     if row['profile'].get('execution_policy') == TEAM_POLICY and not analysis_scope:
         focus = requested_rule(row['objective'])
-        if focus and role in ('researcher','verifier','integrator'):
+        modern = row['profile'].get('team_session') == POLISHED_TEAM
+        repair = team_guidance.repair_language(row['objective'], findings) if modern else None
+        narrow = focus and (citation_only(row['objective'], focus) or location_and_browser_language(row['objective'], focus))
+        multiple_sources = focus and sum(f['code'] == focus for f in findings) > 1
+        if modern and role != 'integrator' and (repair or narrow) and not (role == 'researcher' and multiple_sources):
+            payload = team_guidance.handoff(payload, role, row['objective'], findings, prior)
+        elif repair and role == 'integrator':
+            payload = team_guidance.repair_response(payload, row['objective'], findings, prior, repair)
+        elif focus and role in ('researcher','verifier','integrator'):
             hits = [item for item in findings if item['code'] == focus]
             spanish = bool(re.search(r'\bl[ií]neas?\b', row['objective'], re.I))
             line, column = ('línea','columna') if spanish else ('line','column')
@@ -151,7 +161,7 @@ def make_attempt_report(row):
     return make_report(bytes(row['snapshot']), row['outputs'], row['profile'].get('requested_rule'))
 
 
-def run(ledger,attempt,roles=7,backend_factory=OwnedOllama,progress=lambda *_:None):
+def run(ledger,attempt,roles=7,backend_factory=OwnedOllama,progress=lambda *_:None,*,team_session=None):
     # Terminal replays are reads, even while another attempt owns execution.
     row=ledger.attempt(attempt)
     if row['profile'].get('mode') == OFFICE_MODE:
@@ -161,26 +171,38 @@ def run(ledger,attempt,roles=7,backend_factory=OwnedOllama,progress=lambda *_:No
     if row['state'] in TERMINAL: return row['state']
     from .continuity import run_guard
     with run_guard(ledger.path):
-        return _run_owned(ledger,attempt,roles,backend_factory,progress)
+        return _run_owned(ledger,attempt,roles,backend_factory,progress,team_session)
 
 
-def _run_owned(ledger,attempt,roles,backend_factory,progress):
+def _run_owned(ledger,attempt,roles,backend_factory,progress,team_session=None):
     order=role_order(roles)
     row=ledger.attempt(attempt)
     if row['profile'].get('roles')!=roles: raise Denied('ROLE_PROFILE_CHANGED')
     if row['state'] in TERMINAL: return row['state']
     if row['state']=='VERIFYING': return ledger.finalize(attempt,make_attempt_report(row))
-    job_name='Local\\NeuralOffice52_'+uuid.uuid4().hex
-    generation=ledger.acquire(attempt,job_name)
+    scope = None
+    if team_session is not None and row['profile'].get('team_session') == POLISHED_TEAM:
+        model = row['profile']
+        scope = (row['project'], model['model'], model['model_digest'], canonical(inference_options(model)))
+    backend = team_session.take(scope) if team_session is not None else None
+    reused = backend is not None
+    job_name=backend.job.name if reused else 'Local\\NeuralOffice52_'+uuid.uuid4().hex
+    try:
+        generation=ledger.acquire(attempt,job_name)
+    except BaseException:
+        if backend is not None:
+            discard(backend)
+        raise
     deadline=time.monotonic()+max(0,3600-(time.time()-row['created']))
-    backend=None
     stopped=threading.Event()
     watcher=None
     watch_errors=[]
     error=None
     terminated=False
+    retained=False
     try:
-        backend=backend_factory(job_name,row['profile'],ledger.path.parent/'logs'/f'{attempt}.log')
+        if not reused:
+            backend=backend_factory(job_name,row['profile'],ledger.path.parent/'logs'/f'{attempt}.log')
         def observe_cancel():
             while not stopped.wait(.1):
                 try:
@@ -197,7 +219,10 @@ def _run_owned(ledger,attempt,roles,backend_factory,progress):
                     return
         watcher=threading.Thread(target=observe_cancel,name='neural-office-cancel',daemon=True)
         watcher.start()
-        backend.start()
+        if reused:
+            backend.resume()
+        else:
+            backend.start()
         checked_findings = (audit_html(bytes(row['snapshot'])) if row['profile'].get('execution_policy') == TEAM_POLICY
                             else None)
         for role in order:
@@ -216,12 +241,18 @@ def _run_owned(ledger,attempt,roles,backend_factory,progress):
         if watcher: watcher.join(12)
         try:
             if watcher and watcher.is_alive(): raise Denied('CANCELLATION_THREAD_UNRESOLVED')
-            if backend is not None: backend.terminate()
-            terminated=True
+            if backend is not None and scope is not None and error is None and not watch_errors:
+                try:
+                    retained = team_session.retain(scope, backend, lambda: ledger.release_completed_team(attempt, generation))
+                except Exception as exc:
+                    error = exc
+            if not retained:
+                if backend is not None: backend.terminate()
+                terminated=True
         except Exception:
             ledger.mark_unknown(attempt,generation)
         finally:
-            if backend is not None: backend.close()
+            if backend is not None and not retained: backend.close()
         if terminated:
             reason = str(error) if isinstance(error, Denied) else None
             if error is None and watch_errors:

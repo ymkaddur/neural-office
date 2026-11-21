@@ -259,3 +259,11 @@
   .brief-intro h1 { margin:7px 0 14px; }
   .brief-writing textarea { min-height:74px; font-size:16px; }
 }
+.team-repair-advice {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 1.2rem;
+  padding-bottom: 1rem;
+}
+.team-repair-advice dl { display: grid; gap: .7rem; }
+.team-repair-advice dt { color: var(--ink); font-weight: 600; }
+.team-repair-advice dd { margin: .2rem 0 0; line-height: 1.5; overflow-wrap: anywhere; }

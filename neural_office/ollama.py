@@ -53,17 +53,21 @@ def select_model(name,models):
 TEAM_POLICY = 'local-team-v1'
 MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v2'
 LEGACY_MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v1'
+POLISHED_TEAM = 'project-warm-v1'
 
 
 def review_profile(model, roles):
     profile = {**model, 'roles': roles}
     if roles == 7 and model.get('mode') == 'ollama-owned':
-        profile.update(execution_policy=TEAM_POLICY, num_gpu=-1, citation_format=MULTILINE_BROWSER_FORMAT)
+        profile.update(execution_policy=TEAM_POLICY, num_gpu=-1, citation_format=MULTILINE_BROWSER_FORMAT,
+                       team_session=POLISHED_TEAM)
     return profile
 
 
 def inference_options(profile):
     options = {'num_ctx': 8192, 'num_predict': 128, 'num_gpu': 0, 'temperature': 0}
+    if 'team_session' in profile and (profile['team_session'] != POLISHED_TEAM or profile.get('execution_policy') != TEAM_POLICY):
+        raise Denied('MODEL_PROFILE_MISMATCH')
     if 'execution_policy' in profile:
         if (profile['execution_policy'] != TEAM_POLICY or profile.get('roles') != 7
                 or profile.get('mode') != 'ollama-owned' or profile.get('analysis_scope')
@@ -155,6 +159,20 @@ class OwnedOllama:
         self._model_files=()
         self._process_lock=threading.Lock()
         self._stop_requested=False
+        self.reused = False
+        self.resident_before_turn = False
+
+    def resume(self):
+        with self._process_lock:
+            if self._stop_requested or self.job.active() == 0:
+                raise Denied('BACKEND_CANCELLED_BEFORE_START')
+            self._assert_owned_listener()
+            self.check_model()
+            models = local_metadata('/api/ps', self.port).get('models', [])
+            self.resident_before_turn = (len(models) == 1 and models[0].get('digest') == self.profile['model_digest']
+                                         and models[0].get('context_length') == self.profile['num_ctx'])
+            self.telemetry.clear()
+            self.reused = True
 
     def _startup_event(self,stage,**fields):
         if self.log:
@@ -175,6 +193,8 @@ class OwnedOllama:
                     'OLLAMA_NUM_PARALLEL':'1','OLLAMA_MAX_LOADED_MODELS':'1',
                     'OLLAMA_CONTEXT_LENGTH':'8192','OLLAMA_KEEP_ALIVE':'5m',
                     'OLLAMA_MODELS':os.environ.get('OLLAMA_MODELS',str(Path.home()/'.ollama/models'))})
+        if self.profile.get('team_session') == POLISHED_TEAM:
+            env['GOMAXPROCS'] = '1'
         self.log_path.parent.mkdir(parents=True,exist_ok=True)
         self.log=self.log_path.open('ab')
         self._startup_event('BOOTSTRAP_SPAWN_BEGIN')
@@ -282,6 +302,9 @@ class OwnedOllama:
             result['_neural_office_execution']={**self.telemetry[-1],'model_digest':self.profile['model_digest'],
                                                 'model_identity_check':'manifest-and-config' if self._model_files else 'catalog',
                                                 'owned_job':True,'mode':'GPU allocation' if rows[0]['size_vram'] else 'CPU'}
+            if self.profile.get('team_session') == POLISHED_TEAM:
+                result['_neural_office_execution'].update(runtime_instance=self.job.name, reused_runtime=self.reused,
+                                                          resident_before_turn=self.resident_before_turn)
             return result
         finally: con.close()
 

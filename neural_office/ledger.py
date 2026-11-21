@@ -427,6 +427,36 @@ class Ledger:
         if state=='CANCELLED': self._park_exhausted(con,row['project'])
         return state
 
+    def release_completed_team(self, attempt, generation):
+        """Retain a session-owned runtime only after all seven authorized responses are durable."""
+        from .ollama import POLISHED_TEAM, TEAM_POLICY
+        from .runner import ROLES
+        with self.transaction(seal_unchanged=False) as con:
+            row = self._pilot_row(con, attempt)
+            profile = json.loads(row['profile'])
+            lease = con.execute('SELECT attempt,generation,job FROM lease').fetchone()
+            if (lease['attempt'], lease['generation']) != (attempt, generation):
+                raise Denied('STALE_LEASE')
+            if (profile.get('team_session') != POLISHED_TEAM or profile.get('execution_policy') != TEAM_POLICY
+                    or profile.get('mode') != 'ollama-owned' or profile.get('analysis_scope') or profile.get('roles') != len(ROLES)
+                    or row['state'] != 'RUNNING' or row['cancelled'] or row['ordinal'] >= 3):
+                return False
+            self._check_authorized(con, row)
+            calls = con.execute("""SELECT role,state,
+                json_extract(response,'$._neural_office_execution.runtime_instance') AS runtime,
+                json_extract(response,'$._neural_office_execution.model_digest') AS model,
+                json_extract(response,'$._neural_office_execution.owned_job') AS owned,
+                json_extract(response,'$._neural_office_execution.eval_count') AS tokens
+                FROM calls WHERE attempt=? ORDER BY seq""", (attempt,)).fetchall()
+            if ([c['role'] for c in calls] != list(ROLES) or any(c['state'] != 'DONE' or c['runtime'] != lease['job']
+                    or c['model'] != profile['model_digest'] or c['owned'] != 1 or type(c['tokens']) is not int
+                    or c['tokens'] < 1 for c in calls)):
+                return False
+            con.execute("UPDATE attempts SET state='VERIFYING',revision=revision+1 WHERE id=?", (attempt,))
+            con.execute('UPDATE lease SET attempt=NULL,job=NULL WHERE id=1')
+            self._event(con, 'TEAM_RUNTIME_IDLE', {'attempt':attempt,'generation':generation,'state':'VERIFYING'})
+            return True
+
     def release_after_termination(self, attempt, generation, *, failed=False, error_code=None):
         """Trusted runner invokes this only after owned OS job termination is observed."""
         with self.transaction() as con:

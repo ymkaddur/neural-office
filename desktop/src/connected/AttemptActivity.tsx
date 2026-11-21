@@ -14,6 +14,7 @@ const publicFields:Record<string,string>={
 const labels:Record<string,string>={
   ATTEMPT_RESERVED:'Intento reservado', LEASE_ACQUIRED:'Ejecución adquirida',
   MODEL_CALL_ADMITTED:'Llamada autorizada', MODEL_CALL_COMPLETED:'Respuesta registrada', OWNED_JOB_TERMINATED:'Ejecución cerrada',
+  TEAM_RUNTIME_IDLE:'Siete llamadas completadas · modelo en espera',
   CANCELLATION_REQUESTED:'Parada solicitada', TERMINATION_UNKNOWN:'Terminación por confirmar',
   FINAL_VERDICT:'Entrega evaluada',
 };

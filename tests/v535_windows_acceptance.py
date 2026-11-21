@@ -18,6 +18,9 @@ from examples.multiformat.build_example import pdf_bytes
 from neural_office.windows_job import Job
 from tools.measure_v58_desktop import NativeWindow, choose_files
 from tools.package_windows_pilot import HOST
+from neural_office.measurements import job_sample
+from tools.measure_v5352_polished import completed_calls, repair_checks
+from tools.measure_v5352_team import CASES, capture
 from e2e_v55_native import MODEL, MODEL_DIGEST, OLLAMA_VERSION, http, native_picker, prepare_ollama, readonly_counts, sha
 from e2e_v55_native_uia import wait
 
@@ -148,6 +151,7 @@ def desktop(exe, work, out, phase):
         verify(Path(inherited['NEURAL_OFFICE_ROOT']).samefile(package), 'Core outside the package')
         verify(Path(inherited['NEURAL_OFFICE_STATE']) == work / 'office.sqlite3', 'Unexpected state file')
         screen = NativeWindow(host, hwnd)
+        screen.process_job = job
         try:
             wait(screen.core_ready, description='packaged core connected to WebView2')
             yield screen, host, time.monotonic() - started
@@ -349,6 +353,61 @@ def model(exe, work, state, out, receipt):
     receipt['status'] = 'passed'
 
 
+def team_permission(screen, host, source, objective):
+    from pywinauto import keyboard
+    import win32gui
+    screen.objective(objective)
+    screen.button('Elegir archivo HTML')
+    native_picker(host, source)
+    wait(lambda: source.name in screen.names(), description='seven-role source captured')
+    screen.button('Consultar al Director')
+    wait(lambda: screen.control('Modelo local','ComboBox').selected_text() == MODEL, description='selected local model')
+    screen.disclosure('Perfil acotado', True)
+    selector = screen.control('Roles secuenciales','ComboBox')
+    screen.window.set_focus()
+    selector.set_focus()
+    wait(lambda: win32gui.GetForegroundWindow()==screen.window.handle and selector.has_keyboard_focus(),
+         timeout=5, description='team selector owns keyboard focus')
+    keyboard.send_keys('{END}{TAB}', turn_off_numlock=False)
+    wait(lambda: selector.selected_text()=='7 · Equipo completo', description='seven roles selected by keyboard')
+    screen.reveal_button(r'^Revisar encargo.*', regex=True).invoke()
+    permission = screen.control('Este es el encargo.', 'Window')
+    def permission_matches():
+        labels = words(' '.join(node.element_info.name for node in permission.descendants(control_type='Text')))
+        return objective in labels and source.name in labels and '7 llamadas secuenciales' in labels
+    wait(permission_matches, description='exact team objective, source and seven calls in the permission dialog')
+
+
+def warm_repair(screen, host, work, state, out, previous_runtime):
+    source = work / 'imagen-y-formulario.html'
+    raw, objective = CASES['abierto']
+    source.write_bytes(raw)
+    screen.reveal_button(r'^Preparar otro encargo.*', regex=True).invoke()
+    team_permission(screen, host, source, objective)
+    verify(readonly_counts(state)['attempts']==1, 'Warm preview charged before consent')
+    before = job_sample(screen.process_job)['cpu_seconds']
+    screen.button(r'^Autorizar y ejecutar.*', regex=True)
+    def accepted_repair():
+        with database(state) as db:
+            row = db.execute('SELECT id,state FROM attempts WHERE objective=?',(objective,)).fetchone()
+        return row if row and row['state'] in ('ACCEPTED','FAILED','REJECTED','CANCELLED','RECOVERY_REQUIRED') else None
+    accepted_turn = wait(accepted_repair, timeout=420, description='second team accepted in the same project')
+    verify(accepted_turn['state']=='ACCEPTED', 'Second team failed')
+    screen.control('Recomendaciones del modelo local','Text')
+    cpu = job_sample(screen.process_job)['cpu_seconds'] - before
+    goal, model_digest, calls = completed_calls(state, accepted_turn['id'])
+    verify(goal==objective and model_digest==MODEL_DIGEST and all(c['runtime']==previous_runtime and c['resident']
+           and c['reused'] for c in calls), 'The second approval did not use the same already-loaded private model')
+    answer = calls[-1]['answer']
+    checks = repair_checks(answer)
+    verify(all(checks.values()), 'Incomplete or generic repairs in the literal integrated answer: '+answer)
+    names = words(screen.names(visible_only=False))
+    verify(all(text in names for text in json.loads(answer).values()), 'The actual repair text is missing from the report')
+    screen.screenshot(out/'08-director-reparaciones.png')
+    return dict(cpu_s=cpu,attempt=accepted_turn['id'],model_digest=model_digest,source_sha256=sha(source),
+                checks=checks,answer=answer,calls=calls,visible_in_report=True)
+
+
 def team(exe, work, state, out, receipt):
     from neural_office.runner import ROLES
     work.mkdir()
@@ -366,29 +425,7 @@ def team(exe, work, state, out, receipt):
     with real_model(work), desktop(exe, work, out, 'equipo') as (screen, host, _):
         receipt.update(window_titles(screen))
         screen.open_html()
-        screen.objective(objective)
-        screen.button('Elegir archivo HTML')
-        native_picker(host, source)
-        wait(lambda: source.name in screen.names(), description='seven-role source captured')
-        screen.button('Consultar al Director')
-        wait(lambda: screen.control('Modelo local','ComboBox').selected_text() == MODEL, description='selected local model')
-        screen.disclosure('Perfil acotado', True)
-        selector = screen.control('Roles secuenciales','ComboBox')
-        from pywinauto import keyboard
-        import win32gui
-        screen.window.set_focus()
-        selector.set_focus()
-        wait(lambda: win32gui.GetForegroundWindow()==screen.window.handle and selector.has_keyboard_focus(),
-             timeout=5, description='team selector owns keyboard focus')
-        keyboard.send_keys('{END}{TAB}', turn_off_numlock=False)
-        wait(lambda: selector.selected_text()=='7 · Equipo completo', description='seven roles selected by keyboard')
-        # Invoke the addressed WebView button once, then inspect the scope in its dialog.
-        screen.reveal_button(r'^Revisar encargo.*', regex=True).invoke()
-        permission = screen.control('Este es el encargo.', 'Window')
-        def permission_matches():
-            labels = words(' '.join(node.element_info.name for node in permission.descendants(control_type='Text')))
-            return objective in labels and source.name in labels and '7 llamadas secuenciales' in labels
-        wait(permission_matches, description='exact team objective, source and seven calls in the permission dialog')
+        team_permission(screen, host, source, objective)
         verify(readonly_counts(state)['attempts']==0, 'Early team reservation')
         screen.button(r'^Autorizar y ejecutar.*', regex=True)
         def terminal():
@@ -431,7 +468,19 @@ def team(exe, work, state, out, receipt):
              description='actual integrator answer in the expanded native report')
         receipt['integrator_in_expanded_report'] = True
         screen.screenshot(out/('08-equipo-navegador.png' if browser_check else '07-equipo.png'))
-        receipt.update(objective=objective, source_sha256=sha(source), findings=artifact['findings'], status='passed')
+        receipt.update(objective=objective, source_sha256=sha(source), findings=artifact['findings'])
+        if not browser_check:
+            first = completed_calls(state, attempt['id'])[2]
+            verify(not any(c['reused'] or c['resident'] for c in first), 'Cold setup was already a warm team')
+            repair = warm_repair(screen,host,work,state,out,first[0]['runtime'])
+            receipt['warm_repair'] = repair
+            reference = capture(ROOT,'warm','abierto',out/'warm-powershell.json')
+            verify(reference['model_loaded_before_query'] and reference['digest']==repair['model_digest']
+                   and reference['source_sha256']==repair['source_sha256'], 'Incomparable native PowerShell reference')
+            repair['terminal_cpu_s'] = reference['query_cpu_s']
+            repair['ratio'] = repair['cpu_s'] / reference['query_cpu_s']
+            repair['within_1_3'] = repair['ratio'] <= 1.3
+        receipt['status'] = 'passed'
 
 
 def main():

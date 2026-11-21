@@ -200,7 +200,7 @@ def run_terminal(folder, case, profile, warm, outer):
                     raise RuntimeError('PowerShell did not reach its input prompt')
                 time.sleep(.01)
             from neural_office.measurements import JobSampler
-            from measure_ollama_terminal import peak_cpu_cores
+            from tools.measure_ollama_terminal import peak_cpu_cores
             sampler = JobSampler(outer,.1)
             sampler.start()
             started_cpu = job_sample(outer)['cpu_seconds']
@@ -256,7 +256,7 @@ def worker(args):
 def capture(repo, arm, case, dest):
     from neural_office.measurements import JobSampler, job_sample
     from neural_office.windows_job import Job
-    from measure_ollama_terminal import peak_cpu_cores
+    from tools.measure_ollama_terminal import peak_cpu_cores
     name = 'Local\\NeuralTeamTrial_' + uuid.uuid4().hex
     with tempfile.TemporaryDirectory() as tmp, Job(name) as job:
         folder = Path(tmp)

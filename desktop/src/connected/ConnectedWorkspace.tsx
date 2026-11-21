@@ -1030,6 +1030,7 @@ export function ConnectedWorkspace() {
             <dt>Modelo</dt><dd>{approval.value.model}</dd>
             <dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · {approval.value.roles===7?'GPU local si está disponible':'CPU'} · 128 tokens de salida por llamada</dd>
           </dl>
+          {approval.value.roles===7&&<p>Al terminar, el modelo puede quedar cargado hasta dos minutos para otro encargo de este proyecto. Cada ejecución requiere tu permiso.</p>}
           {approval.excerpts&&approval.excerpts.analysis_scope!==directorTextScope&&<div className="permission-excerpts">
             <h3>Fragmentos que recibirá el modelo</h3>
             {approval.excerpts.fragments.map((f,i)=><blockquote key={i}>
@@ -1064,6 +1065,19 @@ function formatBytes(bytes:number) {
 }
 function findingTitle(count:number) {
   return count?`${count} ${count===1?'hallazgo para revisar':'hallazgos para revisar'}`:'Sin hallazgos en estas comprobaciones';
+}
+function repairAdvice(outputs:{role:string;content:string}[]) {
+  const integrated=outputs.find(out=>out.role==='integrator');
+  if(!integrated)return null;
+  try {
+    const answer:unknown=JSON.parse(integrated.content);
+    if(!answer||typeof answer!=='object'||Array.isArray(answer)||Object.keys(answer).length!==3)return null;
+    const fields=answer as Record<string,unknown>;
+    const keys='imagen' in fields?['imagen','formulario','limite']:['image','form','limit'];
+    const values=keys.map(key=>fields[key]);
+    if(!values.every((value):value is string=>typeof value==='string'&&value.trim().length>0))return null;
+    return values;
+  }catch{return null;}
 }
 function FindingList({findings,offset=0}:{findings:Finding[];offset?:number}) {
   return <ol className="finding-list" start={offset+1}>{findings.map((finding,index)=>{
@@ -1109,9 +1123,14 @@ function ReportView({report,limited}:{report:Report;limited?:boolean}) {
       {report.role_outputs.map((out,i)=><p className="model-answer" key={i}>{out.content}</p>)}</>}
     <details><summary>Fuentes que recibió el modelo</summary>{report.authorized_fragments?.map((f,i)=><blockquote key={i}><strong>{f.name}</strong> {f.page?'· pág. '+f.page:f.line?'· línea '+f.line:''}<p>{f.quote}{f.unit&&typeof f.value==='number'?' · '+f.value+' '+f.unit:''}</p></blockquote>)}</details></article>;
   const requested=report.requested_rule;
+  const advice=repairAdvice(report.role_outputs);
   const matching=requested?report.findings.filter(finding=>finding.code===requested):[];
   const others=requested?report.findings.filter(finding=>finding.code!==requested):report.findings;
-  return <article className="connected-report"><span className="eyebrow">Comprobaciones estáticas</span>
+  return <article className="connected-report">{advice&&<section className="team-repair-advice" aria-label="Respuesta del Director">
+    <h3>Respuesta del Director</h3><dl>{['Imagen','Formulario','Verificación manual'].map((label,i)=>
+      <div key={label}><dt>{label}</dt><dd>{advice[i]}</dd></div>)}</dl>
+    <small>Recomendaciones del modelo local</small>
+  </section>}<span className="eyebrow">Comprobaciones estáticas</span>
     {requested?<section aria-label="Resultado de la regla solicitada"><h3>Regla solicitada · <code>{requested}</code></h3>
       {matching.length?<FindingList findings={matching}/>:<p>La comprobación local no registró coincidencias para esta regla en la captura.</p>}
     </section>:<><h3>{findingTitle(report.findings.length)}</h3><p className="report-scope">{report.findings.length?'Ubicaciones de la captura. Comprueba los candidatos en el navegador.':'Comprueba en el navegador el nombre de los controles y la función de las imágenes.'}</p></>}

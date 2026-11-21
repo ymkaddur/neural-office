@@ -20,6 +20,7 @@ from .files import capture_html, local_path
 from .ledger import Denied, OFFICE_MODE, TERMINAL, canonical, digest
 from .ollama import OwnedOllama, local_metadata, review_profile, select_model
 from .runner import MAX_MODEL_FINDINGS, _recover_owned, check_first_prompt, make_attempt_report, run
+from .team_session import TeamSession
 
 GRANT_TTL_SECONDS = 120
 MAX_GRANTS = 32
@@ -73,6 +74,7 @@ class DesktopService:
         self._readers_closed = False
         self.session_id = secrets.token_urlsafe(24)
         self.backend_factory = backend_factory
+        self._team_session = TeamSession() if backend_factory is OwnedOllama else None
         self.model_discovery = model_discovery
         self.clock = clock
         self._sources = {}
@@ -344,7 +346,7 @@ class DesktopService:
     def _launch(self, attempt, roles):
         def work():
             try:
-                run(self.ledger, attempt, roles, backend_factory=self.backend_factory)
+                run(self.ledger, attempt, roles, backend_factory=self.backend_factory, team_session=self._team_session)
             except BaseException as error:
                 self._errors[attempt] = public_error(error)
         self._worker_attempt = attempt
@@ -598,6 +600,8 @@ class DesktopService:
             worker = self._worker
             if worker is not None and worker.is_alive():
                 self.ledger.cancel(self._worker_attempt)
+        if self._team_session is not None:
+            self._team_session.close()
         with self._attachment_store_lock:
             self._readers_closed = True
             if self._attachment_store is not None:
