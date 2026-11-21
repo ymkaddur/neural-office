@@ -95,6 +95,9 @@ jobs:
           "NO_PILOT_DIR=$pilot" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
       - name: Open the extracted pilot, attach two files and read the Director answers
         run: python -B tests/v535_windows_acceptance.py local
+      - name: Verify positional attachments and edit history while the latest response is held
+        if: ${{ !cancelled() && steps.package.outcome == 'success' }}
+        run: python -B tests/v535_windows_acceptance.py selection-history
       - name: Test consent, keyboard, minimum window and one real model call after restart
         timeout-minutes: 17
         run: python -B tests/v535_windows_acceptance.py model

@@ -396,6 +396,7 @@
 !tools/package_windows_pilot.py
 !tools/publication_manifest.py
 !tests/v535_windows_acceptance.py
+!tests/native_deferred_report.py
 !docs/PILOTO_WINDOWS.md
 !tests/v535_interrupted_excerpt.py
 !docs/V5_35_POLISHED.md

@@ -11,12 +11,38 @@ from neural_office.ollama import POLISHED_TEAM, review_profile
 from neural_office.runner import ROLES, prompt, run
 from neural_office.team_guidance import REPAIR_CHOICES, repair_language
 from neural_office.team_session import TeamSession
+from tools.measure_v5352_team import grade
 
 
 MODEL={'mode':'ollama-owned','model':'example:local','model_digest':'b'*64,'num_gpu':0,'num_ctx':8192,
        'num_predict':128,'timeout_seconds':300}
 SOURCE=b'<html lang="es"><title>A</title>\n<img src="a"><input id="nombre"></html>'
 GOAL='Explica cómo arreglar la imagen y el campo del formulario. Incluye un límite de esta revisión.'
+
+
+class CitationRubric(unittest.TestCase):
+    def test_rule_keeps_its_location_across_markdown_and_prose(self):
+        fence = '`' * 3
+        block = f'{fence}cpp\nCONTROL_LABEL_CANDIDATE\n{fence}\n\n'
+        for answer in (
+            block + 'Este código se encuentra en la línea 5, columna 1 del archivo.',
+            block.replace('\n', '\r\n') + 'This code is located on line 5, column 1.',
+            'CONTROL_LABEL_CANDIDATE\nLINE 5, COLUMN 1',
+            'CONTROL_LABEL_CANDIDATE · línea 5 · columna 1',
+        ):
+            with self.subTest(answer=answer):
+                self.assertTrue(all(grade('control', answer).values()))
+        for answer in (
+            block + 'Este código se encuentra en la línea 4, columna 1.',
+            block + 'Este código se encuentra en la línea 5, columna 11.',
+            block + 'Otro archivo contiene una excepción en la línea 5, columna 1.',
+            block + 'IMAGE_ALT_MISSING, línea 5, columna 1.',
+            'CONTROL_LABEL_CANDIDATE, línea 5, columna 1. ERROR, línea 9.',
+            'CONTROL_LABEL_CANDIDATE, línea 5, columna 1.\n' + block + 'Este código aparece en la línea 6.',
+            block + 'Examina el código fuente.',
+        ):
+            with self.subTest(answer=answer):
+                self.assertFalse(grade('control', answer)['cited_location'])
 
 
 class RecordedEngine:

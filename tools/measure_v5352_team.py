@@ -38,6 +38,16 @@ EXPECTED_FINDINGS = {'imagen':SAMPLE_LOCATIONS,'abierto':SAMPLE_LOCATIONS,
                      'control':[('CONTROL_LABEL_CANDIDATE',5,1)],'limpio':[],
                      'varias':[('IMAGE_ALT_MISSING',4,3),('IMAGE_ALT_MISSING',6,3)]}
 
+# Collapse only fenced blocks whose entire content is one rule identifier. This keeps
+# the order and binding of each citation, including a location in the following paragraph.
+RULE_ID = r'[A-Z][A-Z_0-9]+'
+FENCED_RULE = re.compile(rf'^[ \t]*```[^`\r\n]*\r?\n[ \t]*({RULE_ID})[ \t]*\r?\n[ \t]*```[ \t]*\r?$', re.M)
+RULE_LOCATION = re.compile(
+    rf'\b({RULE_ID})\b[`*]*(?:\s*[,·:]\s*|[ \t]*\r?\n\s*)'
+    r'(?i:(?:(?:este c[oó]digo (?:se encuentra|está|aparece) en la|this code (?:is (?:located )?(?:on|at)|appears on))\s+)?'
+    r'(?:l[ií]nea|line)\s*[:=#]?\s*([0-9]+)\b'
+    r'(?:[ \t]*[,·][ \t]*(?:columna|column)\s*[:=#]?\s*([0-9]+)\b)?)')
+
 
 def grade(case, answer):
     text = answer.casefold()
@@ -49,8 +59,7 @@ def grade(case, answer):
                 'browser_check':bool(re.search(r'navegador|browser',text) and re.search(r'\bdom\b|accesibili|accessibili',text))}
     if case in LOCATIONS:
         code, line = LOCATIONS[case]
-        matches = re.findall(r'\b([A-Z][A-Z_0-9]+)\b\s*[,·:]\s*(?:línea|line)\s+([0-9]+)'
-                             r'(?:\s*[,·]\s*(?:columna|column)\s+([0-9]+))?', answer)
+        matches = RULE_LOCATION.findall(FENCED_RULE.sub(r'\1', answer))
         verified = EXPECTED_FINDINGS[case]
         locations_agree = bool(matches) and all(
             any(cited == c and int(at) == ln and (not col or int(col) == column)

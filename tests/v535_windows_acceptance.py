@@ -178,6 +178,15 @@ def local(exe, work, state, out, receipt):
     work.mkdir()
     files = fixtures(work / 'entrega de prueba')
     hashes = {p.name: sha(p) for p in files}
+    legacy = Path(os.environ['SystemRoot']) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
+    launcher = Path(os.environ['NO_PILOT_DIR']) / 'Start-NeuralOffice-Desktop.ps1'
+    check = subprocess.run([str(legacy), '-NoProfile', '-NonInteractive', '-File', str(launcher),
+                            '-Check', '-Python', sys.executable, '-State', str(state)], timeout=30,
+                           env={k: v for k, v in os.environ.items() if k.upper() != 'PSMODULEPATH'},
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    verify(check.returncode != 0 and b'El lanzador requiere PowerShell 7 (pwsh).' in check.stdout
+           and not state.exists(), 'Legacy PowerShell did not explain how to start the pilot before creating state')
+    receipt['legacy_launcher_guidance'] = True
     with desktop(exe, work, out, 'local') as (screen, host, ready):
         verify(screen.control('Instrucción para el Director', 'Edit').is_visible(), 'Missing composer')
         receipt.update(window_titles(screen), ready_seconds=round(ready, 2), pid=host.pid)
@@ -213,6 +222,91 @@ def local(exe, work, state, out, receipt):
         verify(readonly_counts(state) == {'states': [], 'calls': 0, 'attempts': 0}, 'Free inspection charged work')
     verify({p.name: sha(p) for p in files} == hashes, 'The app modified the original attachments')
     receipt['status'] = 'passed'
+
+
+def literal_receipt(state, objective, expected):
+    with database(state.with_name(state.name + '.attachments.sqlite3')) as db:
+        record, = (json.loads(row['payload']) for row in db.execute('SELECT payload FROM reports WHERE objective=?', (objective,)))
+    findings = record['findings']
+    verify(len(findings) == len(expected), 'Wrong number of files searched')
+    for finding in findings:
+        verify(finding['rule'] == 'literal' and finding['status'] == 'observed', 'The Director did not carry out the search')
+    refs = [ref for finding in findings for ref in finding['sources']]
+    verify(len(refs) == len(expected) and {ref['name']: ref['sha256'] for ref in refs} == expected,
+           'Citations do not match the requested positions and captured bytes')
+    verify(all(ref['line'] == 2 and 'Faro' in ref['quote'] for ref in refs), 'Wrong literal citation')
+    verify(record['model_calls'] == record['reservations'] == 0, 'Opening local evidence consumed an attempt')
+    return {'id': record['id'], 'objective': objective, 'sources': refs}
+
+
+def selection_history(exe, work, state, out, receipt):
+    from tools.verify_v510_desktop import window
+    work.mkdir()
+    folder = work / 'fuentes'
+    folder.mkdir()
+    paths = [folder / name for name in ('norte.txt', 'centro.txt', 'sur.txt')]
+    for path in paths:
+        path.write_text(f'Fuentes de prueba\nFaro {path.stem}\n', encoding='utf-8')
+    hashes = {path.name: sha(path) for path in paths}
+    prior = 'Busca «Faro» en el primer archivo y el tercer archivo.'
+    newest = 'Busca «Faro» en el segundo archivo.'
+    followup = 'Busca «Faro» en el último archivo.'
+    with desktop(exe, work, out, 'seleccion') as (screen, host, _):
+        receipt.update(window_titles(screen))
+        choose_files(screen, host, paths, title='Adjuntar archivos al hilo', button='^Adjuntar archivos$')
+
+        def visible_order():
+            names = [c.element_info.name.removeprefix('Incluir ') for c in screen.window.descendants(control_type='CheckBox')
+                     if c.element_info.name.startswith('Incluir ') and c.is_visible() and c.get_toggle_state() == 1]
+            return names if len(names) == len(hashes) and set(names) == set(hashes) else None
+
+        order = wait(visible_order, description='all three captures checked in the native file list')
+        receipt['order_in_inspector'] = order
+        screen.press_space(screen.reveal_button('Inspector'))
+        for key, question, selected in (('earlier', prior, (order[0], order[2])), ('latest', newest, (order[1],))):
+            edit(screen, question)
+            screen.button(SEND, regex=True)
+            if len(selected) == 2:
+                wait(lambda: 'Búsqueda en 2 archivos' in words(screen.names()), description='both requested positions were searched')
+            else:
+                wait(lambda: f'«Faro» aparece en el texto recuperado de {selected[0]}.' in screen.names(),
+                     description='the later result uses only the middle attachment')
+            receipt[key] = literal_receipt(state, question, {name: hashes[name] for name in selected})
+        screen.screenshot(out / 'seleccion-ultimo-informe.png')
+
+    # Start the same executable again and hold one real, already-read response.
+    # The diagnostic peer uses the extracted package's Python modules and the same ledger.
+    package = Path(os.environ['NO_PILOT_DIR']).resolve(strict=True)
+    peer = work / 'timing-peer' / 'neural_office'
+    peer.mkdir(parents=True)
+    init = (package / 'neural_office/__init__.py').read_text(encoding='utf-8')
+    (peer / '__init__.py').write_text(init + f'\n__path__.append({str(package / "neural_office")!r})\n', encoding='utf-8')
+    (peer / 'desktop_stdio.py').write_bytes((ROOT / 'tests/native_deferred_report.py').read_bytes())
+    save(work / 'timing-probe.json', {'package': str(package), 'latest_id': receipt['latest']['id']})
+    release = work / 'release-latest'
+    with window(exe, peer.parent, work, VERSION, failure_dir=out) as (screen, _, _, _):
+        try:
+            held = work / 'latest-held'
+            wait(lambda: held.is_file() and held.read_text(encoding='ascii') == receipt['latest']['id'],
+                 description='the current report is held after the real storage read')
+            screen.disclosure('Entregas de este hilo', True)
+            older = screen.reveal_button('(?s)^' + re.escape(prior) + '.*', regex=True)
+            screen.press_space(older)
+            wait(lambda: 'Abriendo la entrega guardada' in screen.names(), timeout=6,
+                 description='the user opened history while the latest result was outstanding')
+        finally:
+            release.touch()
+        wait(lambda: 'Búsqueda en 2 archivos' in words(screen.names()), description='the earlier report wins the race')
+        verify(screen.control('Adjuntar archivos').is_enabled(), 'Picker disabled after history won the race')
+        edit(screen, followup)
+        screen.button(SEND, regex=True)
+        wait(lambda: f'«Faro» aparece en el texto recuperado de {order[2]}.' in screen.names(),
+             description='the recovered editor submitted a fresh request for the last file')
+        receipt['followup'] = literal_receipt(state, followup, {order[2]: hashes[order[2]]})
+        screen.screenshot(out / 'historial-compositor.png')
+    verify(readonly_counts(state) == {'attempts': 0, 'calls': 0, 'states': []}, 'Navigation consumed quota')
+    receipt.update(retained_report=receipt['latest']['id'], history_opened_before_release=True,
+                   composer_submitted=True, attempts=0, status='passed')
 
 
 @contextmanager
@@ -503,10 +597,10 @@ def main():
     if sys.platform != 'win32' or os.environ.get('GITHUB_ACTIONS') != 'true' or os.environ.get('RUNNER_OS') != 'Windows':
         raise SystemExit('This acceptance test requires an isolated Windows Actions runner')
     phase, = sys.argv[1:]
-    functions = {'local': local, 'model': model, 'team': team, 'team-browser': team}
+    functions = {'local': local, 'selection-history': selection_history, 'model': model, 'team': team, 'team-browser': team}
     out = ROOT / 'v535-package-evidence'
     out.mkdir(exist_ok=True)
-    work = Path(os.environ['RUNNER_TEMP']) / ('v535-native-' + (phase if phase in ('team','team-browser') else 'office'))
+    work = Path(os.environ['RUNNER_TEMP']) / ('v535-native-' + ('office' if phase in ('local', 'model') else phase))
     package = Path(os.environ['NO_PILOT_DIR']).resolve(strict=True)
     verify(not package.is_relative_to(ROOT), 'Package test must run outside the checkout')
     exe = (package / HOST).resolve(strict=True)
