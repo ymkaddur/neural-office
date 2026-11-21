@@ -78,6 +78,21 @@ class Continuity(unittest.TestCase):
         with self.assertRaises(FileExistsError): backup(self.ledger, old)
         self.assertEqual(old.read_bytes(), b'preserve')
 
+    def test_failed_verification_never_publishes_a_partial_backup(self):
+        target = self.root / 'copy.sqlite3'
+        def fail_on_copy(connection):
+            db_path = Path(connection.execute('PRAGMA database_list').fetchone()[2])
+            if db_path != self.ledger.path:
+                raise sqlite3.OperationalError('test read failure')
+            return signature(connection)
+        with patch('neural_office.continuity.signature', side_effect=fail_on_copy):
+            with self.assertRaisesRegex(sqlite3.OperationalError, 'test read failure'):
+                backup(self.ledger, target)
+        self.assertFalse(target.exists())
+        receipt = backup(self.ledger, target)
+        self.assertFalse(receipt['attachments_included'])
+        self.assertTrue(target.is_file())
+
     def test_report_and_receipts_survive_newer_witness_recovery(self):
         old = self.root/'old.sqlite3'; backup(self.ledger, old)
         attempt = self.reserve('one'); run(self.ledger, attempt, 1, backend_factory=FakeBackend)

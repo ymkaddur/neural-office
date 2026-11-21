@@ -27,6 +27,11 @@ SEARCH = re.compile(r'^(?:(?:puedes?|podr[ií]as?)\s+)?(?:busca(?:r)?|encuentra|
 SUFFIX = re.compile(r'(?<![\w.-])[\w-]+(?:\.[\w-]+)*\.[^\W\d_][\w-]*', re.UNICODE)
 FORMAT = re.compile(r'\b(pdf|json|xml|zip|html|markdown|xlsx|docx|pptx|odt|ods|odp|txt|csv|png|jpe?g|wav)\b', re.I)
 ALIASES = {'markdown': 'md', 'jpg': 'jpeg', 'htm': 'html'}
+EXCLUDED = re.compile(r'(?<![\w.-])(?:excepto|salvo|excluye|excluyendo|omite|ignora)(?![\w.-])|'
+                      r'\bsin\s+(?:consultar|leer|incluir|usar|abrir|revisar)\b|'
+                      r'\bno\s+(?:consultes|leas|incluyas|uses|abras|revises)\b', re.I)
+QUALIFIED_PAGES = re.compile(r'\bpaginas?\s+(?:que|donde|con|sin|anteriores|posteriores)\b|'
+                             r'\b(?:paginas? .*?)?(?:contienen|mencionan)\b')
 
 
 def fold(text):
@@ -64,11 +69,22 @@ def search_terms(clause):
     return phrase, target
 
 
+def shared_searches(part):
+    """A second quoted term with its own target inherits only the search verb."""
+    if not SEARCH.fullmatch(part):
+        yield part
+        return
+    masked = QUOTED.sub(lambda m: '\ufffc' * len(m[0]), part)
+    start = 0
+    for join in re.finditer(r'\s+(?:y|e|and)\s+(?=\ufffc+\s+en\b)', masked, re.I):
+        yield ('' if start == 0 else 'Busca ') + part[start:join.start()]
+        start = join.end()
+    yield ('' if start == 0 else 'Busca ') + part[start:]
+
+
 def scoped_sources(text, captures):
     rest = text
     ids = set()
-    if re.search(r'\b(?:excepto|salvo|excluye|excluyendo|omite|ignora)\b',fold(rest)):
-        return (), 'Para excluir archivos, ajusta la selección y repite la comprobación.', True
     # Match whole names, longest first. Do not treat the suffix of a matched filename as a second selector.
     for name in sorted({f['name'] for f in captures}, key=lambda n: (-len(n), n)):
         pattern = re.compile(r'(?<![\w.-])' + re.escape(name) + r'(?![\w-]|\.\w)', re.I)
@@ -98,10 +114,24 @@ def scoped_sources(text, captures):
 def plan(objective, captures):
     kinds = {f['kind'] for f in captures}
     all_ids = tuple(f['id'] for f in captures)
+    names = sorted({f['name'] for f in captures}, key=lambda name: (-len(name), name))
+    name_pattern = re.compile(r'(?<![\w.-])(?:' + '|'.join(map(re.escape, names)) + r')(?![\w-]|\.\w)', re.I) if names else None
+    def format_word(match):
+        extension = PurePath(match[0]).suffix[1:]
+        return extension if FORMAT.fullmatch(extension) else 'archivo'
+
+    def instruction_words(text):
+        # A selected filename identifies the input. Its basename cannot supply an instruction.
+        if name_pattern is None:
+            return text
+        return name_pattern.sub(format_word, text)
+    instruction = QUOTED.sub(' ', instruction_words(objective))
+    if EXCLUDED.search(instruction):
+        return [Task('clarify', (), objective, limit='Selecciona solo los archivos que autorizas y repite la comprobación.')]
     if not objective.strip() or requested_checks(objective, kinds) == ['greeting']:
         return [Task(check, all_ids, objective) for check in requested_checks(objective, kinds)]
     tasks = []
-    parts = list(clauses(objective))
+    parts = [item for clause in clauses(objective) for item in shared_searches(clause)]
     for part in parts:
         normalized = fold(part)
         if len(parts)>1 and (CONTEXT.fullmatch(normalized) or re.fullmatch(r'(?:hola(?:,?\s+director)?|buenos d[ií]as|buenas (?:tardes|noches)|gracias)',normalized)):
@@ -110,7 +140,15 @@ def plan(objective, captures):
             continue
         phrase, target = search_terms(part)
         sources, limit, explicit = scoped_sources(target, captures)
-        checks = ['literal'] if phrase else requested_checks(part, kinds)
+        words = instruction_words(part)
+        checks = ['literal'] if phrase else requested_checks(words, kinds)
+        request = fold(QUOTED.sub(' ', words))
+        if re.search(r'\b(?:solo si|solamente si|siempre que|a condicion de que)\b', request) or request.startswith('si '):
+            limit = 'La lectura local requiere una comprobación explícita de esa condición previa.'
+        elif not phrase and re.search(r'(?<![\w.-])(?:esquema|schema)(?![\w-]|\.\w)', request):
+            limit = 'El lector comprueba la sintaxis. Validar el esquema requiere otra comprobación.'
+        elif 'pages' in checks and QUALIFIED_PAGES.search(request):
+            limit = 'El lector cuenta el total del PDF. El recuento con ese filtro queda pendiente.'
         if checks == ['clarify'] and re.match(r'^valida(?:r)?\b', normalized) and re.search(r'\b(?:json|xml)\b', normalized):
             checks = ['syntax']
         for check in checks:

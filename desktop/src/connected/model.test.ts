@@ -128,8 +128,8 @@ test('late snapshots cannot undo progress, and a requested stop is not terminal'
   assert.throws(()=>acceptAttempt(stopped,{...attempt,revision:6}),/TERMINAL_STATE_CHANGED/);
 });
 const hash=async(data:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data)),b=>b.toString(16).padStart(2,'0')).join('');
-async function reportFixture(change?:(chunk:Record<string,unknown>)=>void){
-  const text=JSON.stringify({schema:1,scope:'static-html-checks-v1',source_sha256:source.sha256,findings:[],model_commentary_status:'UNVERIFIED_ASSISTANCE',role_outputs:[{role:'director',content:'é🙂<script>literal text</script>'}]});
+async function reportFixture(change?:(chunk:Record<string,unknown>)=>void, overrides:Record<string,unknown>={}){
+  const text=JSON.stringify({schema:1,scope:'static-html-checks-v1',source_sha256:source.sha256,findings:[],model_commentary_status:'UNVERIFIED_ASSISTANCE',role_outputs:[{role:'director',content:'é🙂<script>literal text</script>'}],...overrides});
   const bytes=new TextEncoder().encode(text),sha=await hash(bytes);let calls=0;
   const send:Requester=async<T>(method:string,params:Record<string,unknown>={})=>{
     calls++;
@@ -143,6 +143,16 @@ async function reportFixture(change?:(chunk:Record<string,unknown>)=>void){
 test('report bytes are assembled before UTF8 decoding and preserve text as data',async()=>{
   const fixture=await reportFixture(),result=await readReport(fixture.send,'attempt');
   assert.equal(result.text,fixture.text);assert.equal(result.report.role_outputs[0].content,'é🙂<script>literal text</script>');
+});
+test('a text-only Director reply is bound to its turn and has no authorized file excerpts',async()=>{
+  const text={scope:'local-director-text-v1',thread_id:'main',inspection_id:'turn',authorized_fragments:[]};
+  const fixture=await reportFixture(undefined,text);
+  const {report}=await readReport(fixture.send,'attempt');
+  assert.equal(report.role_outputs[0].content,'é🙂<script>literal text</script>');
+  for(const change of [{scope:'local-inspection-excerpts-v1'},{inspection_id:''},{authorized_fragments:[{quote:'unasked'}]},{role_outputs:[]}]){
+    const bad=await reportFixture(undefined,{...text,...change});
+    await assert.rejects(()=>readReport(bad.send,'attempt'),/REPORT_EXCERPTS_INVALID/);
+  }
 });
 test('report corruption, a stalled chunk and wrong attempt identity fail closed',async()=>{
   for(const change of [

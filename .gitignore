@@ -392,6 +392,7 @@
 !neural_office/inspection_plan.py
 !tests/test_v535_polished.py
 !tools/verify_v535_polished.cjs
+!tools/verify_v535_inspector.cjs
 !tools/package_windows_pilot.py
 !tools/publication_manifest.py
 !tests/v535_windows_acceptance.py
@@ -400,3 +401,5 @@
 !docs/V5_35_POLISHED.md
 !docs/images/v5.35-polished-oscuro.png
 !docs/images/v5.35-polished-claro.png
+!tests/test_v5352_text.py
+!docs/V5_35_2.md

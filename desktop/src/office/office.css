@@ -56,6 +56,10 @@
 .team-members{display:flex;flex-direction:column;gap:3px}.member-wrap{position:relative}
 .arcade535 .team-member{background:none;color:var(--ink);font:inherit;border:1px solid transparent;border-radius:5px;width:100%;min-height:51px}
 .arcade535 .team-member:is(:hover,:focus-visible,[aria-expanded=true]){background:var(--selection);border-color:var(--line)}
+.arcade535 .team-member[data-running=true] small{color:var(--accent);font-weight:600}
+.team-member[data-running=true] .arcade-bot{animation:office-working .6s steps(2,end) 2}
+@keyframes office-working{50%{transform:translateY(-2px)}}
+.specialist-objective{border-inline-start:2px solid var(--line);padding-inline-start:.7em;color:var(--muted)}
 .member-peek{position:absolute;z-index:7;right:calc(100% - 3px);top:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 13px;width:max-content;max-width:225px;box-shadow:0 5px 14px #0002;pointer-events:none;font-size:.87em}
 .arcade535 .mobile-team-switch{display:none}
 .specialist-sheet{color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 12px 44px #0003;max-height:82dvh;width:min(600px,55vw);max-width:calc(100vw - 22px);margin:auto max(5vw,calc(20vw - 20px)) auto auto;padding:0;overflow:auto}

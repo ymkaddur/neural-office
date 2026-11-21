@@ -163,6 +163,21 @@ class Ledger:
         con.execute('INSERT INTO events(stamp_ns,kind,payload,previous,digest) VALUES(?,?,?,?,?)',
                     (stamp, kind, body, previous, hash_value))
 
+    @staticmethod
+    def unbound_root(project):
+        # No absolute filesystem path can equal this namespace. Each project
+        # keeps its own UNIQUE slot until its first native file selection.
+        return 'neural-office:unbound:' + digest(project)
+
+    def register_text(self, project):
+        if not isinstance(project, str) or not project.strip() or len(project) > 80:
+            raise Denied('PROJECT_ID_INVALID')
+        with self.transaction(seal_unchanged=False) as con:
+            if con.execute('SELECT 1 FROM projects WHERE id=?', (project,)).fetchone():
+                return
+            con.execute('INSERT INTO projects(id,root) VALUES(?,?)', (project, self.unbound_root(project)))
+            self._event(con, 'PROJECT_REGISTERED', {'project': project})
+
     def register(self, project, root):
         if not isinstance(project, str) or not project or len(project)>80:
             raise Denied('PROJECT_ID_INVALID')
@@ -174,6 +189,10 @@ class Ledger:
             require_reconciliation(con, project, root)
             old = con.execute('SELECT root FROM projects WHERE id=?', (project,)).fetchone()
             if old:
+                if old[0] == self.unbound_root(project):
+                    con.execute('UPDATE projects SET root=? WHERE id=?', (root, project))
+                    self._event(con, 'PROJECT_ROOT_BOUND', {'project': project})
+                    return
                 if os.path.normcase(old[0]) != os.path.normcase(root):
                     raise Denied('PROJECT_ROOT_CHANGED')
                 return
@@ -219,7 +238,9 @@ class Ledger:
     def reserve(self, project, objective, snapshot, profile, key, *, admit=False, source_name=None):
         if type(snapshot) is not bytes or not 0<len(snapshot)<=262144:
             raise Denied('SNAPSHOT_SIZE')
-        if not isinstance(objective,str) or not 12<=len(objective)<=4000:
+        from .excerpt_review import TEXT_SCOPE
+        minimum = 1 if profile.get('analysis_scope') == TEXT_SCOPE else 12
+        if not isinstance(objective,str) or not minimum<=len(objective)<=4000 or (minimum == 1 and not objective.strip()):
             raise Denied('OBJECTIVE_SIZE')
         if not isinstance(key,str) or not 1<=len(key)<=128:
             raise Denied('IDEMPOTENCY_KEY')
@@ -433,8 +454,10 @@ class Ledger:
             self._authorized(con,row)
             if row['state']!='VERIFYING': raise Denied('NOT_VERIFYING')
             scope = json.loads(row['profile']).get('analysis_scope')
-            verifier = excerpt_review.verify_report if scope == excerpt_review.SCOPE else verify_report
+            verifier = excerpt_review.verify_report if scope in excerpt_review.SCOPES else verify_report
             receipt = verifier(bytes(row['snapshot']), artifact)
+            if scope in excerpt_review.SCOPES:
+                receipt['checks']['authorized_scope'] = receipt['verifier'] == scope
             from .runner import role_order
             stored=[dict(r) for r in con.execute('SELECT role,content,content_sha FROM outputs WHERE attempt=? ORDER BY rowid',(attempt,))]
             try:

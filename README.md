@@ -1,6 +1,6 @@
 # Neural Office
 
-**V5.35-POLISHED · oficina local de archivos para Windows.** Adjunta los archivos de un proyecto y escribe qué necesitas averiguar. El Director devuelve cada comprobación con su fuente o explica qué queda pendiente. Puedes abrir las tres rondas de los seis especialistas y descargar el informe con sus citas. La inspección de archivos ejecuta reglas locales y registra cero llamadas al modelo. [Cambios y verificación de 5.35.1](docs/V5_35_POLISHED.md)
+**V5.35.2 · oficina local para Windows.** Escribe tu encargo en el hilo del Director. Puedes empezar solo con texto o adjuntar archivos. Con texto, el primer envío guarda el encargo en ese hilo. Si autorizas una consulta, el modelo local recibe el texto y su respuesta queda junto al encargo. Con archivos puedes usar los lectores, abrir las operaciones de los seis especialistas y descargar el informe con sus citas. [Alcance y pruebas de la candidata V5.35.2](docs/V5_35_2.md)
 
 El ejecutable 5.35.1 abrió en Windows de GitHub Actions. El selector nativo capturó dos archivos en una sola operación y el Director respondió «31 horas» al consultar el extracto autorizado del PDF. WebView2 anunció la versión correcta y el botón de autorización estuvo visible a 760 × 540. El mismo ejecutable fue bloqueado con el error 4551 en un equipo que exigía firma de confianza. La publicación del binario espera a la firma. [Prueba del ejecutable](https://github.com/ymkaddur/neural-office/actions/runs/44818201923)
 
@@ -8,7 +8,7 @@ El ejecutable 5.35.1 abrió en Windows de GitHub Actions. El selector nativo cap
 
 ## Probar un encargo
 
-1. Abre el escritorio, crea un proyecto y usa **Adjuntar archivos** para elegir tus fuentes en Windows.
+1. Abre el escritorio, crea un proyecto y escribe en el hilo. Si necesitas trabajar con documentos, usa **Adjuntar archivos** para elegir las fuentes en Windows. Para trabajar solo con texto, envía el encargo y abre **Consultar al modelo** cuando quieras autorizar la respuesta. La reserva consume un intento del proyecto.
 2. Escribe **Inspecciona los archivos** para obtener un inventario con los datos recuperados, o **Busca «24 horas» en los archivos** para obtener una cita con su página o línea cuando exista. Ejecuta la inspección local. Consume cero intentos.
 3. Lee la entrega del Director. Abre un especialista, cambia de iteración y consulta la instrucción recibida, la operación realizada y su resultado. Desde la entrega puedes descargar **informe.pdf** y **evidencia.json**.
 4. En **Memoria y skills**, guarda una nota o propone una instrucción a partir de esa entrega. Puedes revisar su historial, aceptar el cambio e insertarlo en el borrador de un nuevo encargo. **Ajustes** controla el tema claro, oscuro o del sistema, el tamaño del texto y el movimiento.

@@ -6,9 +6,9 @@ import {hasNativeHost,readReport,request} from './client.ts';
 import type {Finding,FindingPage,Report} from './client.ts';
 import {acceptAttempt,approvalMatches,approvalScopeMatches,claimPending,releasePending,readPending,recordedDuration,remainingLabel,stateLabels,terminal,validateSnapshot} from './model.ts';
 import type {Approval,Attempt,Model,Pending,Project,Snapshot,Source} from './model.ts';
-import {ReviewDesk} from './ReviewDesk.tsx';
+import {readSavedDraft,ReviewDesk} from './ReviewDesk.tsx';
 import type {Inspection} from './ReviewDesk.tsx';
-import {attachmentApi} from './attachments.ts';
+import {attachmentApi,directorTextScope,excerptScope} from './attachments.ts';
 import {AppearancePanel, CommandSearch, DeskDialog, Icon, useAppearance} from './DeskTools.tsx';
 import type {DeskAction} from './DeskTools.tsx';
 import './connected.css';
@@ -21,7 +21,7 @@ import {useInspectionJobs} from './useInspectionJobs.ts';
 
 type AttachmentAPI=ReturnType<typeof attachmentApi>;
 type FragmentApproval=Awaited<ReturnType<AttachmentAPI['preview']>>;
-type FragmentProposal={report:Inspection;objective:string;thread:string;project:string};
+type FragmentProposal={report:Inspection;objective:string;thread:string;project:string;scopeError?:string};
 
 
 type LoadedReport=Awaited<ReturnType<typeof readReport>>;
@@ -198,9 +198,10 @@ export function ConnectedWorkspace() {
   const available=viewed?.state==='ACCEPTED'&&viewed.report_available;
   const staticPage=source&&inspection?.token===source.entry_token&&inspection.page.session_id===session?inspection.page:null;
   const showingFindings=!!staticPage&&!assisted;
-  const note=viewed?.analysis_scope==='local-inspection-excerpts-v1'&&viewed.state==='ACCEPTED'?'Se recibió una opinión del modelo. La decisión sigue en el hilo de revisión.':viewed?workNote(viewed,!!connectionError):null;
+  const threadResponse=viewed?.analysis_scope===directorTextScope||viewed?.analysis_scope===excerptScope;
+  const note=threadResponse&&viewed?.state==='ACCEPTED'?'La respuesta del modelo está disponible en el hilo del encargo.':viewed?workNote(viewed,!!connectionError):null;
   const selectedModel=models.find(m=>m.model_digest===modelDigest);
-  const status=viewed?.analysis_scope==='local-inspection-excerpts-v1'&&viewed.state==='ACCEPTED'?'Comentario recibido':viewed?stateLabels[viewed.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
+  const status=threadResponse&&viewed?.state==='ACCEPTED'?'Comentario recibido':viewed?stateLabels[viewed.state]:pending?'Comprobando un encargo anterior':session?'Listo para un encargo':'Conectando con tu oficina';
   const epoch=()=>generation.current;
   function noteError(error:unknown){
     if(!mounted.current)return;
@@ -344,7 +345,7 @@ export function ConnectedWorkspace() {
           try{address=JSON.parse(sessionStorage.getItem('office-thread:'+description.office_id)??'null');}catch{/* Storage is optional. */}
           if(Array.isArray(address)&&address.length===2&&address.every(v=>typeof v==='string'&&v.length>0&&v.length<=120)){
             const [project,thread]=address;
-            if(first.projects.some(p=>p.id===project)){setProjectId(project);setThreadByProject(old=>({...old,[project]:thread}));}
+            if(first.projects.some(p=>p.id===project)||readSavedDraft(first.office_id,project,thread)){setProjectId(project);setThreadByProject(old=>({...old,[project]:thread}));}
           }
         }
       }
@@ -542,9 +543,9 @@ export function ConnectedWorkspace() {
     setReport(null);setAttempt(null);currentAttempt.current=null;
     setNavOpen(false);requestAnimationFrame(()=>(document.getElementById('connected-objective')||document.getElementById('static-picker'))?.focus());
   }
-  function openThread(project:string,id:string){
+  function openThread(project:string,id:string,reportId?:string){
     if(unconfirmedActive&&project!==currentAttempt.current?.project_id)return;
-    setSection('projects');setReturnTo(null);setOpenedReport(null);
+    setSection('projects');setReturnTo(reportId?{report:reportId}:null);setOpenedReport(null);
     invalidate();
     if(active){setBrowsedProject(project);setInspected(null);}else openDraft(project);
     setThreadByProject(old=>({...old,[project]:id}));setDeskPage('thread');setNavOpen(false);
@@ -662,10 +663,26 @@ export function ConnectedWorkspace() {
     const proposal=fragmentProposal;
     if(!proposal||!selectedModel||busy||exhausted||proposal.thread!==threadId||proposal.project!==navProject)return;
     const before=performance.now(),expected=epoch(),ticket=proposalGeneration.current;
-    const result=await attachments.preview(proposal.project,proposal.thread,proposal.report.id,modelDigest,proposal.objective);
+    let result:Awaited<ReturnType<typeof attachments.preview>>;
+    try {
+      result=await attachments.preview(proposal.project,proposal.thread,proposal.report.id,modelDigest,proposal.objective);
+    }catch(error){
+      if(!mounted.current||expected!==epoch()||ticket!==proposalGeneration.current)return;
+      const code=error instanceof Error?error.message:'';
+      if(code!=='EXCERPT_BUDGET'&&code!=='NO_CITED_EXCERPTS')throw error;
+      const scopeError=code==='NO_CITED_EXCERPTS'?'La entrega carece de citas aptas para esta consulta. Abre una fuente y delimita el encargo.':
+        proposal.report.attachments.length?'El permiso admite hasta 8 citas distintas y 4.608 bytes en total, incluidas sus referencias. Cierra la consulta e inspecciona menos fragmentos.':
+        'El texto supera los 4.608 bytes del permiso. Acorta el encargo y vuelve a enviarlo.';
+      setFragmentProposal({...proposal,scopeError});
+      return;
+    }
     const expires=before+result.expires_in_seconds*1000;
     if(!mounted.current||expected!==epoch()||ticket!==proposalGeneration.current)return;
-    if(result.project_id!==proposal.project||result.thread_id!==proposal.thread||result.report_id!==proposal.report.id||result.session_id!==session||result.model_digest!==modelDigest||result.objective!==proposal.objective||result.roles!==1||!result.fragments?.length||result.attempts_remaining<1||!Number.isFinite(expires)||expires<=performance.now())throw Error('APPROVAL_CHANGED');
+    const textOnly=proposal.report.attachments.length===0&&proposal.report.findings.some(f=>f.rule==='text_brief');
+    const scopeMatches=Array.isArray(result.fragments)&&(textOnly
+      ?result.analysis_scope===directorTextScope&&result.fragments.length===0&&proposal.objective===proposal.report.objective
+      :(!result.analysis_scope||result.analysis_scope===excerptScope)&&result.fragments.length>=1&&result.fragments.length<=8);
+    if(!scopeMatches||result.project_id!==proposal.project||result.thread_id!==proposal.thread||result.report_id!==proposal.report.id||result.session_id!==session||result.model_digest!==modelDigest||result.objective!==proposal.objective||result.roles!==1||result.attempts_remaining<1||!Number.isFinite(expires)||expires<=performance.now())throw Error('APPROVAL_CHANGED');
     previousFocus.current=fragmentOrigin.current;dismissProposal();setApproval({value:result,excerpts:result,expiresAt:expires});
   }
   if(!native)return <main className={`v541 connected offline ${dark?'theme-dark':''}`}>
@@ -705,7 +722,7 @@ export function ConnectedWorkspace() {
           </div>
         </header>
         {(alert||notice)&&<div className={`connected-notice ${alert?'problem':''}`} role={alert?'alert':'status'}><span>{alert?.message||notice}{alert&&<code>{alert.code}</code>}{connectionError&&lastConfirmed.current&&<small>Última confirmación a las {lastConfirmed.current.toLocaleTimeString('es-ES')}.</small>}</span>{!connectionError&&<button aria-label="Cerrar aviso" onClick={()=>{setProblem(null);setNotice('');}}>×</button>}</div>}
-        {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><button className="inline-link" onClick={()=>{setInspected(null);setBrowsedProject(null);setDeskPage('attempt');}}><Icon name="activity"/><span>{attempt.project_id} · {stateLabels[attempt.state]}</span><small>{attempt.objective}</small></button>{stopControl}</div>}
+        {active&&attempt&&<div className="active-work" role="region" aria-label="Control del trabajo en curso"><button className="inline-link" onClick={()=>{setSection('projects');setInspected(null);setBrowsedProject(null);setDeskPage('attempt');}}><Icon name="activity"/><span>{attempt.project_id} · {stateLabels[attempt.state]}</span><small>{attempt.objective}</small></button>{stopControl}</div>}
         {localStops}
         {pending&&!active&&<div className="pending-bar" role="status"><span>Hay una petición cuya respuesta debemos comprobar antes de crear otra.</span><button className="quiet-button" disabled={initializing||!!doing} onClick={()=>connectionError&&!['HOST_RESPONSE_TIMEOUT','HOST_REQUEST_TIMEOUT'].includes(connectionError.code)?retryConnection():void act('Buscando la reserva',()=>reconcile(pending))}>Comprobar encargo</button>{pendingMissing&&<button className="quiet-button" disabled={initializing||!!doing||!!connectionError} onClick={()=>void act('Revisando la petición pendiente',async()=>{try{const other=await releasePending(localStorage,pending);setPending(other);setPendingMissing(false);setNotice(other?'Hay otra petición pendiente en esta oficina.':'Petición sin reserva descartada. Puedes preparar un encargo nuevo.');}catch{setStorageBlocked(true);}})}>Descartar petición sin reserva</button>}</div>}
         {section==='settings'?<Settings appearance={appearance} models={models} model={modelDigest} choose={setModelDigest} load={()=>void loadModels()} catalog={catalog} project={navProject} online={!!session&&!connectionError} quota={project&&!budgetPending?remainingLabel(project.attempts_consumed):'Por confirmar'}/>:section==='library'?<Library key={officeId+':'+navProject} project={navProject} online={!!session&&!connectionError} source={openedReport?.project_id===navProject?openedReport:null}
@@ -719,7 +736,7 @@ export function ConnectedWorkspace() {
             <div className="source-label">Consulta {attached.ordinal} · {attached.model}</div>
             <AttemptActivity key={session+attached.id} office={officeId} session={session} attempt={attached.id} revision={attached.cursor??attached.revision}/>
             {active&&!inspected&&!terminal(attached.state)&&<button className="inline-link" disabled={initializing||!!connectionError||!!doing||requestingStop} onClick={()=>recoverAttempt(attached)}>Comprobar recuperación</button>}
-            {report?.report.inspection_id===reportId?<ReportView report={report.report}/>:<p role="status">{attached.state==='ACCEPTED'?'Recuperando el comentario':stateLabels[attached.state]}</p>}
+            {report?.report.inspection_id===reportId?<ReportView report={report.report} limited={report.meta.generation_limited}/>:<p role="status">{attached.state==='ACCEPTED'?'Recuperando el comentario':stateLabels[attached.state]}</p>}
             <button className="inline-link" onClick={()=>{setDeskPage('attempt');setTabChoice({attempt:attached.id,tab:'evidence'});}}>Ver recibo de la consulta</button>
           </section>;
         }} key={JSON.stringify([officeId,session,navProject,threadId])} office={officeId} session={session} project={navProject} thread={threadId} online={!!session&&!initializing&&!connectionError}
@@ -815,7 +832,7 @@ export function ConnectedWorkspace() {
                 {note&&<div className="connected-work-status"><p>{note}</p></div>}
                 {viewed.state==='FAILED'&&viewed.execution_error_code&&<p className="execution-code">Código de ejecución <code>{viewed.execution_error_code}</code></p>}
                 {active&&!inspected&&!terminal(viewed.state)&&<div className="connected-action-row"><button className="quiet-button" disabled={initializing||!!connectionError||!!doing||requestingStop} onClick={()=>recoverAttempt(viewed)}>Comprobar recuperación</button></div>}
-                {!active&&!connectionError&&terminal(viewed.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>viewed.thread_id?openThread(viewed.project_id,viewed.thread_id):openDraft(viewed.project_id)}>{viewed.thread_id?'Revisar la decisión del hilo':drafts.current.has(viewed.project_id)?'Volver al borrador':'Preparar otro encargo →'}{(inspected||navProject!==viewed.project_id)&&` · ${viewed.project_id}`}</button>}
+                {!active&&!connectionError&&terminal(viewed.state)&&<button className="quiet-button" disabled={!!doing||!!pending} onClick={()=>viewed.thread_id?openThread(viewed.project_id,viewed.thread_id,viewed.inspection_id):openDraft(viewed.project_id)}>{viewed.thread_id?'Revisar la decisión del hilo':drafts.current.has(viewed.project_id)?'Volver al borrador':'Preparar otro encargo →'}{(inspected||navProject!==viewed.project_id)&&` · ${viewed.project_id}`}</button>}
                 {!inspected&&(active||drafts.current.get(viewed.project_id)?.afterAttempt===viewed.id)&&<details key={officeId+':'+viewed.id} className="next-draft">
                   <summary>Preparar el siguiente encargo</summary>
                   <label htmlFor="next-objective">Borrador en esta ventana</label>
@@ -853,7 +870,7 @@ export function ConnectedWorkspace() {
                 {viewed.observed_ms!==undefined&&Number.isSafeInteger(viewed.observed_ms)&&viewed.observed_ms>0&&viewed.observed_ms<=8640000000000000&&
                   <p className="activity-read">Última lectura del encargo · <time>{new Date(viewed.observed_ms).toLocaleTimeString('es-ES')}</time></p>}
 
-              </div>:resultTab==='report'?(report?<ReportView report={report.report}/>:reportProblem?.id===viewed.id?
+              </div>:resultTab==='report'?(report?<ReportView report={report.report} limited={report.meta.generation_limited}/>:reportProblem?.id===viewed.id?
                 <div className="report-read-error" role="alert"><h3>No se pudo leer este informe</h3>
                   <p>El informe sigue guardado en {viewed.project_id}. Puedes volver a leerlo sin consumir un intento.</p>
                   <code>{reportProblem.code}</code> <button className="quiet-button" onClick={()=>setReportReadRevision(v=>v+1)}>Reintentar lectura del informe</button>
@@ -869,9 +886,10 @@ export function ConnectedWorkspace() {
     {panel==='appearance'&&<AppearancePanel control={allStops} appearance={appearance} close={()=>setPanel(null)}/>}
     {panel==='search'&&<CommandSearch key={navProject} control={allStops} items={commands} project={navProject} search={searchReports} openReport={(thread,id)=>{openThread(navProject,thread);setReturnTo({report:id});}} close={()=>setPanel(null)}/>}
     {panel==='project'&&<DeskDialog label="Nuevo proyecto" close={()=>setPanel(null)}><form className="prefs-body" onSubmit={e=>{e.preventDefault();const id=projectName.trim();if(!id||busy||doing)return;openThread(id,'main');setPanel(null);}}><label htmlFor="new-project-name">Nombre del proyecto</label><input id="new-project-name" autoFocus required maxLength={80} value={projectName} onChange={e=>setProjectName(e.target.value)}/><div className="approval-actions"><button type="submit" className="desk-primary" disabled={!projectName.trim()||busy||!!doing}>Abrir proyecto</button></div></form></DeskDialog>}
-    {fragmentProposal&&<DeskDialog label="Consultar los extractos" close={dismissProposal}><div className="prefs-body"><p>{fragmentProposal.objective}</p>
+    {fragmentProposal&&<DeskDialog label={fragmentProposal.report.attachments.length?'Consultar los extractos':'Consultar el encargo de texto'} close={dismissProposal}><div className="prefs-body"><p>{fragmentProposal.objective}</p>
       <label htmlFor="fragment-model">Modelo local</label><select id="fragment-model" disabled={catalog!=='ready'||!!doing} value={modelDigest} onChange={e=>setModelDigest(e.target.value)}>{!models.length&&<option value="">{catalog==='loading'?'Consultando Ollama…':'Sin modelos disponibles'}</option>}{models.map(m=><option key={m.model_digest} value={m.model_digest}>{m.model}</option>)}</select>
       {catalog==='error'&&<p role="alert">No se pudo leer el catálogo de Ollama. La inspección local sigue disponible.</p>}
+      {fragmentProposal.scopeError?<p role="alert">{fragmentProposal.scopeError}</p>:fragmentProposal.report.attachments.length>0&&<p>El permiso admite hasta 8 citas distintas y 4.608 bytes con sus referencias.</p>}
       <div className="approval-actions"><button className="desk-secondary" disabled={catalog==='loading'||!!doing} onClick={()=>void loadModels()}>Actualizar modelos</button><button className="desk-primary" disabled={!!doing||!selectedModel||catalog!=='ready'||busy} onClick={()=>void act('Preparando permiso',previewFragments)}>Revisar permiso</button></div></div></DeskDialog>}
     <dialog ref={approvalDialog} className="connected-approval" aria-labelledby="approval-title"
       onCancel={e=>{e.preventDefault();setApproval(null);}} onClose={()=>setApproval(null)}>
@@ -887,18 +905,18 @@ export function ConnectedWorkspace() {
           <p className="approval-objective">{approval.value.objective}</p>
           <dl>
             <dt>Proyecto</dt><dd>{approval.value.project_id}</dd>
-            <dt>Fuente capturada</dt><dd>{approval.excerpts?'Extractos de la entrega':source?.filename}</dd>
+            <dt>Entrada autorizada</dt><dd>{approval.excerpts?.analysis_scope===directorTextScope?'Solo el texto del encargo':approval.excerpts?'Extractos de la entrega':source?.filename}</dd>
             <dt>Modelo</dt><dd>{approval.value.model}</dd>
             <dt>Trabajo</dt><dd>Hasta {approval.value.roles} {approval.value.roles===1?'llamada':'llamadas secuenciales'} · CPU · 128 tokens de salida por llamada</dd>
           </dl>
-          {approval.excerpts&&<div className="permission-excerpts">
+          {approval.excerpts&&approval.excerpts.analysis_scope!==directorTextScope&&<div className="permission-excerpts">
             <h3>Fragmentos que recibirá el modelo</h3>
             {approval.excerpts.fragments.map((f,i)=><blockquote key={i}>
               <strong>{f.name}</strong> <small>{f.page?'pág. '+f.page:f.line?'línea '+f.line:''}</small>
               <p>{f.quote}{f.unit&&typeof f.value==='number'?' · '+f.value+' '+f.unit:''}</p>
             </blockquote>)}
           </div>}
-          <p>El modelo recibe una copia de las entradas autorizadas. Los comentarios se guardan junto a la entrega.</p>
+          <p>{approval.excerpts?.analysis_scope===directorTextScope?'El modelo recibirá el texto que aparece arriba. Su respuesta quedará en este hilo.':'El modelo recibe una copia de las entradas autorizadas. Los comentarios se guardan junto a la entrega.'}</p>
           <p className="approval-expiry">Vigencia máxima de esta autorización: {approval.value.expires_in_seconds} segundos. Si caduca, vuelve a revisar el encargo.</p>
         </div>
         <footer className="approval-footer">
@@ -944,13 +962,16 @@ function FindingList({findings,offset=0}:{findings:Finding[];offset?:number}) {
     </li>;
   })}</ol>;
 }
-function ReportView({report}:{report:Report}) {
+function ReportView({report,limited}:{report:Report;limited?:boolean}) {
+  const limitNotice=limited===true&&<p className="report-scope">El modelo alcanzó el límite de salida. Su respuesta puede estar incompleta.</p>;
+  if(report.scope===directorTextScope)return <article className="connected-report excerpt-delivery"><h3>Respuesta del Director</h3>
+    {limitNotice}<p className="model-answer">{report.role_outputs[0].content}</p><small>Respuesta del modelo local · Pendiente de contrastar</small></article>;
   const hours=(report.authorized_fragments??[]).flatMap(f=>f.unit==='h'&&typeof f.value==='number'?[{...f,value:f.value}]:[]);
   const pdf=hours.filter(f=>f.page),json=hours.filter(f=>f.pointer==='/response_sla_hours');
   const measured=pdf.length===1&&json.length===1;
   const hasHour=(output:string,value:number)=>new RegExp('(?:^|[^0-9.,])'+value+'(?![0-9]|[.,][0-9])').test(output);
   const omitted=measured&&hours.some(f=>!report.role_outputs.some(o=>hasHour(o.content,f.value)));
-  if(report.scope==='local-inspection-excerpts-v1')return <article className="connected-report excerpt-delivery">
+  if(report.scope==='local-inspection-excerpts-v1')return <article className="connected-report excerpt-delivery">{limitNotice}
     {measured?<><h3>{pdf[0].value===json[0].value?'Las dos fuentes coinciden':'Las dos fuentes discrepan'}</h3>
       <p className="report-scope">Comparación local de los extractos autorizados.</p>
       <div className="source-hour-list" aria-label="Valores en las fuentes">{hours.map((f,i)=><p key={i}><strong>{f.value} h</strong> · {f.name} · {f.page?'pág. '+f.page:'línea '+f.line}</p>)}</div>
@@ -963,7 +984,7 @@ function ReportView({report}:{report:Report}) {
   return <article className="connected-report"><span className="eyebrow">Comprobaciones estáticas</span>
     <h3>{findingTitle(report.findings.length)}</h3><p className="report-scope">{report.findings.length?'Ubicaciones de la captura. Comprueba los candidatos en el navegador.':'Comprueba en el navegador el nombre de los controles y la función de las imágenes.'}</p>
     <FindingList findings={report.findings}/>
-    <details className="model-notes"><summary>Comentarios del modelo <span>· sugerencias por revisar</span></summary>
+    {limitNotice}<details className="model-notes"><summary>Comentarios del modelo <span>· sugerencias por revisar</span></summary>
       {report.role_outputs.map((r,index)=><section className="role-commentary" key={`${r.role}-${index}`}><h4>{roles[r.role]||r.role}</h4><p>{r.content}</p></section>)}
     </details></article>;
 }

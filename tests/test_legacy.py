@@ -107,6 +107,29 @@ class Legacy(unittest.TestCase):
         with self.assertRaisesRegex(Denied,'BUDGET_REGRESSION'):reconcile(self.ledger,self.source)
         self.assertEqual(self.info()['attempts_consumed'],2)
 
+    def test_identical_reconciliation_preserves_explicit_activation(self):
+        first = reconcile(self.ledger, self.source)
+        self.ledger.activate('web-auditor')
+        with self.ledger.connection() as con:
+            before = con.execute('SELECT count(*) FROM events').fetchone()[0]
+        self.assertEqual(reconcile(self.ledger, self.source), first)
+        self.assertTrue(self.info()['active'])
+        self.assertTrue(self.info()['approved'])
+        with self.ledger.connection() as con:
+            self.assertEqual(con.execute('SELECT count(*) FROM events').fetchone()[0], before)
+        self.mutate('v4', 'VACUUM')
+        repacked = reconcile(self.ledger, self.source)
+        self.assertEqual(first['fingerprint'], repacked['fingerprint'])
+        self.assertNotEqual(first['physical_sources'], repacked['physical_sources'])
+        self.assertTrue(self.info()['active'])
+        self.assertTrue(self.info()['approved'])
+        with self.ledger.connection() as con:
+            self.assertEqual(con.execute('SELECT count(*) FROM events').fetchone()[0], before)
+        self.mutate('v4', "UPDATE project SET state='parked' WHERE name='web-auditor'")
+        reconcile(self.ledger, self.source)
+        self.assertFalse(self.info()['active'])
+        self.assertFalse(self.info()['approved'])
+
     def test_changed_source_denies_call_and_reports_interruption(self):
         reconcile(self.ledger,self.source);attempt=self.reserve('one')
         generation=self.ledger.acquire(attempt,'synthetic-no-backend')

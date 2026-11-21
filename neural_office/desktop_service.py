@@ -238,10 +238,15 @@ class DesktopService:
     def preview_excerpts(self, project_id, thread_id, report_id, model_digest, objective):
         report = self.attachments.report(project_id, report_id, thread_id=thread_id)
         snapshot, fragments = excerpt_review.capture_excerpts(report, project_id, thread_id)
-        source = {'snapshot': snapshot, 'filename': 'Extractos de la inspección', 'sha256': digest(snapshot)}
-        origin = {'analysis_scope': excerpt_review.SCOPE, 'inspection_id': report_id, 'thread_id': thread_id}
+        text_only = not fragments
+        if text_only and objective != report['objective']:
+            raise Denied('APPROVAL_CHANGED')
+        source = {'snapshot': snapshot, 'filename': 'Encargo escrito' if text_only else 'Extractos de la inspección',
+                  'sha256': digest(snapshot)}
+        origin = {'analysis_scope': excerpt_review.TEXT_SCOPE if text_only else excerpt_review.SCOPE,
+                  'inspection_id': report_id, 'thread_id': thread_id}
         approval = self._prepare_approval(project_id, source, model_digest, 1, objective, origin=origin)
-        return {**approval, 'thread_id': thread_id, 'report_id': report_id, 'fragments': fragments}
+        return {**approval, **origin, 'report_id': report_id, 'fragments': fragments}
 
     def check_source(self, project_id, entry_token, offset):
         with self._command_lock:
@@ -262,7 +267,8 @@ class DesktopService:
 
     def _prepare_approval(self, project_id, source, model_digest, roles, objective, *, entry_token=None, origin=None):
         if self._execution_busy(): raise Denied('GLOBAL_INFERENCE_BUSY')
-        if len(objective) < 12: raise Denied('OBJECTIVE_SIZE')
+        if len(objective) < 12 and (origin or {}).get('analysis_scope') != excerpt_review.TEXT_SCOPE:
+            raise Denied('OBJECTIVE_SIZE')
         matching = [model for model in self.models() if model['model_digest'] == model_digest]
         if len(matching) != 1: raise Denied('MODEL_DIGEST_UNAVAILABLE')
         profile = {**matching[0], 'roles': roles, **(origin or {})}
@@ -458,7 +464,11 @@ class DesktopService:
 
     def report(self, attempt_id):
         row, artifact = self._report(attempt_id)
+        with self.ledger.connection() as con:
+            limited = con.execute("""SELECT 1 FROM calls WHERE attempt=? AND state='DONE'
+                AND json_extract(response,'$.done_reason')='length' LIMIT 1""", (attempt_id,)).fetchone()
         return {'attempt_id': attempt_id, 'state': row['state'], 'sha256': row['artifact_sha'],
+                'generation_limited': limited is not None,
                 'bytes': len(artifact), 'encoding': 'utf-8', 'media_type': 'application/json',
                 'verdict': json.loads(row['verdict']), 'mode': row['profile']['mode']}
 

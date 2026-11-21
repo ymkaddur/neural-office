@@ -22,12 +22,13 @@ from e2e_v55_native import MODEL, MODEL_DIGEST, OLLAMA_VERSION, http, prepare_ol
 from e2e_v55_native_uia import wait
 
 
-VERSION = '5.35.1'
+VERSION = '5.35.2'
 PDF = 'especificacion.pdf'
 JSON = 'manifiesto.json'
 COMPARE = 'Compara el plazo de primera respuesta.'
 LITERAL = 'Busca «Primera respuesta» en especificacion.pdf.'
 ASK = 'Según la especificación, ¿en cuántas horas llega la primera respuesta? Contesta con la cifra y su unidad.'
+TEXT_ONLY = 'Guarda este encargo de prueba sin adjuntar documentos.'
 PDF_QUOTE = 'Primera respuesta en 31 horas.'
 TITLE = '31 h en la especificación, 57 h en la entrega'
 DETAIL = '«Primera respuesta» aparece en el texto recuperado de especificacion.pdf.'
@@ -76,7 +77,10 @@ def inspect_report(state, objective, hashes):
     finding, = record['findings']
     refs = {r['name']: r for r in finding['sources']}
     verify(all(ref['sha256'] == hashes[name] for name, ref in refs.items()), 'Citation belongs to different bytes')
-    if objective == COMPARE:
+    if objective == TEXT_ONLY:
+        verify(not hashes and not refs and 'team' not in record and finding['rule'] == 'text_brief',
+               'A written turn gained files, roles, or citations')
+    elif objective == COMPARE:
         verify(finding['rule'] == 'first_response_hours' and finding['status'] == 'mismatch', 'Wrong comparison')
         verify(set(refs) == {PDF, JSON} and refs[PDF]['page'] == 2 and refs[PDF]['value'] == 31, 'PDF locator or hours')
         verify(refs[JSON]['line'] == 4 and refs[JSON]['pointer'] == '/response_sla_hours' and refs[JSON]['value'] == 57,
@@ -164,6 +168,12 @@ def local(exe, work, state, out, receipt):
         verify(screen.control('Instrucción para el Director', 'Edit').is_visible(), 'Missing composer')
         receipt.update(window_titles(screen), ready_seconds=round(ready, 2), pid=host.pid)
         screen.screenshot(out / '01-ventana.png')
+        edit(screen, TEXT_ONLY)
+        wait(lambda: screen.control(SEND, regex=True).is_enabled(), description='can send a written turn without a file')
+        screen.button(SEND, regex=True)
+        wait(lambda: 'Encargo guardado en este hilo' in screen.names(), description='the written turn has a visible receipt')
+        receipt['written_turn'] = inspect_report(state, TEXT_ONLY, {})
+        verify(readonly_counts(state) == {'states': [], 'calls': 0, 'attempts': 0}, 'A written turn charged work')
         choose_files(screen, host, files, title='Adjuntar archivos al hilo', button='^Adjuntar archivos$')
         wanted = {'Incluir ' + p.name for p in files}
         wait(lambda: wanted <= set(screen.names(visible_only=False).splitlines()), description='two native selections in inspector')

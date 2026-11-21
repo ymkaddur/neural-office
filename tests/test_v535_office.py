@@ -13,7 +13,7 @@ from neural_office.attachment_formats import classify, read
 from neural_office.attachments import AttachmentStore
 from neural_office.ledger import Denied, Ledger, canonical, digest
 from neural_office.project_library import ProjectLibrary
-from neural_office.team_review import ROLES
+from neural_office.team_review import ROLES, review
 from examples.multiformat.build_example import pdf_bytes
 
 
@@ -23,6 +23,24 @@ def package(parts):
         for name, body in parts.items():
             zip_file.writestr(name, body)
     return stream.getvalue()
+
+
+class TeamActivityTests(unittest.TestCase):
+    def test_only_completed_work_gets_a_success_signal(self):
+        item = dict(id='doc', name='texto.md', kind='text', sha256='f'*64)
+        cite = dict(attachment_id='doc', name='texto.md', sha256='0'*64)
+        finding = dict(rule='file_content', status='observed', title='Texto',
+                       detail='Una cita', sources=[cite])
+        notices, steps = [], []
+        with self.assertRaisesRegex(Denied, 'ATTACHMENT_INTEGRITY_FAILED'):
+            review('Comprobar', [item], [finding], [], lambda: False,
+                   lambda action, count: notices.append(action),
+                   progress=lambda *args: steps.append(args))
+        verifier = [(role, cycle, phase) for _, _, role, cycle, phase in steps if role == 'verifier']
+        self.assertEqual(verifier, [('verifier', 1, 'running'), ('verifier', 1, 'failed')])
+        self.assertFalse(any('Verificó las capturas' in action for action in notices))
+        self.assertTrue(all(step[1] == 1 for step in steps))
+        self.assertEqual(len(notices), 3)
 
 
 class GeneralReaderTests(unittest.TestCase):
@@ -79,6 +97,24 @@ class GeneralReaderTests(unittest.TestCase):
         self.assertEqual(read('wav', damaged_rate)['status'], 'invalid')
         self.assertEqual(read('other',b'plain text')['text'],'plain text')
 
+    def test_word_preserves_run_separators_but_keeps_styled_fragments_together(self):
+        body = ('<document><p><r><t>nor</t></r><r><t>te</t><tab/><t>sur</t>'
+                '<br/><t>oeste</t><cr/><t>este</t></r></p></document>')
+        view = read('docx', package({'word/document.xml': body}))
+        self.assertEqual(view['text'], 'norte\tsur\noeste\neste')
+
+    def test_sheet_distinguishes_blank_uncached_formula_and_cached_value(self):
+        body = ('<worksheet><sheetData><row><c r="A1"/>'
+                '<c r="B1"><f>2+3</f></c><c r="C1"><f>2+3</f><v>5</v></c>'
+                '<c r="D1"><f t="shared" si="0"/></c></row></sheetData></worksheet>')
+        view = read('xlsx', package({'xl/worksheets/sheet1.xml': body}))
+        cells = view['text'].splitlines()
+        self.assertEqual(cells[0], 'sheet1.xml · A1  ')
+        self.assertIn('=2+3', cells[1])
+        self.assertIn('sin resultado guardado', cells[1])
+        self.assertEqual(cells[2], 'sheet1.xml · C1  5')
+        self.assertIn('sin resultado guardado', cells[3])
+
 
 @unittest.skipUnless(os.name=='nt','Windows local capture')
 class OfficeWorkflowTests(unittest.TestCase):
@@ -100,6 +136,16 @@ class OfficeWorkflowTests(unittest.TestCase):
 
     def inspect(self):
         return self.store.inspect(self.project,self.ids,'Inspecciona los archivos.',thread_id=self.thread)
+
+    def test_source_reads_do_not_inherit_a_specialist(self):
+        with self.store._observed_inspection(self.project, self.thread, self.ids, 'Verificar') as note:
+            note('Comprobar las citas', 2, 'verifier', 2, 'running')
+            current = self.store.activity(self.project, self.thread)
+            self.assertEqual((current['role'], current['round'], current['phase']), ('verifier', 2, 'running'))
+            note('Leyendo un archivo', 0)
+            current = self.store.activity(self.project, self.thread)
+            self.assertFalse({'role', 'round', 'phase'} & current.keys())
+        self.assertIsNone(self.store.activity(self.project, self.thread))
 
     def test_receipts_real_inputs_reopen_and_ledger(self):
         report=self.inspect()

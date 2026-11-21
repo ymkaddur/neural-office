@@ -27,6 +27,19 @@ export type Inspection = {
   reservations: number; model_calls: number;
 };
 export type ThreadSummary = { id: string; objective: string; created_at: number };
+
+export function consultationQuestion(report: Inspection | null, sameSelection: boolean, draft: string): string | null {
+  if (!report || !sameSelection) return null;
+  const question = draft.trim();
+  if (!report.attachments.length) {
+    const recordedText = report.findings.length === 1 && report.findings[0].rule === 'text_brief';
+    return recordedText && (!question || question === report.objective) ? report.objective : null;
+  }
+  const hasEvidence = report.findings.some(finding => finding.sources.some(source => source.quote?.trim() || source.code?.trim()));
+  if (!hasEvidence) return null;
+  return question || report.objective || 'Revisa las fuentes citadas de la entrega.';
+}
+
 export type InspectionSummary = Pick<Inspection, 'id' | 'project_id' | 'thread_id' | 'objective' | 'created_at'> &
   { attachment_count: number; finding_count: number };
 export type AttachmentView = {
@@ -41,7 +54,9 @@ export type AttachmentView = {
   line?: number; column?: number; orientation?: number; original_width?: number; original_height?: number;
   member?: string; member_sha256?: string; member_bytes?: number; container_kind?: string;
 };
-export type ExcerptApproval = Approval & { thread_id: string; report_id: string; fragments: Citation[] };
+export const directorTextScope='local-director-text-v1';
+export const excerptScope='local-inspection-excerpts-v1';
+export type ExcerptApproval = Approval & { thread_id: string; report_id: string; analysis_scope?:typeof directorTextScope|typeof excerptScope; fragments: Citation[] };
 
 export function attachmentApi(send: Requester) {
   const target = (project_id: string, thread_id: string) => ({ project_id, thread_id });

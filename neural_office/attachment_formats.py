@@ -104,6 +104,7 @@ def json_view(data):
     white = re.compile(r'[ \t\r\n]*')
     decoder = json.JSONDecoder(parse_float=Decimal)
     fields = []
+    fields_truncated = False
     nodes = 0
     schema = None
     hours = None
@@ -112,7 +113,7 @@ def json_view(data):
         return white.match(source, at).end()
 
     def parse(at, pointer, depth):
-        nonlocal nodes, hours, schema
+        nonlocal nodes, hours, schema, fields_truncated
         nodes += 1
         if depth > 40 or nodes > 10_000 or len(pointer) > 1400:
             raise JsonLocationError('La estructura excede el límite de lectura.', at)
@@ -169,6 +170,8 @@ def json_view(data):
                      value=display, quote=source[at:end][:240])
         if len(fields) < MAX_FIELDS:
             fields.append(field)
+        else:
+            fields_truncated = True
         if pointer == '/response_sla_hours':
             hours = field if type(value) is int and 0 < value <= 1_000_000 else None
         elif pointer == '/$schema' and isinstance(value, str):
@@ -203,7 +206,7 @@ def json_view(data):
                   text=source[snippet_start:snippet_start + MAX_TEXT], text_start_line=first_line, total_lines=len(starts),
                   text_start_column=snippet_start - starts[first_line-1] + 1,
                   text_truncated=len(source) > MAX_TEXT, fields=fields,
-                  fields_truncated=nodes > MAX_FIELDS and len(fields) == MAX_FIELDS, schema=schema,
+                  fields_truncated=fields_truncated, schema=schema,
                   schema_validated=False, hours=hours)
 
 
@@ -250,7 +253,7 @@ def pdf_view(data, page_number, mode):
                     if chars > 30_000:
                         complete = False
                     text = (textpage.get_text_bounded() if chars <= 30_000 else textpage.get_text_range(0,30_000)) if chars else ''
-                    if mode == 'text' and next(page.get_objects(filter=[raw.FPDF_PAGEOBJ_IMAGE]), None) is not None:
+                    if scan_pages and next(page.get_objects(filter=[raw.FPDF_PAGEOBJ_IMAGE]), None) is not None:
                         complete = False
                         image_pages.append(number)
                     if not text.strip():
@@ -296,6 +299,8 @@ def pdf_view(data, page_number, mode):
                         values.update(text=text[:MAX_TEXT], text_truncated=chars > MAX_TEXT,
                                       width=width, height=height)
         complete = complete and (not scan_pages or pages <= MAX_PAGES) and count_scanned == 0
+        if mode == 'inspect' and image_pages:
+            values['image_pages'] = image_pages
         if mode == 'text':
             first = page_texts[0] if page_texts else dict(page=page_number,text='')
             values.update(text=first['text'],page=first['page'],text_truncated=not complete,page_texts=page_texts,

@@ -5,6 +5,7 @@ from ctypes import wintypes as w
 import os
 from pathlib import Path
 import sqlite3
+import tempfile
 import threading
 import uuid
 
@@ -194,17 +195,30 @@ def backup(ledger, destination):
     with ledger.connection() as con:
         if con.execute('SELECT attempt FROM lease').fetchone()[0] is not None:
             raise Denied('BACKUP_REQUIRES_IDLE_OFFICE')
-        fd = os.open(target, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        if target.exists():
+            raise FileExistsError(target)
+        fd, name = tempfile.mkstemp(dir=target.parent, prefix=target.name + '.', suffix='.tmp')
         os.close(fd)
-        dest = sqlite3.connect(target)
+        staged = Path(name)
         try:
-            con.backup(dest)
-            if signature(dest) != signature(con): raise Denied('BACKUP_VERIFICATION_FAILED')
+            dest = sqlite3.connect(staged)
+            try:
+                con.backup(dest)
+                copied = signature(dest)
+                if copied != signature(con):
+                    raise Denied('BACKUP_VERIFICATION_FAILED')
+            finally:
+                dest.close()
             office, revision = con.execute('SELECT office,revision FROM continuity_meta').fetchone()
-            return {'office': office, 'revision': revision, 'logical_sha': signature(dest),
-                    'witness_included': False}
+            # Publish only a verified copy, without replacing a concurrent writer's destination.
+            if os.name == 'nt':
+                staged.rename(target)
+            else:
+                os.link(staged, target)
+            return {'office': office, 'revision': revision, 'logical_sha': copied,
+                    'witness_included': False, 'attachments_included': False}
         finally:
-            dest.close()
+            staged.unlink(missing_ok=True)
 
 
 def restore(ledger, backup_file):

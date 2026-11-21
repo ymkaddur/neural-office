@@ -29,7 +29,7 @@ async function until(condition:()=>boolean){
 const baseAttempt={id:'attempt',project_id:'project',ordinal:1,state:'RUNNING' as const,revision:1,source_sha256:'a'.repeat(64),model:'synthetic',model_digest:'b'.repeat(64),roles:1,objective:'Synthetic controlled task only.',mode:'fixture',request_key:'request-key',calls:[],report_available:false};
 const project=(id:string,consumed=1)=>({id,active:false,approved:true,attempts_consumed:consumed,legacy_consumed:0,verified_versions:0,simulated_versions:0});
 const snapshot=(attempts:any[]=[baseAttempt],projects=[project('project')])=>({session_id:'session',office_id:'office',revision:2,cursor:2,projects,attempts,next:{project_after:projects.length,attempt_after:attempts.length},has_more:{projects:false,attempts:false},lease:{attempt_id:null,generation:1}});
-async function mount(send:(method:string,params:Record<string,unknown>)=>Promise<unknown>){
+async function mount(send:(method:string,params:Record<string,unknown>)=>Promise<unknown>,selectionGate?:Promise<void>){
   const window=new Window({url:'http://tauri.localhost',width:1320,height:860});
   const later=window.setTimeout.bind(window),clear=window.clearTimeout.bind(window);
   let pollTimer:unknown, pollCleaned=false;
@@ -43,6 +43,7 @@ async function mount(send:(method:string,params:Record<string,unknown>)=>Promise
     const {method,params}=message;
     let result:unknown;
     if(['attachments.threads','attachments.list','attachments.history'].includes(method)){
+      if(method==='attachments.list'&&selectionGate)await selectionGate;
       const fields=method==='attachments.threads'?['project_id']:['project_id','thread_id'];
       assert.deepEqual(Object.keys(params).sort(),fields);
       assert.equal(typeof params.project_id,'string');
@@ -73,6 +74,29 @@ async function openHtml(app:Awaited<ReturnType<typeof mount>>){
   command()!.click();
   await until(()=>!!app.document.querySelector('#connected-objective'));
 }
+
+test('a text brief waits for the initial file selection before keyboard or button can submit',async()=>{
+  let release!:()=>void;
+  const gate=new Promise<void>(resolve=>{release=resolve;});
+  const inspected:unknown[]=[];
+  const app=await mount(async(method,params)=>{
+    if(method==='describe')return {session_id:'session',office_id:'office'};
+    if(method==='snapshot.get')return snapshot([],[]);
+    if(method==='attachments.inspect')inspected.push(params);
+    throw Error('Unexpected operation '+method);
+  },gate);
+  try{
+    await until(()=>app.document.body.textContent.includes('Recuperando las fuentes y el historial del hilo'));
+    const field=app.document.querySelector<HTMLTextAreaElement>('.desk-composer textarea')!;
+    const action=app.document.querySelector<HTMLButtonElement>('.desk-composer .desk-primary')!;
+    Object.getOwnPropertyDescriptor(app.window.HTMLTextAreaElement.prototype,'value')!.set!.call(field,'¿7+11?');
+    field.dispatchEvent(new app.window.Event('input',{bubbles:true}));
+    field.dispatchEvent(new app.window.KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}));
+    assert.equal(action.disabled,true);assert.deepEqual(inspected,[]);
+    release();await until(()=>!action.disabled);
+    assert.deepEqual(inspected,[]);
+  }finally{release();await app.close();}
+});
 
 test('while a call runs, only its own history row adopts the newer receipt',async()=>{
   const queued={...baseAttempt,state:'QUEUED',revision:1,ordinal:2};

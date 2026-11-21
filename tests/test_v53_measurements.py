@@ -56,6 +56,21 @@ class MeasurementBoundaries(unittest.TestCase):
         self.assertIsNone(result['cpu_seconds'])
         self.assertNotIn('private detail', json.dumps(result))
 
+    def test_cpu_average_uses_only_the_observed_window(self):
+        for before, after, expected in ((0, 0, 0), (15, 15, 0), (12, 12.25, 6.25),
+                                        (None, 0, None), (0, None, None), (1, 0, None)):
+            with self.subTest(before=before, after=after):
+                readings = iter([{'unreadable_processes': 0, **({'cpu_seconds': n} if n is not None else {})}
+                                 for n in (before, after)])
+                sampler = JobSampler(None, reader=lambda _: next(readings), interval=10)
+                with patch('neural_office.measurements.time.perf_counter_ns', side_effect=(0, 0, 10**9, 10**9)), \
+                        patch('neural_office.measurements.os.cpu_count', return_value=4):
+                    sampler.start()
+                    result = sampler.stop()
+                self.assertEqual(result['cpu_seconds'], after)
+                self.assertEqual(result['cpu_percent_machine_average'], expected)
+                self.assertEqual(result['complete'], expected is not None)
+
     def test_failures_not_excluded_from_acceptance_count(self):
         result = aggregate([{'roles': 1, 'state': 'FAILED', 'wall_seconds': 1},
                             {'roles': 1, 'state': 'ACCEPTED', 'wall_seconds': 9}])[0]

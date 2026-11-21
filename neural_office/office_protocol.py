@@ -46,6 +46,8 @@ def validate_permit(profile, source):
                       profile.get('tries_per_step'))
     if canonical(profile) != canonical(expected):
         raise Denied('OFFICE_PERMIT_INVALID')
+    if expected['max_dispatches'] < len(expected['steps']):
+        raise Denied('OFFICE_DISPATCH_LIMIT')
     source.decode('utf-8-sig', errors='strict')
 
 
@@ -72,7 +74,12 @@ def start(ledger, project, thread, root, file, objective, key, max_dispatches=3,
         raise Denied('OFFICE_REQUEST_INVALID')
     content, (relative, _, _) = capture_local(file, root, maximum=MAX_SOURCE, extensions=('.html', '.htm'))
     profile = permit(thread, relative, max_dispatches, tries_per_step)
-    validate_permit(profile, content)
+    # Older versions admitted short permits. Ledger.reserve verifies the frozen
+    # request digest on replay, before it can activate or charge a new attempt.
+    historical_replay = (max_dispatches < len(profile['steps']) and ledger.path.is_file()
+                         and lookup(ledger, project, thread, key) is not None)
+    if not historical_replay:
+        validate_permit(profile, content)
     ledger.initialize()
     ledger.register(project, root)
     return ledger.reserve(project, objective, content, profile, key, admit=True, source_name=Path(relative).name)

@@ -16,7 +16,7 @@ DECISION = re.compile(
     r'(?:(?:cual (?:es|fue) )?la )?decision (?:guardada|anterior|del hilo)|'
     r'(?:(?:cual (?:es|fue) )?el )?plazo (?:elegido|confirmado)|con cual nos quedamos|'
     r'que (?:se decidio|quedo acordado))'
-    r'(?: en este hilo| (?:sobre|para|respecto a) el plazo(?: de (?:la )?(?:primera )?respuesta)?)?'
+    r'(?: (?:sobre|para|respecto a) el plazo(?: de (?:la )?(?:primera )?respuesta)?)?(?: en este hilo)?'
 )
 HOURS = re.compile(
     r'\b(primera respuesta|(?:tiempo|plazo) de (?:la )?respuesta|response_sla_hours|first response|response time)\b|'

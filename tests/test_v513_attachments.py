@@ -23,6 +23,15 @@ from examples.multiformat.build_example import example_files, pdf_bytes
 
 
 class JSONReaderTests(unittest.TestCase):
+    def test_index_cutoff_counts_scalar_values(self):
+        import json
+        for count in (159, 160, 161):
+            with self.subTest(count=count):
+                values = {'entries': [[i] for i in range(count)]}
+                view = json_view(json.dumps(values).encode('utf-8'))
+                self.assertEqual(len(view['fields']), min(count, 160))
+                self.assertEqual(view['fields_truncated'], count > 160)
+
     def test_location_and_pointer_escape(self):
         view = json_view(b'{\r\n "note":"response_sla_hours",\r\n "a/b":{"~name":2},\r\n "response_sla_hours":\r\n  48}')
         self.assertEqual(view['hours']['line'], 5)
@@ -68,6 +77,42 @@ class AttachmentStoreTests(unittest.TestCase):
 
     def inspect(self):
         return self.store.inspect('Portal', list(self.ids.values()), 'Verifica el plazo.', thread_id='review')
+
+    def test_image_in_text_pdf_requires_visual_review_before_deciding_a_deadline(self):
+        import pypdfium2 as pdf
+        from contextlib import closing
+        from PIL import Image, ImageDraw
+
+        plain = pdf_bytes([['Primera respuesta en 24 horas.']])
+        self.paths[0].write_bytes(plain)
+        self.paths[2].write_bytes(b'{"response_sla_hours":24}')
+
+        def inspect_sources():
+            captured = self.store.capture('Portal', [self.paths[0], self.paths[2]], thread_id='review')
+            return self.store.inspect('Portal', [f['id'] for f in captured],
+                                      'Compara el plazo de primera respuesta.', thread_id='review')['findings'][0]
+
+        self.assertEqual(inspect_sources()['status'], 'match')
+        mixed = BytesIO()
+        with pdf.PdfDocument(plain) as doc, closing(doc[0]) as page:
+            with Image.new('RGB', (260, 35), 'white') as caption:
+                ImageDraw.Draw(caption).text((1, 1), 'Primera respuesta en 48 horas.', fill='black')
+                with closing(pdf.PdfBitmap.from_pil(caption)) as bitmap:
+                    image = pdf.PdfImage.new(doc)
+                    image.set_bitmap(bitmap)
+                    image.set_matrix(pdf.PdfMatrix(260, 0, 0, 35, 40, 400))
+                    page.insert_obj(image)
+                    page.gen_content()
+                    doc.save(mixed)
+        self.paths[0].write_bytes(mixed.getvalue())
+        result = inspect_sources()
+        self.assertEqual(result['status'], 'insufficient')
+        self.assertIn('parcial', result['detail'])
+        self.assertIn('imágenes', result['detail'])
+        self.assertIn('1', result['detail'])
+        text = read('pdf', mixed.getvalue(), mode='text')
+        self.assertEqual(text['image_pages'], [1])
+        self.assertFalse(text['complete'])
 
     def test_real_files_report_reopen_and_scope(self):
         report = self.inspect()

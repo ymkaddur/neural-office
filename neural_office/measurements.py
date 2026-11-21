@@ -110,6 +110,7 @@ class JobSampler:
         self.stop_event = threading.Event()
         self.thread = None
         self.started_ns = None
+        self.initial_sample = None
 
     def sample(self):
         try:
@@ -124,7 +125,8 @@ class JobSampler:
         if self.thread is not None:
             raise RuntimeError('SAMPLER_ALREADY_STARTED')
         self.started_ns = time.perf_counter_ns()
-        self.sample()
+        if self.sample():
+            self.initial_sample = self.samples[-1]
         def observe():
             while not self.stop_event.wait(self.interval):
                 self.sample()
@@ -143,18 +145,25 @@ class JobSampler:
         def peak(key):
             values = [s[key] for s in self.samples if s.get(key) is not None]
             return max(values) if values else None
-        cpu = self.samples[-1]['cpu_seconds'] if final_observed and self.samples else None
+        final = self.samples[-1] if final_observed else {}
+        initial = self.initial_sample or {}
+        cpu = final.get('cpu_seconds')
+        initial_cpu = initial.get('cpu_seconds')
+        average = None
+        if initial_cpu is not None and cpu is not None and 0 <= initial_cpu <= cpu:
+            observed_ns = final['elapsed_ns'] - initial['elapsed_ns']
+            if observed_ns > 0:
+                average = 100 * (cpu - initial_cpu) / (observed_ns / 1e9) / (os.cpu_count() or 1)
         return {
             'scope': 'owned_backend_job_only', 'interval_seconds': self.interval,
             'sample_count': len(self.samples), 'elapsed_seconds': elapsed,
             'cpu_seconds': cpu,
-            'cpu_percent_machine_average': (100 * cpu / elapsed / (os.cpu_count() or 1)
-                if cpu is not None and elapsed > 0 else None),
+            'cpu_percent_machine_average': average,
             'sampled_peak_working_set_sum_bytes': peak('working_set_sum_bytes'),
             'sampled_peak_private_commit_sum_bytes': peak('private_commit_sum_bytes'),
             'job_peak_commit_bytes': peak('job_peak_commit_bytes'),
             'incomplete_samples': sum(s['unreadable_processes'] > 0 for s in self.samples),
             'observation_errors': self.errors,
-            'complete': not self.errors and all(s['unreadable_processes'] == 0 for s in self.samples),
+            'complete': average is not None and not self.errors and all(s['unreadable_processes'] == 0 for s in self.samples),
             'system_gpu_usage': None,
         }

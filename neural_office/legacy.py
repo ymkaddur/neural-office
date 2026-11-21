@@ -253,29 +253,42 @@ def require_reconciliation(con, project, root):
 
 def reconcile(ledger, source_root):
     source_root = str(local_path(source_root, 'LEGACY_NETWORK_SOURCE_EXCLUDED').resolve(strict=True))
-    with ledger.transaction() as con:
+    with ledger.transaction(seal_unchanged=False) as con:
         observed = _current(source_root)
+        receipt = canonical(observed)
+        authority = {key: value for key, value in observed.items() if key != 'physical_sources'}
+        changed = False
         for p in PRODUCTS:
             info = observed['projects'][p]
             old = con.execute('SELECT * FROM legacy_bindings WHERE project=?', (p,)).fetchone()
             if old and (old['lineage'] != observed['lineage'] or info['consumed'] < old['consumed']):
                 raise Denied('LEGACY_LINEAGE_OR_BUDGET_REGRESSION')
             existing = con.execute('SELECT root FROM projects WHERE id=?', (p,)).fetchone()
-            if existing and not old and existing['root'] != info['root']: raise Denied('LEGACY_PROJECT_ID_CONFLICT')
+            unbound = existing and existing['root'] == ledger.unbound_root(p)
+            if existing and not old and not unbound and existing['root'] != info['root']: raise Denied('LEGACY_PROJECT_ID_CONFLICT')
             if con.execute("SELECT 1 FROM attempts WHERE project=? AND state NOT IN ('ACCEPTED','REJECTED','FAILED','CANCELLED')", (p,)).fetchone():
                 raise Denied('LEGACY_RECONCILE_REQUIRES_IDLE_PROJECT')
             local = con.execute('SELECT count(*) FROM attempts WHERE project=?', (p,)).fetchone()[0]
             if local + info['consumed'] > 3: raise Denied('LEGACY_COMBINED_BUDGET_EXCEEDED')
             if not existing:
                 con.execute('INSERT INTO projects(id,root) VALUES(?,?)', (p, info['root']))
+            elif unbound:
+                con.execute('UPDATE projects SET root=? WHERE id=?', (info['root'], p))
             con.execute('INSERT OR IGNORE INTO legacy_roots VALUES(?,?)', (info['root'], p))
             if con.execute('SELECT project FROM legacy_roots WHERE root=?', (info['root'],)).fetchone()[0] != p:
                 raise Denied('LEGACY_ROOT_ALREADY_BOUND')
+            if old and old['source_root'] == source_root:
+                previous = json.loads(old['receipt'])
+                previous.pop('physical_sources', None)
+                if previous == authority:
+                    continue
             con.execute('INSERT OR REPLACE INTO legacy_bindings VALUES(?,?,?,?,?)',
-                        (p, observed['lineage'], source_root, info['consumed'], canonical(observed)))
+                        (p, observed['lineage'], source_root, info['consumed'], receipt))
             con.execute('UPDATE projects SET active=0,approved=0 WHERE id=?', (p,))
-        ledger._event(con, 'LEGACY_RECONCILED', {'lineage': observed['lineage'], 'fingerprint': observed['fingerprint'],
-                      'consumed': {p: observed['projects'][p]['consumed'] for p in PRODUCTS}, 'authority_granted': False})
+            changed = True
+        if changed:
+            ledger._event(con, 'LEGACY_RECONCILED', {'lineage': observed['lineage'], 'fingerprint': observed['fingerprint'],
+                          'consumed': {p: observed['projects'][p]['consumed'] for p in PRODUCTS}, 'authority_granted': False})
         return observed
 
 

@@ -5,12 +5,13 @@ Extrae el ZIP completo a una carpeta local. El lanzador usa el núcleo Python de
 Desde PowerShell 7, en la carpeta extraída, ejecuta:
 
 ```powershell
-.\Start-NeuralOffice-Desktop.ps1 -PrepareReaders
 .\Start-NeuralOffice-Desktop.ps1 -Check
 .\Start-NeuralOffice-Desktop.ps1
 ```
 
-El primer comando descarga a un entorno local los lectores de PDF e imágenes fijados por huella. El segundo comprueba la configuración. El tercero abre el escritorio. La aplicación conserva los proyectos en el estado local de Neural Office. Para una prueba aislada puedes pasar `-State` con una ruta nueva a un archivo SQLite local.
+El primer comando comprueba la configuración y el formato del ejecutable x64. El segundo abre el escritorio. Puedes comenzar escribiendo un encargo sin adjuntos. Para leer el texto de PDF o inspeccionar imágenes, prepara antes los lectores con `.\Start-NeuralOffice-Desktop.ps1 -PrepareReaders`. Ese comando descarga las dependencias fijadas por huella a un entorno local.
+
+La aplicación conserva los proyectos en el estado local de Neural Office. Para una prueba aislada puedes pasar `-State` con una ruta nueva a un archivo SQLite local.
 
 Este paquete se usa para validar la entrega antes de publicarla. En equipos que requieren una firma de confianza, Windows puede bloquear el ejecutable con el error 4551. Mantén activa esa protección. La distribución pública del binario espera a una firma aceptada por Windows.
 

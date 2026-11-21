@@ -46,7 +46,8 @@ def main(argv=None):
     check.add_argument('--root',required=True); check.add_argument('--file',required=True)
     sub.add_parser('protect',help='Enroll an idle schema-1 V5.2 ledger without resetting history')
     for action in ('backup','restore'):
-        command=sub.add_parser(action); command.add_argument('file')
+        command=sub.add_parser(action, help=f'{action.capitalize()} the attempt ledger. Captures, inspection reports and the witness are stored separately.')
+        command.add_argument('file', help='SQLite copy of the attempt ledger')
     for action in ('legacy-inspect','legacy-reconcile'):
         command=sub.add_parser(action); command.add_argument('source_root')
     command=sub.add_parser('legacy-rebind')

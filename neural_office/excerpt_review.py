@@ -5,6 +5,8 @@ import re
 from .ledger import Denied, canonical, digest
 
 SCOPE = 'local-inspection-excerpts-v1'
+TEXT_SCOPE = 'local-director-text-v1'
+SCOPES = (SCOPE, TEXT_SCOPE)
 COMMENTARY = 'UNVERIFIED_ASSISTANCE'
 
 
@@ -36,12 +38,16 @@ def capture_excerpts(report, project_id, thread_id):
                     fragment[locator] = citation[locator]
             if fragment not in fragments:
                 fragments.append(fragment)
-    if not fragments:
+    text_only = (not includes and bool(report['objective'].strip()) and
+                 [f['rule'] for f in report['findings']] == ['text_brief'])
+    if not fragments and not text_only:
         raise Denied('NO_CITED_EXCERPTS')
     if len(fragments) > 8:
         raise Denied('EXCERPT_BUDGET')
-    body = {'scope': SCOPE, 'project_id': project_id, 'thread_id': thread_id,
+    body = {'scope': TEXT_SCOPE if text_only else SCOPE, 'project_id': project_id, 'thread_id': thread_id,
             'inspection_id': report['id'], 'fragments': fragments}
+    if text_only:
+        body['objective'] = report['objective']
     snapshot = canonical(body).encode('utf-8')
     if len(snapshot) > 4608:
         raise Denied('EXCERPT_BUDGET')
@@ -50,6 +56,10 @@ def capture_excerpts(report, project_id, thread_id):
 
 def material(snapshot):
     captured = json.loads(snapshot)
+    if captured['scope'] == TEXT_SCOPE:
+        if captured['fragments'] != [] or not isinstance(captured.get('objective'), str) or not captured['objective'].strip():
+            raise Denied('EXCERPT_SCOPE_INVALID')
+        return captured
     if captured['scope'] != SCOPE or not 1 <= len(captured['fragments']) <= 8:
         raise Denied('EXCERPT_SCOPE_INVALID')
     return captured
@@ -57,7 +67,7 @@ def material(snapshot):
 
 def make_report(snapshot, outputs):
     source = material(snapshot)
-    return canonical({'schema': 1, 'scope': SCOPE, 'source_sha256': digest(snapshot),
+    return canonical({'schema': 1, 'scope': source['scope'], 'source_sha256': digest(snapshot),
                       'inspection_id': source['inspection_id'], 'thread_id': source['thread_id'],
                       'authorized_fragments': source['fragments'], 'findings': [],
                       'model_commentary_status': COMMENTARY, 'role_outputs': outputs}).encode('utf-8')
@@ -65,13 +75,16 @@ def make_report(snapshot, outputs):
 
 def verify_report(snapshot, artifact):
     checks = {}
+    checked_scope = SCOPE
     try:
+        checked_scope = material(snapshot)['scope']
         report = json.loads(artifact)
         expected = make_report(snapshot, report['role_outputs'])
         checks['matches_authorized_excerpts'] = expected == artifact
         checks['outputs_type'] = type(report['role_outputs']) is list
     except (KeyError, ValueError, UnicodeError, TypeError, Denied):
         checks['parse'] = False
-    return {'verifier': SCOPE, 'source_sha256': digest(snapshot),
+    return {'verifier': checked_scope, 'source_sha256': digest(snapshot),
             'artifact_sha256': digest(artifact), 'checks': checks, 'passed': all(checks.values()),
-            'coverage': 'Identidad de los extractos autorizados y del comentario del modelo.'}
+            'coverage': ('Identidad del encargo escrito y de la respuesta del Director.' if checked_scope == TEXT_SCOPE
+                         else 'Identidad de los extractos autorizados y del comentario del modelo.')}

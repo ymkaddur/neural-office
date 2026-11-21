@@ -100,8 +100,13 @@ def office_text(kind, data):
             root=xml_part(archive,archive.getinfo(part))
             if kind=='xlsx':
                 for cell in root.findall('.//{*}sheetData/{*}row/{*}c'):
-                    value=cell.findtext('{*}v') or ''
-                    if cell.get('t')=='s':
+                    cached = cell.find('{*}v')
+                    value = (cached.text or '') if cached is not None else ''
+                    formula = cell.find('{*}f')
+                    if formula is not None and (cached is None or (not value and cell.get('t') != 'str')):
+                        expression = '=' + formula.text if formula.text else 'Fórmula'
+                        value = expression + ' · sin resultado guardado'
+                    elif cell.get('t')=='s':
                         if not value.isdecimal() or int(value)>=len(shared):
                             raise ValueError('shared string index')
                         value=shared[int(value)]
@@ -110,6 +115,17 @@ def office_text(kind, data):
                     lines.append(part.split('/')[-1]+' · '+(cell.get('r') or '?')+'  '+value)
             elif kind in ('odt','ods','odp'):
                 lines.extend(''.join(p.itertext()) for p in root.iter() if p.tag.rsplit('}',1)[-1] in ('h','p'))
+            elif kind == 'docx':
+                separators = {'tab': '\t', 'br': '\n', 'cr': '\n'}
+                for paragraph in root.findall('.//{*}p'):
+                    fragments = []
+                    for node in paragraph.iter():
+                        tag = node.tag.rsplit('}', 1)[-1]
+                        if tag == 't':
+                            fragments.append(node.text or '')
+                        elif tag in separators:
+                            fragments.append(separators[tag])
+                    lines.append(''.join(fragments))
             else:
                 lines.extend(''.join(t.text or '' for t in p.findall('.//{*}t')) for p in root.findall('.//{*}p'))
         text='\n'.join(lines)

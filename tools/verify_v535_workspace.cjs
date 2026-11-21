@@ -76,6 +76,7 @@ const roster=['Investigador','Planificador','Implementador','Verificador','Escé
 const pages=['Director',...roster,'Memoria','Skills','Ajustes'];
 let browser;
 let pickerLimitOnce=false,interruptNextInspection=false,finishInterruptedRead,staleRecoveryOnce=false,conflicts=0;
+let loseLibraryCreateReply=false;
 async function main(){
   const files=await checked('host.attachments.capture',{project_id:project,thread_id:thread,paths:inputs});
   const report=await checked('attachments.inspect',{project_id:project,thread_id:thread,attachment_ids:files.map(f=>f.id),objective:'Inspecciona los archivos de la entrega.'});
@@ -115,6 +116,10 @@ async function main(){
       envelope=await new Promise(resolve=>{finishInterruptedRead=()=>resolve({version:1,ok:false,result:null,error:{code:'ATTACHMENT_READ_CANCELLED'}});});
     }else if(finishInterruptedRead&&message.method==='attachments.cancel'){
       finishInterruptedRead();finishInterruptedRead=undefined;envelope={version:1,ok:true,result:{cancelled:true}};
+    }else if(loseLibraryCreateReply&&message.method==='library.change'&&params.operation==='create'){
+      loseLibraryCreateReply=false;
+      const committed=await call(message.method,params);assert.equal(committed.ok,true);
+      envelope={version:1,ok:false,error:{code:'HOST_RESPONSE_TIMEOUT'}};
     }else if(staleRecoveryOnce&&message.method==='attempt.recover'){
       staleRecoveryOnce=false;
       envelope=await call(message.method,{...params,expected_revision:params.expected_revision-1});
@@ -266,6 +271,9 @@ async function main(){
       await page.reload();await button('Comprobar recuperación').waitFor();
       const before=await checked('attempt.get',{attempt_id:packet.attempt});
       assert.equal(before.state,'RUNNING');assert.equal(before.inspection_id,reimport.id);
+      await go('Ajustes');await page.getByRole('heading',{name:'Ajustes generales'}).waitFor();
+      await page.getByRole('region',{name:'Control del trabajo en curso'}).locator('.inline-link').click();
+      assert.equal(await button('Proyectos').getAttribute('aria-current'),'page');
       await page.getByRole('region',{name:'Control del trabajo en curso'}).getByRole('button',{name:/Detener trabajo/}).click();
       staleRecoveryOnce=true;
       await button('Comprobar recuperación').click();
@@ -289,10 +297,47 @@ async function main(){
     await draft.fill(beforeStop);pickerLimitOnce=true;await button('Adjuntar archivos').click();
     await page.getByRole('alert').getByRole('button',{name:'Elegir archivos'}).waitFor();
     assert.equal(await draft.inputValue(),beforeStop);
+    if(await button('Inspector').getAttribute('aria-pressed')==='true')await button('Inspector').click();
     interruptNextInspection=true;await button('Enviar · 0 intentos').click();
+    await button('Abrir hilo de Investigador').click();
+    const currentSheet=page.getByRole('dialog',{name:'Hilo de Investigador'});
+    await currentSheet.getByText(beforeStop,{exact:true}).waitFor();
+    assert.equal(await currentSheet.locator('.round-switch button').count(),0);
+    assert.equal(await currentSheet.getByText(archived.objective,{exact:true}).count(),0);
+    await page.keyboard.press('Escape');
     await page.getByRole('button',{name:'Detener lectura · '+project}).click();
     await page.getByText('Lectura detenida por el núcleo. Se conservan el borrador y la selección.',{exact:true}).waitFor();
     assert.equal(await draft.inputValue(),beforeStop);
+    const sibling=await entry('memory','Edición B','Texto B');
+    const edited=await entry('memory','Edición A','Texto A');
+    await go('Memoria y skills');
+    const library=page.locator('.office-library'), editor=page.getByRole('dialog');
+    await library.getByRole('button',{name:/Edición A/}).click();await button('Editar nota').click();
+    await editor.getByLabel('Contenido').fill('Borrador A');
+    await checked('library.change',{...source,kind:'memory',title:'Edición A',entry_id:edited,operation:'retire',expected_revision:1,body:''});
+    await editor.getByRole('button',{name:'Guardar'}).click();
+    await editor.getByText(/Esta entrada fue retirada/).waitFor();
+    assert(await editor.getByRole('button',{name:'Guardar'}).isDisabled());
+    assert.equal(await editor.getByLabel('Contenido').inputValue(),'Borrador A');
+    await page.keyboard.press('Escape');
+    const readEntry=async id=>(await checked('library.list',{project_id:project})).find(row=>row.id===id);
+    assert.equal((await readEntry(sibling)).body,'Texto B');
+    await library.getByRole('button',{name:/Edición B/}).click();await button('Editar nota').click();
+    await editor.getByLabel('Contenido').fill('Mi propuesta');
+    await checked('library.change',{...source,kind:'memory',title:'Edición B',entry_id:sibling,operation:'edit',expected_revision:1,body:'Cambio externo'});
+    await editor.getByRole('button',{name:'Guardar'}).click();
+    await editor.getByText('Cambio externo',{exact:true}).waitFor();
+    assert(await editor.getByRole('button',{name:'Guardar'}).isDisabled());
+    assert.equal((await readEntry(sibling)).revision,2);
+    await editor.getByRole('button',{name:'Revisar mi cambio sobre r2'}).click();
+    await editor.getByRole('button',{name:'Guardar'}).click();await editor.waitFor({state:'hidden'});
+    assert.equal((await readEntry(sibling)).body,'Mi propuesta');
+    await button('＋ Añadir nota').click();
+    await editor.getByLabel('Nombre').fill('Alta reconciliada');await editor.getByLabel('Contenido').fill('Una sola copia');
+    loseLibraryCreateReply=true;await editor.getByRole('button',{name:'Guardar'}).click();
+    await editor.waitFor({state:'hidden'});
+    assert.equal((await checked('library.list',{project_id:project})).filter(row=>row.title==='Alta reconciliada').length,1);
+    await require('./verify_v535_inspector.cjs')({page,checked,project,python,runFile,root,sourceFolder,out});
     assert.deepEqual(errors,[]);
     fs.writeFileSync(path.join(out,'recorrido.json'),JSON.stringify({engine:'Edge + Python stdio, selector y transporte Tauri sustituidos para la prueba',views:entries,checks:['6 × 3 recibos','PDF y JSON descargados','restauración de foco','persistencia al recargar','aceptación y retirada concurrente de skill','encargo desde el compositor','ventana estrecha','saludo sin delegación','búsqueda con espacios y borrador','entrega histórica tras recargar','hora a 760 × 540','ida y vuelta entre especialista y cita','línea Unicode','PDF exportado y reimportado'],errors},null,2));
     const links=entries.map(e=>'<figure><a href="'+e.name+'"><img src="'+e.name+'" loading="lazy" alt="'+e.title+'"></a><figcaption>'+e.title+' · '+(e.theme==='dark'?'Oscuro':'Claro')+'</figcaption></figure>').join('');

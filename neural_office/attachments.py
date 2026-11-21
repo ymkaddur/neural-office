@@ -12,7 +12,7 @@ import time
 from .attachment_formats import MAX_FILE, classify, legacy_kind, result
 from .desktop_contract import valid
 from .inspection_intent import READER_FORMATS, literal_findings, reader_findings
-from .inspection_plan import plan, read_plan, unsupported
+from .inspection_plan import Task, plan, read_plan, unsupported
 from .files import FileStamp, capture_local, local_path
 from .ledger import Denied, canonical, digest
 from .team_review import review as review_with_team, verify_saved
@@ -20,7 +20,7 @@ from .team_review import review as review_with_team, verify_saved
 
 SCHEMA = 2
 APPLICATION_ID = 0x4E4F4154
-RULE_VERSION = 'local-inspection-7'
+RULE_VERSION = 'local-inspection-8'
 MAX_CAPTURE_BATCH = 8
 MAX_REPORT = 300_000
 MAX_IDENTIFIED_FILE = 512 * 1024 * 1024
@@ -103,6 +103,9 @@ def comparison(attachments, views):
                                            kind=item['kind'], sha256=item['sha256'], unit='h'))
     if pdf['status'] != 'ok' or not pdf.get('complete'):
         finding['detail'] = 'La cobertura del texto PDF es parcial. Revisa las páginas o aporta una copia con texto.'
+        if pdf.get('image_pages'):
+            pages = ', '.join(str(number) for number in pdf['image_pages'])
+            finding['detail'] = f'La cobertura del texto PDF es parcial. Revisa las imágenes (pág. {pages}) antes de confirmar el plazo.'
     elif len(citations) != 1:
         finding['detail'] = 'El PDF debe contener un único requisito explícito de primera respuesta en horas.'
     elif not citations[0].get('region'):
@@ -196,8 +199,8 @@ def recover_report(db, project_id, thread_id, identity):
                            (item['id'], project_id, thread_id)).fetchone()
         if owner is None or owner[0] != item['sha256']:
             raise Denied('ATTACHMENT_INTEGRITY_FAILED')
-    if record['rule_version'] in ('local-inspection-5', 'local-inspection-6', 'local-inspection-7'):
-        only_guidance = all(f['rule'] in ('scope', 'greeting') for f in record['findings'])
+    if record['rule_version'] in ('local-inspection-5', 'local-inspection-6', 'local-inspection-7', RULE_VERSION):
+        only_guidance = all(f['rule'] in ('scope', 'greeting', 'text_brief') for f in record['findings'])
         if record['rule_version'] != 'local-inspection-5' and only_guidance:
             if 'team' in record:
                 raise Denied('ATTACHMENT_INTEGRITY_FAILED')
@@ -215,7 +218,7 @@ def matching_legacy_report(db, project, thread, objective, inputs, findings):
         r.created_at DESC,r.id''', (project, thread, objective, len(inputs), len(findings)))
     for row in candidates:
         old = recover_report(db, project, thread, row['id'])
-        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3', 'local-inspection-4', 'local-inspection-5', 'local-inspection-6')
+        if (old['rule_version'] not in ('local-inspection-2', 'local-inspection-3', 'local-inspection-4', 'local-inspection-5', 'local-inspection-6', 'local-inspection-7')
                 or (old['rule_version'] == 'local-inspection-5' and all(f['rule'] in ('scope', 'greeting') for f in findings))
                 or old['objective'] != objective or old['findings'] != findings
                 or len(old['attachments']) != len(inputs)):
@@ -248,7 +251,7 @@ class AttachmentStore:
         with self.ledger.connection() as con:
             office = con.execute('SELECT office FROM continuity_meta WHERE id=1').fetchone()[0]
             project = con.execute('SELECT root FROM projects WHERE id=?', (project_id,)).fetchone()
-        return office, Path(project[0]) if project else None
+        return office, project[0] if project else None
 
     @contextmanager
     def _db(self, office):
@@ -307,7 +310,8 @@ class AttachmentStore:
             raise Denied('ATTACHMENT_SELECTION_LIMIT')
         office, existing = self._authority(project_id)
         choices = [local_path(path) for path in paths]
-        root = existing or choices[0].parent.absolute()
+        needs_root = existing is None or existing == self.ledger.unbound_root(project_id)
+        root = choices[0].parent.absolute() if needs_root else Path(existing)
         rows = {}
         total = 0
         scanned = 0
@@ -329,7 +333,7 @@ class AttachmentStore:
                 raise Denied('ATTACHMENT_SELECTION_LIMIT')
             rows[capture_id] = (capture_id, project_id, thread_id, source_id, candidate.name, kind,
                                 size, sha, time.time(), body)
-        if existing is None:
+        if needs_root:
             try:
                 self.ledger.register(project_id, root)
             except sqlite3.IntegrityError:
@@ -382,9 +386,14 @@ class AttachmentStore:
             record = {'objective': objective, 'sources': list(sources), 'finished': 0,
                       'action': 'Preparando la lectura', 'at': time.time()}
             self._inspections[key] = record
-        def note(action, finished):
+        def note(action, finished, role=None, round_number=None, phase=None):
             with self._lock:
                 record.update(action=action, finished=finished, at=time.time())
+                if role is not None:
+                    record.update(role=role, round=round_number, phase=phase)
+                else:
+                    for field in ('role', 'round', 'phase'):
+                        record.pop(field, None)
         try:
             yield note
         finally:
@@ -428,10 +437,12 @@ class AttachmentStore:
 
     def inspect(self, project_id, attachment_ids, objective='', *, thread_id='main'):
         scope(project_id, thread_id)
-        if (not isinstance(attachment_ids, list) or not 1 <= len(attachment_ids) <= MAX_CAPTURE_BATCH
+        if (not isinstance(attachment_ids, list) or len(attachment_ids) > MAX_CAPTURE_BATCH
                 or any(not valid('digest', item) for item in attachment_ids) or len(set(attachment_ids)) != len(attachment_ids)
-                or not isinstance(objective, str) or len(objective) > 2000):
+                or not valid('inspection_objective', objective) or (not attachment_ids and not objective.strip())):
             raise Denied('DESKTOP_PARAMETER_INVALID')
+        if not attachment_ids:
+            self.ledger.register_text(project_id)
         office, _ = self._authority(project_id)
         inputs = []
         views = {}
@@ -449,7 +460,7 @@ class AttachmentStore:
             if len(captured) != len(attachment_ids):
                 raise Denied('ATTACHMENT_NOT_FOUND')
             ordered = [captured[i] for i in attachment_ids]
-            tasks = plan(objective, ordered)
+            tasks = plan(objective, ordered) if ordered else [Task('text_brief', (), objective)]
             checks = [t.action for t in tasks]
             modes = read_plan(tasks, ordered)
             for identity in attachment_ids:
@@ -502,7 +513,11 @@ class AttachmentStore:
                 started = time.monotonic()
                 task = request.action
                 sources = [f for f in inputs if f['id'] in request.sources]
-                if request.limit or task == 'clarify':
+                if task == 'text_brief':
+                    answers = [dict(rule='text_brief', status='observed', title='Encargo guardado en este hilo',
+                                    detail='Puedes pedir al modelo local que responda con este texto o añadir archivos para una comprobación.',
+                                    sources=[])]
+                elif request.limit or task == 'clarify':
                     answers = [unsupported(request, sources)]
                 elif task == 'literal':
                     answers = literal_findings(request.phrase, sources, views)
@@ -531,7 +546,7 @@ class AttachmentStore:
                 findings.extend(answers)
                 for answer in answers:
                     steps.append(dict(at=time.time(), duration_ms=round((time.monotonic()-started)*1000),
-                                      actor='Verificador local', action='Comparar el plazo de primera respuesta' if task=='hours' else answer['title'],
+                                      actor='Director local' if task == 'text_brief' else 'Verificador local', action='Comparar el plazo de primera respuesta' if task=='hours' else answer['title'],
                                       status=answer['status'], detail=answer['detail']))
             if cancelled():
                 raise Denied('ATTACHMENT_READ_CANCELLED')
@@ -552,8 +567,8 @@ class AttachmentStore:
             report = dict(id=identity, project_id=project_id, thread_id=thread_id, objective=objective,
                           created_at=created, completed_at=time.time(), rule_version=RULE_VERSION, attachments=inputs,
                           findings=findings, steps=steps, reservations=0, model_calls=0)
-            if any(f['rule'] not in ('scope', 'greeting') for f in findings):
-                report['team'] = review_with_team(objective, inputs, findings, checks, cancelled, note)
+            if any(f['rule'] not in ('scope', 'greeting', 'text_brief') for f in findings):
+                report['team'] = review_with_team(objective, inputs, findings, checks, cancelled, progress=note)
             report['completed_at'] = time.time()
             payload = canonical(report)
             if len(payload.encode('utf-8')) > MAX_REPORT:
@@ -566,15 +581,20 @@ class AttachmentStore:
             return report
 
     def _decision_answer(self, db, project, thread, inputs):
+        # Keep the original selection. Additional images or other unrelated types
+        # can coexist with the decision, but a second PDF/JSON may change the comparison.
         sources = {item['id'] for item in inputs}
-        # Each report is immutable. Use the most recent decision belonging to the selected sources.
+        compared_types = {item['id'] for item in inputs if item['kind'] in ('pdf', 'json')}
         rows = db.execute("""SELECT d.report,d.revision,d.choice FROM decisions d
             WHERE d.project=? AND d.thread=? AND d.revision=(
             SELECT MAX(r.revision) FROM decisions r WHERE r.project=d.project AND r.thread=d.thread AND r.report=d.report)
             ORDER BY d.at DESC,d.report""",(project,thread))
         for row in rows:
             record = recover_report(db, project, thread, row['report'])
-            if not record or {i['id'] for i in record['attachments']} != sources:
+            if not record:
+                continue
+            original = {item['id'] for item in record['attachments']}
+            if not (compared_types <= original <= sources):
                 continue
             finding = next(f for f in record['findings'] if f['rule']=='first_response_hours' and f['status']=='mismatch')
             selected = next((s for s in finding['sources'] if s['kind']==row['choice']), None)

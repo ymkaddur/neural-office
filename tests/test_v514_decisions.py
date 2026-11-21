@@ -91,6 +91,17 @@ class DecisionTests(unittest.TestCase):
         self.assertEqual(self.inspect('¿Qué decidimos?', ['json'])['findings'][0]['status'],'insufficient')
         self.assertEqual(requested_checks('Revisa el plazo de pago.', {'pdf','json'}),['clarify'])
 
+    def test_extra_image_preserves_the_choice_but_a_missing_source_does_not(self):
+        report = self.inspect('Compara el plazo.', ['pdf','json'])
+        self.store.decide('Portal', 'revision', report['id'], 'pdf', 0)
+        for goal in ('¿Qué decidimos en este hilo?', '¿Qué decidimos sobre el plazo de primera respuesta en este hilo?'):
+            with self.subTest(goal=goal):
+                finding, = self.inspect(goal, ['png', 'pdf', 'json'])['findings']
+                self.assertEqual(finding.get('origin_report'), report['id'])
+                self.assertEqual(finding['sources'][0]['value'], 24)
+                missing, = self.inspect(goal, ['png', 'json'])['findings']
+                self.assertEqual(missing['status'], 'insufficient')
+
     def test_old_database_migrates_without_losing_its_report(self):
         report = self.inspect('Comprueba el plazo.', ['pdf','json'])
         with closing(sqlite3.connect(self.store.path)) as db, db:

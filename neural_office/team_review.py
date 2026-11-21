@@ -37,7 +37,7 @@ def location(citation):
     return ' · '.join([citation['name'], *parts])
 
 
-def review(objective, attachments, findings, checks, cancelled, notify):
+def review(objective, attachments, findings, checks, cancelled, notify=None, *, progress=None):
     by_id = {item['id']: item for item in attachments}
     references = [c for f in findings for c in f['sources']]
     facts = [f['detail'] for f in findings]
@@ -52,22 +52,34 @@ def review(objective, attachments, findings, checks, cancelled, notify):
     previous = None
     receipts = []
 
+    def publish(role, cycle, phase, message):
+        if progress is not None:
+            progress(message, len(attachments), role, cycle, phase)
+        if phase == 'completed' and notify is not None:
+            notify(message, len(attachments))
+
     def step(cycle, role, work):
         nonlocal previous
         if cancelled():
             raise Denied('ATTACHMENT_READ_CANCELLED')
         index = ROLES.index(role)
         action = ACTIONS[cycle-1][index]
-        notify(f'Iteración {cycle} · {action}', len(attachments))
+        instruction = INSTRUCTIONS[cycle-1][index]
+        publish(role, cycle, 'running', f'Iteración {cycle} · {instruction}')
         tick = time.monotonic_ns()
-        lines = work()
-        row = dict(round=cycle, role=role, instruction=INSTRUCTIONS[cycle-1][index],
+        try:
+            lines = work()
+        except Exception:
+            publish(role, cycle, 'failed', f'Iteración {cycle} · Operación fallida')
+            raise
+        row = dict(round=cycle, role=role, instruction=instruction,
                    action=action, details=lines, at=time.time(), duration_us=(time.monotonic_ns()-tick)//1000,
                    parent=previous)
         # Timing belongs to the receipt. Identity describes the exact causal content.
         row['sha256'] = digest(canonical([cycle, role, previous, objective, action, lines]))
         previous = row['sha256']
         receipts.append(row)
+        publish(role, cycle, 'completed', f'Iteración {cycle} · {action}')
         return lines
 
     def check_sources():
@@ -135,7 +147,7 @@ def verify_saved(report):
     files = report['attachments']
     checks = requested_checks(report['objective'], {f['kind'] for f in files},
                               allow_dialogue=report['rule_version'] != 'local-inspection-5')
-    expected = review(report['objective'], files, report['findings'], checks, lambda: False, lambda *_: None)
+    expected = review(report['objective'], files, report['findings'], checks, lambda: False)
     if (not isinstance(recorded.get('receipts'), list)
             or len(recorded['receipts']) != len(expected['receipts'])
             or {k: v for k, v in recorded.items() if k != 'receipts'} !=

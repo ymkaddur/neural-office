@@ -58,7 +58,23 @@ if ($PrepareReaders) {
     }
     exit 0
 }
-if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) { throw 'Build or download the verified Windows test host first; see desktop/README.md.' }
+if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) {
+    throw 'Falta el ejecutable del escritorio. Consulta LEEME.md en el paquete o docs/PILOTO_WINDOWS.md en el repositorio.'
+}
+$hostFile = [IO.File]::OpenRead($Executable)
+try {
+    $pe = [System.Reflection.PortableExecutable.PEReader]::new($hostFile)
+    try {
+        $headers = $pe.PEHeaders
+        $flags = $headers.CoffHeader.Characteristics
+        $validHost = $headers.CoffHeader.Machine -eq 'Amd64' -and $headers.PEHeader.Magic -eq 'PE32Plus' -and
+            $flags.HasFlag([System.Reflection.PortableExecutable.Characteristics]::ExecutableImage) -and
+            -not $flags.HasFlag([System.Reflection.PortableExecutable.Characteristics]::Dll)
+    } catch [BadImageFormatException] {
+        $validHost = $false
+    } finally { $pe.Dispose() }
+} finally { $hostFile.Dispose() }
+if (-not $validHost) { throw 'El archivo seleccionado debe ser un ejecutable de Windows x64.' }
 $readers = & $Python -I -B $checkReaders $readerRequirements
 if ($LASTEXITCODE -ne 0 -or $readers -ne 'available') {
     Write-Warning 'Los lectores PDF e imagen requieren .\Start-NeuralOffice-Desktop.ps1 -PrepareReaders. HTML y JSON se pueden revisar con este Python.'

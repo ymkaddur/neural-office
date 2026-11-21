@@ -322,6 +322,26 @@ class DurableOffice(unittest.TestCase):
             office.run_step(ledger, attempt, FIRST)
         self.assertEqual(office.reconcile(ledger, attempt), view)
 
+    def test_cli_rejects_a_budget_shorter_than_the_plan_before_charging(self):
+        ledger = self.store('short-plan')
+        args = ['office-start', '--project', 'Portal', '--thread', 'delivery', '--root', str(ledger.path.parent),
+                '--file', str(ledger.path.with_name('portal.html')), '--objective', OBJECTIVE]
+        for limit in (1, 2):
+            with self.subTest(limit=limit):
+                failed = cli(ledger.path, *args, '--key', f'short-{limit}', '--max-dispatches', str(limit), check=False)
+                self.assertEqual(failed.returncode, 2)
+                self.assertEqual(json.loads(failed.stderr)['reason'], 'OFFICE_DISPATCH_LIMIT')
+                self.assertFalse(ledger.path.exists())
+        accepted = cli(ledger.path, *args, '--key', 'sufficient', '--max-dispatches', '3')
+        self.assertEqual((accepted['project_ordinal'], accepted['project_attempts_remaining']), (1, 2))
+        self.assertIsNone(office.lookup(ledger, 'Portal', 'delivery', 'short-2'))
+        ledger.cancel(accepted['attempt'])
+        short = office.permit('delivery', 'portal.html', 2, 1)
+        with self.assertRaisesRegex(Denied, 'OFFICE_DISPATCH_LIMIT'):
+            ledger.reserve('Portal', OBJECTIVE, HTML, short, 'direct-short', admit=True)
+        self.assertIsNone(office.lookup(ledger, 'Portal', 'delivery', 'direct-short'))
+        self.assertEqual(office.status(ledger, accepted['attempt'])['project_attempts_remaining'], 2)
+
     def test_budget_revocation_limits_and_old_attempts(self):
         ledger = self.store('mixed')
         ledger.initialize()
@@ -329,7 +349,14 @@ class DurableOffice(unittest.TestCase):
         legacy = dict(mode='fixture', model='fixture', model_digest='a' * 64, roles=1)
         previous = ledger.reserve('Portal', OBJECTIVE, HTML, legacy, 'old-request', admit=True)
         ledger.cancel(previous)
-        bounded = start(ledger, max_dispatches=1)
+        # Re-create a permit already admitted by an earlier version. Reopening
+        # it and every following action use the current validation unchanged.
+        old_short = office.permit('delivery', 'portal.html', 1, 2)
+        with patch.object(office, 'validate_permit'):
+            bounded = ledger.reserve('Portal', OBJECTIVE, HTML, old_short, 'request-1', admit=True, source_name='portal.html')
+        self.assertEqual(start(ledger, max_dispatches=1), bounded)
+        with self.assertRaisesRegex(Denied, 'IDEMPOTENCY_CONFLICT'):
+            start(ledger, objective='Un encargo diferente con la misma clave', max_dispatches=1)
         with closing(DesktopService(ledger)) as desktop:
             rev = office.status(ledger, bounded)['revision']
             self.assertEqual(desktop.recover(bounded, rev)['state'], 'QUEUED')

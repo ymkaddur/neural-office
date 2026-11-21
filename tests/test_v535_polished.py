@@ -69,6 +69,42 @@ class PolishedWorkflowTests(unittest.TestCase):
         intro = self.inspect('Hola, Director. ¿Cuántas páginas tiene el PDF?', list(self.ids))
         self.assertEqual([(f['rule'],f['title']) for f in intro['findings']],[('pages','2 páginas')])
 
+    def test_scope_restrictions_do_not_certify_a_different_question(self):
+        cases = (
+            'Lee el contenido de notas.md sin consultar valido.json.',
+            'Lee el contenido de los archivos. No leas valido.json.',
+            'Valida el esquema de valido.json.',
+            'Cuenta las páginas que mencionan «Ausente» en manual.pdf.',
+            'Cuenta las páginas de manual.pdf solo si contiene «Ausente».',
+        )
+        for objective in cases:
+            with self.subTest(objective=objective):
+                report = self.inspect(objective, list(self.ids))
+                self.assertTrue(all(f['status'] == 'insufficient' for f in report['findings']))
+                self.assertTrue(all(not f['sources'] for f in report['findings']))
+                self.assertFalse(any(f.get('reader_status') == 'ok' for f in report['attachments']))
+        literal = self.inspect('Busca «sin consultar» en notas.md.', list(self.ids))
+        self.assertEqual(literal['findings'][0]['rule'], 'literal')
+
+    def test_shared_search_verb_keeps_each_phrase_and_target(self):
+        report = self.inspect('Busca «Faro-28» en notas.md y «valor» en valido.json.', list(self.ids))
+        sources = [f['sources'][0] for f in report['findings']]
+        self.assertEqual([s['name'] for s in sources], ['notas.md', 'valido.json'])
+        self.assertIn('Faro-28', sources[0]['quote'])
+        self.assertIn('valor', sources[1]['quote'])
+
+    def test_attachment_name_does_not_become_an_instruction(self):
+        root = Path(self.store._authority('Portal')[1])
+        (root/'legal.json').write_text('{"valor": 18}', encoding='utf-8')
+        item, = self.store.capture('Portal', [root/'legal.json'], thread_id='revision')
+        self.ids['legal.json'] = item['id']
+        ordinary = self.inspect('Valida valido.json.', ['valido.json'])['findings']
+        named = self.inspect('Valida legal.json.', ['legal.json'])['findings']
+        self.assertEqual([f['rule'] for f in named], [f['rule'] for f in ordinary])
+        self.assertEqual(named[0]['sources'][0]['name'], 'legal.json')
+        explicit = self.inspect('Comprueba la validez legal de legal.json.', ['legal.json'])
+        self.assertEqual(explicit['findings'][0]['status'], 'insufficient')
+
     def test_partial_pdf_reports_the_exact_unread_page(self):
         root = Path(self.store._authority('Portal')[1])
         name = 'cuarenta-y-una.pdf'

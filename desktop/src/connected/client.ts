@@ -1,5 +1,5 @@
 import {invoke,isTauri} from '@tauri-apps/api/core';
-import type {Citation} from './attachments';
+import {directorTextScope,excerptScope,type Citation} from './attachments.ts';
 
 export const hasNativeHost=()=>isTauri();
 export type Requester=<T>(method:string,params?:Record<string,unknown>)=>Promise<T>;
@@ -19,7 +19,7 @@ export const request:Requester=async<T>(method:string,params:Record<string,unkno
 export type Finding={code:string;line:number;column:number};
 export type FindingPage={session_id:string;project_id:string;source_sha256:string;offset:number;total:number;findings:Finding[]};
 export type Report={schema:number;scope:string;source_sha256:string;findings:Finding[];model_commentary_status:string;role_outputs:{role:string;content:string}[];authorized_fragments?:Citation[];thread_id?:string;inspection_id?:string};
-type ReportMetadata={attempt_id:string;state:string;sha256:string;bytes:number;encoding:string;media_type:string;verdict:{passed:boolean;coverage:string};mode:string};
+type ReportMetadata={attempt_id:string;state:string;sha256:string;bytes:number;encoding:string;media_type:string;verdict:{passed:boolean;coverage:string};mode:string;generation_limited?:boolean};
 type Chunk={attempt_id:string;sha256:string;offset:number;next_offset:number;eof:boolean;chunk_sha256:string;base64:string};
 const sha=async(data:Uint8Array)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',data as Uint8Array<ArrayBuffer>)),b=>b.toString(16).padStart(2,'0')).join('');
 export async function readReport(send:Requester,attemptId:string,current:()=>boolean=()=>true) {
@@ -39,10 +39,10 @@ export async function readReport(send:Requester,attemptId:string,current:()=>boo
   }
   if(await sha(bytes)!==meta.sha256) throw Error('REPORT_HASH_CHANGED');
   const text=new TextDecoder('utf-8',{fatal:true}).decode(bytes),report=JSON.parse(text) as Report;
-  if(report.schema!==1||!['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3','static-html-checks-v4','local-inspection-excerpts-v1'].includes(report.scope)||report.model_commentary_status!=='UNVERIFIED_ASSISTANCE'||!Array.isArray(report.findings)||report.findings.length>10000||!Array.isArray(report.role_outputs)||report.role_outputs.length>7) throw Error('REPORT_CONTENT_INVALID');
-  if(report.scope==='local-inspection-excerpts-v1'){
+  if(report.schema!==1||!['static-html-checks-v1','static-html-checks-v2','static-html-checks-v3','static-html-checks-v4',excerptScope,directorTextScope].includes(report.scope)||report.model_commentary_status!=='UNVERIFIED_ASSISTANCE'||!Array.isArray(report.findings)||report.findings.length>10000||!Array.isArray(report.role_outputs)||report.role_outputs.length>7) throw Error('REPORT_CONTENT_INVALID');
+  if(report.scope===excerptScope||report.scope===directorTextScope){
     const fragments=report.authorized_fragments;
-    if(!Array.isArray(fragments)||fragments.length<1||fragments.length>8||report.findings.length!==0||
+    if(!Array.isArray(fragments)||(report.scope===directorTextScope?fragments.length!==0:fragments.length<1||fragments.length>8)||report.findings.length!==0||
       !report.thread_id||!report.inspection_id||report.role_outputs.length!==1||
       report.role_outputs[0]?.role!=='director'||fragments.some(f=>!f||typeof f.name!=='string'||typeof f.quote!=='string'||
       !/^[a-z0-9_-]{1,64}$/i.test(f.attachment_id)||!/^[a-f0-9]{64}$/.test(f.sha256))) throw Error('REPORT_EXCERPTS_INVALID');

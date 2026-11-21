@@ -67,7 +67,7 @@ def valid(kind, value):
     if kind == 'digest':
         return type(value) is str and re.fullmatch(r'[a-f0-9]{64}', value) is not None
     if kind == 'capture_ids':
-        return (type(value) is list and 1 <= len(value) <= 8
+        return (type(value) is list and len(value) <= 8
                 and all(valid('id', item) for item in value) and len(set(value)) == len(value))
     if kind == 'page': return type(value) is int and 1 <= value <= 10000
     if kind == 'member':
