@@ -105,6 +105,7 @@ test('opening an earlier delivery during initial loading leaves the composer usa
   const history=[
     {id:'recent',objective:'Entrega reciente',created_at:2,attachment_count:0,finding_count:0},
     {id:'earlier',objective:'Entrega anterior',created_at:1,attachment_count:0,finding_count:0},
+    {id:'same-time',objective:'Entrega de la misma hora',created_at:1,attachment_count:0,finding_count:0},
   ];
   const app=await mount(async(method,params)=>{
     if(method==='describe')return {session_id:'session',office_id:'office'};
@@ -130,6 +131,7 @@ test('opening an earlier delivery during initial loading leaves the composer usa
     const field=app.document.querySelector<HTMLTextAreaElement>('.desk-composer textarea')!;
     assert.equal(field.readOnly,false,'A displayed delivery must not leave the composer read-only');
     assert.equal(app.document.querySelector<HTMLButtonElement>('.desk-attach')!.disabled,false);
+    assert.equal(app.document.querySelector('.earlier-turn span')?.textContent,'Entrega de la misma hora');
   }finally{releaseRecent();await app.close();}
 });
 

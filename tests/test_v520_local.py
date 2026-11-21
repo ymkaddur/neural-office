@@ -129,6 +129,23 @@ class DirectorScope(unittest.TestCase):
             with self.subTest(question=question):
                 self.assertEqual(requested_checks(question, {'pdf', 'json', 'zip'}), expected)
 
+    def test_history_and_search_keep_insertion_order_when_report_times_tie(self):
+        with tempfile.TemporaryDirectory() as folder:
+            ledger = Ledger(Path(folder) / 'office.db')
+            ledger.initialize()
+            store = AttachmentStore(ledger)
+            with patch.object(attachments.time, 'time', return_value=1795273000.0):
+                sent = [store.inspect('Portal', [], f'Encargo de revisión {number:02}', thread_id='review')
+                        for number in range(32)]
+            newest_first = [report['id'] for report in reversed(sent)]
+            self.assertEqual([row['id'] for row in store.history('Portal', thread_id='review')], newest_first)
+            first = store.search_page('Portal', 'Encargo de revisión', before='')
+            second = store.search_page('Portal', 'Encargo de revisión', before=first['next_before'])
+            self.assertEqual(len(first['items']), 30)
+            self.assertEqual(second['next_before'], '')
+            self.assertEqual([row['id'] for page in (first, second) for row in page['items']], newest_first)
+            self.assertEqual(store.threads('Portal')[0]['objective'], sent[0]['objective'])
+
     def test_reopen_recall_and_decline_unrelated_metric(self):
         with tempfile.TemporaryDirectory() as folder:
             base = Path(folder)

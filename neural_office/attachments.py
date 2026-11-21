@@ -671,13 +671,13 @@ class AttachmentStore:
             sql = 'SELECT id,thread AS thread_id,objective FROM reports WHERE project=?'
             args = [project_id]
             if before:
-                pivot = db.execute('SELECT created_at,objective FROM reports WHERE project=? AND id=?',
+                pivot = db.execute('SELECT created_at,objective,rowid FROM reports WHERE project=? AND id=?',
                                    (project_id, before)).fetchone()
                 if not pivot or needle not in fold(pivot['objective']):
                     raise Denied('SEARCH_CURSOR_INVALID')
-                sql += ' AND (created_at<? OR (created_at=? AND id>?))'
-                args.extend((pivot['created_at'], pivot['created_at'], before))
-            rows = db.execute(sql + ' ORDER BY created_at DESC,id', args)
+                sql += ' AND (created_at<? OR (created_at=? AND rowid<?))'
+                args.extend((pivot['created_at'], pivot['created_at'], pivot['rowid']))
+            rows = db.execute(sql + ' ORDER BY created_at DESC,rowid DESC', args)
             items = []
             for row in rows:
                 if needle in fold(row['objective']):
@@ -693,7 +693,7 @@ class AttachmentStore:
             return []
         with self._db(office) as db:
             rows = db.execute('''SELECT id,project AS project_id,thread AS thread_id,objective,created_at,
-                attachment_count,finding_count FROM reports WHERE project=? AND thread=? ORDER BY created_at DESC,id''',
+                attachment_count,finding_count FROM reports WHERE project=? AND thread=? ORDER BY created_at DESC,rowid DESC''',
                               (project_id, thread_id))
             return [dict(row) for row in rows]
 
@@ -718,7 +718,7 @@ class AttachmentStore:
                 UNION ALL SELECT thread, at FROM decisions WHERE project=?)
                 SELECT thread AS id, MAX(created_at) AS created_at,
                     COALESCE((SELECT objective FROM reports r WHERE r.project=? AND r.thread=s.thread
-                              AND length(trim(r.objective))>0 ORDER BY r.created_at,r.id LIMIT 1),
+                              AND length(trim(r.objective))>0 ORDER BY r.created_at,r.rowid LIMIT 1),
                              (SELECT CASE WHEN COUNT(*)=1 THEN MAX(name) ELSE printf('Revisión de %d archivos', COUNT(*)) END
                               FROM captures c WHERE c.project=? AND c.thread=s.thread)) AS objective
                 FROM seen s GROUP BY thread ORDER BY created_at DESC,id''',

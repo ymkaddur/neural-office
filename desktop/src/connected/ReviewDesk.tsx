@@ -157,7 +157,12 @@ export function ReviewDesk({onReport,returnTo,consumeReturn,office,session,sessi
   const datedHistory=useMemo(()=>historyOpen?history.map(entry=>({...entry,clock:new Date(entry.created_at*1000).toLocaleString('es-ES')})):[],[historyOpen,history]);
   const [report,setReport]=useState<Inspection|null>(null);
   const historyId=useId();
-  const earlier=useMemo(()=>report?history.filter(entry=>entry.project_id===project&&entry.thread_id===thread&&entry.id!==report.id&&entry.created_at<report.created_at):[],[history,report,project,thread]);
+  const earlier=useMemo(()=>{
+    if(!report)return [];
+    const thisThread=history.filter(entry=>entry.project_id===project&&entry.thread_id===thread);
+    const current=thisThread.findIndex(entry=>entry.id===report.id);
+    return current>=0?thisThread.slice(current+1):thisThread.filter(entry=>entry.created_at<report.created_at);
+  },[history,report,project,thread]);
   const [specialist,setSpecialist]=useState<{role:Specialist;round?:number;duringInspection?:boolean}|null>(null);
   const awaitingReceipt=specialist?.duringInspection&&job&&(job.state!=='complete'||job.reportId!==report?.id);
   const pendingSheet=awaitingReceipt?{
