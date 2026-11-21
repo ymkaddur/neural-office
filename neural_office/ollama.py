@@ -59,13 +59,14 @@ TEAM_POLICY = 'local-team-v1'
 MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v2'
 LEGACY_MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v1'
 POLISHED_TEAM = 'project-warm-v1'
+SCOPED_REPAIRS = 'source-and-handoffs-v2'
 
 
 def review_profile(model, roles):
     profile = {**model, 'roles': roles}
     if roles == 7 and model.get('mode') == 'ollama-owned':
         profile.update(execution_policy=TEAM_POLICY, num_gpu=-1, citation_format=MULTILINE_BROWSER_FORMAT,
-                       team_session=POLISHED_TEAM)
+                       team_session=POLISHED_TEAM, repair_context=SCOPED_REPAIRS)
     return profile
 
 

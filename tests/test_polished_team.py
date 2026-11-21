@@ -194,3 +194,32 @@ class PolishedTeam(unittest.TestCase):
                 self.assertEqual(messages[-2],{'role':'assistant','content':row['outputs'][-1]['content']})
             row['outputs'].append({'role':role,'content':f'note {index}','content_sha':'a'*64})
             previous=messages
+
+    def test_complete_repair_turn_reuses_its_evidence_and_keeps_every_reply(self):
+        snapshot=b'<html>\n<img src="a">\n<input id="nombre">\n</html>'
+        notes=[{'role':role,'content':f'decision-{i}','content_sha':'a'*64} for i,role in enumerate(ROLES[:-1])]
+        old_profile=dict(self.profile)
+        old_profile.pop('repair_context')
+        for language, objective in [('es', GOAL), ('en', 'Explain how to fix the image and the form.')]:
+            row=dict(profile=self.profile, snapshot=snapshot, objective=objective, outputs=notes)
+            current=prompt(row,'integrator')
+            old=prompt({**row,'profile':old_profile},'integrator')
+            self.assertEqual(current['format'],old['format'])
+            self.assertEqual({k:v['enum'] for k,v in current['format']['properties'].items()},
+                             {k:list(v) for k,v in REPAIR_CHOICES[language].items()})
+            text='\n'.join(m['content'] for m in current['messages'])
+            self.assertEqual(text.count(objective),1)
+            self.assertIn('IMAGE_ALT_MISSING L2:C1',text)
+            self.assertIn('CONTROL_LABEL_CANDIDATE L3:C1',text)
+            self.assertIn('HTML_LANGUAGE_MISSING',old['messages'][1]['content'])
+            self.assertNotIn('HTML_LANGUAGE_MISSING',text)
+            self.assertNotIn('DOCUMENT_TITLE_MISSING',text)
+            self.assertEqual([m['content'] for m in current['messages'] if m['role']=='assistant'],
+                             [n['content'] for n in notes])
+            self.assertTrue(all(text.count(n['content'])==1 for n in notes))
+            self.assertIn('"guidance"',old['messages'][-1]['content'])
+            # A partial recovery still carries the checked facts and its two latest notes.
+            row['outputs']=[notes[0], *notes[2:], notes[1]]
+            restored=prompt(row,'integrator')['messages'][-1]['content']
+            self.assertIn('"source"',restored)
+            self.assertIn('decision-1',restored)

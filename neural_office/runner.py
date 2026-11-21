@@ -6,7 +6,7 @@ import uuid
 from .audit import RULE_FAMILIES, audit_html, citation_only, location_and_browser_language, make_report, requested_rule
 from . import excerpt_review
 from .ledger import Denied,canonical,digest,OFFICE_MODE,TERMINAL
-from .ollama import LEGACY_MULTILINE_BROWSER_FORMAT, MULTILINE_BROWSER_FORMAT, OwnedOllama, POLISHED_TEAM, TEAM_POLICY, inference_options
+from .ollama import LEGACY_MULTILINE_BROWSER_FORMAT, MULTILINE_BROWSER_FORMAT, OwnedOllama, POLISHED_TEAM, SCOPED_REPAIRS, TEAM_POLICY, inference_options
 from .team_session import discard
 from . import team_guidance
 
@@ -113,8 +113,12 @@ def prompt(row,role,*,checked_findings=None):
         narrow = any(f['code'] == focus for f in findings) and (
             citation_only(row['objective'], focus) or location_and_browser_language(row['objective'], focus))
         scoped = [f for f in findings if f['code'] == focus] if narrow else findings
+        compact_repair = bool(repair and row['profile'].get('repair_context') == SCOPED_REPAIRS)
+        if compact_repair:
+            scoped = [f for f in findings if f['code'] in (team_guidance.IMAGE, team_guidance.CONTROL)]
         if modern and role != 'integrator' and (repair or narrow):
-            candidate = team_guidance.handoff(payload, role, row['objective'], scoped, row['outputs'], locations_only=bool(narrow))
+            candidate = team_guidance.handoff(payload, role, row['objective'], scoped, row['outputs'],
+                                              locations_only=bool(narrow))
             if len(canonical(candidate).encode('utf-8')) <= 6144:
                 payload = candidate
         elif repair and role == 'integrator':
@@ -153,7 +157,8 @@ def prompt(row,role,*,checked_findings=None):
                 if citation_format in (MULTILINE_BROWSER_FORMAT, LEGACY_MULTILINE_BROWSER_FORMAT):
                     payload = browser_location_reply(payload, row['objective'], focus, hits, prior, citation_format)
         if modern and role == 'integrator' and (repair or narrow) and 'format' in payload and len(row['outputs'])==6:
-            candidate = team_guidance.handoff(payload, role, row['objective'], scoped, row['outputs'], locations_only=bool(narrow))
+            candidate = team_guidance.handoff(payload, role, row['objective'], scoped, row['outputs'],
+                                              locations_only=bool(narrow), repair_guide=repair if compact_repair else None)
             if len(canonical(candidate).encode('utf-8')) <= 6144:
                 payload = candidate
     if len(canonical(payload).encode('utf-8'))>6144: raise Denied('PROMPT_BYTE_BUDGET')

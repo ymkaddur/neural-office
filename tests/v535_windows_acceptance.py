@@ -290,7 +290,9 @@ def selection_history(exe, work, state, out, receipt):
             wait(lambda: held.is_file() and held.read_text(encoding='ascii') == receipt['latest']['id'],
                  description='the current report is held after the real storage read')
             screen.disclosure('Entregas de este hilo', True)
-            older = screen.reveal_button('(?s)^' + re.escape(prior) + '.*', regex=True)
+            # The sidebar also names this objective. The expanded history row includes its file and finding counts.
+            history_row = '(?s)^' + re.escape(prior) + r'\s+3 archivos\s*·\s*2 comprobaciones\b.*'
+            older = screen.reveal_button(history_row, regex=True)
             screen.press_space(older)
             wait(lambda: 'Abriendo la entrega guardada' in screen.names(), timeout=6,
                  description='the user opened history while the latest result was outstanding')
