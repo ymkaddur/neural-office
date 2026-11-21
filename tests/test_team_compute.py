@@ -84,6 +84,23 @@ class TeamCompute(unittest.TestCase):
                 inference_options({**team, **change})
         self.assertNotIn('execution_policy', MODEL)
 
+    @unittest.skipUnless(os.name == 'nt', 'Windows process environment')
+    def test_only_an_explicit_cpu_profile_hides_devices_from_its_own_server(self):
+        keys = ('CUDA_VISIBLE_DEVICES','ROCR_VISIBLE_DEVICES','HIP_VISIBLE_DEVICES','GGML_VK_VISIBLE_DEVICES','OLLAMA_VULKAN')
+        with tempfile.TemporaryDirectory() as folder, mock.patch('neural_office.ollama.shutil.which', return_value='ollama'):
+            for roles in (1, 3, 7):
+                backend = OwnedOllama('Local\\PrivateCPU_'+uuid.uuid4().hex, review_profile(MODEL,roles), Path(folder)/'startup.log')
+                try:
+                    with mock.patch.object(backend.job,'start',side_effect=RuntimeError('captured launch')) as launch:
+                        with self.assertRaisesRegex(RuntimeError,'captured launch'):
+                            backend.start()
+                    child = launch.call_args.kwargs['env']
+                    visible = {key:child[key] for key in keys if key in child}
+                    self.assertEqual(visible, {} if roles==7 else dict.fromkeys(keys[:-1],'-1') | {'OLLAMA_VULKAN':'0'})
+                finally:
+                    backend.terminate()
+                    backend.close()
+
     def test_verified_citation_follows_the_actual_source_and_grammar_does_not_supply_the_answer(self):
         row = dict(profile=review_profile(MODEL, 7), objective='Indica el código y la línea de la imagen sin descripción.',
                    snapshot=SOURCE, outputs=[])

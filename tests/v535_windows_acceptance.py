@@ -616,10 +616,18 @@ def main():
     receipt = {'phase': phase, 'status': 'failed', 'product_commit': commit, 'test_commit': os.environ['GITHUB_SHA'],
                'run_id': os.environ['GITHUB_RUN_ID'], 'version': VERSION, 'exe_sha256': sha(exe), 'packaged_launcher': True,
                'webview2': json.loads((Path(os.environ['NO_E2E_TOOLS']) / 'tools.json').read_text(encoding='utf-8-sig'))}
+    state = work / 'office.sqlite3'
     try:
-        functions[phase](exe, work, work / 'office.sqlite3', out, receipt)
+        functions[phase](exe, work, state, out, receipt)
     except Exception as error:
         receipt['error'] = str(error)
+        if state.is_file():
+            try:
+                with database(state) as db:
+                    receipt['termination_receipts'] = [json.loads(row['payload']) for row in db.execute(
+                        "SELECT payload FROM events WHERE kind='OWNED_JOB_TERMINATED' ORDER BY seq")]
+            except (sqlite3.Error, ValueError) as diagnostic_error:
+                receipt['diagnostic_error'] = type(diagnostic_error).__name__
         raise
     finally:
         save(out / (phase + '.json'), receipt)

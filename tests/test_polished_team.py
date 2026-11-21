@@ -225,3 +225,28 @@ class PolishedTeam(unittest.TestCase):
             restored=prompt(row,'integrator')['messages'][-1]['content']
             self.assertIn('"source"',restored)
             self.assertIn('decision-1',restored)
+
+    def test_integrator_can_cite_from_the_full_prefix_without_repeating_the_source(self):
+        notes=[{'role':role,'content':f'decision-{i}','content_sha':'a'*64} for i,role in enumerate(ROLES[:-1])]
+        old_profile=dict(self.profile)
+        old_profile.pop('citation_context')
+        for objective in ('Indica el código y la línea del control sin etiqueta en este archivo.',
+                          'Give the exact code and line of the unlabelled control.'):
+            row=dict(profile=self.profile, snapshot=b'\n'+SOURCE, objective=objective, outputs=notes)
+            current=prompt(row,'integrator')
+            old=prompt({**row,'profile':old_profile},'integrator')
+            self.assertEqual(current['format'],old['format'])
+            self.assertEqual([m for m in current['messages'] if m['role']=='assistant'],
+                             [m for m in old['messages'] if m['role']=='assistant'])
+            for index,role in enumerate(ROLES[:-1]):
+                turn={**row,'outputs':notes[:index]}
+                request=prompt(turn,role)
+                self.assertEqual(current['messages'][:len(request['messages'])],request['messages'])
+                self.assertEqual(request['format'],prompt({**turn,'profile':old_profile},role)['format'])
+            self.assertIn('CONTROL_LABEL_CANDIDATE L3:C14',current['messages'][1]['content'])
+            self.assertNotIn(objective,current['messages'][-1]['content'])
+            self.assertIn(objective,old['messages'][-1]['content'])
+            shifted=prompt({**row,'snapshot':b'\n\n'+row['snapshot']},'integrator')
+            self.assertEqual(shifted['format'],current['format'])
+            self.assertRegex(current['messages'][-1]['content'],r'CONTROL_LABEL_CANDIDATE, (línea|line) 3, (columna|column) 14$')
+            self.assertRegex(shifted['messages'][-1]['content'],r'CONTROL_LABEL_CANDIDATE, (línea|line) 5, (columna|column) 14$')

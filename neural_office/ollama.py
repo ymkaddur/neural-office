@@ -60,13 +60,14 @@ MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v2'
 LEGACY_MULTILINE_BROWSER_FORMAT = 'locations-and-browser-check-v1'
 POLISHED_TEAM = 'project-warm-v1'
 SCOPED_REPAIRS = 'source-and-handoffs-v2'
+SCOPED_CITATION = 'single-location-prefix-v1'
 
 
 def review_profile(model, roles):
     profile = {**model, 'roles': roles}
     if roles == 7 and model.get('mode') == 'ollama-owned':
         profile.update(execution_policy=TEAM_POLICY, num_gpu=-1, citation_format=MULTILINE_BROWSER_FORMAT,
-                       team_session=POLISHED_TEAM, repair_context=SCOPED_REPAIRS)
+                       team_session=POLISHED_TEAM, repair_context=SCOPED_REPAIRS, citation_context=SCOPED_CITATION)
     return profile
 
 
@@ -206,6 +207,11 @@ class OwnedOllama:
                     'OLLAMA_NUM_PARALLEL':'1','OLLAMA_MAX_LOADED_MODELS':'1',
                     'OLLAMA_CONTEXT_LENGTH':'8192','OLLAMA_KEEP_ALIVE':'5m',
                     'OLLAMA_MODELS':os.environ.get('OLLAMA_MODELS',str(Path.home()/'.ollama/models'))})
+        if inference_options(self.profile)['num_gpu'] == 0:
+            # Apply the authorized CPU policy at discovery as well as per request.
+            # Actual residency is still checked on the response from this private server.
+            env.update(CUDA_VISIBLE_DEVICES='-1', ROCR_VISIBLE_DEVICES='-1', HIP_VISIBLE_DEVICES='-1',
+                       OLLAMA_VULKAN='0', GGML_VK_VISIBLE_DEVICES='-1')
         if self.profile.get('team_session') == POLISHED_TEAM:
             env['GOMAXPROCS'] = '1'
         self.log_path.parent.mkdir(parents=True,exist_ok=True)
