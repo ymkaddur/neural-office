@@ -395,19 +395,17 @@ def warm_turn(screen, host, work, state, out, previous_runtime, case, already_ch
     screen.reveal_button(r'^Preparar otro encargo.*', regex=True).invoke()
     team_permission(screen, host, source, objective)
     verify(readonly_counts(state)['attempts']==already_charged, 'Warm preview charged before consent')
+    approve = screen.control(r'^Autorizar y ejecutar.*','Button',regex=True)
     before = job_cpu_seconds(screen.process_job)
     started = time.monotonic()
-    screen.button(r'^Autorizar y ejecutar.*', regex=True)
+    approve.invoke()
     def accepted_repair():
         with database(state) as db:
             row = db.execute('SELECT id,state FROM attempts WHERE objective=?',(objective,)).fetchone()
         return row if row and row['state'] in ('ACCEPTED','FAILED','REJECTED','CANCELLED','RECOVERY_REQUIRED') else None
     accepted_turn = wait(accepted_repair, timeout=420, description='warm team accepted in the same project')
     verify(accepted_turn['state']=='ACCEPTED', 'Warm team failed')
-    if case == 'abierto':
-        screen.control('Recomendaciones del modelo local','Text')
-    else:
-        screen.control('Respuesta del modelo local','Text')
+    cpu_at_receipt = job_cpu_seconds(screen.process_job) - before
     goal, model_digest, calls = completed_calls(state, accepted_turn['id'])
     verify(goal==objective and model_digest==MODEL_DIGEST and all(c['runtime']==previous_runtime and c['resident']
            and c['reused'] for c in calls), 'The second approval did not use the same already-loaded private model')
@@ -415,13 +413,12 @@ def warm_turn(screen, host, work, state, out, previous_runtime, case, already_ch
     checks = repair_checks(answer) if case == 'abierto' else grade(case, answer)
     verify(all(checks.values()), 'Incomplete literal integrated answer: '+answer)
     expected = list(json.loads(answer).values()) if case == 'abierto' else [json.loads(answer)]
-    def displayed():
-        names = words(screen.names())
-        return all(text in names for text in expected)
-    wait(displayed,description='the exact model answer in the native document')
+    for phrase in expected:
+        verify(screen.control(phrase,'Text').is_visible(), 'Model output is not visible in the native report')
     cpu = job_cpu_seconds(screen.process_job) - before
+    wall = time.monotonic() - started
     screen.screenshot(out/('08-director-reparaciones.png' if case == 'abierto' else '09-director-formulario.png'))
-    return dict(cpu_s=cpu,wall_s=time.monotonic()-started,attempt=accepted_turn['id'],model_digest=model_digest,source_sha256=sha(source),
+    return dict(cpu_s=cpu,cpu_at_receipt_s=cpu_at_receipt,wall_s=wall,attempt=accepted_turn['id'],model_digest=model_digest,source_sha256=sha(source),
                 checks=checks,answer=answer,calls=calls,visible_in_report=True)
 
 
